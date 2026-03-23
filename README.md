@@ -1,76 +1,75 @@
-# Pawin Technology - Ecommerce Application
+# Pawin Technology - Industrial Solutions Ecommerce
 
-An Ecommerce application built with the MERN stack (MongoDB, Express, React, Node.js) and MySQL.
+A robust, high-performance ecommerce platform specialized for industrial PCB solutions, electronics, and technical services. Built with a focus on speed, security, and ease of use.
 
-## Features
-- PCB Ordering System (Standard, Custom, Copy PCB)
-- Assembly Services
-- Admin Dashboard
-- Payment Integration (PromptPay QR)
-- Notification System
+## 🚀 Technology Stack
+- **Backend**: Node.js, Express.js
+- **Database**: MySQL (using `mysql2/promise`)
+- **Frontend**: React.js with Redux Toolkit
+- **Security**: JWT Authentication, Bcrypt hashing, Helmet, Rate Limiting, CORS, XSS Protection.
+- **Tools**: Axios, Multer, Jimp, jsQR (for payment verification).
 
-## Prerequisites
-- Node.js (v16 or higher)
-- MySQL (XAMPP or standalone)
-- MongoDB (Optional, for specific features if used)
+## 🛡️ Key Features & Security
+- **PCB Ordering**: Standard, Custom, and Copy PCB ordering flows.
+- **Secure File Uploads**: Protected Gerber and quotation uploads with path traversal prevention.
+- **Admin Dashboard**: Comprehensive management of products, service blogs, and orders.
+- **Thai Localization**: Full support for both English and Thai languages across all customer-facing and internal dashboards.
+- **Payment Verification**: Automated PromptPay QR code verification to match slip amounts with order totals.
+- **Hardenened Security**: Public debug leaks removed, secure cookie handling, and strong environment management.
 
-## Getting Started
+---
 
-### 1. Clone the repository
-```bash
-git clone <your-repository-url>
-cd pawin-backend
+## 🛠️ Getting Started
+
+### 1. Prerequisites
+- **Node.js**: v16 or higher
+- **MySQL**: XAMPP (MariaDB) or a standalone MySQL instance.
+
+### 2. Environment Setup
+Create a `.env` file in the root directory based on the following template:
+
+```env
+PORT=5000
+NODE_ENV=development
+JWT_SECRET=your_strong_random_secret
+
+DB_HOST=127.0.0.1
+DB_USER=root
+DB_PASSWORD=your_password
+DB_NAME=pawin_tech
 ```
 
-### 2. Install Dependencies
-Install dependencies for both the root (backend) and the frontend.
+### 3. Installation
+Install dependencies for both the backend and frontend:
 
 ```bash
-# Install backend dependencies
+# Backend dependencies
 npm install
 
-# Install frontend dependencies
+# Frontend dependencies
 cd frontend
 npm install
 cd ..
 ```
 
-### 3. Environment Variables
-Create a `.env` file in the root directory based on the `.env.example` provided.
+### 4. Database Initialization
+Ensure your MySQL server is running and create a database named `pawin_tech`. Import the provided SQL schema (if available) to set up tables.
 
+### 5. Running the Application
 ```bash
-cp .env.example .env
-```
-Fill in your database credentials and other service configurations in the `.env` file.
-
-### 4. Database Setup
-1. Start your MySQL server (e.g., via XAMPP).
-2. Create a database named `pawin_tech`.
-3. The application will handle table creation via Sequelize/Models on startup (if configured).
-
-### 5. Run the Application
-
-#### Development Mode
-Run both backend and frontend concurrently:
-```bash
+# Start both Backend and Frontend concurrently
 npm run dev
 ```
 
-#### Production Mode
-1. Build the frontend:
-```bash
-cd frontend
-npm run build
-cd ..
-```
-2. Start the server:
-```bash
-npm start
-```
+---
 
-## Folder Structure
-- `/controllers` - Backend logic
-- `/models` - Database models (Sequelize/Mongoose)
-- `/routes` - API endpoints
-- `/frontend` - React application
-- `/uploads` - User uploaded files (ignored by Git)
+## 📁 Project Structure
+- `/controllers` - Main backend business logic and raw SQL queries.
+- `/routes` - API route definitions and access control middleware.
+- `/middleware` - Custom security and authentication handlers.
+- `/utils` - Utility functions for JWT, file cleanup, and QR processing.
+- `/frontend` - React single-page application.
+- `/gerbers`, `/quotationimages`, `/uploads` - Persistent storage for uploads (git-ignored).
+
+## 📄 License
+Custom / Private Repository - Internal Pawin Technology Development.
