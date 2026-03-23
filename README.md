@@ -26,18 +26,12 @@ A robust, high-performance ecommerce platform specialized for industrial PCB sol
 - **MySQL**: XAMPP (MariaDB) or a standalone MySQL instance.
 
 ### 2. Environment Setup
-Create a `.env` file in the root directory based on the following template:
+The application uses environment variables for configuration. Create a `.env` file in the root directory by copying the example provided:
 
-```env
-PORT=5000
-NODE_ENV=development
-JWT_SECRET=your_strong_random_secret
-
-DB_HOST=127.0.0.1
-DB_USER=root
-DB_PASSWORD=your_password
-DB_NAME=pawin_tech
+```bash
+cp .env.example .env
 ```
+Once created, open the `.env` file and fill in your database credentials and other necessary service configurations (secrets, email, etc.). **Never commit the `.env` file to version control.**
 
 ### 3. Installation
 Install dependencies for both the backend and frontend:
