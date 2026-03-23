@@ -166,7 +166,7 @@ const ProductScreen = () => {
                 {getText(product?.name, product?.nameThai)}
               </h1>
 
-              <div className="flex flex-wrap items-center gap-4 mb-8 pb-8 border-b border-slate-100">
+              <div className="flex flex-wrap items-center gap-4 mb-10 pb-10 border-b border-slate-100">
                 <h2 className="text-3xl md:text-4xl font-black text-black tracking-tight">
                   ฿{product?.price?.toLocaleString()}
                 </h2>
@@ -180,13 +180,6 @@ const ProductScreen = () => {
                   </span>
                 )}
               </div>
-
-              {product?.description && product.description !== '<p>--</p>' && (
-                <div
-                  className="text-slate-500 mb-10 flex-grow prose prose-slate max-w-none prose-p:leading-relaxed prose-headings:text-slate-900 prose-headings:font-black prose-headings:tracking-tight prose-strong:text-slate-800 prose-ul:list-disc prose-ul:ml-4 prose-li:my-1.5"
-                  dangerouslySetInnerHTML={{ __html: processContent(getText(product?.description, product?.descriptionThai)) }}
-                />
-              )}
 
               {/* Action Area (Quantity & Cart) */}
               <div className="bg-slate-50 p-6 rounded-2xl border border-slate-100">
@@ -257,6 +250,24 @@ const ProductScreen = () => {
             </div>
           </div>
         </div>
+
+        {/* --- Product Detailed Description (Full Width) --- */}
+        {product?.description && product.description !== '<p>--</p>' && (
+          <div className="bg-white rounded-[2.5rem] shadow-sm border border-slate-100 overflow-hidden mb-12 p-8 md:p-12 lg:p-16">
+            <div className="max-w-4xl mx-auto">
+              <div className="flex items-center gap-4 mb-8">
+                <div className="w-1.5 h-6 bg-indigo-600 rounded-full shadow-[0_0_10px_rgba(79,70,229,0.5)]"></div>
+                <h3 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight">
+                  {language === "thai" ? "รายละเอียดสินค้า" : "Product Details"}
+                </h3>
+              </div>
+              <div
+                className="text-slate-600 prose prose-slate max-w-none prose-p:leading-relaxed prose-headings:text-slate-900 prose-headings:font-black prose-headings:tracking-tight prose-strong:text-slate-900 prose-ul:list-disc prose-ul:ml-4 prose-li:my-2"
+                dangerouslySetInnerHTML={{ __html: processContent(getText(product?.description, product?.descriptionThai)) }}
+              />
+            </div>
+          </div>
+        )}
 
         {/* --- YouTube Video Section --- */}
         {videoId && (
