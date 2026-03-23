@@ -1,0 +1,39 @@
+// export const BASE_URL =
+//   process.env.NODE_ENV === 'develeopment' ? 'http://localhost:5000' : '';
+
+export const BASE_URL = ''
+export const PRODUCTS_URL = '/api/products'
+export const CATEGORYS_URL = '/api/categorys'
+export const SERVICES_URL = '/api/services'
+export const CUSTOMPCBS_URL = '/api/custompcbs'
+export const CUSTOMPCBCARTS_URL = '/api/customcartpcbs'
+export const COPYPCBS_URL = '/api/copypcbs'
+export const COPYPCBCARTS_URL = '/api/copycartpcbs'
+export const ORDERPCBS_URL = '/api/orderpcbs'
+export const ORDERASSEMBLYS_URL = '/api/assemblypcbs'
+export const ORDERASSEMBLYCARTS_URL = '/api/assemblycartpcbs'
+export const FOLIOS_URL = '/api/folios'
+export const SHOWCASE_URL = '/api/showcases'
+export const USERS_URL = '/api/users'
+export const ORDERS_URL = '/api/orders'
+export const BLOGS_URL = '/api/blogs'
+export const ABOUTS_URL = '/api/abouts'
+export const ABOUTIMAGES_URL = '/api/aboutimages'
+export const EMAIL_URL = '/api/emails'
+export const VAT_URL = '/api/vats'
+export const INVOICES_URL = '/api/invoices'
+export const DEFAULT_INVOICES_URL = '/api/defaultinvoices'
+export const QUOTATION_URL = '/api/quotations'
+export const DEFAULT_QUOTATION_URL = '/api/defaultquotations'
+export const CUSTOMERS_URL = '/api/customers'
+
+export const STOCK_PRODUCT_URL = `/api/stockproducts`
+export const STOCK_CATEGORIES_URL = `/api/stockcategories`
+export const STOCK_SUBCATEGORIES_URL = `/api/stocksubcategories`
+export const STOCK_FOOTPRINTS_URL = `/api/stockfootprints`
+export const STOCK_MANUFACTURES_URL = `/api/stockmanufactures`
+export const STOCK_SUPPLIERS_URL = `/api/stocksuppliers`
+export const STOCK_REQUESTS_URL = `/api/stockrequests`
+export const STOCK_ISSUES_URL = `/api/stockissues`
+export const PAYMENTS_URL = '/api/payments';
+export const STOCK_RECEIVES_URL = `/api/stockreceives`

@@ -1,0 +1,20 @@
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /
+  
+  # Prevent the index.html file itself from being rewritten
+  RewriteRule ^index\.html$ - [L]
+  
+  # Exclude API requests (e.g., /api/*) from being rewritten
+  RewriteCond %{REQUEST_URI} ^/api/ [NC]
+  RewriteRule ^ - [L]
+  
+  # If the requested URL is not a real file
+  RewriteCond %{REQUEST_FILENAME} !-f
+  
+  # If the requested URL is not a real directory
+  RewriteCond %{REQUEST_FILENAME} !-d
+  
+  # Rewrite all other requests to index.html
+  RewriteRule . /index.html [L]
+</IfModule>

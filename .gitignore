@@ -1,0 +1,70 @@
+# Dependency directories
+node_modules/
+frontend/node_modules/
+
+# Environment variables
+.env
+frontend/.env
+
+# Build outputs
+frontend/build/
+dist/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+frontend/build_log*.txt
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# User Uploads / Large Binaries
+frontend.rar
+eng.traineddata
+tha.traineddata
+assemblypcbZipFiles/
+blogImages/
+componentImages/
+copypcbImages/
+copypcbZipFiles/
+custompcbImages/
+custompcbZipFiles/
+datasheets/
+defaultquotationimages/
+dirgrams/
+folios/
+gerbers/
+image/
+images/
+manuals/
+paymentSlipImages/
+quotationimages/
+serviceImage/
+serviceImages/
+showcaseImages/
+tempPDF/
+tempZip/
+uploads/
+
+# Temporary / Debug Scripts
+add_star_columns.js
+all_tables.txt
+check_db*.js
+check_order_pcbs.js
+check_schema.js
+db_check_output.json
+db_schemas.json
+fix_noti_db.js
+schema_output.txt
+test_connection.js
+test_download.js
+test_endpoint.js
+tmp.json
+tmp_db_check.js
+update_star_notifications.js
+frontend/fix_stockcart.py
+frontend/fix_typos.ps1

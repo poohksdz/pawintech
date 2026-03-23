@@ -1,0 +1,164 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Prompt:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    /* ปรับฐานฟอนต์ให้พอดีกับจอ: มือถือเล็กหน่อย PC กำลังดี */
+    @apply scroll-smooth text-[15px] sm:text-[16px] lg:text-[17px];
+  }
+
+  body {
+    @apply font-sans bg-slate-50 text-slate-800 m-0 p-0 overflow-x-hidden;
+    font-style: normal !important;
+  }
+
+  /* Force no italic globally as requested */
+  i,
+  em,
+  .italic,
+  .font-italic {
+    font-style: normal !important;
+  }
+
+  /* Fixed Background Pattern: ลื่นหัวแตกเพราะใช้ Layer แยก */
+  body::before {
+    content: "";
+    @apply fixed inset-0 pointer-events-none -z-50;
+    background-image:
+      radial-gradient(at 0% 0%, rgba(37, 99, 235, 0.03) 0px, transparent 50%),
+      radial-gradient(at 100% 100%, rgba(37, 99, 235, 0.03) 0px, transparent 50%);
+  }
+
+  main {
+    @apply mt-[70px] min-h-[80vh];
+  }
+
+  a {
+    @apply no-underline text-inherit transition-colors duration-200;
+  }
+
+  ul {
+    @apply list-none p-0 m-0;
+  }
+
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-slate-300 rounded-md;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-slate-400;
+  }
+}
+
+@layer components {
+
+  /* 🔥 แอนิเมชัน Dropdown: เด้งดึ๋ง ทันสมัย */
+  @keyframes slideDownPop {
+    from {
+      opacity: 0;
+      transform: translateY(-8px) scale(0.95);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  .animate-slideDownPop {
+    animation: slideDownPop 0.2s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+    will-change: opacity, transform;
+    position: relative;
+  }
+
+  /* สะพานล่องหนเชื่อมปุ่มกับเมนู */
+  .animate-slideDownPop::before {
+    content: "";
+    @apply absolute -top-4 left-0 right-0 h-4 bg-transparent;
+  }
+
+  /* Mobile Accordion */
+  .accordion-grid {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .accordion-grid.open {
+    grid-template-rows: 1fr;
+  }
+
+  .accordion-inner {
+    @apply overflow-hidden;
+  }
+
+  /* Page Transition */
+  @keyframes pageFade {
+    0% {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+
+    100% {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .animate-pageFade {
+    animation: pageFade 0.4s ease-out forwards;
+    will-change: opacity, transform;
+  }
+
+  /* 🛠️ Utility: Hide scrollbar but keep functionality */
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}
+
+/* 📱 Optimized Toast for Mobile (Global) */
+@media (max-width: 640px) {
+  .Toastify__toast-container {
+    width: calc(100% - 24px) !important;
+    left: 12px !important;
+    top: 12px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  .Toastify__toast {
+    min-height: 44px !important;
+    border-radius: 12px !important;
+    margin-bottom: 10px !important;
+    padding: 10px 14px !important;
+    font-family: inherit !important;
+    box-shadow: 0 8px 20px -5px rgba(0, 0, 0, 0.1) !important;
+  }
+
+  .Toastify__toast-body {
+    font-size: 13px !important;
+    font-weight: 500 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    line-height: 1.4 !important;
+  }
+
+  .Toastify__toast-icon {
+    width: 16px !important;
+    margin-right: 10px !important;
+    flex-shrink: 0 !important;
+  }
+}
