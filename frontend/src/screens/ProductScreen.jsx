@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { FaCartPlus, FaCheckCircle, FaTimesCircle, FaArrowLeft, FaTruck, FaShieldAlt, FaStar, FaPen } from 'react-icons/fa';
+import { FaCartPlus, FaCheckCircle, FaTimesCircle, FaArrowLeft, FaTruck, FaShieldAlt, FaStar, FaPen, FaFileDownload, FaBook } from 'react-icons/fa';
 import { toast } from 'react-toastify';
 
 // Components & Slices
@@ -11,6 +11,7 @@ import Message from '../components/Message';
 import Meta from '../components/Meta';
 import { useGetProductDetailsQuery, useCreateReviewMutation } from '../slices/productsApiSlice';
 import { addToCart, syncCartDB } from '../slices/cartSlice';
+import DOMPurify from 'dompurify';
 
 const ProductScreen = () => {
   const { id: productId } = useParams();
@@ -20,12 +21,39 @@ const ProductScreen = () => {
   const [qty, setQty] = useState(1);
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState('');
+  const [activeImage, setActiveImage] = useState('');
 
   const { data: product, isLoading, error, refetch } = useGetProductDetailsQuery(productId);
   const [createReview, { isLoading: loadingReview }] = useCreateReviewMutation();
 
   const { userInfo } = useSelector((state) => state.auth);
   const { language } = useSelector((state) => state.language);
+
+  const allImages = useMemo(() => {
+    if (!product) return [];
+    const images = [product.image];
+    if (product.mutipleImage) {
+      images.push(...product.mutipleImage.split(',').filter(Boolean));
+    }
+    return images;
+  }, [product]);
+
+  React.useEffect(() => {
+    if (product && !activeImage) {
+      setActiveImage(product.image);
+    }
+    // Also reset active image if product changes
+    if (product && activeImage && !allImages.includes(activeImage)) {
+      setActiveImage(product.image);
+    }
+  }, [product, activeImage, allImages]);
+
+  // การจัดการวิดีโอแนะนำสินค้า
+  const productVideos = {
+    '28': '0yW2HHGudno',
+    '29': 'Cvmt9ax3VVU'
+  };
+  const videoId = productVideos[productId];
 
   // การจัดการข้อความ 2 ภาษา
   const t = {
@@ -34,6 +62,20 @@ const ProductScreen = () => {
   }[language || 'en'];
 
   const getText = (en, th) => (language === 'thai' ? (th || en) : en);
+
+  // จัดการรูปแบบ Content
+  const processContent = (html) => {
+    if (!html) return "";
+    let processed = html
+      .replace(/<img /g, '<img class="w-full h-auto rounded-[1.5rem] shadow-sm my-8 object-cover border border-slate-100" ')
+      .replace(/<iframe /g, '<div class="aspect-video my-8 rounded-[1.5rem] overflow-hidden shadow-sm border border-slate-100 bg-slate-900"><iframe class="w-full h-full" ')
+      .replace(/<\/iframe>/g, '</iframe></div>');
+
+    return DOMPurify.sanitize(processed, {
+      ADD_TAGS: ["iframe", "div"],
+      ADD_ATTR: ["allowfullscreen", "frameborder", "src", "class", "style", "target"],
+    });
+  };
 
   const addToCartHandler = () => {
     dispatch(addToCart({ ...product, qty }));
@@ -82,14 +124,29 @@ const ProductScreen = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2">
 
             {/* Left: Product Image */}
-            <div className="p-6 md:p-12 border-b lg:border-b-0 lg:border-r border-slate-100 bg-white flex items-center justify-center min-h-[300px] sm:min-h-[400px] lg:min-h-[600px] group">
-              <div className="relative w-full h-full flex items-center justify-center">
+            <div className="p-6 md:p-12 border-b lg:border-b-0 lg:border-r border-slate-100 bg-white flex flex-col items-center justify-center min-h-[300px] sm:min-h-[400px] lg:min-h-[600px] group relative">
+              <div className="relative w-full h-full flex items-center justify-center flex-1">
                 <img
-                  src={product?.image}
+                  src={activeImage || product?.image}
                   alt={product?.name}
                   className="max-h-[300px] sm:max-h-[450px] w-auto object-contain transition-transform duration-500 group-hover:scale-105 drop-shadow-xl"
                 />
               </div>
+
+              {/* Thumbnail Gallery */}
+              {allImages.length > 1 && (
+                <div className="flex gap-4 mt-8 px-2 overflow-x-auto pb-4 hide-scrollbar justify-center w-full">
+                  {allImages.map((img, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => setActiveImage(img)}
+                      className={`w-20 h-20 rounded-2xl overflow-hidden border-2 flex-shrink-0 transition-all ${activeImage === img ? 'border-indigo-600 scale-105 shadow-md' : 'border-slate-100 hover:border-slate-300'}`}
+                    >
+                      <img src={img} alt="" className="w-full h-full object-cover" />
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* Right: Product Details & Actions */}
@@ -125,11 +182,10 @@ const ProductScreen = () => {
               </div>
 
               {product?.description && product.description !== '<p>--</p>' && (
-                <div className="text-slate-500 mb-10 flex-grow prose prose-slate max-w-none">
-                  <p className="leading-relaxed">
-                    {getText(product?.description, product?.descriptionThai)}
-                  </p>
-                </div>
+                <div
+                  className="text-slate-500 mb-10 flex-grow prose prose-slate max-w-none prose-p:leading-relaxed prose-headings:text-slate-900 prose-headings:font-black prose-headings:tracking-tight prose-strong:text-slate-800 prose-ul:list-disc prose-ul:ml-4 prose-li:my-1.5"
+                  dangerouslySetInnerHTML={{ __html: processContent(getText(product?.description, product?.descriptionThai)) }}
+                />
               )}
 
               {/* Action Area (Quantity & Cart) */}
@@ -175,14 +231,35 @@ const ProductScreen = () => {
                   <span className="flex items-center gap-2"><FaTruck className="text-black text-base" /> {language === 'thai' ? 'จัดส่งรวดเร็ว' : 'Fast Shipping'}</span>
                   <span className="flex items-center gap-2"><FaShieldAlt className="text-black text-base" /> {language === 'thai' ? 'รับประกัน 1 ปี' : '1 Year Warranty'}</span>
                 </div>
+
+                {/* Documents / Datasheets */}
+                {(product?.datasheet || product?.manual) && (
+                  <div className="flex flex-col gap-3 mt-6 pt-6 border-t border-slate-200/60">
+                    <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center mb-1">
+                      {language === 'thai' ? 'เอกสารอ้างอิงและคู่มือ' : 'Documentation & Manuals'}
+                    </div>
+                    <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                      {product.datasheet && (
+                        <a href={product.datasheet} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-2 bg-slate-900 hover:bg-black text-white px-5 py-2.5 rounded-xl font-bold text-sm transition-all shadow-sm">
+                          <FaFileDownload /> {language === 'thai' ? 'ดาต้าชีท (Datasheet)' : 'Datasheet'}
+                        </a>
+                      )}
+                      {product.manual && (
+                        <a href={product.manual} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-2 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 px-5 py-2.5 rounded-xl font-bold text-sm transition-all shadow-sm">
+                          <FaBook /> {language === 'thai' ? 'คู่มือการใช้งาน (Manual)' : 'User Manual'}
+                        </a>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
 
             </div>
           </div>
         </div>
 
-        {/* --- YouTube Video Section (Only for Product ID 28) --- */}
-        {productId === "28" && (
+        {/* --- YouTube Video Section --- */}
+        {videoId && (
           <div className="bg-white rounded-[2.5rem] shadow-sm border border-slate-100 overflow-hidden mb-12 p-6 md:p-10">
             <div className="flex items-center gap-4 mb-8">
               <div className="w-1.5 h-6 bg-red-600 rounded-full shadow-[0_0_10px_rgba(220,38,38,0.5)]"></div>
@@ -193,7 +270,7 @@ const ProductScreen = () => {
             <div className="aspect-video w-full rounded-[2rem] overflow-hidden shadow-2xl border border-slate-100 bg-slate-900 group">
               <iframe
                 className="w-full h-full"
-                src="https://www.youtube.com/embed/0yW2HHGudno?autoplay=0&rel=0"
+                src={`https://www.youtube.com/embed/${videoId}?autoplay=0&rel=0`}
                 title="YouTube video player"
                 frameBorder="0"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
