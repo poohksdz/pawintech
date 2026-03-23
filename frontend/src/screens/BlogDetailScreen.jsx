@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
 import { useSelector } from "react-redux";
-import { useParams, Link } from "react-router-dom";
-import { FaCalendarAlt, FaUserCircle, FaChevronRight } from 'react-icons/fa';
+import { useParams, Link, useNavigate } from "react-router-dom";
+import { FaCalendarAlt, FaUserCircle, FaChevronRight, FaArrowLeft } from 'react-icons/fa';
 import { motion, useScroll, useSpring } from 'framer-motion';
 import { useGetBlogDetailsQuery, useGetBlogsQuery } from "../slices/blogsApiSlice";
 import DOMPurify from "dompurify";
@@ -10,6 +10,7 @@ import Message from "../components/Message";
 
 const BlogDetailScreen = () => {
   const { id: blogId } = useParams();
+  const navigate = useNavigate();
   const { language } = useSelector((state) => state.language);
   const isThai = language === "thai";
 
@@ -48,6 +49,7 @@ const BlogDetailScreen = () => {
 
   const t = {
     back: isThai ? "หน้าหลัก" : "Home",
+    backBtn: isThai ? "ย้อนกลับ" : "Back",
     category: isThai ? "ข่าวสารและบทความ" : "News & Articles",
     related: isThai ? "บทความยอดนิยม" : "Popular Stories",
     author: "Editorial Team",
@@ -60,12 +62,20 @@ const BlogDetailScreen = () => {
       <motion.div className="fixed top-0 left-0 right-0 h-1 bg-indigo-600 z-50 origin-left" style={{ scaleX }} />
 
       {/* --- Breadcrumb Navigation --- */}
-      <nav className="max-w-6xl mx-auto px-4 pt-10 pb-6">
+      <nav className="max-w-6xl mx-auto px-4 pt-10 pb-6 flex justify-between items-center">
         <div className="flex items-center gap-2 text-xs font-bold text-slate-400 uppercase tracking-widest">
-          <Link to="/" className="hover:text-indigo-600 transition-colors">{t.back}</Link>
+          <Link to="/" className="hover:text-indigo-600 transition-colors uppercase">{t.back}</Link>
           <FaChevronRight className="text-[10px]" />
-          <Link to="/blogs" className="hover:text-indigo-600 transition-colors">{t.category}</Link>
+          <Link to="/blogs" className="hover:text-indigo-600 transition-colors uppercase">{t.category}</Link>
         </div>
+
+        <button
+          onClick={() => navigate(-1)}
+          className="flex items-center gap-2 px-4 py-2 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 transition-all duration-300 active:scale-95 group"
+        >
+          <FaArrowLeft className="text-xs group-hover:-translate-x-1 transition-transform" />
+          <span className="text-xs font-black uppercase tracking-widest">{t.backBtn}</span>
+        </button>
       </nav>
 
       <main className="max-w-6xl mx-auto px-4 pb-20">
