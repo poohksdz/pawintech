@@ -62,20 +62,20 @@ const BlogDetailScreen = () => {
       <motion.div className="fixed top-0 left-0 right-0 h-1 bg-indigo-600 z-50 origin-left" style={{ scaleX }} />
 
       {/* --- Breadcrumb Navigation --- */}
-      <nav className="max-w-6xl mx-auto px-4 pt-10 pb-6 flex justify-between items-center">
-        <div className="flex items-center gap-2 text-xs font-bold text-slate-400 uppercase tracking-widest">
-          <Link to="/" className="hover:text-indigo-600 transition-colors uppercase">{t.back}</Link>
-          <FaChevronRight className="text-[10px]" />
-          <Link to="/blogs" className="hover:text-indigo-600 transition-colors uppercase">{t.category}</Link>
-        </div>
-
+      <nav className="max-w-6xl mx-auto px-4 pt-10 pb-6 flex items-center gap-6">
         <button
           onClick={() => navigate(-1)}
-          className="flex items-center gap-2 px-4 py-2 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 transition-all duration-300 active:scale-95 group"
+          className="flex items-center gap-2 px-4 py-2 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 transition-all duration-300 active:scale-95 group shrink-0"
         >
           <FaArrowLeft className="text-xs group-hover:-translate-x-1 transition-transform" />
           <span className="text-xs font-black uppercase tracking-widest">{t.backBtn}</span>
         </button>
+
+        <div className="flex items-center gap-2 text-xs font-bold text-slate-400 uppercase tracking-widest overflow-hidden">
+          <Link to="/" className="hover:text-indigo-600 transition-colors uppercase shrink-0">{t.back}</Link>
+          <FaChevronRight className="text-[10px] shrink-0" />
+          <Link to="/blogs" className="hover:text-indigo-600 transition-colors uppercase truncate">{t.category}</Link>
+        </div>
       </nav>
 
       <main className="max-w-6xl mx-auto px-4 pb-20">
@@ -84,7 +84,7 @@ const BlogDetailScreen = () => {
           <motion.h1
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-3xl md:text-5xl lg:text-6xl font-extrabold text-slate-900 leading-[1.15] tracking-tight mb-8"
+            className="text-2xl md:text-3xl lg:text-4xl font-extrabold text-slate-900 leading-[1.2] tracking-tight mb-8"
           >
             {title}
           </motion.h1>
