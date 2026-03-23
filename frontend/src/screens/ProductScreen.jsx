@@ -181,6 +181,28 @@ const ProductScreen = () => {
           </div>
         </div>
 
+        {/* --- YouTube Video Section (Only for Product ID 28) --- */}
+        {productId === "28" && (
+          <div className="bg-white rounded-[2.5rem] shadow-sm border border-slate-100 overflow-hidden mb-12 p-6 md:p-10">
+            <div className="flex items-center gap-4 mb-8">
+              <div className="w-1.5 h-6 bg-red-600 rounded-full shadow-[0_0_10px_rgba(220,38,38,0.5)]"></div>
+              <h3 className="text-xl md:text-2xl font-black text-slate-900 uppercase tracking-tight">
+                {language === "thai" ? "วิดีโอแนะนำสินค้า" : "Product Showcase"}
+              </h3>
+            </div>
+            <div className="aspect-video w-full rounded-[2rem] overflow-hidden shadow-2xl border border-slate-100 bg-slate-900 group">
+              <iframe
+                className="w-full h-full"
+                src="https://www.youtube.com/embed/0yW2HHGudno?autoplay=0&rel=0"
+                title="YouTube video player"
+                frameBorder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                allowFullScreen
+              ></iframe>
+            </div>
+          </div>
+        )}
+
         {/* --- Reviews Section --- */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12">
 
