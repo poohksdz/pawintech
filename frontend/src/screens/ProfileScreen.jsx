@@ -135,10 +135,10 @@ const ProfileScreen = () => {
                         </div>
 
                         {/* Navigation Menu */}
-                        <div className="bg-white/80 backdrop-blur-xl rounded-[1.5rem] md:rounded-[2rem] border border-white/50 shadow-[0_8px_30px_rgb(0,0,0,0.04)] flex flex-row lg:flex-col p-2 gap-2 w-full sticky top-20 lg:static z-20">
+                        <div className="bg-white/80 backdrop-blur-xl rounded-[1.5rem] md:rounded-[2rem] border border-white/50 shadow-[0_8px_30px_rgb(0,0,0,0.04)] flex flex-col p-2 gap-2 w-full sticky top-20 lg:static z-20">
                             <button
                                 onClick={() => setActiveTab('orders')}
-                                className={`flex-1 lg:w-full flex items-center justify-center lg:justify-start gap-2.5 md:gap-3 px-4 md:px-5 py-3.5 md:py-4 rounded-[1.2rem] md:rounded-[1.5rem] transition-all duration-500 ease-out border ${activeTab === 'orders'
+                                className={`w-full flex items-center justify-center lg:justify-start gap-2.5 md:gap-3 px-4 md:px-5 py-3.5 md:py-4 rounded-[1.2rem] md:rounded-[1.5rem] transition-all duration-500 ease-out border ${activeTab === 'orders'
                                     ? 'bg-black text-white border-black shadow-lg transform scale-[1.02]'
                                     : 'bg-transparent text-slate-500 border-transparent hover:bg-slate-50 hover:text-slate-800'
                                     }`}
@@ -148,7 +148,7 @@ const ProfileScreen = () => {
                             </button>
                             <button
                                 onClick={() => setActiveTab('settings')}
-                                className={`flex-1 lg:w-full flex items-center justify-center lg:justify-start gap-2.5 md:gap-3 px-4 md:px-5 py-3.5 md:py-4 rounded-[1.2rem] md:rounded-[1.5rem] transition-all duration-500 ease-out border ${activeTab === 'settings'
+                                className={`w-full flex items-center justify-center lg:justify-start gap-2.5 md:gap-3 px-4 md:px-5 py-3.5 md:py-4 rounded-[1.2rem] md:rounded-[1.5rem] transition-all duration-500 ease-out border ${activeTab === 'settings'
                                     ? 'bg-black text-white border-black shadow-lg transform scale-[1.02]'
                                     : 'bg-transparent text-slate-500 border-transparent hover:bg-slate-50 hover:text-slate-800'
                                     }`}
