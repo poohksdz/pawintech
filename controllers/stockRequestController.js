@@ -1,4 +1,3 @@
-console.log("✅ LOADING NEW CONTROLLER CODE...");
 const asyncHandler = require('../middleware/asyncHandler.js')
 const db = require('../config/db.js') // ✅ เรียกใช้ Pool
 

@@ -1,6 +1,6 @@
 const mysql = require('mysql2/promise')
 
-console.log("🔌 กำลังเชื่อมต่อ MySQL (โหมด localhost)...")
+// console.log("🔌 กำลังเชื่อมต่อ MySQL (โหมด localhost)...")
 
 const pool = mysql.createPool({
   host: process.env.DB_HOST || '127.0.0.1', // Ensure IPv4 is used instead of IPv6 layout of 'localhost'
@@ -15,7 +15,7 @@ const pool = mysql.createPool({
 const connectDB = async () => {
   try {
     const conn = await pool.getConnection()
-    console.log(`✅ MySQL Connected Successfully! ID: ${conn.threadId}`)
+    // console.log(`✅ MySQL Connected Successfully! ID: ${conn.threadId}`)
     conn.release()
   } catch (error) {
     console.error(`❌ Connect Failed: ${error.message}`)

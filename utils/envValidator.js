@@ -26,7 +26,7 @@ const validateEnv = () => {
             console.warn('⚠️  Continuing in development mode, but some features might fail.');
         }
     } else {
-        console.log('✅ Environment variables validated.');
+        // console.log('✅ Environment variables validated.');
     }
 };
 

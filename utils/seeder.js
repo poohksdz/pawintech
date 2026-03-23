@@ -10,7 +10,7 @@ const seedDatabase = async () => {
         return;
     }
 
-    console.log('🌱 Seeding database with test users...');
+    // console.log('🌱 Seeding database with test users...');
 
     const users = [
         { name: 'Admin User', email: 'electotronix@gmail.com', isAdmin: 1, isStaff: 1, isStore: 1, isPCBAdmin: 1 },
@@ -45,7 +45,7 @@ const seedDatabase = async () => {
         }
     }
 
-    console.log('✅ Database seeding complete.');
+    // console.log('✅ Database seeding complete.');
 };
 
 module.exports = { seedDatabase };
