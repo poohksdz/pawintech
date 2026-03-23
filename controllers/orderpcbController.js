@@ -334,6 +334,31 @@ const updateDeliveryPCB = asyncHandler(async (req, res) => {
     }
 });
 
+// @desc    Update a PCB order (Admin for general status update)
+// @route   PUT /api/orderpcbs/:id
+// @access  Private/Admin
+const updateOrderPCB = asyncHandler(async (req, res) => {
+    const { id } = req.params;
+    const updatedData = req.body;
+
+    // Build SET clause dynamically for safe updates
+    const fields = Object.keys(updatedData).map(key => `\`` + key + `\` = ?`).join(', ');
+    const values = Object.values(updatedData);
+
+    if (fields.length === 0) {
+        return res.status(400).json({ success: false, message: 'No data to update' });
+    }
+
+    const sql = `UPDATE \`${tableName}\` SET ${fields}, updated_at = NOW() WHERE paymentComfirmID = ? OR orderID = ? OR id = ?`;
+    const [result] = await pool.query(sql, [...values, id, id, id]);
+
+    if (result.affectedRows > 0) {
+        res.status(200).json({ success: true, message: 'บันทึกข้อมูลเรียบร้อย' });
+    } else {
+        res.status(404).json({ success: false, message: 'ไม่พบคำสั่งซื้อนี้' });
+    }
+});
+
 // @desc    Delete a Gerber order
 // @route   DELETE /api/orderpcbs/:id
 // @access  Private/Admin
@@ -478,6 +503,7 @@ module.exports = {
     updateShippingRates,
     verifyPaymentPCB,
     updateDeliveryPCB,
+    updateOrderPCB,
     deleteOrderPCB,
     getOrderPCBByorderpaymentID
 };

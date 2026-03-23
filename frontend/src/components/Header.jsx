@@ -9,9 +9,8 @@ import {
 } from 'react-icons/fa';
 import { BsBoxSeam, BsCardChecklist, BsCpu, BsPeopleFill } from 'react-icons/bs';
 import {
-   MdDesignServices, MdAdminPanelSettings, MdPayments, MdOutlineReceiptLong, MdDashboard, MdNotifications, MdDelete
+   MdDesignServices, MdAdminPanelSettings, MdPayments, MdNotifications, MdDelete
 } from "react-icons/md";
-import { AiOutlineCloudServer } from "react-icons/ai";
 
 // State & API
 import { useLogoutMutation } from '../slices/usersApiSlice';
@@ -27,7 +26,6 @@ import {
    useGetNotificationsQuery,
    useMarkAsReadMutation,
    useMarkAllAsReadMutation,
-   useSendTestNotificationMutation,
    useDeleteNotificationMutation,
    useDeleteAllNotificationsMutation
 } from '../slices/notificationApiSlice';
@@ -142,7 +140,7 @@ const Header = () => {
       if (userInfo) dispatch(fetchCartDB());
    }, [userInfo, dispatch]);
 
-   const { data: notifications, refetch: refetchNotifications } = useGetNotificationsQuery(undefined, {
+   const { data: notifications } = useGetNotificationsQuery(undefined, {
       skip: !userInfo,
       pollingInterval: 30000,
    });
@@ -150,7 +148,6 @@ const Header = () => {
    const [markAllAsRead] = useMarkAllAsReadMutation();
    const [deleteNotification] = useDeleteNotificationMutation();
    const [deleteAllNotifications] = useDeleteAllNotificationsMutation();
-   const [sendTestNotification] = useSendTestNotificationMutation();
 
    const unreadCount = notifications?.filter(n => !n.isRead).length || 0;
 
@@ -233,9 +230,9 @@ const Header = () => {
    }[language || 'en'];
 
    // ✅ ปรับปรุง Logic การเช็ค Role ให้ยืดหยุ่นขึ้น (รองรับค่า 1/0 จาก SQL)
-   const isStore = userInfo && (userInfo.isStore == 1 || userInfo.isAdmin == 1);
-   const isPCB = userInfo && (userInfo.isPCBAdmin == 1 || userInfo.isAdmin == 1);
-   const isAdmin = userInfo && (userInfo.isAdmin == 1);
+   const isStore = userInfo && (Number(userInfo.isStore) === 1 || Number(userInfo.isAdmin) === 1);
+   const isPCB = userInfo && (Number(userInfo.isPCBAdmin) === 1 || Number(userInfo.isAdmin) === 1);
+   const isAdmin = userInfo && (Number(userInfo.isAdmin) === 1);
 
    return (
       <>
@@ -364,7 +361,7 @@ const Header = () => {
                         )}
                         {isAdmin && (
                            <div className="relative group" onMouseEnter={() => handleMouseEnter('admin')} onMouseLeave={handleMouseLeave}>
-                              <Link to="/admin/dashboard" className="w-9 h-9 flex items-center justify-center text-slate-400 hover:text-rose-600 hover:bg-slate-50 rounded-full transition-colors"><MdAdminPanelSettings size={18} /></Link>
+                              <Link to="/admin/orderlist" className="w-9 h-9 flex items-center justify-center text-slate-400 hover:text-rose-600 hover:bg-slate-50 rounded-full transition-colors"><MdAdminPanelSettings size={18} /></Link>
                               {activeDropdown === 'admin' && (
                                  <DropdownWrapper className="w-max right-0">
                                     <div className="p-2 min-w-[220px]">
@@ -388,7 +385,7 @@ const Header = () => {
                      </div>
                   )}
 
-                  {userInfo && (
+                  {userInfo && isStore && (
                      <div className="relative" onMouseEnter={() => handleMouseEnter('notifications')} onMouseLeave={handleMouseLeave}>
                         <button className="relative w-9 h-9 flex items-center justify-center text-slate-600 hover:bg-slate-50 rounded-full transition-all duration-200 active:scale-90">
                            <MdNotifications size={22} className="text-slate-600" />
@@ -623,7 +620,7 @@ const Header = () => {
                         {isAdmin && (
                            <div>
                               <div className="text-xs font-bold text-rose-500 uppercase tracking-wider mb-1">System</div>
-                              <Link to="/admin/dashboard" onClick={closeMenu} className="block py-1.5 text-sm text-slate-600 text-start">Dashboard</Link>
+                              <Link to="/admin/orderlist" onClick={closeMenu} className="block py-1.5 text-sm text-slate-600 text-start">Dashboard</Link>
                               <Link to="/admin/paymentlist" onClick={closeMenu} className="block py-1.5 text-sm text-slate-600 text-start">{t.Finance}</Link>
                               <Link to="/admin/userlist" onClick={closeMenu} className="block py-1.5 text-sm text-slate-600 text-start">Users</Link>
                            </div>

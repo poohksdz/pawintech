@@ -4,8 +4,8 @@ import { useNavigate } from 'react-router-dom';
 
 // --- Icons ---
 import {
-    FaCheck, FaSearch, FaIndustry, FaTruck, FaEye, FaRedo,
-    FaCalendarAlt, FaLayerGroup, FaLock, FaCheckCircle, FaExclamationCircle
+    FaCheck, FaSearch, FaIndustry, FaTruck, FaEye,
+    FaCalendarAlt, FaLayerGroup, FaCheckCircle
 } from 'react-icons/fa';
 import { PiCircuitryFill, PiCurrencyCircleDollarBold } from "react-icons/pi";
 
@@ -85,7 +85,12 @@ const OrderPCBListScreen = () => {
 
         return data.reduce((acc, curr) => {
             acc.total++;
-            acc.revenue += Number(curr.quoted_price_to_customer || curr.total_amount_cost || 0);
+
+            // Only count revenue for orders that are Accepted or Paid
+            const isOrderPaid = ['accepted', 'paid'].includes(curr.status?.toLowerCase());
+            if (isOrderPaid || Number(curr.isManufacting) === 1 || Number(curr.isDelivered) === 1) {
+                acc.revenue += Number(curr.quoted_price_to_customer || curr.total_amount_cost || 0);
+            }
 
             if (!curr.isManufacting) acc.pending++;
             else if (curr.isManufacting && !curr.isDelivered) acc.manufacturing++;

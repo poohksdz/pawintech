@@ -11,6 +11,7 @@ const {
   updateShippingRates,
   verifyPaymentPCB,
   updateDeliveryPCB,
+  updateOrderPCB,
   deleteOrderPCB,
   getOrderPCBByorderpaymentID
 } = require('../controllers/orderpcbController.js');
@@ -32,6 +33,7 @@ router.route('/shippingrates').put(protect, admin, updateShippingRates);
 // ต้องอยู่ล่างสุดเสมอ เพื่อไม่ให้ไปทับกับ /myorders หรือ /byorderid
 router.route('/:id')
   .get(protect, getOrderById)
+  .put(protect, admin, updateOrderPCB)
   .delete(protect, admin, deleteOrderPCB);
 
 router.route('/:id/verify-payment').put(protect, admin, verifyPaymentPCB);

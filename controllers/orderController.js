@@ -330,11 +330,11 @@ const updateOrderToDelivered = asyncHandler(async (req, res) => {
   res.json({ message: 'Delivered' });
 })
 const updateTransportationPrice = asyncHandler(async (req, res) => {
-  await pool.query(`UPDATE transportations SET transportationPrice = ? WHERE ID = ?`, [req.body.transportationPrice, req.params.id]);
+  await pool.query(`UPDATE transportaitions SET transportationPrice = ? WHERE ID = ?`, [req.body.transportationPrice, req.params.id]);
   res.json({ message: 'Updated' });
 })
 const getTransportationPrice = asyncHandler(async (req, res) => {
-  const [rows] = await pool.query('SELECT * FROM transportations WHERE ID = ?', [req.params.id]);
+  const [rows] = await pool.query('SELECT * FROM transportaitions WHERE ID = ?', [req.params.id]);
   res.json(rows[0]);
 })
 
