@@ -23,7 +23,7 @@ A robust, high-performance ecommerce platform specialized for industrial PCB sol
 
 ### 1. Prerequisites
 - **Node.js**: v16 or higher
-- **MySQL**: XAMPP (MariaDB) or a standalone MySQL instance.
+- **MySQL**: Managed via phpMyAdmin (often part of XAMPP) or a standalone MySQL instance.
 
 ### 2. Environment Setup
 The application uses environment variables for configuration. Create a `.env` file in the root directory by copying the example provided:
@@ -47,7 +47,7 @@ cd ..
 ```
 
 ### 4. Database Initialization
-Ensure your MySQL server is running and create a database named `pawin_tech`. Import the provided SQL schema (if available) to set up tables.
+Ensure your MySQL server is running (e.g., via XAMPP Control Panel). Open **phpMyAdmin**, and create a database named `pawin_tech`. Import the provided SQL schema to set up all required tables.
 
 ### 5. Running the Application
 ```bash
