@@ -65,7 +65,7 @@ const ProductScreen = () => {
       <Meta title={getText(product?.name, product?.nameThai)} />
 
       {/* --- Sticky Back Button --- */}
-      <div className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-slate-200 shadow-sm">
+      <div className="sticky top-0 z-50 bg-[#f8fafc]/80 backdrop-blur-md border-b border-slate-200/50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <button
             onClick={() => navigate('/product')}
