@@ -13,7 +13,7 @@ const validateEnv = () => {
         'DB_NAME'
     ];
 
-    const missing = requiredEnv.filter((env) => !process.env[env]);
+    const missing = requiredEnv.filter((env) => process.env[env] === undefined);
 
     if (missing.length > 0) {
         console.error('❌ Missing required environment variables:');

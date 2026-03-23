@@ -24,8 +24,8 @@ const seedDatabase = async () => {
 
     for (const user of users) {
         try {
-            // Use _id if that's the primary key, but according to db_check_output it's 'id'
-            const [existing] = await pool.query('SELECT id FROM users WHERE email = ?', [user.email]);
+            // Use _id if that's the primary key
+            const [existing] = await pool.query('SELECT _id FROM users WHERE email = ?', [user.email]);
 
             if (existing.length > 0) {
                 // Update existing user to ensure password and roles are correct
