@@ -1,23 +1,23 @@
-import React, { useState } from 'react';
-import { useSelector } from 'react-redux';
+import React, { useState } from "react";
+import { useSelector } from "react-redux";
 import {
   useGetStockFootprintsQuery,
   useCreateStockFootprintMutation,
   useUpdateStockFootprintMutation,
   useDeleteStockFootprintMutation,
-} from '../../../slices/stockFootprintApiSlice';
-import { useGetStockCategoriesQuery } from '../../../slices/stockCategoryApiSlice';
+} from "../../../slices/stockFootprintApiSlice";
+import { useGetStockCategoriesQuery } from "../../../slices/stockCategoryApiSlice";
 
-import Loader from '../../../components/Loader';
-import Message from '../../../components/Message';
+import Loader from "../../../components/Loader";
+import Message from "../../../components/Message";
 
 // Custom Tailwind Components
-import Button from '../../../components/ui/Button';
-import Modal from '../../../components/ui/Modal';
-import Input from '../../../components/ui/Input';
-import Table from '../../../components/ui/Table';
-import { Card, CardHeader, CardBody } from '../../../components/ui/Card';
-import { Edit, Trash2, Plus } from 'lucide-react';
+import Button from "../../../components/ui/Button";
+import Modal from "../../../components/ui/Modal";
+import Input from "../../../components/ui/Input";
+import Table from "../../../components/ui/Table";
+import { Card, CardHeader, CardBody } from "../../../components/ui/Card";
+import { Edit, Trash2, Plus } from "lucide-react";
 
 const StockListFootprintScreen = () => {
   const { userInfo } = useSelector((state) => state.auth);
@@ -35,7 +35,7 @@ const StockListFootprintScreen = () => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   const [selectedFootprint, setSelectedFootprint] = useState({});
-  const [formData, setFormData] = useState({ namefootprint: '', category: '' });
+  const [formData, setFormData] = useState({ namefootprint: "", category: "" });
 
   const [createFootprint] = useCreateStockFootprintMutation();
   const [updateFootprint] = useUpdateStockFootprintMutation();
@@ -66,7 +66,7 @@ const StockListFootprintScreen = () => {
   };
 
   const openCreateModal = () => {
-    setFormData({ namefootprint: '', category: '' });
+    setFormData({ namefootprint: "", category: "" });
     setShowCreateModal(true);
   };
 
@@ -84,9 +84,7 @@ const StockListFootprintScreen = () => {
   if (isLoading) return <Loader />;
   if (error)
     return (
-      <Message variant="danger">
-        {error?.data?.message || error.error}
-      </Message>
+      <Message variant="danger">{error?.data?.message || error.error}</Message>
     );
 
   return (
@@ -116,7 +114,10 @@ const StockListFootprintScreen = () => {
             <Table.Body>
               {footprintData.length === 0 ? (
                 <Table.Row>
-                  <Table.Cell colSpan="6" className="text-center py-6 text-slate-500">
+                  <Table.Cell
+                    colSpan="6"
+                    className="text-center py-6 text-slate-500"
+                  >
                     No footprints found.
                   </Table.Cell>
                 </Table.Row>
@@ -124,8 +125,12 @@ const StockListFootprintScreen = () => {
                 footprintData.map((fp, index) => (
                   <Table.Row key={fp.ID}>
                     <Table.Cell>{index + 1}</Table.Cell>
-                    <Table.Cell className="font-mono text-slate-600">{fp.footprintID}</Table.Cell>
-                    <Table.Cell className="font-medium text-slate-800">{fp.namefootprint}</Table.Cell>
+                    <Table.Cell className="font-mono text-slate-600">
+                      {fp.footprintID}
+                    </Table.Cell>
+                    <Table.Cell className="font-medium text-slate-800">
+                      {fp.namefootprint}
+                    </Table.Cell>
                     <Table.Cell>{fp.category?.trim()}</Table.Cell>
                     <Table.Cell>{fp.createuser}</Table.Cell>
                     <Table.Cell className="text-right flex justify-end gap-2">
@@ -161,8 +166,12 @@ const StockListFootprintScreen = () => {
         title="Create Footprint"
         footer={
           <>
-            <Button variant="light" onClick={() => setShowCreateModal(false)}>Close</Button>
-            <Button variant="primary" onClick={handleCreate}>Create</Button>
+            <Button variant="light" onClick={() => setShowCreateModal(false)}>
+              Close
+            </Button>
+            <Button variant="primary" onClick={handleCreate}>
+              Create
+            </Button>
           </>
         }
       >
@@ -175,7 +184,9 @@ const StockListFootprintScreen = () => {
             placeholder="Enter footprint name..."
           />
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Category</label>
+            <label className="block text-sm font-medium text-slate-700 mb-1">
+              Category
+            </label>
             <select
               name="category"
               className="w-full px-3 py-2 border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -200,8 +211,12 @@ const StockListFootprintScreen = () => {
         title={`Edit Footprint [ID: ${selectedFootprint.footprintID}]`}
         footer={
           <>
-            <Button variant="light" onClick={() => setShowEditModal(false)}>Close</Button>
-            <Button variant="primary" onClick={handleEdit}>Update</Button>
+            <Button variant="light" onClick={() => setShowEditModal(false)}>
+              Close
+            </Button>
+            <Button variant="primary" onClick={handleEdit}>
+              Update
+            </Button>
           </>
         }
       >
@@ -214,7 +229,9 @@ const StockListFootprintScreen = () => {
             placeholder="Enter footprint name..."
           />
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Category</label>
+            <label className="block text-sm font-medium text-slate-700 mb-1">
+              Category
+            </label>
             <select
               name="category"
               className="w-full px-3 py-2 border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -240,13 +257,21 @@ const StockListFootprintScreen = () => {
         size="sm"
         footer={
           <>
-            <Button variant="light" onClick={() => setShowDeleteModal(false)}>Cancel</Button>
-            <Button variant="danger" onClick={handleDelete}>Delete</Button>
+            <Button variant="light" onClick={() => setShowDeleteModal(false)}>
+              Cancel
+            </Button>
+            <Button variant="danger" onClick={handleDelete}>
+              Delete
+            </Button>
           </>
         }
       >
         <p className="text-slate-600">
-          Are you sure you want to delete <strong className="text-slate-900">{selectedFootprint.namefootprint}</strong>?
+          Are you sure you want to delete{" "}
+          <strong className="text-slate-900">
+            {selectedFootprint.namefootprint}
+          </strong>
+          ?
         </p>
       </Modal>
     </div>

@@ -1,26 +1,24 @@
-import React, { useState, useEffect } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import {
-  Table, Button, Form, Col, Row, InputGroup
-} from 'react-bootstrap';
-import { FaSearch } from 'react-icons/fa';
-import {
-  useGetStockRequestCancelByUserQuery,
-} from '../../../slices/stockRequestApiSlice';
-import { useGetStockProductsQuery } from '../../../slices/stockProductApiSlice';
-import { useGetStockCategoriesQuery } from '../../../slices/stockCategoryApiSlice';
-import { useGetStockSubcategoriesQuery } from '../../../slices/stockSubcategoryApiSlice';
-import { useGetStockFootprintsQuery } from '../../../slices/stockFootprintApiSlice';
-import { useGetStockManufacturesQuery } from '../../../slices/stockManufactureApiSlice';
-import { useGetStockSuppliersQuery } from '../../../slices/stockSupplierApiSlice';
-import Loader from '../../../components/Loader';
-import Message from '../../../components/Message';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { Table, Button, Form, Col, Row, InputGroup } from "react-bootstrap";
+import { FaSearch } from "react-icons/fa";
+import { useGetStockRequestCancelByUserQuery } from "../../../slices/stockRequestApiSlice";
+import { useGetStockProductsQuery } from "../../../slices/stockProductApiSlice";
+import { useGetStockCategoriesQuery } from "../../../slices/stockCategoryApiSlice";
+import { useGetStockSubcategoriesQuery } from "../../../slices/stockSubcategoryApiSlice";
+import { useGetStockFootprintsQuery } from "../../../slices/stockFootprintApiSlice";
+import { useGetStockManufacturesQuery } from "../../../slices/stockManufactureApiSlice";
+import { useGetStockSuppliersQuery } from "../../../slices/stockSupplierApiSlice";
+import Loader from "../../../components/Loader";
+import Message from "../../../components/Message";
+import { useNavigate } from "react-router-dom";
 
 const StockUserRequestCancelScreen = () => {
   const { userInfo } = useSelector((state) => state.auth);
 
-  const { data, isLoading, error } = useGetStockRequestCancelByUserQuery(userInfo._id);
+  const { data, isLoading, error } = useGetStockRequestCancelByUserQuery(
+    userInfo._id,
+  );
 
   const { data: existingQty } = useGetStockProductsQuery();
   const { data: categoryData = [] } = useGetStockCategoriesQuery();
@@ -29,14 +27,14 @@ const StockUserRequestCancelScreen = () => {
   const { data: manufactureData = [] } = useGetStockManufacturesQuery();
   const { data: supplierData = [] } = useGetStockSuppliersQuery();
 
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [formData, setFormData] = useState({
-    category: '',
-    subcategory: '',
-    footprint: '',
-    manufacturer: '',
-    supplier: '',
+    category: "",
+    subcategory: "",
+    footprint: "",
+    manufacturer: "",
+    supplier: "",
   });
 
   const products = data?.requestcancels || [];
@@ -46,18 +44,26 @@ const StockUserRequestCancelScreen = () => {
   useEffect(() => {
     let filtered = [...products];
 
-    if (formData.category) filtered = filtered.filter(p => p.category === formData.category);
-    if (formData.subcategory) filtered = filtered.filter(p => p.subcategory === formData.subcategory);
-    if (formData.footprint) filtered = filtered.filter(p => p.footprint === formData.footprint);
-    if (formData.manufacturer) filtered = filtered.filter(p => p.manufacture === formData.manufacturer);
-    if (formData.supplier) filtered = filtered.filter(p => p.supplier === formData.supplier);
+    if (formData.category)
+      filtered = filtered.filter((p) => p.category === formData.category);
+    if (formData.subcategory)
+      filtered = filtered.filter((p) => p.subcategory === formData.subcategory);
+    if (formData.footprint)
+      filtered = filtered.filter((p) => p.footprint === formData.footprint);
+    if (formData.manufacturer)
+      filtered = filtered.filter(
+        (p) => p.manufacture === formData.manufacturer,
+      );
+    if (formData.supplier)
+      filtered = filtered.filter((p) => p.supplier === formData.supplier);
 
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(item =>
-        item.electotronixPN?.toLowerCase().includes(query) ||
-        item.manufacturePN?.toLowerCase().includes(query) ||
-        item.value?.toLowerCase().includes(query)
+      filtered = filtered.filter(
+        (item) =>
+          item.electotronixPN?.toLowerCase().includes(query) ||
+          item.manufacturePN?.toLowerCase().includes(query) ||
+          item.value?.toLowerCase().includes(query),
       );
     }
 
@@ -66,17 +72,20 @@ const StockUserRequestCancelScreen = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   if (isLoading) return <Loader />;
-  if (error) return <Message variant="danger">{error?.data?.message || error.error}</Message>;
+  if (error)
+    return (
+      <Message variant="danger">{error?.data?.message || error.error}</Message>
+    );
 
   const containerStyle = {
-    height: '70vh',
-    overflowX: 'auto',
-    overflowY: 'auto',
-    padding: '10px',
+    height: "70vh",
+    overflowX: "auto",
+    overflowY: "auto",
+    padding: "10px",
   };
 
   return (
@@ -103,9 +112,18 @@ const StockUserRequestCancelScreen = () => {
       {/* Filters */}
       <div className="row g-2 mb-3 mx-1">
         <div className="col">
-          <select className="form-select" name="category" value={formData.category} onChange={handleChange}>
+          <select
+            className="form-select"
+            name="category"
+            value={formData.category}
+            onChange={handleChange}
+          >
             <option value="">All Category</option>
-            {categoryData.map(cat => <option key={cat.ID} value={cat.category}>{cat.category}</option>)}
+            {categoryData.map((cat) => (
+              <option key={cat.ID} value={cat.category}>
+                {cat.category}
+              </option>
+            ))}
           </select>
         </div>
         <div className="col">
@@ -115,32 +133,63 @@ const StockUserRequestCancelScreen = () => {
             value={formData.subcategory}
             onChange={handleChange}
             style={{
-              backgroundColor: formData.category ? 'white' : '#e9ecef',
-              pointerEvents: formData.category ? 'auto' : 'none',
+              backgroundColor: formData.category ? "white" : "#e9ecef",
+              pointerEvents: formData.category ? "auto" : "none",
             }}
           >
             <option value="">All Subcategory</option>
             {subcategoryData
-              .filter(sub => sub.category === formData.category)
-              .map(sub => <option key={sub.ID} value={sub.subcategory}>{sub.subcategory}</option>)}
+              .filter((sub) => sub.category === formData.category)
+              .map((sub) => (
+                <option key={sub.ID} value={sub.subcategory}>
+                  {sub.subcategory}
+                </option>
+              ))}
           </select>
         </div>
         <div className="col">
-          <select className="form-select" name="footprint" value={formData.footprint} onChange={handleChange}>
+          <select
+            className="form-select"
+            name="footprint"
+            value={formData.footprint}
+            onChange={handleChange}
+          >
             <option value="">All Footprint</option>
-            {footprintData.map(fp => <option key={fp.ID} value={fp.namefootprint}>{fp.namefootprint}</option>)}
+            {footprintData.map((fp) => (
+              <option key={fp.ID} value={fp.namefootprint}>
+                {fp.namefootprint}
+              </option>
+            ))}
           </select>
         </div>
         <div className="col">
-          <select className="form-select" name="manufacturer" value={formData.manufacturer} onChange={handleChange}>
+          <select
+            className="form-select"
+            name="manufacturer"
+            value={formData.manufacturer}
+            onChange={handleChange}
+          >
             <option value="">All Manufacturer</option>
-            {manufactureData.map(mfg => <option key={mfg.ID} value={mfg.namemanufacture}>{mfg.namemanufacture}</option>)}
+            {manufactureData.map((mfg) => (
+              <option key={mfg.ID} value={mfg.namemanufacture}>
+                {mfg.namemanufacture}
+              </option>
+            ))}
           </select>
         </div>
         <div className="col">
-          <select className="form-select" name="supplier" value={formData.supplier} onChange={handleChange}>
+          <select
+            className="form-select"
+            name="supplier"
+            value={formData.supplier}
+            onChange={handleChange}
+          >
             <option value="">All Supplier</option>
-            {supplierData.map(sup => <option key={sup.ID} value={sup.namesupplier}>{sup.namesupplier}</option>)}
+            {supplierData.map((sup) => (
+              <option key={sup.ID} value={sup.namesupplier}>
+                {sup.namesupplier}
+              </option>
+            ))}
           </select>
         </div>
       </div>
@@ -189,12 +238,28 @@ const StockUserRequestCancelScreen = () => {
                 <td>{p.requestedUser}</td>
                 <td>{p.important_message}</td>
                 <td>{p.cancel_message}</td>
-                <td>{p.img ? <img src={`/componentImages${p.img}`} alt="product" width="50" height="50" style={{ objectFit: 'contain' }} /> : 'No Image'}</td>
+                <td>
+                  {p.img ? (
+                    <img
+                      src={`/componentImages${p.img}`}
+                      alt="product"
+                      width="50"
+                      height="50"
+                      style={{ objectFit: "contain" }}
+                    />
+                  ) : (
+                    "No Image"
+                  )}
+                </td>
                 <td>{p.requestno}</td>
                 <td>{p.requestdate}</td>
                 <td>{p.requesttime}</td>
                 <td>{p.requestqty}</td>
-                <td>{existingQty?.products?.find(prod => prod.electotronixPN === p.electotronixPN)?.quantity || 0}</td>
+                <td>
+                  {existingQty?.products?.find(
+                    (prod) => prod.electotronixPN === p.electotronixPN,
+                  )?.quantity || 0}
+                </td>
                 <td>{p.electotronixPN}</td>
                 <td>{p.value}</td>
                 <td>{p.category}</td>
@@ -218,7 +283,7 @@ const StockUserRequestCancelScreen = () => {
                   <Button
                     variant="info"
                     className="btn-sm text-white"
-                    onClick={() => { }}
+                    onClick={() => {}}
                   >
                     More
                   </Button>

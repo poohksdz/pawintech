@@ -1,24 +1,24 @@
-const express = require('express')
+const express = require("express");
 const {
   createStockGoodsreceipt,
   updateStockGoodsreceipt,
   deleteStockGoodsreceipt,
   getStockGoodsreceipt,
   getStockGoodsreceiptDetails,
-} = require('../controllers/stockReceiveController')
+} = require("../controllers/stockReceiveController");
 
-const { protect, admin } = require('../middleware/authMiddleware.js')
+const { protect, admin } = require("../middleware/authMiddleware.js");
 
-const router = express.Router()
+const router = express.Router();
 
 router
-  .route('/')
+  .route("/")
   .post(protect, createStockGoodsreceipt)
-  .get(getStockGoodsreceipt)
+  .get(getStockGoodsreceipt);
 router
-  .route('/:id')
+  .route("/:id")
   .get(getStockGoodsreceiptDetails)
   .delete(protect, deleteStockGoodsreceipt)
-  .put(protect, updateStockGoodsreceipt)
+  .put(protect, updateStockGoodsreceipt);
 
-module.exports = router
+module.exports = router;

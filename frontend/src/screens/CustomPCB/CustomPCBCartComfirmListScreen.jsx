@@ -1,9 +1,7 @@
-import React from 'react'
+import React from "react";
 
 const CustomPCBCartComfirmListScreen = () => {
-  return (
-    <div>CustomPCBCartComfirmListScreen</div>
-  )
-}
+  return <div>CustomPCBCartComfirmListScreen</div>;
+};
 
-export default CustomPCBCartComfirmListScreen
+export default CustomPCBCartComfirmListScreen;

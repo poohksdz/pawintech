@@ -1,5 +1,5 @@
-const express = require('express')
-const router = express.Router()
+const express = require("express");
+const router = express.Router();
 const {
   getQuotations,
   getQuotationById,
@@ -10,35 +10,35 @@ const {
   updateQuotationByQuotationNo,
   deleteQuotation,
   deleteQuotationByQuotationNo,
-} = require('../controllers/quotationController.js')
+} = require("../controllers/quotationController.js");
 
-const { protect, admin, store } = require('../middleware/authMiddleware.js')
+const { protect, admin, store } = require("../middleware/authMiddleware.js");
 
 // Get all quotations
-router.get('/', getQuotations)
+router.get("/", getQuotations);
 
 // Get single quotation by ID
-router.get('/:id', getQuotationById)
+router.get("/:id", getQuotationById);
 
 // Get single quotation by ID
-router.get('/quotation_no/:id', getQuotationByQuotationNo)
+router.get("/quotation_no/:id", getQuotationByQuotationNo);
 
 // Get used quotations
-router.get('/used', getQuotationUsed)
+router.get("/used", getQuotationUsed);
 
 // Create a new quotation
-router.post('/', protect, createQuotation)
+router.post("/", protect, createQuotation);
 
 // Update a quotation
-router.put('/:id', protect, updateQuotation)
+router.put("/:id", protect, updateQuotation);
 
 // Update a quotation by quotation no
-router.put('/quotation_no/:id', protect, updateQuotationByQuotationNo)
+router.put("/quotation_no/:id", protect, updateQuotationByQuotationNo);
 
 // Delete a quotation
-router.delete('/:id', protect, deleteQuotation)
+router.delete("/:id", protect, deleteQuotation);
 
 // Delete a quotation by quotation no
-router.delete('/quotation_no/:id', protect, deleteQuotationByQuotationNo)
+router.delete("/quotation_no/:id", protect, deleteQuotationByQuotationNo);
 
-module.exports = router
+module.exports = router;

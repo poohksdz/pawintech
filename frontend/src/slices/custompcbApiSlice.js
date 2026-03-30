@@ -1,21 +1,21 @@
 // src/slices/custompcbSlice.js
 
-import { apiSlice } from './apiSlice'
-import { CUSTOMPCBS_URL } from '../constants'
+import { apiSlice } from "./apiSlice";
+import { CUSTOMPCBS_URL } from "../constants";
 
 export const custompcbApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
     createCustomPCB: builder.mutation({
       query: (orderData) => ({
         url: CUSTOMPCBS_URL,
-        method: 'POST',
+        method: "POST",
         body: orderData,
       }),
     }),
     createCustomPCBbyAdmin: builder.mutation({
       query: (orderData) => ({
         url: `${CUSTOMPCBS_URL}/createcustompcbbyadmin`,
-        method: 'POST',
+        method: "POST",
         body: orderData,
       }),
     }),
@@ -40,34 +40,34 @@ export const custompcbApiSlice = apiSlice.injectEndpoints({
     updateCustomPCB: builder.mutation({
       query: ({ id, updatedData }) => ({
         url: `${CUSTOMPCBS_URL}/${id}`,
-        method: 'PUT',
+        method: "PUT",
         body: updatedData,
       }),
     }),
     deleteCustomPCB: builder.mutation({
       query: (id) => ({
         url: `${CUSTOMPCBS_URL}/${id}`,
-        method: 'DELETE',
+        method: "DELETE",
       }),
     }),
     updateShippingRates: builder.mutation({
       query: (rateData) => ({
         url: `${CUSTOMPCBS_URL}/shippingrates`,
-        method: 'PUT',
+        method: "PUT",
         body: rateData,
       }),
     }),
     updateDeliveryCustomPCB: builder.mutation({
       query: ({ pcborderId, transferedNumber }) => ({
         url: `${CUSTOMPCBS_URL}/delivered/${pcborderId}`,
-        method: 'PUT',
+        method: "PUT",
         body: { transferedNumber },
       }),
     }),
     updatePCBManufacture: builder.mutation({
       query: ({ pcborderId, manufactureOrderNumber }) => ({
         url: `${CUSTOMPCBS_URL}/${pcborderId}/pcbmaunufacture`,
-        method: 'PUT',
+        method: "PUT",
         body: { manufactureOrderNumber },
       }),
     }),
@@ -94,7 +94,7 @@ export const custompcbApiSlice = apiSlice.injectEndpoints({
     uploadDiagramZip: builder.mutation({
       query: (formData) => ({
         url: `${CUSTOMPCBS_URL}/upload/upload-zip`,
-        method: 'POST',
+        method: "POST",
         body: formData,
       }),
     }),
@@ -103,12 +103,12 @@ export const custompcbApiSlice = apiSlice.injectEndpoints({
     uploadMultipleImages: builder.mutation({
       query: (formData) => ({
         url: `${CUSTOMPCBS_URL}/upload/multipleimages`,
-        method: 'POST',
+        method: "POST",
         body: formData,
       }),
     }),
   }),
-})
+});
 
 export const {
   useCreateCustomPCBMutation,
@@ -126,4 +126,4 @@ export const {
   useUploadDiagramZipMutation,
   useUploadMultipleImagesMutation,
   useCreateCustomPCBbyAdminMutation,
-} = custompcbApiSlice
+} = custompcbApiSlice;

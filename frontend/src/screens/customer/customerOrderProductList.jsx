@@ -1,11 +1,11 @@
-import React from 'react';
-import { useSelector } from 'react-redux';
-import { Table, Badge, Button } from 'react-bootstrap';
-import { FaBoxOpen } from 'react-icons/fa'; // เพิ่ม icon สำหรับ empty state
-import Message from '../../components/Message';
-import Loader from '../../components/Loader';
-import { useGetMyOrdersQuery } from '../../slices/ordersApiSlice';
-import { Link } from 'react-router-dom';
+import React from "react";
+import { useSelector } from "react-redux";
+import { Table, Badge, Button } from "react-bootstrap";
+import { FaBoxOpen } from "react-icons/fa"; // เพิ่ม icon สำหรับ empty state
+import Message from "../../components/Message";
+import Loader from "../../components/Loader";
+import { useGetMyOrdersQuery } from "../../slices/ordersApiSlice";
+import { Link } from "react-router-dom";
 
 const CustomerOrderProductList = () => {
   const { data: orders, isLoading, error } = useGetMyOrdersQuery();
@@ -14,36 +14,44 @@ const CustomerOrderProductList = () => {
 
   const translations = {
     en: {
-      productorders: 'Product Orders',
-      qty: 'Qty',
-      orderIdLbl: 'Order ID',
-      orderDateLbl: 'Date',
-      orderTotalLbl: 'Total Price',
-      orderDeliveredLbl: 'Status',
-      orderDetailsLbl: 'View Details',
-      statusDelivered: 'Delivered',
-      statusProcessing: 'Processing',
-      emptyState: 'No product orders found',
+      productorders: "Product Orders",
+      qty: "Qty",
+      orderIdLbl: "Order ID",
+      orderDateLbl: "Date",
+      orderTotalLbl: "Total Price",
+      orderDeliveredLbl: "Status",
+      orderDetailsLbl: "View Details",
+      statusDelivered: "Delivered",
+      statusProcessing: "Processing",
+      emptyState: "No product orders found",
     },
     thai: {
-      productorders: 'รายการคำสั่งซื้อสินค้า',
-      qty: 'จำนวน',
-      orderIdLbl: 'รหัสสั่งซื้อ',
-      orderDateLbl: 'วันที่สั่ง',
-      orderTotalLbl: 'ยอดรวม',
-      orderDeliveredLbl: 'สถานะ',
-      orderDetailsLbl: 'ดูรายละเอียด',
-      statusDelivered: 'จัดส่งแล้ว',
-      statusProcessing: 'กำลังดำเนินการ',
-      emptyState: 'ไม่พบรายการคำสั่งซื้อสินค้า',
+      productorders: "รายการคำสั่งซื้อสินค้า",
+      qty: "จำนวน",
+      orderIdLbl: "รหัสสั่งซื้อ",
+      orderDateLbl: "วันที่สั่ง",
+      orderTotalLbl: "ยอดรวม",
+      orderDeliveredLbl: "สถานะ",
+      orderDetailsLbl: "ดูรายละเอียด",
+      statusDelivered: "จัดส่งแล้ว",
+      statusProcessing: "กำลังดำเนินการ",
+      emptyState: "ไม่พบรายการคำสั่งซื้อสินค้า",
     },
   };
 
   const t = translations[language] || translations.en;
 
-  if (isLoading) return <div className="text-center py-5"><Loader /></div>;
+  if (isLoading)
+    return (
+      <div className="text-center py-5">
+        <Loader />
+      </div>
+    );
 
-  if (error) return <Message variant="danger">{error?.data?.message || error.error}</Message>;
+  if (error)
+    return (
+      <Message variant="danger">{error?.data?.message || error.error}</Message>
+    );
 
   // Empty State Check
   if (!orders || orders.length === 0) {
@@ -83,7 +91,10 @@ const CustomerOrderProductList = () => {
             {[...orders]
               .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
               .map((order, index) => (
-                <tr key={order.id} style={{ borderBottom: '1px solid #f0f0f0' }}>
+                <tr
+                  key={order.id}
+                  style={{ borderBottom: "1px solid #f0f0f0" }}
+                >
                   <td className="ps-3 text-muted">{index + 1}</td>
 
                   {/* Order ID */}
@@ -113,14 +124,21 @@ const CustomerOrderProductList = () => {
                   {/* Status Badge */}
                   <td className="text-center">
                     {order.isDelivered ? (
-                      <Badge bg="success" className="rounded-pill fw-normal px-2">
+                      <Badge
+                        bg="success"
+                        className="rounded-pill fw-normal px-2"
+                      >
                         {t.statusDelivered}
                         <span className="ms-1 opacity-75 small">
                           ({order.deliveredAt?.substring(0, 10)})
                         </span>
                       </Badge>
                     ) : (
-                      <Badge bg="warning" text="dark" className="rounded-pill fw-normal px-2">
+                      <Badge
+                        bg="warning"
+                        text="dark"
+                        className="rounded-pill fw-normal px-2"
+                      >
                         {t.statusProcessing}
                       </Badge>
                     )}

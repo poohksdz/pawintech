@@ -1,5 +1,5 @@
-import { apiSlice } from './apiSlice'
-import { STOCK_SUBCATEGORIES_URL } from '../constants'
+import { apiSlice } from "./apiSlice";
+import { STOCK_SUBCATEGORIES_URL } from "../constants";
 
 export const stockSubcategoryApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
@@ -7,48 +7,48 @@ export const stockSubcategoryApiSlice = apiSlice.injectEndpoints({
     getStockSubcategories: builder.query({
       query: () => ({
         url: STOCK_SUBCATEGORIES_URL,
-        method: 'GET',
+        method: "GET",
       }),
-      providesTags: ['StockSubcategory'],
+      providesTags: ["StockSubcategory"],
     }),
 
     // GET subcategory by ID
     getStockSubcategoryDetails: builder.query({
       query: (id) => ({
         url: `${STOCK_SUBCATEGORIES_URL}/${id}`,
-        method: 'GET',
+        method: "GET",
       }),
-      providesTags: (result, error, id) => [{ type: 'StockSubcategory', id }],
+      providesTags: (result, error, id) => [{ type: "StockSubcategory", id }],
     }),
 
     // GET subcategories by category ID
     getStockSubcategoryByCategory: builder.query({
       query: (categoryId) => ({
         url: `${STOCK_SUBCATEGORIES_URL}/category/${categoryId}`,
-        method: 'GET',
+        method: "GET",
       }),
-      providesTags: ['StockSubcategory'],
+      providesTags: ["StockSubcategory"],
     }),
 
     // POST create new subcategory
     createStockSubcategory: builder.mutation({
       query: (data) => ({
         url: STOCK_SUBCATEGORIES_URL,
-        method: 'POST',
+        method: "POST",
         body: data,
       }),
-      invalidatesTags: ['StockSubcategory'],
+      invalidatesTags: ["StockSubcategory"],
     }),
 
     // PUT update subcategory by ID
     updateStockSubcategory: builder.mutation({
       query: ({ id, ...data }) => ({
         url: `${STOCK_SUBCATEGORIES_URL}/${id}`,
-        method: 'PUT',
+        method: "PUT",
         body: data,
       }),
       invalidatesTags: (result, error, { id }) => [
-        { type: 'StockSubcategory', id },
+        { type: "StockSubcategory", id },
       ],
     }),
 
@@ -56,12 +56,12 @@ export const stockSubcategoryApiSlice = apiSlice.injectEndpoints({
     deleteStockSubcategory: builder.mutation({
       query: (id) => ({
         url: `${STOCK_SUBCATEGORIES_URL}/${id}`,
-        method: 'DELETE',
+        method: "DELETE",
       }),
-      invalidatesTags: ['StockSubcategory'],
+      invalidatesTags: ["StockSubcategory"],
     }),
   }),
-})
+});
 
 export const {
   useGetStockSubcategoriesQuery,
@@ -70,4 +70,4 @@ export const {
   useCreateStockSubcategoryMutation,
   useUpdateStockSubcategoryMutation,
   useDeleteStockSubcategoryMutation,
-} = stockSubcategoryApiSlice
+} = stockSubcategoryApiSlice;

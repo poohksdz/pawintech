@@ -1,21 +1,21 @@
-const express = require('express')
+const express = require("express");
 const {
   createCategory,
   updateCategory,
   deleteCategory,
   getCategories,
   getCategoryDetails,
-} = require('../controllers/categoryController.js')
-const { protect, store, admin } = require('../middleware/authMiddleware.js')
+} = require("../controllers/categoryController.js");
+const { protect, store, admin } = require("../middleware/authMiddleware.js");
 
-const router = express.Router()
+const router = express.Router();
 
-router.route('/').post(protect, store, createCategory).get(getCategories)
+router.route("/").post(protect, store, createCategory).get(getCategories);
 router
-  .route('/:id')
+  .route("/:id")
   .get(getCategoryDetails)
   .delete(protect, store, deleteCategory)
-  .put(protect, store, updateCategory)
+  .put(protect, store, updateCategory);
 
 // router
 //   .route('/')
@@ -27,4 +27,4 @@ router
 //   .delete(protect, admin, deleteCategory)
 //   .put(protect, admin, updateCategory);
 
-module.exports = router
+module.exports = router;

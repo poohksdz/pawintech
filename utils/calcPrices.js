@@ -1,8 +1,8 @@
-const asyncHandler = require('../middleware/asyncHandler.js')
-const { pool } = require('../config/db.js')
+const asyncHandler = require("../middleware/asyncHandler.js");
+const { pool } = require("../config/db.js");
 
 function addDecimals(num) {
-  return (Math.round(num * 100) / 100).toFixed(2)
+  return (Math.round(num * 100) / 100).toFixed(2);
 }
 
 const calcPrices = async (orderItems) => {
@@ -10,40 +10,40 @@ const calcPrices = async (orderItems) => {
     // Calculate the items price in whole numbers (pennies) to avoid floating-point issues
     const itemsPrice = orderItems.reduce(
       (acc, item) => acc + (item.price * 100 * item.qty) / 100,
-      0
-    )
+      0,
+    );
 
     // Query transportation price
     const [rows] = await pool.query(
-      'SELECT transportationPrice FROM transportations LIMIT 1'
-    )
+      "SELECT transportationPrice FROM transportations LIMIT 1",
+    );
 
     if (rows.length === 0) {
-      throw new Error('Transportation price not found')
+      throw new Error("Transportation price not found");
     }
 
-    const transportationPrice = rows[0].transportationPrice
+    const transportationPrice = rows[0].transportationPrice;
 
     // Calculate the shipping price
-    const shippingPrice = Number(transportationPrice) || 0
+    const shippingPrice = Number(transportationPrice) || 0;
 
     // Calculate the total price
-    const totalPrice = itemsPrice + shippingPrice
+    const totalPrice = itemsPrice + shippingPrice;
 
     // Return prices as strings fixed to 2 decimal places
     return {
       itemsPrice: addDecimals(itemsPrice),
       shippingPrice: addDecimals(shippingPrice),
       totalPrice: addDecimals(totalPrice),
-    }
+    };
   } catch (error) {
-    console.error(`Error in calcPrices: ${error.message}`)
-    throw new Error('Error calculating prices')
+    console.error(`Error in calcPrices: ${error.message}`);
+    throw new Error("Error calculating prices");
   }
-}
+};
 
 // Export using CommonJS
-module.exports = { calcPrices }
+module.exports = { calcPrices };
 
 // function addDecimals(num) {
 //   return (Math.round(num * 100) / 100).toFixed(2)

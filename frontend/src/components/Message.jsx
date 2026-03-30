@@ -1,12 +1,12 @@
-import React from 'react';
-import { AlertCircle, CheckCircle, Info, XCircle } from 'lucide-react';
+import React from "react";
+import { AlertCircle, CheckCircle, Info, XCircle } from "lucide-react";
 
-const Message = ({ variant = 'info', children }) => {
+const Message = ({ variant = "info", children }) => {
   const variants = {
-    info: 'bg-blue-50 text-blue-800 border-blue-200',
-    success: 'bg-emerald-50 text-emerald-800 border-emerald-200',
-    warning: 'bg-amber-50 text-amber-800 border-amber-200',
-    danger: 'bg-red-50 text-red-800 border-red-200',
+    info: "bg-blue-50 text-blue-800 border-blue-200",
+    success: "bg-emerald-50 text-emerald-800 border-emerald-200",
+    warning: "bg-amber-50 text-amber-800 border-amber-200",
+    danger: "bg-red-50 text-red-800 border-red-200",
   };
 
   const icons = {
@@ -21,11 +21,12 @@ const Message = ({ variant = 'info', children }) => {
   const IconClass = icons[variant] || icons.info;
 
   return (
-    <div className={`flex gap-3 p-4 mb-4 text-sm border rounded-lg animate-slideDownPop ${colorClass}`} role="alert">
+    <div
+      className={`flex gap-3 p-4 mb-4 text-sm border rounded-lg animate-slideDownPop ${colorClass}`}
+      role="alert"
+    >
       {IconClass}
-      <div>
-        {children}
-      </div>
+      <div>{children}</div>
     </div>
   );
 };

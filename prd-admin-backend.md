@@ -1,9 +1,11 @@
 # PRD - Admin Backend (All Admin Pages/Features)
 
 ## Goal
+
 ทดสอบระบบหลังบ้านฝั่ง Admin (Backend) โดยยืนยันว่า API ที่ต้องใช้สิทธิ์ admin ทำงานได้จริงและป้องกัน unauthorized/non-admin ได้ถูกต้อง
 
 ## Authentication
+
 - ใช้ JWT token ผ่าน Bearer token (Authorization header) โดยค่า token ใส่ในช่อง Credential ของหน้า Testing Configuration แล้วให้ระบบนำไปใช้กับทุกคำขอ
 - Expected:
   - ไม่มี token ⇒ ได้สถานะ 401
@@ -11,6 +13,7 @@
   - มี token ของ admin ที่ถูกต้อง ⇒ Endpoint ที่อนุญาตควรตอบ 2xx
 
 ## Scope (All Admin Backend Features)
+
 ทดสอบ endpoint ที่ถูกป้องกันด้วย middleware `protect` + `admin` ทั้งหมดในโปรเจกต์นี้ ตัวอย่างเช่น (แต่ไม่จำกัดแค่รายการนี้):
 
 - Users (การจัดการผู้ใช้)
@@ -34,6 +37,7 @@
   - Endpoints ใน `/api/stockproducts`, `/api/stockcategories`, `/api/stocksubcategories`, `/api/stockfootprints`, `/api/stockmanufactures`, `/api/stocksuppliers`, `/api/stockrequests`, `/api/stockissues`, `/api/stockreceives` ที่ต้องใช้ `protect, admin` หรือ `protect, admin, store`
 
 ## Test Expectations
+
 - สำหรับทุก endpoint ที่อนุญาตให้ admin ใช้งาน:
   - ตอบกลับด้วย HTTP 200/201/204 ตามประเภทการทำงาน (อ่าน/สร้าง/แก้ไข/ลบ)
   - โครงสร้าง response มีฟิลด์หลักที่สอดคล้องกับประเภทข้อมูล (เช่น user, order, blog, showcase ฯลฯ)
@@ -42,10 +46,11 @@
   - ใช้ token ที่ไม่ใช่ admin (ถ้ามีเคส) ⇒ ควรได้ 403
 
 ## Out of Scope
+
 - การทดสอบ UI/หน้าจอ React (Frontend) โดยตรง
 - การตรวจสอบรูปแบบ HTML/CSS หรือการเรนเดอร์หน้าเว็บ
 
 ## Notes / Data Safety
+
 - สำหรับ endpoint ที่สร้าง/แก้ไข/ลบข้อมูล ให้โฟกัสดูว่าคำขอสำเร็จและไม่เกิด error ฝั่งเซิร์ฟเวอร์ (5xx) หรือ auth (401/403) โดยไม่จำเป็นต้องตรวจเชิงลึกของข้อมูลทุกฟิลด์
 - หากพบ error ที่เกี่ยวข้องกับสภาพแวดล้อม (เช่น DB ไม่มีข้อมูล, constraint) ให้บันทึกและรายงานผลตามจริง
-

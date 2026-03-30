@@ -1,41 +1,39 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
+import { Container, Row, Col, Form, Image } from "react-bootstrap";
+import { toast } from "react-toastify";
+import { useSelector } from "react-redux";
+import { useNavigate, useParams, Link } from "react-router-dom";
 import {
-  Container,
-  Row,
-  Col,
-  Form,
-  Button,
-  Image,
-  Card,
-  Breadcrumb,
-} from 'react-bootstrap';
-import { toast } from 'react-toastify';
-import { useSelector } from 'react-redux';
-import { useNavigate, useParams, Link } from 'react-router-dom';
-import { FaArrowLeft, FaCloudUploadAlt, FaTrashAlt, FaFileArchive, FaMicrochip, FaSave } from 'react-icons/fa';
+  FaArrowLeft,
+  FaCloudUploadAlt,
+  FaTrashAlt,
+  FaFileArchive,
+  FaMicrochip,
+  FaSave,
+} from "react-icons/fa";
 import {
   useGetCustomcartByIdQuery,
   useUpdateCustomcartMutation,
   useUploadCustomCartDiagramZipMutation,
   useUploadCustomCartMultipleImagesMutation,
-} from '../../slices/custompcbCartApiSlice';
+} from "../../slices/custompcbCartApiSlice";
 
-const IMAGE_FOLDER = '/custompcbImages';
+const IMAGE_FOLDER = "/custompcbImages";
 
 const CustomPCBCartEditScreen = () => {
   const navigate = useNavigate();
   const { id } = useParams();
-  const { userInfo } = useSelector((state) => state.auth);
 
   const [formData, setFormData] = useState({ pcbQty: 1, zipFile: null });
-  const [projectname, setProjectName] = useState('');
+  const [projectname, setProjectName] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [diagramImages, setDiagramImages] = useState([]); // {url, file} objects
-  const [notes, setNotes] = useState('');
-  const [zipPath, setZipPath] = useState('');
+  const [notes, setNotes] = useState("");
+  const [zipPath, setZipPath] = useState("");
 
-  const { data, error } = useGetCustomcartByIdQuery(id);
-  const [updateCustomcart, { isLoading: updateLoading }] = useUpdateCustomcartMutation();
+  const { data } = useGetCustomcartByIdQuery(id);
+  const [updateCustomcart, { isLoading: updateLoading }] =
+    useUpdateCustomcartMutation();
   const [uploadDiagramZip] = useUploadCustomCartDiagramZipMutation();
   const [uploadMultipleImages] = useUploadCustomCartMultipleImagesMutation();
 
@@ -44,12 +42,12 @@ const CustomPCBCartEditScreen = () => {
     if (data && data.success && data.data) {
       const d = data.data;
 
-      setProjectName(d.projectname || '');
+      setProjectName(d.projectname || "");
       setFormData((prev) => ({
         ...prev,
         pcbQty: d.pcb_qty || 1,
       }));
-      setNotes(d.notes || '');
+      setNotes(d.notes || "");
 
       // Build existing images list
       const existingImages = [];
@@ -58,7 +56,7 @@ const CustomPCBCartEditScreen = () => {
         if (path) {
           let fullPath = path;
           // If path starts with /images-, prefix with IMAGE_FOLDER
-          if (path.startsWith('/images-')) {
+          if (path.startsWith("/images-")) {
             fullPath = `${IMAGE_FOLDER}${path}`;
           }
           existingImages.push({ url: fullPath, file: null });
@@ -119,9 +117,11 @@ const CustomPCBCartEditScreen = () => {
     const form = new FormData();
     const newImages = diagramImages.filter((img) => img.file);
     if (newImages.length === 0) return [];
-    newImages.forEach((img) => form.append('images', img.file));
+    newImages.forEach((img) => form.append("images", img.file));
     const res = await uploadMultipleImages(form).unwrap();
-    return (res?.images || []).map((img) => typeof img === 'string' ? img : img.path);
+    return (res?.images || []).map((img) =>
+      typeof img === "string" ? img : img.path,
+    );
   };
 
   // Upload zip file if changed, else return existing path
@@ -130,7 +130,7 @@ const CustomPCBCartEditScreen = () => {
       return formData.zipFile?.name || null;
 
     const form = new FormData();
-    form.append('diagramZip', formData.zipFile);
+    form.append("diagramZip", formData.zipFile);
     const res = await uploadDiagramZip(form).unwrap();
     return res.path;
   };
@@ -138,9 +138,9 @@ const CustomPCBCartEditScreen = () => {
   // Handle form submit to update the order
   const orderNowHandler = async (e) => {
     e.preventDefault();
-    if (!projectname.trim()) return toast.error('Please enter a project name.');
+    if (!projectname.trim()) return toast.error("Please enter a project name.");
     if (diagramImages.length === 0)
-      return toast.error('Please upload at least 1 diagram image.');
+      return toast.error("Please upload at least 1 diagram image.");
 
     try {
       setIsLoading(true);
@@ -165,7 +165,8 @@ const CustomPCBCartEditScreen = () => {
       diagramImages.forEach((img, idx) => {
         if (img.file) {
           // This image was uploaded just now; use uploadedImages in order
-          updatedData[`dirgram_image_${idx + 1}`] = uploadedImages[existingIndex];
+          updatedData[`dirgram_image_${idx + 1}`] =
+            uploadedImages[existingIndex];
           existingIndex++;
         } else {
           // Existing image URL, extract path relative to IMAGE_FOLDER
@@ -184,11 +185,11 @@ const CustomPCBCartEditScreen = () => {
       // Send update request
       await updateCustomcart({ id, data: updatedData }).unwrap();
 
-      toast.success('Order updated successfully!');
-      navigate('/admin/cartcustompcblist'); // Redirect after success, adjust as needed
+      toast.success("Order updated successfully!");
+      navigate("/admin/cartcustompcblist"); // Redirect after success, adjust as needed
     } catch (err) {
       console.error(err);
-      toast.error('Failed to submit order.');
+      toast.error("Failed to submit order.");
     } finally {
       setIsLoading(false);
     }
@@ -200,18 +201,30 @@ const CustomPCBCartEditScreen = () => {
         {/* Header & Navigation */}
         <div className="mb-8">
           <div className="flex items-center gap-4 mb-4">
-            <Link to="/admin/cartcustompcblist" className="w-10 h-10 rounded-2xl bg-white shadow-sm border border-slate-100 flex items-center justify-center text-slate-400 hover:text-blue-600 hover:border-blue-100 transition-all">
+            <Link
+              to="/admin/cartcustompcblist"
+              className="w-10 h-10 rounded-2xl bg-white shadow-sm border border-slate-100 flex items-center justify-center text-slate-400 hover:text-blue-600 hover:border-blue-100 transition-all"
+            >
               <FaArrowLeft size={16} />
             </Link>
             <div>
               <nav className="flex mb-1" aria-label="Breadcrumb">
                 <ol className="flex items-center space-x-2 text-[10px] font-bold uppercase tracking-widest text-slate-400">
-                  <li><Link to="/admin/cartcustompcblist" className="hover:text-blue-500 transition-colors">Admin</Link></li>
+                  <li>
+                    <Link
+                      to="/admin/cartcustompcblist"
+                      className="hover:text-blue-500 transition-colors"
+                    >
+                      Admin
+                    </Link>
+                  </li>
                   <li>/</li>
                   <li className="text-slate-900">Edit Order</li>
                 </ol>
               </nav>
-              <h1 className="text-2xl font-bold text-slate-900 m-0">Edit Custom PCB Project</h1>
+              <h1 className="text-2xl font-bold text-slate-900 m-0">
+                Edit Custom PCB Project
+              </h1>
             </div>
           </div>
         </div>
@@ -227,11 +240,15 @@ const CustomPCBCartEditScreen = () => {
                     <div className="w-10 h-10 rounded-2xl bg-blue-50 text-blue-500 flex items-center justify-center">
                       <FaMicrochip size={18} />
                     </div>
-                    <h5 className="text-lg font-bold text-slate-900 m-0">Basic Information</h5>
+                    <h5 className="text-lg font-bold text-slate-900 m-0">
+                      Basic Information
+                    </h5>
                   </div>
 
                   <Form.Group className="mb-0">
-                    <Form.Label className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 px-1">Project Name</Form.Label>
+                    <Form.Label className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 px-1">
+                      Project Name
+                    </Form.Label>
                     <Form.Control
                       type="text"
                       className="bg-slate-50 border-2 border-slate-50 rounded-2xl py-3 px-4 font-bold text-slate-800 focus:bg-white focus:border-blue-500/50 focus:ring-4 focus:ring-blue-500/10 transition-all outline-none"
@@ -249,7 +266,9 @@ const CustomPCBCartEditScreen = () => {
                       <div className="w-10 h-10 rounded-2xl bg-blue-50 text-blue-500 flex items-center justify-center">
                         <FaCloudUploadAlt size={18} />
                       </div>
-                      <h5 className="text-lg font-bold text-slate-900 m-0">Diagram Images</h5>
+                      <h5 className="text-lg font-bold text-slate-900 m-0">
+                        Diagram Images
+                      </h5>
                     </div>
                     <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
                       {diagramImages.length} / 10 Images
@@ -258,7 +277,10 @@ const CustomPCBCartEditScreen = () => {
 
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
                     {diagramImages.map((img, idx) => (
-                      <div key={idx} className="group relative aspect-square rounded-3xl overflow-hidden border border-slate-100 shadow-sm">
+                      <div
+                        key={idx}
+                        className="group relative aspect-square rounded-3xl overflow-hidden border border-slate-100 shadow-sm"
+                      >
                         <Image
                           src={img.url}
                           className="w-full h-full object-fit-cover transition-transform duration-500 group-hover:scale-110"
@@ -287,7 +309,9 @@ const CustomPCBCartEditScreen = () => {
                         <div className="w-10 h-10 rounded-2xl bg-white shadow-sm flex items-center justify-center text-slate-400 group-hover:text-blue-500 mb-2 transition-colors">
                           <FaCloudUploadAlt size={18} />
                         </div>
-                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest group-hover:text-blue-500 transition-colors">Upload</span>
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest group-hover:text-blue-500 transition-colors">
+                          Upload
+                        </span>
                       </label>
                     )}
                   </div>
@@ -299,7 +323,9 @@ const CustomPCBCartEditScreen = () => {
                     <div className="w-10 h-10 rounded-2xl bg-amber-50 text-amber-500 flex items-center justify-center">
                       <FaFileArchive size={18} />
                     </div>
-                    <h5 className="text-lg font-bold text-slate-900 m-0">Technical Files</h5>
+                    <h5 className="text-lg font-bold text-slate-900 m-0">
+                      Technical Files
+                    </h5>
                   </div>
 
                   <div className="relative">
@@ -308,7 +334,9 @@ const CustomPCBCartEditScreen = () => {
                       accept=".zip,.rar"
                       id="zipFileInput"
                       className="hidden"
-                      onChange={(e) => handleChange('zipFile', e.target.files[0])}
+                      onChange={(e) =>
+                        handleChange("zipFile", e.target.files[0])
+                      }
                     />
 
                     {formData.zipFile ? (
@@ -319,25 +347,36 @@ const CustomPCBCartEditScreen = () => {
                           </div>
                           <div className="overflow-hidden">
                             <div className="text-xs font-bold text-slate-800 truncate">
-                              {formData.zipFile.name || zipPath.split('/').pop()}
+                              {formData.zipFile.name ||
+                                zipPath.split("/").pop()}
                             </div>
                             <div className="text-[10px] font-medium text-slate-400 uppercase tracking-wider">
-                              {formData.zipFile.isUploaded ? 'Current File' : 'Newly Selected'}
+                              {formData.zipFile.isUploaded
+                                ? "Current File"
+                                : "Newly Selected"}
                             </div>
                           </div>
                         </div>
                         <button
                           type="button"
-                          onClick={() => handleChange('zipFile', null)}
+                          onClick={() => handleChange("zipFile", null)}
                           className="p-2 text-slate-400 hover:text-rose-500 transition-colors border-none bg-transparent"
                         >
                           <FaTrashAlt size={14} />
                         </button>
                       </div>
                     ) : (
-                      <label htmlFor="zipFileInput" className="block w-full py-6 rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50/50 hover:bg-amber-50/50 hover:border-amber-200 transition-all cursor-pointer group text-center">
-                        <FaCloudUploadAlt size={24} className="text-slate-300 group-hover:text-amber-500 mb-2 mx-auto transition-colors" />
-                        <span className="text-xs font-bold text-slate-400 uppercase tracking-widest group-hover:text-amber-500 transition-colors">Click to Upload ZIP/RAR</span>
+                      <label
+                        htmlFor="zipFileInput"
+                        className="block w-full py-6 rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50/50 hover:bg-amber-50/50 hover:border-amber-200 transition-all cursor-pointer group text-center"
+                      >
+                        <FaCloudUploadAlt
+                          size={24}
+                          className="text-slate-300 group-hover:text-amber-500 mb-2 mx-auto transition-colors"
+                        />
+                        <span className="text-xs font-bold text-slate-400 uppercase tracking-widest group-hover:text-amber-500 transition-colors">
+                          Click to Upload ZIP/RAR
+                        </span>
                       </label>
                     )}
                   </div>
@@ -349,7 +388,9 @@ const CustomPCBCartEditScreen = () => {
                     <div className="w-10 h-10 rounded-2xl bg-emerald-50 text-emerald-500 flex items-center justify-center">
                       <FaSave size={18} />
                     </div>
-                    <h5 className="text-lg font-bold text-slate-900 m-0">Additional Notes</h5>
+                    <h5 className="text-lg font-bold text-slate-900 m-0">
+                      Additional Notes
+                    </h5>
                   </div>
                   <Form.Control
                     as="textarea"
@@ -367,10 +408,14 @@ const CustomPCBCartEditScreen = () => {
             <Col lg={4}>
               <div className="sticky top-6 space-y-6">
                 <div className="bg-white rounded-[2.5rem] shadow-sm border border-slate-100 p-8">
-                  <h5 className="text-lg font-bold text-slate-900 mb-6">Configuration</h5>
+                  <h5 className="text-lg font-bold text-slate-900 mb-6">
+                    Configuration
+                  </h5>
 
                   <Form.Group className="mb-8">
-                    <Form.Label className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 px-1">PCB Quantity</Form.Label>
+                    <Form.Label className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 px-1">
+                      PCB Quantity
+                    </Form.Label>
                     <div className="relative">
                       <Form.Control
                         type="number"
@@ -379,12 +424,14 @@ const CustomPCBCartEditScreen = () => {
                         value={formData.pcbQty}
                         onChange={(e) =>
                           handleChange(
-                            'pcbQty',
-                            Math.max(0, parseInt(e.target.value || 0))
+                            "pcbQty",
+                            Math.max(0, parseInt(e.target.value || 0)),
                           )
                         }
                       />
-                      <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Units</span>
+                      <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                        Units
+                      </span>
                     </div>
                   </Form.Group>
 
@@ -404,7 +451,8 @@ const CustomPCBCartEditScreen = () => {
 
                   <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 italic">
                     <p className="text-[10px] font-medium text-slate-500 text-center m-0 leading-relaxed">
-                      All changes will be updated in the system immediately. Admins can review these changes in the list view.
+                      All changes will be updated in the system immediately.
+                      Admins can review these changes in the list view.
                     </p>
                   </div>
                 </div>

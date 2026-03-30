@@ -1,5 +1,5 @@
-import { ABOUTS_URL } from '../constants'
-import { apiSlice } from './apiSlice'
+import { ABOUTS_URL } from "../constants";
+import { apiSlice } from "./apiSlice";
 
 export const aboutApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
@@ -9,7 +9,7 @@ export const aboutApiSlice = apiSlice.injectEndpoints({
         params: { keyword, pageNumber },
       }),
       keepUnusedDataFor: 5,
-      providesTags: ['Abouts'],
+      providesTags: ["Abouts"],
     }),
     getAboutDetails: builder.query({
       query: (aboutId) => ({
@@ -20,35 +20,35 @@ export const aboutApiSlice = apiSlice.injectEndpoints({
     createAbout: builder.mutation({
       query: (data) => ({
         url: `${ABOUTS_URL}`,
-        method: 'POST',
+        method: "POST",
         body: data,
       }),
-      invalidatesTags: ['About'],
+      invalidatesTags: ["About"],
     }),
     updateAbout: builder.mutation({
       query: (data) => ({
         url: `${ABOUTS_URL}/${data.aboutId}`,
-        method: 'PUT',
+        method: "PUT",
         body: data,
       }),
-      invalidatesTags: ['Abouts'],
+      invalidatesTags: ["Abouts"],
     }),
     deleteAbout: builder.mutation({
       query: (aboutId) => ({
         url: `${ABOUTS_URL}/${aboutId}`,
-        method: 'DELETE',
+        method: "DELETE",
       }),
-      providesTags: ['About'],
+      providesTags: ["About"],
     }),
     uploadAboutImage: builder.mutation({
       query: (data) => ({
         url: `/api/aboutImages`,
-        method: 'POST',
+        method: "POST",
         body: data,
       }),
     }),
   }),
-})
+});
 
 export const {
   useGetAboutsQuery,
@@ -57,4 +57,4 @@ export const {
   useUpdateAboutMutation,
   useDeleteAboutMutation,
   useUploadAboutImageMutation,
-} = aboutApiSlice
+} = aboutApiSlice;

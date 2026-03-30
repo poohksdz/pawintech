@@ -1,5 +1,5 @@
-import { DEFAULT_QUOTATION_URL } from '../constants'
-import { apiSlice } from './apiSlice'
+import { DEFAULT_QUOTATION_URL } from "../constants";
+import { apiSlice } from "./apiSlice";
 
 export const quotationDefaultApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
@@ -10,7 +10,7 @@ export const quotationDefaultApiSlice = apiSlice.injectEndpoints({
         params: { keyword, pageNumber },
       }),
       keepUnusedDataFor: 5,
-      providesTags: ['DefaultQuotations'],
+      providesTags: ["DefaultQuotations"],
     }),
 
     // Fetch single default quotation details
@@ -18,74 +18,74 @@ export const quotationDefaultApiSlice = apiSlice.injectEndpoints({
       query: (defaultQuotationId) =>
         `${DEFAULT_QUOTATION_URL}/${defaultQuotationId}`,
       keepUnusedDataFor: 5,
-      providesTags: ['DefaultQuotations'],
+      providesTags: ["DefaultQuotations"],
     }),
 
     // Fetch default quotations marked as "used"
     getDefaultQuotationUsed: builder.query({
       query: () => `${DEFAULT_QUOTATION_URL}/isuse`,
       keepUnusedDataFor: 5,
-      providesTags: ['DefaultQuotations'],
+      providesTags: ["DefaultQuotations"],
     }),
 
     // Create new default quotation
     createDefaultQuotation: builder.mutation({
       query: (data) => ({
         url: DEFAULT_QUOTATION_URL,
-        method: 'POST',
+        method: "POST",
         body: data,
       }),
-      invalidatesTags: ['DefaultQuotations'],
+      invalidatesTags: ["DefaultQuotations"],
     }),
 
     // Update existing default quotation
     updateDefaultQuotation: builder.mutation({
       query: ({ id, ...data }) => ({
         url: `${DEFAULT_QUOTATION_URL}/${id}`,
-        method: 'PUT',
+        method: "PUT",
         body: data,
       }),
-      invalidatesTags: ['DefaultQuotations'],
+      invalidatesTags: ["DefaultQuotations"],
     }),
 
     // Update "use" status of default quotation
     updateUseingDefaultQuotation: builder.mutation({
       query: ({ defaultQuotationId, ...data }) => ({
         url: `${DEFAULT_QUOTATION_URL}/${defaultQuotationId}/use`,
-        method: 'PUT',
+        method: "PUT",
         body: data,
       }),
-      invalidatesTags: ['DefaultQuotations'],
+      invalidatesTags: ["DefaultQuotations"],
     }),
 
     // Update "use" status of default quotation
     updateUseingDefaultQuotationSet: builder.mutation({
       query: ({ defaultQuotationId, ...data }) => ({
         url: `${DEFAULT_QUOTATION_URL}/set/${defaultQuotationId}`,
-        method: 'PUT',
+        method: "PUT",
         body: data,
       }),
-      invalidatesTags: ['DefaultQuotations'],
+      invalidatesTags: ["DefaultQuotations"],
     }),
 
     // Delete a default quotation
     deleteDefaultQuotation: builder.mutation({
       query: (defaultQuotationId) => ({
         url: `${DEFAULT_QUOTATION_URL}/${defaultQuotationId}`,
-        method: 'DELETE',
+        method: "DELETE",
       }),
-      invalidatesTags: ['DefaultQuotations'],
+      invalidatesTags: ["DefaultQuotations"],
     }),
 
     uploadDefaultQuotationImage: builder.mutation({
       query: (formData) => ({
-        url: '/api/defaultquotations/upload',
-        method: 'POST',
+        url: "/api/defaultquotations/upload",
+        method: "POST",
         body: formData,
       }),
     }),
   }),
-})
+});
 
 export const {
   useGetDefaultQuotationsQuery,
@@ -97,4 +97,4 @@ export const {
   useUpdateUseingDefaultQuotationSetMutation,
   useDeleteDefaultQuotationMutation,
   useUploadDefaultQuotationImageMutation,
-} = quotationDefaultApiSlice
+} = quotationDefaultApiSlice;

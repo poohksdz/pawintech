@@ -1,5 +1,5 @@
-import { apiSlice } from './apiSlice';
-import { PAYMENTS_URL } from '../constants'; // อย่าลืมเพิ่ม PAYMENTS_URL = '/api/payments' ใน constants.js
+import { apiSlice } from "./apiSlice";
+import { PAYMENTS_URL } from "../constants"; // อย่าลืมเพิ่ม PAYMENTS_URL = '/api/payments' ใน constants.js
 
 export const paymentApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
@@ -9,22 +9,20 @@ export const paymentApiSlice = apiSlice.injectEndpoints({
         url: PAYMENTS_URL,
       }),
       keepUnusedDataFor: 5,
-      providesTags: ['Payment'],
+      providesTags: ["Payment"],
     }),
-    
+
     // 2. อัปเดตสถานะการชำระเงิน (ยืนยัน/ปฏิเสธ)
     updatePaymentStatus: builder.mutation({
       query: (data) => ({
         url: `${PAYMENTS_URL}/${data.id}`,
-        method: 'PUT',
+        method: "PUT",
         body: data, // ส่ง status: 'Paid' หรือ 'Reject' ไป
       }),
-      invalidatesTags: ['Payment'],
+      invalidatesTags: ["Payment"],
     }),
   }),
 });
 
-export const {
-  useGetAllPaymentsQuery,
-  useUpdatePaymentStatusMutation,
-} = paymentApiSlice;
+export const { useGetAllPaymentsQuery, useUpdatePaymentStatusMutation } =
+  paymentApiSlice;

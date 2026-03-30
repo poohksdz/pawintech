@@ -1,14 +1,28 @@
-import React, { useState } from 'react';
-import { useSelector } from 'react-redux';
-import { useParams, Link } from 'react-router-dom';
-import { Form, Row, Col, Card, ListGroup, Image, Button, Container, Badge, Breadcrumb } from 'react-bootstrap';
-import JSZip from 'jszip';
-import { saveAs } from 'file-saver';
-import { FaArrowLeft, FaDownload, FaSearchPlus, FaFileArchive, FaImages, FaInfoCircle, FaMicrochip, FaBox, FaQuoteRight, FaCheckCircle, FaTimesCircle, FaClock, FaCreditCard } from 'react-icons/fa';
-import Loader from '../../components/Loader';
-import Message from '../../components/Message';
-import { useGetCustomcartByIdQuery } from '../../slices/custompcbCartApiSlice';
-import { BASE_URL } from '../../constants';
+import React, { useState } from "react";
+import { useSelector } from "react-redux";
+import { useParams, Link } from "react-router-dom";
+import { Row, Col, Image, Container } from "react-bootstrap";
+import JSZip from "jszip";
+import { saveAs } from "file-saver";
+import {
+  FaArrowLeft,
+  FaDownload,
+  FaSearchPlus,
+  FaFileArchive,
+  FaImages,
+  FaInfoCircle,
+  FaMicrochip,
+  FaBox,
+  FaQuoteRight,
+  FaCheckCircle,
+  FaTimesCircle,
+  FaClock,
+  FaCreditCard,
+} from "react-icons/fa";
+import Loader from "../../components/Loader";
+import Message from "../../components/Message";
+import { useGetCustomcartByIdQuery } from "../../slices/custompcbCartApiSlice";
+import { BASE_URL } from "../../constants";
 
 const CustomPCBCartDetailScreen = () => {
   const { id } = useParams();
@@ -18,63 +32,80 @@ const CustomPCBCartDetailScreen = () => {
 
   const translations = {
     en: {
-      title: 'Quote Request Details',
-      projectnameLbl: 'Project Name',
-      QtyLbl: 'Quantity',
-      NotesLbl: 'Notes',
-      ConfirmedReasonLbl: 'Admin Response / Quote Details',
-      DiagramZipLbl: 'Technical Files (Zip)',
-      TotalPriceLbl: 'Estimated Price',
-      StatusLbl: 'Status',
-      PhotoLbl: 'Diagram Images',
-      DownloadAllImg: 'Download All Images',
-      DownloadProject: 'Download Full Project',
-      NoFile: 'No file attached',
+      title: "Quote Request Details",
+      projectnameLbl: "Project Name",
+      QtyLbl: "Quantity",
+      NotesLbl: "Notes",
+      ConfirmedReasonLbl: "Admin Response / Quote Details",
+      DiagramZipLbl: "Technical Files (Zip)",
+      TotalPriceLbl: "Estimated Price",
+      StatusLbl: "Status",
+      PhotoLbl: "Diagram Images",
+      DownloadAllImg: "Download All Images",
+      DownloadProject: "Download Full Project",
+      NoFile: "No file attached",
     },
     thai: {
-      title: 'รายละเอียดคำขอใบเสนอราคา',
-      projectnameLbl: 'ชื่อโปรเจกต์',
-      QtyLbl: 'จำนวน',
-      NotesLbl: 'รายละเอียดเพิ่มเติม',
-      ConfirmedReasonLbl: 'การตอบกลับจากแอดมิน / รายละเอียดราคา',
-      DiagramZipLbl: 'ไฟล์เทคนิค (Zip)',
-      TotalPriceLbl: 'ราคาประเมิน',
-      StatusLbl: 'สถานะ',
-      PhotoLbl: 'รูปภาพประกอบ',
-      DownloadAllImg: 'ดาวน์โหลดรูปทั้งหมด',
-      DownloadProject: 'ดาวน์โหลดโปรเจกต์ทั้งหมด',
-      NoFile: 'ไม่มีไฟล์แนบ',
+      title: "รายละเอียดคำขอใบเสนอราคา",
+      projectnameLbl: "ชื่อโปรเจกต์",
+      QtyLbl: "จำนวน",
+      NotesLbl: "รายละเอียดเพิ่มเติม",
+      ConfirmedReasonLbl: "การตอบกลับจากแอดมิน / รายละเอียดราคา",
+      DiagramZipLbl: "ไฟล์เทคนิค (Zip)",
+      TotalPriceLbl: "ราคาประเมิน",
+      StatusLbl: "สถานะ",
+      PhotoLbl: "รูปภาพประกอบ",
+      DownloadAllImg: "ดาวน์โหลดรูปทั้งหมด",
+      DownloadProject: "ดาวน์โหลดโปรเจกต์ทั้งหมด",
+      NoFile: "ไม่มีไฟล์แนบ",
     },
   };
 
   const t = translations[language] || translations.en;
 
   if (isLoading) return <Loader />;
-  if (isError) return <Message variant="danger">{error?.data?.message || error.message || 'Error loading data'}</Message>;
+  if (isError)
+    return (
+      <Message variant="danger">
+        {error?.data?.message || error.message || "Error loading data"}
+      </Message>
+    );
 
   const order = data?.data || data || {};
 
   const imageFields = [
-    'dirgram_image_1', 'dirgram_image_2', 'dirgram_image_3',
-    'dirgram_image_4', 'dirgram_image_5', 'dirgram_image_6',
-    'dirgram_image_7', 'dirgram_image_8', 'dirgram_image_9',
-    'dirgram_image_10',
+    "dirgram_image_1",
+    "dirgram_image_2",
+    "dirgram_image_3",
+    "dirgram_image_4",
+    "dirgram_image_5",
+    "dirgram_image_6",
+    "dirgram_image_7",
+    "dirgram_image_8",
+    "dirgram_image_9",
+    "dirgram_image_10",
   ];
 
   const getFullUrl = (pathInput) => {
     if (!pathInput) return null;
-    let path = typeof pathInput === 'object' ? (pathInput.path || pathInput.url) : pathInput;
-    if (!path || typeof path !== 'string') return null;
+    let path =
+      typeof pathInput === "object"
+        ? pathInput.path || pathInput.url
+        : pathInput;
+    if (!path || typeof path !== "string") return null;
 
-    if (path.startsWith('http')) return path;
+    if (path.startsWith("http")) return path;
 
     // Normalize path: replace backslashes and ensure single leading slash
-    let normalizedPath = path.replace(/\\/g, '/');
-    if (!normalizedPath.startsWith('/')) {
-      normalizedPath = '/' + normalizedPath;
+    let normalizedPath = path.replace(/\\/g, "/");
+    if (!normalizedPath.startsWith("/")) {
+      normalizedPath = "/" + normalizedPath;
     }
 
-    const baseUrl = process.env.NODE_ENV === 'development' ? 'http://localhost:5000' : (BASE_URL || '');
+    const baseUrl =
+      process.env.NODE_ENV === "development"
+        ? "http://localhost:5000"
+        : BASE_URL || "";
     return `${baseUrl}${normalizedPath}`;
   };
 
@@ -84,23 +115,24 @@ const CustomPCBCartDetailScreen = () => {
   const downloadAllImages = async (e) => {
     e.preventDefault();
     const zip = new JSZip();
-    const folder = zip.folder(order.projectname || 'images');
+    const folder = zip.folder(order.projectname || "images");
 
     const fields = imageFields
       .map((key, i) => {
         const rawPath = order[key];
         if (!rawPath) return null;
-        const pathStr = typeof rawPath === 'object' ? (rawPath.path || rawPath.url) : rawPath;
-        if (!pathStr || typeof pathStr !== 'string') return null;
+        const pathStr =
+          typeof rawPath === "object" ? rawPath.path || rawPath.url : rawPath;
+        if (!pathStr || typeof pathStr !== "string") return null;
         return {
           file: rawPath,
-          name: `diagram-${i + 1}${pathStr.substring(pathStr.lastIndexOf('.'))}`
-        }
+          name: `diagram-${i + 1}${pathStr.substring(pathStr.lastIndexOf("."))}`,
+        };
       })
       .filter(Boolean);
 
     if (!fields.length) {
-      alert('No images found to download.');
+      alert("No images found to download.");
       return;
     }
 
@@ -108,7 +140,7 @@ const CustomPCBCartDetailScreen = () => {
       const url = getFullUrl(file);
       try {
         const response = await fetch(url);
-        if (!response.ok) throw new Error('File not found');
+        if (!response.ok) throw new Error("File not found");
         const blob = await response.blob();
         folder.file(name, blob);
       } catch (err) {
@@ -116,8 +148,8 @@ const CustomPCBCartDetailScreen = () => {
       }
     }
 
-    const content = await zip.generateAsync({ type: 'blob' });
-    saveAs(content, `${order.projectname || 'images'}-images.zip`);
+    const content = await zip.generateAsync({ type: "blob" });
+    saveAs(content, `${order.projectname || "images"}-images.zip`);
   };
 
   const handleDownloadAll = async () => {
@@ -132,21 +164,22 @@ const CustomPCBCartDetailScreen = () => {
           zip.file(`technical-files.zip`, blob);
         }
       } catch (err) {
-        console.error('Failed to fetch Tech ZIP:', err);
+        console.error("Failed to fetch Tech ZIP:", err);
       }
     }
 
-    const imageFolder = zip.folder('images');
+    const imageFolder = zip.folder("images");
     const fields = imageFields
       .map((key, i) => {
         const rawPath = order[key];
         if (!rawPath) return null;
-        const pathStr = typeof rawPath === 'object' ? (rawPath.path || rawPath.url) : rawPath;
-        if (!pathStr || typeof pathStr !== 'string') return null;
+        const pathStr =
+          typeof rawPath === "object" ? rawPath.path || rawPath.url : rawPath;
+        if (!pathStr || typeof pathStr !== "string") return null;
         return {
           file: rawPath,
-          name: `diagram-${i + 1}${pathStr.substring(pathStr.lastIndexOf('.'))}`
-        }
+          name: `diagram-${i + 1}${pathStr.substring(pathStr.lastIndexOf("."))}`,
+        };
       })
       .filter(Boolean);
 
@@ -163,20 +196,46 @@ const CustomPCBCartDetailScreen = () => {
       }
     }
 
-    const content = await zip.generateAsync({ type: 'blob' });
-    saveAs(content, `${order.projectname || 'project'}-full-package.zip`);
+    const content = await zip.generateAsync({ type: "blob" });
+    saveAs(content, `${order.projectname || "project"}-full-package.zip`);
   };
 
   const StatusBadgeDetail = ({ status }) => {
     const configs = {
-      pending: { bg: 'bg-amber-50', text: 'text-amber-600', border: 'border-amber-100', icon: <FaClock size={12} />, label: language === 'thai' ? 'รอการตรวจสอบ' : 'Pending Review' },
-      accepted: { bg: 'bg-emerald-50', text: 'text-emerald-600', border: 'border-emerald-100', icon: <FaCheckCircle size={12} />, label: language === 'thai' ? 'อนุมัติแล้ว' : 'Approved' },
-      rejected: { bg: 'bg-rose-50', text: 'text-rose-600', border: 'border-rose-100', icon: <FaTimesCircle size={12} />, label: language === 'thai' ? 'ปฏิเสธ' : 'Rejected' },
-      paid: { bg: 'bg-blue-50', text: 'text-blue-600', border: 'border-blue-100', icon: <FaCreditCard size={12} />, label: language === 'thai' ? 'ชำระเงินแล้ว' : 'Paid' },
+      pending: {
+        bg: "bg-amber-50",
+        text: "text-amber-600",
+        border: "border-amber-100",
+        icon: <FaClock size={12} />,
+        label: language === "thai" ? "รอการตรวจสอบ" : "Pending Review",
+      },
+      accepted: {
+        bg: "bg-emerald-50",
+        text: "text-emerald-600",
+        border: "border-emerald-100",
+        icon: <FaCheckCircle size={12} />,
+        label: language === "thai" ? "อนุมัติแล้ว" : "Approved",
+      },
+      rejected: {
+        bg: "bg-rose-50",
+        text: "text-rose-600",
+        border: "border-rose-100",
+        icon: <FaTimesCircle size={12} />,
+        label: language === "thai" ? "ปฏิเสธ" : "Rejected",
+      },
+      paid: {
+        bg: "bg-blue-50",
+        text: "text-blue-600",
+        border: "border-blue-100",
+        icon: <FaCreditCard size={12} />,
+        label: language === "thai" ? "ชำระเงินแล้ว" : "Paid",
+      },
     };
     const config = configs[status] || configs.pending;
     return (
-      <div className={`flex items-center gap-2 px-4 py-2 rounded-2xl text-[10px] font-bold uppercase tracking-widest border ${config.bg} ${config.text} ${config.border}`}>
+      <div
+        className={`flex items-center gap-2 px-4 py-2 rounded-2xl text-[10px] font-bold uppercase tracking-widest border ${config.bg} ${config.text} ${config.border}`}
+      >
         {config.icon}
         {config.label}
       </div>
@@ -189,18 +248,32 @@ const CustomPCBCartDetailScreen = () => {
         {/* Header & Navigation */}
         <div className="mb-8">
           <div className="flex items-center gap-4 mb-4">
-            <Link to="/cart/custompcbcart" className="w-10 h-10 rounded-2xl bg-white shadow-sm border border-slate-100 flex items-center justify-center text-slate-400 hover:text-blue-600 hover:border-blue-100 transition-all">
+            <Link
+              to="/cart/custompcbcart"
+              className="w-10 h-10 rounded-2xl bg-white shadow-sm border border-slate-100 flex items-center justify-center text-slate-400 hover:text-blue-600 hover:border-blue-100 transition-all"
+            >
               <FaArrowLeft size={16} />
             </Link>
             <div>
               <nav className="flex mb-1" aria-label="Breadcrumb">
                 <ol className="flex items-center space-x-2 text-[10px] font-bold uppercase tracking-widest text-slate-400">
-                  <li><Link to="/cart/custompcbcart" className="hover:text-blue-500 transition-colors">Cart</Link></li>
+                  <li>
+                    <Link
+                      to="/cart/custompcbcart"
+                      className="hover:text-blue-500 transition-colors"
+                    >
+                      Cart
+                    </Link>
+                  </li>
                   <li>/</li>
-                  <li className="text-slate-900 truncate max-w-[200px]">{order.projectname}</li>
+                  <li className="text-slate-900 truncate max-w-[200px]">
+                    {order.projectname}
+                  </li>
                 </ol>
               </nav>
-              <h1 className="text-2xl font-bold text-slate-900 m-0">{t.title}</h1>
+              <h1 className="text-2xl font-bold text-slate-900 m-0">
+                {t.title}
+              </h1>
             </div>
           </div>
         </div>
@@ -216,8 +289,12 @@ const CustomPCBCartDetailScreen = () => {
                       <FaMicrochip size={20} />
                     </div>
                     <div>
-                      <h4 className="text-lg font-bold text-slate-900 mb-0">{order.projectname}</h4>
-                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest m-0">Project ID: {order._id || order.id}</p>
+                      <h4 className="text-lg font-bold text-slate-900 mb-0">
+                        {order.projectname}
+                      </h4>
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest m-0">
+                        Project ID: {order._id || order.id}
+                      </p>
                     </div>
                   </div>
                   <StatusBadgeDetail status={order.status} />
@@ -230,8 +307,12 @@ const CustomPCBCartDetailScreen = () => {
                         <FaBox size={16} />
                       </div>
                       <div>
-                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">{t.QtyLbl}</p>
-                        <p className="text-sm font-bold text-slate-700 m-0">{order.pcb_qty} Unit(s)</p>
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">
+                          {t.QtyLbl}
+                        </p>
+                        <p className="text-sm font-bold text-slate-700 m-0">
+                          {order.pcb_qty} Unit(s)
+                        </p>
                       </div>
                     </div>
                     <div className="flex items-start gap-4">
@@ -239,9 +320,13 @@ const CustomPCBCartDetailScreen = () => {
                         <FaQuoteRight size={16} />
                       </div>
                       <div>
-                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">{t.TotalPriceLbl}</p>
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">
+                          {t.TotalPriceLbl}
+                        </p>
                         <p className="text-xl font-bold text-blue-600 m-0">
-                          {order.confirmed_price ? `฿${order.confirmed_price.toLocaleString()}` : '-'}
+                          {order.confirmed_price
+                            ? `฿${order.confirmed_price.toLocaleString()}`
+                            : "-"}
                         </p>
                       </div>
                     </div>
@@ -252,7 +337,7 @@ const CustomPCBCartDetailScreen = () => {
                       <FaInfoCircle /> {t.NotesLbl}
                     </p>
                     <p className="text-sm text-slate-600 m-0 leading-relaxed whitespace-pre-wrap">
-                      {order.notes || '-'}
+                      {order.notes || "-"}
                     </p>
                   </div>
 
@@ -276,7 +361,9 @@ const CustomPCBCartDetailScreen = () => {
                     <div className="w-10 h-10 rounded-2xl bg-sky-50 text-sky-500 flex items-center justify-center">
                       <FaImages size={18} />
                     </div>
-                    <h5 className="text-lg font-bold text-slate-900 m-0">{t.PhotoLbl}</h5>
+                    <h5 className="text-lg font-bold text-slate-900 m-0">
+                      {t.PhotoLbl}
+                    </h5>
                   </div>
                   <button
                     onClick={downloadAllImages}
@@ -287,23 +374,32 @@ const CustomPCBCartDetailScreen = () => {
                 </div>
 
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  {imageFields.map((field, idx) => (
-                    order[field] && (
-                      <div key={idx} className="group relative aspect-square rounded-3xl overflow-hidden border border-slate-100 shadow-sm cursor-zoom-in" onClick={() => openZoom(getFullUrl(order[field]))}>
-                        <Image
-                          src={getFullUrl(order[field])}
-                          className="w-full h-full object-fit-cover transition-transform duration-500 group-hover:scale-110"
-                          onError={(e) => { e.target.onerror = null; e.target.src = 'https://via.placeholder.com/150?text=No+Image'; }}
-                        />
-                        <div className="absolute inset-0 bg-slate-900/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-[1px]">
-                          <div className="w-10 h-10 rounded-2xl bg-white/90 text-slate-900 shadow-lg flex items-center justify-center">
-                            <FaSearchPlus size={14} />
+                  {imageFields.map(
+                    (field, idx) =>
+                      order[field] && (
+                        <div
+                          key={idx}
+                          className="group relative aspect-square rounded-3xl overflow-hidden border border-slate-100 shadow-sm cursor-zoom-in"
+                          onClick={() => openZoom(getFullUrl(order[field]))}
+                        >
+                          <Image
+                            src={getFullUrl(order[field])}
+                            className="w-full h-full object-fit-cover transition-transform duration-500 group-hover:scale-110"
+                            onError={(e) => {
+                              e.target.onerror = null;
+                              e.target.src =
+                                "https://via.placeholder.com/150?text=No+Image";
+                            }}
+                          />
+                          <div className="absolute inset-0 bg-slate-900/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-[1px]">
+                            <div className="w-10 h-10 rounded-2xl bg-white/90 text-slate-900 shadow-lg flex items-center justify-center">
+                              <FaSearchPlus size={14} />
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    )
-                  ))}
-                  {!imageFields.some(f => order[f]) && (
+                      ),
+                  )}
+                  {!imageFields.some((f) => order[f]) && (
                     <div className="col-span-full py-12 text-center text-slate-400">
                       <FaImages size={48} className="mx-auto mb-4 opacity-20" />
                       <p className="text-sm font-medium">{t.NoFile}</p>
@@ -321,8 +417,12 @@ const CustomPCBCartDetailScreen = () => {
                 <div className="w-16 h-16 rounded-[2rem] bg-amber-50 text-amber-500 flex items-center justify-center mx-auto mb-6 shadow-inner">
                   <FaFileArchive size={28} />
                 </div>
-                <h5 className="text-lg font-bold text-slate-900 mb-2">Technical Documents</h5>
-                <p className="text-xs text-slate-400 mb-8 px-4">All project files required for manufacturing and assembly.</p>
+                <h5 className="text-lg font-bold text-slate-900 mb-2">
+                  Technical Documents
+                </h5>
+                <p className="text-xs text-slate-400 mb-8 px-4">
+                  All project files required for manufacturing and assembly.
+                </p>
 
                 <div className="space-y-3">
                   {order.dirgram_zip ? (
@@ -355,7 +455,10 @@ const CustomPCBCartDetailScreen = () => {
                 <div className="absolute -top-10 -right-10 w-40 h-40 bg-white/10 rounded-full blur-3xl"></div>
                 <div className="relative z-10">
                   <h5 className="text-lg font-bold mb-4">Questions?</h5>
-                  <p className="text-white/80 text-xs leading-relaxed mb-6">If you have any questions regarding this quote or need to make changes, please contact our support team.</p>
+                  <p className="text-white/80 text-xs leading-relaxed mb-6">
+                    If you have any questions regarding this quote or need to
+                    make changes, please contact our support team.
+                  </p>
                   <button className="w-full py-3 rounded-2xl bg-white/10 border border-white/20 text-white font-bold text-[10px] uppercase tracking-widest hover:bg-white/20 transition-all">
                     Contact Support
                   </button>
@@ -377,7 +480,10 @@ const CustomPCBCartDetailScreen = () => {
             alt="Zoomed"
             className="max-w-full max-h-full object-contain rounded-2xl shadow-2xl animate-in zoom-in-95 duration-300"
           />
-          <button className="absolute top-8 right-8 text-white/50 hover:text-white transition-colors" onClick={closeZoom}>
+          <button
+            className="absolute top-8 right-8 text-white/50 hover:text-white transition-colors"
+            onClick={closeZoom}
+          >
             <FaTimesCircle size={32} />
           </button>
         </div>

@@ -1,59 +1,66 @@
-import React from 'react';
-import { useSelector } from 'react-redux';
-import { Link } from 'react-router-dom';
-import { Table, Button, Badge } from 'react-bootstrap';
-import { FaBoxOpen, FaSearch } from 'react-icons/fa'; // Icons
-import Loader from '../../components/Loader';
-import Message from '../../components/Message';
-import { useGetCustomPCBByUserIDQuery } from '../../slices/custompcbApiSlice';
+import React from "react";
+import { useSelector } from "react-redux";
+import { Link } from "react-router-dom";
+import { Table, Button, Badge } from "react-bootstrap";
+import { FaBoxOpen, FaSearch } from "react-icons/fa"; // Icons
+import Loader from "../../components/Loader";
+import Message from "../../components/Message";
+import { useGetCustomPCBByUserIDQuery } from "../../slices/custompcbApiSlice";
 
 const CustomPCBProfileListScreen = () => {
   const { userInfo } = useSelector((state) => state.auth);
   const { language } = useSelector((state) => state.language);
 
-  const {
-    data,
-    isLoading,
-    error,
-  } = useGetCustomPCBByUserIDQuery(userInfo?._id, {
-    skip: !userInfo?._id,
-  });
+  const { data, isLoading, error } = useGetCustomPCBByUserIDQuery(
+    userInfo?._id,
+    {
+      skip: !userInfo?._id,
+    },
+  );
 
   const t = {
     en: {
-      CustomPCBOrderLbl: 'Custom PCB Orders',
-      ErrorMessageLbl: 'No custom PCB orders found.',
-      projectidlbl: 'Order ID',
-      projectnameLbl: 'Project Name',
-      QtyLbl: 'Qty',
-      TotalPriceLbl: 'Total Price',
-      DATELbl: 'Date',
-      DeliveryLbl: 'Status',
-      DetailLbl: 'Details',
-      statusPending: 'Quoting',
-      statusDelivered: 'Delivered',
-      statusProcessing: 'Processing',
-      emptyState: 'No Custom PCB orders yet'
+      CustomPCBOrderLbl: "Custom PCB Orders",
+      ErrorMessageLbl: "No custom PCB orders found.",
+      projectidlbl: "Order ID",
+      projectnameLbl: "Project Name",
+      QtyLbl: "Qty",
+      TotalPriceLbl: "Total Price",
+      DATELbl: "Date",
+      DeliveryLbl: "Status",
+      DetailLbl: "Details",
+      statusPending: "Quoting",
+      statusDelivered: "Delivered",
+      statusProcessing: "Processing",
+      emptyState: "No Custom PCB orders yet",
     },
     thai: {
-      CustomPCBOrderLbl: 'รายการสั่งทำ PCB (Custom)',
-      ErrorMessageLbl: 'ไม่พบคำสั่งซื้อ',
-      projectidlbl: 'รหัสสั่งซื้อ',
-      projectnameLbl: 'ชื่อโปรเจกต์',
-      QtyLbl: 'จำนวน',
-      TotalPriceLbl: 'ราคาประเมิน',
-      DATELbl: 'วันที่ส่งแบบ',
-      DeliveryLbl: 'สถานะ',
-      DetailLbl: 'รายละเอียด',
-      statusPending: 'รอเสนอราคา',
-      statusDelivered: 'จัดส่งแล้ว',
-      statusProcessing: 'กำลังดำเนินการ',
-      emptyState: 'ยังไม่มีรายการสั่งทำ PCB'
+      CustomPCBOrderLbl: "รายการสั่งทำ PCB (Custom)",
+      ErrorMessageLbl: "ไม่พบคำสั่งซื้อ",
+      projectidlbl: "รหัสสั่งซื้อ",
+      projectnameLbl: "ชื่อโปรเจกต์",
+      QtyLbl: "จำนวน",
+      TotalPriceLbl: "ราคาประเมิน",
+      DATELbl: "วันที่ส่งแบบ",
+      DeliveryLbl: "สถานะ",
+      DetailLbl: "รายละเอียด",
+      statusPending: "รอเสนอราคา",
+      statusDelivered: "จัดส่งแล้ว",
+      statusProcessing: "กำลังดำเนินการ",
+      emptyState: "ยังไม่มีรายการสั่งทำ PCB",
     },
-  }[language || 'en'];
+  }[language || "en"];
 
-  if (isLoading) return <div className="text-center py-5"><Loader /></div>;
-  if (error) return <Message variant="danger">{error?.data?.message || error.error}</Message>;
+  if (isLoading)
+    return (
+      <div className="text-center py-5">
+        <Loader />
+      </div>
+    );
+  if (error)
+    return (
+      <Message variant="danger">{error?.data?.message || error.error}</Message>
+    );
 
   // Filter valid orders (qty > 0)
   const orders = data?.data?.filter((order) => order.pcb_qty > 0) || [];
@@ -97,7 +104,10 @@ const CustomPCBProfileListScreen = () => {
             {[...orders]
               .sort((a, b) => new Date(b.created_at) - new Date(a.created_at)) // Sort by date desc
               .map((order, index) => (
-                <tr key={order.id} style={{ borderBottom: '1px solid #f9f9f9' }}>
+                <tr
+                  key={order.id}
+                  style={{ borderBottom: "1px solid #f9f9f9" }}
+                >
                   <td className="ps-3 text-muted small">{index + 1}</td>
 
                   {/* Order ID */}
@@ -109,7 +119,9 @@ const CustomPCBProfileListScreen = () => {
 
                   {/* Project Name */}
                   <td>
-                    <span className="fw-bold text-primary">{order.projectname}</span>
+                    <span className="fw-bold text-primary">
+                      {order.projectname}
+                    </span>
                   </td>
 
                   {/* Qty */}
@@ -121,10 +133,14 @@ const CustomPCBProfileListScreen = () => {
 
                   {/* Price */}
                   <td className="text-end">
-                    {order.status === 'pending' ? (
-                      <span className="text-muted small fst-italic">{t.statusPending}...</span>
+                    {order.status === "pending" ? (
+                      <span className="text-muted small fst-italic">
+                        {t.statusPending}...
+                      </span>
                     ) : order.confirmed_price ? (
-                      <span className="fw-bold text-dark">{parseFloat(order.confirmed_price).toLocaleString()} ฿</span>
+                      <span className="fw-bold text-dark">
+                        {parseFloat(order.confirmed_price).toLocaleString()} ฿
+                      </span>
                     ) : (
                       <span className="text-muted">-</span>
                     )}
@@ -138,15 +154,26 @@ const CustomPCBProfileListScreen = () => {
                   {/* Status Badge */}
                   <td className="text-center">
                     {order.isDelivered ? (
-                      <Badge bg="success" className="rounded-pill fw-normal px-2">
+                      <Badge
+                        bg="success"
+                        className="rounded-pill fw-normal px-2"
+                      >
                         {t.statusDelivered}
                         <span className="ms-1 opacity-75 small">
                           ({order.deliveryOn?.substring(0, 10)})
                         </span>
                       </Badge>
                     ) : (
-                      <Badge bg={order.status === 'pending' ? "secondary" : "warning"} text="white" className="rounded-pill fw-normal px-2">
-                        {order.status === 'pending' ? t.statusPending : t.statusProcessing}
+                      <Badge
+                        bg={
+                          order.status === "pending" ? "secondary" : "warning"
+                        }
+                        text="white"
+                        className="rounded-pill fw-normal px-2"
+                      >
+                        {order.status === "pending"
+                          ? t.statusPending
+                          : t.statusProcessing}
                       </Badge>
                     )}
                   </td>
@@ -172,4 +199,4 @@ const CustomPCBProfileListScreen = () => {
   );
 };
 
-export default CoustomPCBProfileListscreen;
+export default CustomPCBProfileListScreen;

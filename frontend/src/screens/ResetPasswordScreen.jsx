@@ -1,16 +1,16 @@
-import { useState, useEffect } from 'react';
-import { useNavigate, useLocation, Link } from 'react-router-dom';
-import { useSelector } from 'react-redux';
-import { useResetPasswordMutation } from '../slices/usersApiSlice';
-import { toast } from 'react-toastify';
-import { FaEye, FaEyeSlash, FaArrowLeft, FaShieldAlt } from 'react-icons/fa';
+import { useState, useEffect } from "react";
+import { useNavigate, useLocation, Link } from "react-router-dom";
+import { useSelector } from "react-redux";
+import { useResetPasswordMutation } from "../slices/usersApiSlice";
+import { toast } from "react-toastify";
+import { FaEye, FaEyeSlash, FaArrowLeft, FaShieldAlt } from "react-icons/fa";
 
-import Button from '../components/ui/Button';
-import Input from '../components/ui/Input';
+import Button from "../components/ui/Button";
+import Input from "../components/ui/Input";
 
 const ResetPasswordScreen = () => {
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [fieldErrors, setFieldErrors] = useState({});
 
@@ -18,52 +18,56 @@ const ResetPasswordScreen = () => {
 
   const navigate = useNavigate();
   const { search } = useLocation();
-  const token = new URLSearchParams(search).get('token');
+  const token = new URLSearchParams(search).get("token");
 
   const { language } = useSelector((state) => state.language);
 
   useEffect(() => {
     if (!token) {
-      toast.error(language === 'thai' ? 'ไม่พบ Token สำหรับรีเซ็ต' : 'Missing reset token');
-      navigate('/login');
+      toast.error(
+        language === "thai"
+          ? "ไม่พบ Token สำหรับรีเซ็ต"
+          : "Missing reset token",
+      );
+      navigate("/login");
     }
   }, [token, navigate, language]);
 
   const handleInputChange = (setter, fieldName, value) => {
     setter(value);
     if (fieldErrors[fieldName]) {
-      setFieldErrors(prev => ({ ...prev, [fieldName]: null }));
+      setFieldErrors((prev) => ({ ...prev, [fieldName]: null }));
     }
   };
 
   const translations = {
     en: {
-      title: 'Set New Password',
-      subtitle: 'Must be at least 8 characters long.',
-      newPassword: 'New Password',
-      newPasswordPlaceholder: 'Enter new password',
-      confirmPassword: 'Confirm Password',
-      confirmPasswordPlaceholder: 'Confirm your password',
-      resetting: 'Saving...',
-      resetPassword: 'Save Password',
-      fillFields: 'Please fill in both password fields',
-      passwordsMismatch: 'Passwords do not match',
-      successMessage: 'Password updated successfully!',
-      backToLogin: 'Back to Sign In'
+      title: "Set New Password",
+      subtitle: "Must be at least 8 characters long.",
+      newPassword: "New Password",
+      newPasswordPlaceholder: "Enter new password",
+      confirmPassword: "Confirm Password",
+      confirmPasswordPlaceholder: "Confirm your password",
+      resetting: "Saving...",
+      resetPassword: "Save Password",
+      fillFields: "Please fill in both password fields",
+      passwordsMismatch: "Passwords do not match",
+      successMessage: "Password updated successfully!",
+      backToLogin: "Back to Sign In",
     },
     thai: {
-      title: 'ตั้งรหัสผ่านใหม่',
-      subtitle: 'รหัสผ่านควรมีความยาวอย่างน้อย 8 ตัวอักษร',
-      newPassword: 'รหัสผ่านใหม่',
-      newPasswordPlaceholder: 'กรอกรหัสผ่านใหม่',
-      confirmPassword: 'ยืนยันรหัสผ่าน',
-      confirmPasswordPlaceholder: 'ยืนยันรหัสผ่านอีกครั้ง',
-      resetting: 'กำลังบันทึก...',
-      resetPassword: 'ยืนยันเปลี่ยนรหัสผ่าน',
-      fillFields: 'กรุณากรอกข้อมูลให้ครบทุกช่อง',
-      passwordsMismatch: 'รหัสผ่านใหม่ไม่ตรงกัน',
-      successMessage: 'เปลี่ยนรหัสผ่านสำเร็จแล้ว!',
-      backToLogin: 'กลับไปหน้าเข้าสู่ระบบ'
+      title: "ตั้งรหัสผ่านใหม่",
+      subtitle: "รหัสผ่านควรมีความยาวอย่างน้อย 8 ตัวอักษร",
+      newPassword: "รหัสผ่านใหม่",
+      newPasswordPlaceholder: "กรอกรหัสผ่านใหม่",
+      confirmPassword: "ยืนยันรหัสผ่าน",
+      confirmPasswordPlaceholder: "ยืนยันรหัสผ่านอีกครั้ง",
+      resetting: "กำลังบันทึก...",
+      resetPassword: "ยืนยันเปลี่ยนรหัสผ่าน",
+      fillFields: "กรุณากรอกข้อมูลให้ครบทุกช่อง",
+      passwordsMismatch: "รหัสผ่านใหม่ไม่ตรงกัน",
+      successMessage: "เปลี่ยนรหัสผ่านสำเร็จแล้ว!",
+      backToLogin: "กลับไปหน้าเข้าสู่ระบบ",
     },
   };
 
@@ -78,7 +82,7 @@ const ResetPasswordScreen = () => {
       toast.error(msg);
       setFieldErrors({
         newPassword: !newPassword ? msg : null,
-        confirmPassword: !confirmPassword ? msg : null
+        confirmPassword: !confirmPassword ? msg : null,
       });
       return;
     }
@@ -88,7 +92,7 @@ const ResetPasswordScreen = () => {
       toast.error(msg);
       setFieldErrors({
         newPassword: msg,
-        confirmPassword: msg
+        confirmPassword: msg,
       });
       return;
     }
@@ -96,9 +100,9 @@ const ResetPasswordScreen = () => {
     try {
       await resetPassword({ token, newPassword }).unwrap();
       toast.success(t.successMessage);
-      navigate('/login');
+      navigate("/login");
     } catch (err) {
-      const errorMsg = err?.data?.message || err.error || 'Error occurred';
+      const errorMsg = err?.data?.message || err.error || "Error occurred";
       toast.error(errorMsg);
     }
   };
@@ -107,18 +111,20 @@ const ResetPasswordScreen = () => {
     <div className="min-h-screen flex items-center justify-center py-12 px-4 bg-[#F1F5F9] font-['Prompt'] antialiased">
       <div className="max-w-md w-full animate__animated animate__fadeInUp">
         <div className="bg-white shadow-2xl shadow-indigo-200/40 rounded-[2.5rem] p-10 md:p-12 border border-white">
-
           {/* Header & Logo */}
           <div className="text-center mb-10">
             <div className="w-20 h-20 bg-indigo-50 text-indigo-600 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-inner animate-pulse">
               <FaShieldAlt size={40} />
             </div>
-            <h2 className="text-3xl font-black text-slate-900 tracking-tighter uppercase">{t.title}</h2>
-            <p className="text-slate-500 text-sm font-medium mt-3">{t.subtitle}</p>
+            <h2 className="text-3xl font-black text-slate-900 tracking-tighter uppercase">
+              {t.title}
+            </h2>
+            <p className="text-slate-500 text-sm font-medium mt-3">
+              {t.subtitle}
+            </p>
           </div>
 
           <form onSubmit={submitHandler} className="space-y-6">
-
             {/* New Password */}
             <div className="relative group">
               <Input
@@ -127,7 +133,13 @@ const ResetPasswordScreen = () => {
                 label={t.newPassword}
                 placeholder={t.newPasswordPlaceholder}
                 value={newPassword}
-                onChange={(e) => handleInputChange(setNewPassword, 'newPassword', e.target.value)}
+                onChange={(e) =>
+                  handleInputChange(
+                    setNewPassword,
+                    "newPassword",
+                    e.target.value,
+                  )
+                }
                 error={fieldErrors.newPassword}
                 className="pr-12 bg-white border-slate-300 focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-600 rounded-2xl py-4"
                 labelClassName="text-xs font-black text-slate-500 uppercase tracking-widest mb-2"
@@ -151,7 +163,13 @@ const ResetPasswordScreen = () => {
                 label={t.confirmPassword}
                 placeholder={t.confirmPasswordPlaceholder}
                 value={confirmPassword}
-                onChange={(e) => handleInputChange(setConfirmPassword, 'confirmPassword', e.target.value)}
+                onChange={(e) =>
+                  handleInputChange(
+                    setConfirmPassword,
+                    "confirmPassword",
+                    e.target.value,
+                  )
+                }
                 error={fieldErrors.confirmPassword}
                 className="pr-12 bg-white border-slate-300 focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-600 rounded-2xl py-4"
                 labelClassName="text-xs font-black text-slate-500 uppercase tracking-widest mb-2"
@@ -193,7 +211,6 @@ const ResetPasswordScreen = () => {
                 {t.backToLogin}
               </Link>
             </div>
-
           </form>
         </div>
       </div>

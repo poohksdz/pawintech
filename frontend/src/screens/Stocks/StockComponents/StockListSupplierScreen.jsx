@@ -1,21 +1,21 @@
-import React, { useState } from 'react';
-import { useSelector } from 'react-redux';
-import Loader from '../../../components/Loader';
-import Message from '../../../components/Message';
+import React, { useState } from "react";
+import { useSelector } from "react-redux";
+import Loader from "../../../components/Loader";
+import Message from "../../../components/Message";
 import {
   useGetStockSuppliersQuery,
   useCreateStockSupplierMutation,
   useUpdateStockSupplierMutation,
   useDeleteStockSupplierMutation,
-} from '../../../slices/stockSupplierApiSlice';
+} from "../../../slices/stockSupplierApiSlice";
 
 // Custom Tailwind Components
-import Button from '../../../components/ui/Button';
-import Modal from '../../../components/ui/Modal';
-import Input from '../../../components/ui/Input';
-import Table from '../../../components/ui/Table';
-import { Card, CardHeader, CardBody } from '../../../components/ui/Card';
-import { Edit, Trash2, Plus } from 'lucide-react';
+import Button from "../../../components/ui/Button";
+import Modal from "../../../components/ui/Modal";
+import Input from "../../../components/ui/Input";
+import Table from "../../../components/ui/Table";
+import { Card, CardHeader, CardBody } from "../../../components/ui/Card";
+import { Edit, Trash2, Plus } from "lucide-react";
 
 const StockListSupplierScreen = () => {
   const { userInfo } = useSelector((state) => state.auth);
@@ -32,7 +32,7 @@ const StockListSupplierScreen = () => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   const [selectedSupplier, setSelectedSupplier] = useState({});
-  const [formData, setFormData] = useState({ namesupplier: '' });
+  const [formData, setFormData] = useState({ namesupplier: "" });
 
   const [createSupplier] = useCreateStockSupplierMutation();
   const [updateSupplier] = useUpdateStockSupplierMutation();
@@ -66,7 +66,7 @@ const StockListSupplierScreen = () => {
   };
 
   const openCreateModal = () => {
-    setFormData({ namesupplier: '' });
+    setFormData({ namesupplier: "" });
     setShowCreateModal(true);
   };
 
@@ -84,9 +84,7 @@ const StockListSupplierScreen = () => {
   if (isLoading) return <Loader />;
   if (error)
     return (
-      <Message variant="danger">
-        {error?.data?.message || error.error}
-      </Message>
+      <Message variant="danger">{error?.data?.message || error.error}</Message>
     );
 
   return (
@@ -115,7 +113,10 @@ const StockListSupplierScreen = () => {
             <Table.Body>
               {supplierData.length === 0 ? (
                 <Table.Row>
-                  <Table.Cell colSpan="5" className="text-center py-6 text-slate-500">
+                  <Table.Cell
+                    colSpan="5"
+                    className="text-center py-6 text-slate-500"
+                  >
                     No suppliers found.
                   </Table.Cell>
                 </Table.Row>
@@ -123,8 +124,12 @@ const StockListSupplierScreen = () => {
                 supplierData.map((sup, index) => (
                   <Table.Row key={sup.ID}>
                     <Table.Cell>{index + 1}</Table.Cell>
-                    <Table.Cell className="font-mono text-slate-600">{sup.supplierid}</Table.Cell>
-                    <Table.Cell className="font-medium text-slate-800">{sup.namesupplier}</Table.Cell>
+                    <Table.Cell className="font-mono text-slate-600">
+                      {sup.supplierid}
+                    </Table.Cell>
+                    <Table.Cell className="font-medium text-slate-800">
+                      {sup.namesupplier}
+                    </Table.Cell>
                     <Table.Cell>{sup.createuser}</Table.Cell>
                     <Table.Cell className="text-right flex justify-end gap-2">
                       <Button
@@ -159,8 +164,12 @@ const StockListSupplierScreen = () => {
         title="Create Supplier"
         footer={
           <>
-            <Button variant="light" onClick={() => setShowCreateModal(false)}>Close</Button>
-            <Button variant="primary" onClick={handleCreate}>Create</Button>
+            <Button variant="light" onClick={() => setShowCreateModal(false)}>
+              Close
+            </Button>
+            <Button variant="primary" onClick={handleCreate}>
+              Create
+            </Button>
           </>
         }
       >
@@ -180,8 +189,12 @@ const StockListSupplierScreen = () => {
         title={`Edit Supplier [ID: ${selectedSupplier.supplierid}]`}
         footer={
           <>
-            <Button variant="light" onClick={() => setShowEditModal(false)}>Close</Button>
-            <Button variant="primary" onClick={handleEdit}>Update</Button>
+            <Button variant="light" onClick={() => setShowEditModal(false)}>
+              Close
+            </Button>
+            <Button variant="primary" onClick={handleEdit}>
+              Update
+            </Button>
           </>
         }
       >
@@ -202,13 +215,21 @@ const StockListSupplierScreen = () => {
         size="sm"
         footer={
           <>
-            <Button variant="light" onClick={() => setShowDeleteModal(false)}>Cancel</Button>
-            <Button variant="danger" onClick={handleDelete}>Delete</Button>
+            <Button variant="light" onClick={() => setShowDeleteModal(false)}>
+              Cancel
+            </Button>
+            <Button variant="danger" onClick={handleDelete}>
+              Delete
+            </Button>
           </>
         }
       >
         <p className="text-slate-600">
-          Are you sure you want to delete <strong className="text-slate-900">{selectedSupplier.namesupplier}</strong>?
+          Are you sure you want to delete{" "}
+          <strong className="text-slate-900">
+            {selectedSupplier.namesupplier}
+          </strong>
+          ?
         </p>
       </Modal>
     </div>

@@ -1,5 +1,5 @@
-import { apiSlice } from './apiSlice';
-import { STOCK_PRODUCT_URL } from '../constants'; // ตรวจสอบ path นี้ให้ถูกต้องตามโปรเจค
+import { apiSlice } from "./apiSlice";
+import { STOCK_PRODUCT_URL } from "../constants"; // ตรวจสอบ path นี้ให้ถูกต้องตามโปรเจค
 
 export const stockProductApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
@@ -7,73 +7,73 @@ export const stockProductApiSlice = apiSlice.injectEndpoints({
     getStockProducts: builder.query({
       query: () => ({
         url: STOCK_PRODUCT_URL,
-        method: 'GET',
+        method: "GET",
       }),
-      providesTags: ['StockProduct'],
+      providesTags: ["StockProduct"],
     }),
 
     // GET single product by ID
     getStockProductById: builder.query({
       query: (id) => ({
         url: `${STOCK_PRODUCT_URL}/${id}`,
-        method: 'GET',
+        method: "GET",
       }),
-      providesTags: ['StockProduct'],
+      providesTags: ["StockProduct"],
     }),
 
     // POST create new stock product
     createStockProduct: builder.mutation({
       query: (data) => ({
         url: STOCK_PRODUCT_URL,
-        method: 'POST',
+        method: "POST",
         body: data,
       }),
-      invalidatesTags: ['StockProduct'],
+      invalidatesTags: ["StockProduct"],
     }),
 
     // PUT update stock product
     updateStockProduct: builder.mutation({
       query: ({ id, ...data }) => ({
         url: `${STOCK_PRODUCT_URL}/${id}`,
-        method: 'PUT',
+        method: "PUT",
         body: data,
       }),
-      invalidatesTags: ['StockProduct'],
+      invalidatesTags: ["StockProduct"],
     }),
 
     // DELETE stock product
     deleteStockProduct: builder.mutation({
       query: (id) => ({
         url: `${STOCK_PRODUCT_URL}/${id}`,
-        method: 'DELETE',
+        method: "DELETE",
       }),
-      invalidatesTags: ['StockProduct'],
+      invalidatesTags: ["StockProduct"],
     }),
 
     // PUT update quantity by ID
     updateStockProductQty: builder.mutation({
       query: ({ id, qty }) => ({
         url: `${STOCK_PRODUCT_URL}/updateQty/${id}`,
-        method: 'PUT',
+        method: "PUT",
         body: { qty },
       }),
-      invalidatesTags: ['StockProduct'],
+      invalidatesTags: ["StockProduct"],
     }),
 
     // PUT update quantity by Electotronix PN
     updateStockProductQtyByElectotronixPN: builder.mutation({
       query: ({ electotronixPN, qty }) => ({
         url: `${STOCK_PRODUCT_URL}/updateProductQtyByElectotronixPN/${electotronixPN}`,
-        method: 'PUT',
+        method: "PUT",
         body: { qty },
       }),
-      invalidatesTags: ['StockProduct'],
+      invalidatesTags: ["StockProduct"],
     }),
 
     uploadStockProductImage: builder.mutation({
       query: (data) => ({
         url: `/api/componentImages`,
-        method: 'POST',
+        method: "POST",
         body: data,
       }),
     }),
@@ -81,7 +81,7 @@ export const stockProductApiSlice = apiSlice.injectEndpoints({
     uploadStockProductMutipleImage: builder.mutation({
       query: (data) => ({
         url: `/api/multipleimages`,
-        method: 'POST',
+        method: "POST",
         body: data,
       }),
     }),
@@ -91,29 +91,37 @@ export const stockProductApiSlice = apiSlice.injectEndpoints({
     createStockAddition: builder.mutation({
       query: (data) => ({
         url: `${STOCK_PRODUCT_URL}/stockaddition`,
-        method: 'POST',
+        method: "POST",
         body: data,
       }),
-      invalidatesTags: ['StockProduct'],
+      invalidatesTags: ["StockProduct"],
     }),
 
     toggleStarProduct: builder.mutation({
       query: ({ productId, rating }) => ({
         url: `${STOCK_PRODUCT_URL}/${productId}/star`,
-        method: 'PUT',
+        method: "PUT",
         body: { rating },
       }),
-      invalidatesTags: ['StockProduct'],
+      invalidatesTags: ["StockProduct"],
+    }),
+
+    getStockProductByBarcode: builder.query({
+      query: (barcode) => ({
+        url: `${STOCK_PRODUCT_URL}/barcode/${barcode}`,
+        method: "GET",
+      }),
+      providesTags: ["StockProduct"],
     }),
 
     // -------------------------------------
-
   }),
 });
 
 export const {
   useGetStockProductsQuery,
   useGetStockProductByIdQuery,
+  useGetStockProductByBarcodeQuery,
   useCreateStockProductMutation,
   useUpdateStockProductMutation,
   useDeleteStockProductMutation,

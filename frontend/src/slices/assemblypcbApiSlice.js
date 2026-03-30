@@ -1,21 +1,21 @@
 // src/slices/AssemblypcbSlice.js
 
-import { apiSlice } from './apiSlice'
-import { ORDERASSEMBLYS_URL } from '../constants'
+import { apiSlice } from "./apiSlice";
+import { ORDERASSEMBLYS_URL } from "../constants";
 
 export const assemblypcbApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
     createAssemblyPCB: builder.mutation({
       query: (orderData) => ({
         url: ORDERASSEMBLYS_URL,
-        method: 'POST',
+        method: "POST",
         body: orderData,
       }),
     }),
     createAssemblyPCBbyAdmin: builder.mutation({
       query: (orderData) => ({
         url: `${ORDERASSEMBLYS_URL}/createassemblypcbbyadmin`,
-        method: 'POST',
+        method: "POST",
         body: orderData,
       }),
     }),
@@ -34,27 +34,27 @@ export const assemblypcbApiSlice = apiSlice.injectEndpoints({
     updateAssemblyPCB: builder.mutation({
       query: ({ id, updatedData }) => ({
         url: `${ORDERASSEMBLYS_URL}/${id}`,
-        method: 'PUT',
+        method: "PUT",
         body: updatedData,
       }),
     }),
     deleteAssemblyPCB: builder.mutation({
       query: (id) => ({
         url: `${ORDERASSEMBLYS_URL}/${id}`,
-        method: 'DELETE',
+        method: "DELETE",
       }),
     }),
     updateAssemblyShippingRates: builder.mutation({
       query: (rateData) => ({
         url: `${ORDERASSEMBLYS_URL}/shippingrates`,
-        method: 'PUT',
+        method: "PUT",
         body: rateData,
       }),
     }),
     updateDeliveryAssemblyPCB: builder.mutation({
       query: ({ pcborderId, transferedNumber }) => ({
-        url: `${ORDERASSEMBLYS_URL}/delivered/${pcborderId}`,
-        method: 'PUT',
+        url: `${ORDERASSEMBLYS_URL}/delivery/${pcborderId}`,
+        method: "PUT",
         body: { transferedNumber },
       }),
     }),
@@ -66,7 +66,7 @@ export const assemblypcbApiSlice = apiSlice.injectEndpoints({
     }),
     getAssemblyPCBByOrderId: builder.query({
       query: (orderId) => ({
-        url: `${ORDERASSEMBLYS_URL}/order/${orderId}`,
+        url: `${ORDERASSEMBLYS_URL}/byorderid/${orderId}`,
       }),
       keepUnusedDataFor: 5,
     }),
@@ -80,7 +80,7 @@ export const assemblypcbApiSlice = apiSlice.injectEndpoints({
     uploadGerberAssemblyZip: builder.mutation({
       query: (formData) => ({
         url: `${ORDERASSEMBLYS_URL}/upload/uploadgerber-zip`,
-        method: 'POST',
+        method: "POST",
         body: formData,
       }),
     }),
@@ -89,12 +89,12 @@ export const assemblypcbApiSlice = apiSlice.injectEndpoints({
     uploadAssemblyMultipleImages: builder.mutation({
       query: (formData) => ({
         url: `${ORDERASSEMBLYS_URL}/upload/multipleimages`,
-        method: 'POST',
+        method: "POST",
         body: formData,
       }),
     }),
   }),
-})
+});
 
 export const {
   useCreateAssemblyPCBMutation,
@@ -110,4 +110,4 @@ export const {
   useCreateAssemblyPCBbyAdminMutation,
   useUploadGerberAssemblyZipMutation,
   useUploadAssemblyMultipleImagesMutation,
-} = assemblypcbApiSlice
+} = assemblypcbApiSlice;

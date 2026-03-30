@@ -1,5 +1,5 @@
-const express = require('express')
-const router = express.Router()
+const express = require("express");
+const router = express.Router();
 
 const {
   getShowcases,
@@ -8,23 +8,23 @@ const {
   updateShowcase,
   deleteShowcase,
   updateOrderPresentShowcase,
-} = require('../controllers/showcaseController.js')
+} = require("../controllers/showcaseController.js");
 
-const { protect, admin } = require('../middleware/authMiddleware.js')
+const { protect, admin } = require("../middleware/authMiddleware.js");
 // const checkObjectId = require('../middleware/checkObjectId.js');
 
 // Define routes
 
-router.route('/').get(getShowcases).post(protect, admin, createShowcase)
+router.route("/").get(getShowcases).post(protect, admin, createShowcase);
 router
-  .route('/:id')
+  .route("/:id")
   .get(getShowcaseById)
   .put(protect, admin, updateShowcase)
-  .delete(protect, admin, deleteShowcase)
+  .delete(protect, admin, deleteShowcase);
 
 router
-  .route('/orderpresent/:id')
-  .put(protect, admin, updateOrderPresentShowcase)
+  .route("/orderpresent/:id")
+  .put(protect, admin, updateOrderPresentShowcase);
 
 // router.route('/').get(getShowcases).post(protect, admin, createShowcase);
 // router
@@ -33,4 +33,4 @@ router
 //   .put(protect, admin, checkObjectId, updateShowcase)
 //   .delete(protect, admin, checkObjectId, deleteShowcase);
 
-module.exports = router
+module.exports = router;

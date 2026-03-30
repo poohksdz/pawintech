@@ -1,5 +1,5 @@
-import { apiSlice } from './apiSlice'
-import { STOCK_FOOTPRINTS_URL } from '../constants'
+import { apiSlice } from "./apiSlice";
+import { STOCK_FOOTPRINTS_URL } from "../constants";
 
 export const stockFootprintApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
@@ -7,39 +7,39 @@ export const stockFootprintApiSlice = apiSlice.injectEndpoints({
     getStockFootprints: builder.query({
       query: () => ({
         url: STOCK_FOOTPRINTS_URL,
-        method: 'GET',
+        method: "GET",
       }),
-      providesTags: ['StockFootprint'],
+      providesTags: ["StockFootprint"],
     }),
 
     // GET footprint by ID
     getStockFootprintDetails: builder.query({
       query: (id) => ({
         url: `${STOCK_FOOTPRINTS_URL}/${id}`,
-        method: 'GET',
+        method: "GET",
       }),
-      providesTags: (result, error, id) => [{ type: 'StockFootprint', id }],
+      providesTags: (result, error, id) => [{ type: "StockFootprint", id }],
     }),
 
     // POST create new footprint
     createStockFootprint: builder.mutation({
       query: (data) => ({
         url: STOCK_FOOTPRINTS_URL,
-        method: 'POST',
+        method: "POST",
         body: data,
       }),
-      invalidatesTags: ['StockFootprint'],
+      invalidatesTags: ["StockFootprint"],
     }),
 
     // PUT update footprint by ID
     updateStockFootprint: builder.mutation({
       query: ({ id, ...data }) => ({
         url: `${STOCK_FOOTPRINTS_URL}/${id}`,
-        method: 'PUT',
+        method: "PUT",
         body: data,
       }),
       invalidatesTags: (result, error, { id }) => [
-        { type: 'StockFootprint', id },
+        { type: "StockFootprint", id },
       ],
     }),
 
@@ -47,21 +47,21 @@ export const stockFootprintApiSlice = apiSlice.injectEndpoints({
     deleteStockFootprint: builder.mutation({
       query: (id) => ({
         url: `${STOCK_FOOTPRINTS_URL}/${id}`,
-        method: 'DELETE',
+        method: "DELETE",
       }),
-      invalidatesTags: ['StockFootprint'],
+      invalidatesTags: ["StockFootprint"],
     }),
 
     // GET footprints by category ID (if supported)
     getStockFootprintByCategory: builder.query({
       query: (categoryId) => ({
         url: `${STOCK_FOOTPRINTS_URL}/category/${categoryId}`,
-        method: 'GET',
+        method: "GET",
       }),
-      providesTags: ['StockFootprint'],
+      providesTags: ["StockFootprint"],
     }),
   }),
-})
+});
 
 export const {
   useGetStockFootprintsQuery,
@@ -70,4 +70,4 @@ export const {
   useUpdateStockFootprintMutation,
   useDeleteStockFootprintMutation,
   useGetStockFootprintByCategoryQuery,
-} = stockFootprintApiSlice
+} = stockFootprintApiSlice;

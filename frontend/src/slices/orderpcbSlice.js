@@ -1,21 +1,21 @@
 // src/slices/orderpcbSlice.js
 
-import { apiSlice } from './apiSlice'
-import { ORDERPCBS_URL } from '../constants'
+import { apiSlice } from "./apiSlice";
+import { ORDERPCBS_URL } from "../constants";
 
 export const orderpcbApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
     createOrderPCB: builder.mutation({
       query: (orderData) => ({
         url: ORDERPCBS_URL,
-        method: 'POST',
+        method: "POST",
         body: orderData,
       }),
     }),
     createOrderPCBbyAdmin: builder.mutation({
       query: (orderData) => ({
         url: `${ORDERPCBS_URL}/createorderpcbbyadmin`,
-        method: 'POST',
+        method: "POST",
         body: orderData,
       }),
     }),
@@ -36,14 +36,14 @@ export const orderpcbApiSlice = apiSlice.injectEndpoints({
     updateOrderPCB: builder.mutation({
       query: ({ id, updatedData }) => ({
         url: `${ORDERPCBS_URL}/${id}`,
-        method: 'PUT',
+        method: "PUT",
         body: updatedData,
       }),
     }),
     deleteOrderPCB: builder.mutation({
       query: (id) => ({
         url: `${ORDERPCBS_URL}/${id}`,
-        method: 'DELETE',
+        method: "DELETE",
       }),
     }),
     // updateOrderPCB: builder.mutation({
@@ -58,7 +58,7 @@ export const orderpcbApiSlice = apiSlice.injectEndpoints({
     updateShippingRates: builder.mutation({
       query: (rateData) => ({
         url: `${ORDERPCBS_URL}/shippingrates`,
-        method: 'PUT',
+        method: "PUT",
         body: rateData,
       }),
     }),
@@ -66,7 +66,7 @@ export const orderpcbApiSlice = apiSlice.injectEndpoints({
     updateDeliveryPCBOrder: builder.mutation({
       query: ({ pcborderId, transferedNumber }) => ({
         url: `${ORDERPCBS_URL}/${pcborderId}/deliver`,
-        method: 'PUT',
+        method: "PUT",
         body: { transferedNumber },
       }),
     }),
@@ -74,7 +74,7 @@ export const orderpcbApiSlice = apiSlice.injectEndpoints({
     updatePCBManufactureing: builder.mutation({
       query: ({ pcborderId, manufactureOrderNumber }) => ({
         url: `${ORDERPCBS_URL}/${pcborderId}/verify-payment`,
-        method: 'PUT',
+        method: "PUT",
         body: { manufactureOrderNumber },
       }),
     }),
@@ -98,11 +98,12 @@ export const orderpcbApiSlice = apiSlice.injectEndpoints({
       query: (paymentComfirmID) => ({
         url: `${ORDERPCBS_URL}/byorderpayid/${paymentComfirmID}`,
       }),
-      transformResponse: (response) => response.data || response.orders || response,
+      transformResponse: (response) =>
+        response.data || response.orders || response,
       keepUnusedDataFor: 5,
     }),
   }),
-})
+});
 
 export const {
   useCreateOrderPCBMutation,
@@ -117,4 +118,4 @@ export const {
   useGetOrderPCBByorderIDQuery,
   useGetOrderPCBByorderpaymentIDQuery,
   useCreateOrderPCBbyAdminMutation,
-} = orderpcbApiSlice
+} = orderpcbApiSlice;

@@ -1,48 +1,48 @@
-const asyncHandler = require('../middleware/asyncHandler')
-const { pool: db } = require('../config/db.js')
-const deleteFile = require('../utils/fileUtils')
-const fs = require('fs')
-const path = require('path')
-const jsQR = require('jsqr')
-const Jimp = require('jimp')
+const asyncHandler = require("../middleware/asyncHandler");
+const { pool: db } = require("../config/db.js");
+const deleteFile = require("../utils/fileUtils");
+const fs = require("fs");
+const path = require("path");
+const jsQR = require("jsqr");
+const Jimp = require("jimp");
 
 // Utility: Generate timestamp string: YYYYMMDDHHmmss
 const getTimestamp = () => {
-  const now = new Date()
-  const YYYY = now.getFullYear()
-  const MM = String(now.getMonth() + 1).padStart(2, '0')
-  const DD = String(now.getDate()).padStart(2, '0')
-  const HH = String(now.getHours()).padStart(2, '0')
-  const mm = String(now.getMinutes()).padStart(2, '0')
-  const ss = String(now.getSeconds()).padStart(2, '0')
-  return `${YYYY}${MM}${DD}${HH}${mm}${ss}`
-}
+  const now = new Date();
+  const YYYY = now.getFullYear();
+  const MM = String(now.getMonth() + 1).padStart(2, "0");
+  const DD = String(now.getDate()).padStart(2, "0");
+  const HH = String(now.getHours()).padStart(2, "0");
+  const mm = String(now.getMinutes()).padStart(2, "0");
+  const ss = String(now.getSeconds()).padStart(2, "0");
+  return `${YYYY}${MM}${DD}${HH}${mm}${ss}`;
+};
 
 // Utility: Generate unique payment confirm ID for Assembly
 const generateUniquePaymentConfirmID = async () => {
-  const base = getTimestamp()
-  let counter = 1
-  let uniqueID
-  let isUnique = false
+  const base = getTimestamp();
+  let counter = 1;
+  let uniqueID;
+  let isUnique = false;
 
   while (!isUnique) {
-    const suffix = String(counter).padStart(3, '0')
-    uniqueID = `PCPA-${base}${suffix}`
+    const suffix = String(counter).padStart(3, "0");
+    uniqueID = `PCPA-${base}${suffix}`;
 
     const [rows] = await db.execute(
-      'SELECT id FROM pcb_assembly_orders WHERE paymentComfirmID = ?',
-      [uniqueID]
-    )
+      "SELECT id FROM pcb_assembly_orders WHERE paymentComfirmID = ?",
+      [uniqueID],
+    );
 
     if (rows.length === 0) {
-      isUnique = true
+      isUnique = true;
     } else {
-      counter++
+      counter++;
     }
   }
 
-  return uniqueID
-}
+  return uniqueID;
+};
 
 // Helper: ตรวจสอบหา QR Code ในรูปภาพ
 const checkSlipQR = async (filePath) => {
@@ -57,253 +57,495 @@ const checkSlipQR = async (filePath) => {
     const code = jsQR(imageData.data, imageData.width, imageData.height);
     return code !== null;
   } catch (error) {
-    console.error('🔥 Error reading image for QR:', error);
+    console.error("🔥 Error reading image for QR:", error);
     return false;
   }
-}
+};
 
 // Helper: format Date -> MySQL DATETIME
 const toMySQLDatetime = (d = new Date()) => {
-  const yyyy = d.getFullYear()
-  const mm = String(d.getMonth() + 1).padStart(2, '0')
-  const dd = String(d.getDate()).padStart(2, '0')
-  const hh = String(d.getHours()).padStart(2, '0')
-  const min = String(d.getMinutes()).padStart(2, '0')
-  const ss = String(d.getSeconds()).padStart(2, '0')
-  return `${yyyy}-${mm}-${dd} ${hh}:${min}:${ss}`
-}
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  const dd = String(d.getDate()).padStart(2, "0");
+  const hh = String(d.getHours()).padStart(2, "0");
+  const min = String(d.getMinutes()).padStart(2, "0");
+  const ss = String(d.getSeconds()).padStart(2, "0");
+  return `${yyyy}-${mm}-${dd} ${hh}:${min}:${ss}`;
+};
 
 // @desc    Fetch all Assembly PCB Orders
 const getassemblyPCBs = asyncHandler(async (req, res) => {
   try {
-    const [rows] = await db.execute('SELECT * FROM pcb_assembly_orders ORDER BY created_at DESC')
-    res.status(200).json({ success: true, data: rows })
+    const [rows] = await db.execute(
+      "SELECT * FROM pcb_assembly_orders ORDER BY created_at DESC",
+    );
+    res.status(200).json({ success: true, data: rows });
   } catch (error) {
-    res.status(500).json({ success: false, message: 'Failed to fetch Assembly PCB orders', error: error.message })
+    res
+      .status(500)
+      .json({
+        success: false,
+        message: "Failed to fetch Assembly PCB orders",
+        error: error.message,
+      });
   }
-})
+});
 
 // @desc    Fetch single Assembly PCB by ID
 const getassemblyPCBById = asyncHandler(async (req, res) => {
   try {
-    const [rows] = await db.execute('SELECT * FROM pcb_assembly_orders WHERE id = ?', [req.params.id])
-    if (rows.length === 0) return res.status(404).json({ success: false, message: 'Order not found' })
-    res.status(200).json({ success: true, data: rows[0] })
+    const [rows] = await db.execute(
+      "SELECT * FROM pcb_assembly_orders WHERE id = ?",
+      [req.params.id],
+    );
+    if (rows.length === 0)
+      return res
+        .status(404)
+        .json({ success: false, message: "Order not found" });
+    res.status(200).json({ success: true, data: rows[0] });
   } catch (error) {
-    res.status(500).json({ success: false, message: 'Failed to fetch order', error: error.message })
+    res
+      .status(500)
+      .json({
+        success: false,
+        message: "Failed to fetch order",
+        error: error.message,
+      });
   }
-})
+});
 
 // @desc    Fetch Assembly PCB orders by User ID
 const getassemblyPCBByUserId = asyncHandler(async (req, res) => {
-  const user_id = req.params.userId
+  const user_id = req.params.userId;
   try {
-    const [rows] = await db.execute('SELECT * FROM pcb_assembly_orders WHERE user_id = ? ORDER BY created_at DESC', [user_id])
-    if (rows.length === 0) return res.status(404).json({ success: false, message: 'No assembly orders found for this user.' })
-    res.status(200).json({ success: true, count: rows.length, data: rows })
+    const [rows] = await db.execute(
+      "SELECT * FROM pcb_assembly_orders WHERE user_id = ? ORDER BY created_at DESC",
+      [user_id],
+    );
+    if (rows.length === 0)
+      return res
+        .status(404)
+        .json({
+          success: false,
+          message: "No assembly orders found for this user.",
+        });
+    res.status(200).json({ success: true, count: rows.length, data: rows });
   } catch (error) {
-    res.status(500).json({ success: false, message: 'Failed to fetch assembly orders', error: error.message })
+    res
+      .status(500)
+      .json({
+        success: false,
+        message: "Failed to fetch assembly orders",
+        error: error.message,
+      });
   }
-})
+});
 
 // @desc    Fetch Assembly PCB orders by Order ID
 const getassemblyPCBByOrderId = asyncHandler(async (req, res) => {
-  const orderID = req.params.orderID
+  const orderID = req.params.orderID;
   try {
-    const [rows] = await db.execute('SELECT * FROM pcb_assembly_orders WHERE orderID = ? ORDER BY created_at DESC', [orderID])
-    if (!rows.length) return res.status(404).json({ success: false, message: 'No assembly orders found for this order ID.' })
-    res.json({ success: true, count: rows.length, data: rows })
+    const [rows] = await db.execute(
+      "SELECT * FROM pcb_assembly_orders WHERE orderID = ? ORDER BY created_at DESC",
+      [orderID],
+    );
+    if (!rows.length)
+      return res
+        .status(404)
+        .json({
+          success: false,
+          message: "No assembly orders found for this order ID.",
+        });
+    res.json({ success: true, count: rows.length, data: rows });
   } catch (error) {
-    console.error('getassemblyPCBByOrderId error:', error)
-    res.status(500).json({ success: false, message: 'Failed to fetch assembly orders' })
+    console.error("getassemblyPCBByOrderId error:", error);
+    res
+      .status(500)
+      .json({ success: false, message: "Failed to fetch assembly orders" });
   }
-})
+});
 
 // @desc    Create a new Assembly PCB Order
 const createassemblyPCB = asyncHandler(async (req, res) => {
+  const {
+    orderItems,
+    userId,
+    userName,
+    userEmail,
+    shippingAddress = {},
+    billingAddress = {},
+    paymentResult = {}, // อิงตาม Standard PCB
+    receivePlace,
+    totalPrice, // ยอดรวมทั้งหมด
+  } = req.body;
+
   try {
     const payload = req.body.orderData || req.body;
-    const {
-      cartId, userId, userName, userEmail, transferedAmount, transferedName, transferedDate, paymentSlip,
-      receivePlace, shippingName, shippingPhone, shippingAddress,
-      shippingCity, shippingPostalCode, shippingCountry,
-      billingName, billinggAddress, billingCity, billingPostalCode, billingCountry, billingPhone, billingTax
-    } = payload;
+    // รองรับทั้งแบบเก่า (cartId) และแบบใหม่ (orderItems)
+    const items = orderItems || (payload.cartId ? [payload] : []);
 
-    if (!cartId) return res.status(400).json({ success: false, message: '⚠️ ไม่พบข้อมูลตะกร้าสินค้า' });
-    if (!paymentSlip) return res.status(400).json({ success: false, message: '⚠️ กรุณาแนบรูปสลิปโอนเงิน' });
+    if (!items || items.length === 0)
+      return res
+        .status(400)
+        .json({ success: false, message: "⚠️ ไม่พบรายการสินค้าในคำสั่งซื้อ" });
 
-    const [cartRows] = await db.execute(`SELECT * FROM pcb_assembly_carts WHERE id = ?`, [cartId])
-    if (cartRows.length === 0) return res.status(404).json({ success: false, message: 'ไม่พบข้อมูลตะกร้าที่ต้องการชำระเงิน' })
-    const cart = cartRows[0]
+    const transferedAmount = paymentResult.transferedAmount || payload.transferedAmount;
+    const paymentSlip = paymentResult.image || payload.paymentSlip;
+    const transferedName = paymentResult.transferedName || payload.transferedName;
+    const transferedDate = paymentResult.transferedDate || payload.transferedDate;
 
-    let cleanPaymentSlip = paymentSlip.replace(/\\/g, '/');
-    if (!cleanPaymentSlip.startsWith('/')) cleanPaymentSlip = '/' + cleanPaymentSlip;
+    if (!paymentSlip)
+      return res
+        .status(400)
+        .json({ success: false, message: "⚠️ กรุณาแนบรูปสลิปโอนเงิน" });
 
-    const absoluteFilePath = path.join(__dirname, '..', cleanPaymentSlip);
+    let cleanPaymentSlip = paymentSlip.replace(/\\/g, "/");
+    if (!cleanPaymentSlip.startsWith("/"))
+      cleanPaymentSlip = "/" + cleanPaymentSlip;
 
-    const targetPrice = Number(cart.confirmed_price) || Number(cart.estimatedCost) || 0;
-    const paidAmount = Number(transferedAmount);
+    const absoluteFilePath = path.join(__dirname, "..", cleanPaymentSlip);
 
-    if (targetPrice > 0 && Math.abs(paidAmount - targetPrice) > 1.00) {
-      if (fs.existsSync(absoluteFilePath)) fs.unlinkSync(absoluteFilePath);
-      return res.status(400).json({
-        success: false,
-        message: `⚠️ ยอดโอนเงินไม่ถูกต้อง (ยอดที่ต้องชำระคือ ${targetPrice.toLocaleString()} บาท)`
-      });
-    }
-
+    // 1. ตรวจสอบ QR Code (ถ้ามีไฟล์)
     const isValidQR = await checkSlipQR(absoluteFilePath);
     if (!isValidQR) {
       if (fs.existsSync(absoluteFilePath)) fs.unlinkSync(absoluteFilePath);
       return res.status(400).json({
         success: false,
-        message: '⚠️ ไม่พบ QR Code ในรูปภาพ กรุณาอัปโหลดสลิปโอนเงินที่ถูกต้อง'
+        message: "⚠️ ไม่พบ QR Code ในรูปภาพ กรุณาอัปโหลดสลิปโอนเงินที่ถูกต้อง",
       });
     }
 
-    let count = 1, orderID = '', isUnique = false;
-    const targetUserId = userId || cart.user_id || 0;
-    while (!isUnique) {
-      orderID = `${parseInt(targetUserId) + 1000}PCA${count}`
-      const [existing] = await db.execute(`SELECT id FROM pcb_assembly_orders WHERE orderID = ?`, [orderID])
-      if (existing.length === 0) isUnique = true; else count++;
+    // 2. ตรวจสอบยอดเงินรวม
+    const targetTotalPrice = Number(totalPrice) || 0;
+    const paidAmount = Number(transferedAmount);
+
+    if (targetTotalPrice > 0 && Math.abs(paidAmount - targetTotalPrice) > 1.0) {
+      if (fs.existsSync(absoluteFilePath)) fs.unlinkSync(absoluteFilePath);
+      return res.status(400).json({
+        success: false,
+        message: `⚠️ ยอดโอนเงินไม่ถูกต้อง (ยอดที่ต้องชำระคือ ${targetTotalPrice.toLocaleString()} บาท)`,
+      });
     }
 
-    const paymentComfirmID = await generateUniquePaymentConfirmID()
+    const paymentComfirmID = await generateUniquePaymentConfirmID();
+    const results = [];
 
-    // 🔥 แก้ไขคอลัมน์จาก assembly_zip เป็น gerber_zip
-    const insertSql = `
-        INSERT INTO pcb_assembly_orders (
-            projectname, user_id, pcb_qty, notes, gerber_zip,
-            status, confirmed_price, vatPrice, created_at, updated_at,
-            userName, userEmail, 
-            shippingName, shippingAddress, shippingCity, shippingPostalCode, shippingCountry, shippingPhone, 
-            receivePlace, 
-            billingName, billinggAddress, billingCity, billingPostalCode, billingCountry, billingPhone, billingTax,
-            transferedAmount, transferedName, paymentSlip, transferedDate,
-            orderID, paymentComfirmID, cartId, isDelivered
-        ) VALUES (
-            ?, ?, ?, ?, ?, 
-            'paid', ?, ?, NOW(), NOW(), 
-            ?, ?, 
-            ?, ?, ?, ?, ?, ?, 
-            ?, 
-            ?, ?, ?, ?, ?, ?, ?, 
-            ?, ?, ?, ?, 
-            ?, ?, ?, 0
-        )
-    `
+    // 3. Loop สร้าง Order แต่ละรายการ
+    for (const item of items) {
+      const cartId = item.cartId || item.id;
+      if (!cartId) continue;
 
-    const fileZip = cart.gerber_zip || cart.assembly_zip || cart.file_path || '';
+      const [cartRows] = await db.execute(
+        `SELECT * FROM pcb_assembly_carts WHERE id = ?`,
+        [cartId],
+      );
+      if (cartRows.length === 0) continue;
+      const cart = cartRows[0];
 
-    const insertValues = [
-      cart.projectname, cart.user_id, cart.pcb_qty, cart.notes || '', fileZip,
-      cart.confirmed_price || cart.estimatedCost, cart.vatPrice || 0,
-      userName || cart.userName, userEmail || cart.userEmail,
-      shippingName || cart.shippingName, shippingAddress || cart.shippingAddress, shippingCity || cart.shippingCity, shippingPostalCode || cart.shippingPostalCode, shippingCountry || cart.shippingCountry, shippingPhone || cart.shippingPhone,
-      receivePlace || cart.receivePlace || 'bysending',
-      billingName || cart.billingName, billinggAddress || cart.billinggAddress, billingCity || cart.billingCity, billingPostalCode || cart.billingPostalCode, billingCountry || cart.billingCountry, billingPhone || cart.billingPhone, billingTax || cart.billingTax,
-      transferedAmount, transferedName, cleanPaymentSlip, transferedDate,
-      orderID, paymentComfirmID, cartId
-    ]
+      let count = 1,
+        orderID = "",
+        isUnique = false;
+      const targetUserId = userId || cart.user_id || 0;
+      while (!isUnique) {
+        orderID = `${parseInt(targetUserId) + 1000}PCA${count}`;
+        const [existing] = await db.execute(
+          `SELECT id FROM pcb_assembly_orders WHERE orderID = ?`,
+          [orderID],
+        );
+        if (existing.length === 0) isUnique = true;
+        else count++;
+      }
 
-    await db.execute(insertSql, insertValues)
+      const fileZip = cart.gerber_zip || cart.assembly_zip || cart.file_path || "";
 
-    await db.execute(`UPDATE pcb_assembly_carts SET status = 'paid' WHERE id = ?`, [cartId])
+      const insertSql = `
+          INSERT INTO pcb_assembly_orders (
+              projectname, user_id, pcb_qty, notes, gerber_zip,
+              status, confirmed_price, vatPrice, created_at, updated_at,
+              userName, userEmail, 
+              shippingName, shippingAddress, shippingCity, shippingPostalCode, shippingCountry, shippingPhone, 
+              receivePlace, 
+              billingName, billinggAddress, billingCity, billingPostalCode, billingCountry, billingPhone, billingTax,
+              transferedAmount, transferedName, paymentSlip, transferedDate,
+              orderID, paymentComfirmID, cartId, isDelivered
+          ) VALUES (
+              ?, ?, ?, ?, ?, 
+              'paid', ?, ?, NOW(), NOW(), 
+              ?, ?, 
+              ?, ?, ?, ?, ?, ?, 
+              ?, 
+              ?, ?, ?, ?, ?, ?, ?, 
+              ?, ?, ?, ?, 
+              ?, ?, ?, 0
+          )
+      `;
 
-    return res.status(201).json({ success: true, message: 'ชำระเงินสำเร็จ!', orderID })
+      const insertValues = [
+        cart.projectname,
+        cart.user_id,
+        cart.pcb_qty,
+        cart.notes || "",
+        fileZip,
+        cart.confirmed_price || cart.estimatedCost,
+        cart.vatPrice || 0,
+        userName || cart.userName,
+        userEmail || cart.userEmail,
+        shippingAddress.shippingname || cart.shippingName,
+        shippingAddress.address || cart.shippingAddress,
+        shippingAddress.city || cart.shippingCity,
+        shippingAddress.postalCode || cart.shippingPostalCode,
+        shippingAddress.country || cart.shippingCountry,
+        shippingAddress.phone || cart.shippingPhone,
+        receivePlace || cart.receivePlace || "bysending",
+        billingAddress.billingName || cart.billingName,
+        billingAddress.billinggAddress || cart.billinggAddress,
+        billingAddress.billingCity || cart.billingCity,
+        billingAddress.billingPostalCode || cart.billingPostalCode,
+        billingAddress.billingCountry || cart.billingCountry,
+        billingAddress.billingPhone || cart.billingPhone,
+        billingAddress.tax || cart.billingTax,
+        item.confirmed_price || item.estimatedCost || transferedAmount, // ใช้ราคาของชิ้นนั้นๆ
+        transferedName,
+        cleanPaymentSlip,
+        transferedDate || new Date(),
+        orderID,
+        paymentComfirmID,
+        cartId,
+      ];
 
+      await db.execute(insertSql, insertValues);
+
+      await db.execute(
+        `UPDATE pcb_assembly_carts SET status = 'paid' WHERE id = ?`,
+        [cartId],
+      );
+      results.push(orderID);
+    }
+
+    return res
+      .status(201)
+      .json({ success: true, message: "ชำระเงินสำเร็จ!", orderIDs: results });
   } catch (error) {
-    console.error('🔥 Backend Error (Assembly):', error)
-    return res.status(500).json({ success: false, message: 'เกิดข้อผิดพลาดในการบันทึกข้อมูล', error: error.message })
+    console.error("🔥 Backend Error (Assembly):", error);
+    return res
+      .status(500)
+      .json({
+        success: false,
+        message: "เกิดข้อผิดพลาดในการบันทึกข้อมูล",
+        error: error.message,
+      });
   }
-})
+});
 
 // @desc    Create a new Assembly PCB Order by Admin
 const createassemblyPCBbyAdmin = asyncHandler(async (req, res) => {
-  const data = req.body || {}
+  const data = req.body || {};
 
-  if (!data.projectname || !data.customerInfo || !data.customerInfo.customerUserID) {
-    return res.status(400).json({ success: false, message: 'Missing required fields' })
+  if (
+    !data.projectname ||
+    !data.customerInfo ||
+    !data.customerInfo.customerUserID
+  ) {
+    return res
+      .status(400)
+      .json({ success: false, message: "Missing required fields" });
   }
 
-  let useId = data.customerInfo.customerUserID
+  let useId = data.customerInfo.customerUserID;
 
   try {
-    let count = 1, orderID, isUnique = false
+    let count = 1,
+      orderID,
+      isUnique = false;
     while (!isUnique) {
-      orderID = `${parseInt(useId) + 1000}PCA${count}`
-      const [existing] = await db.execute(`SELECT id FROM pcb_assembly_orders WHERE orderID = ?`, [orderID])
-      if (existing.length === 0) isUnique = true; else count++;
+      orderID = `${parseInt(useId) + 1000}PCA${count}`;
+      const [existing] = await db.execute(
+        `SELECT id FROM pcb_assembly_orders WHERE orderID = ?`,
+        [orderID],
+      );
+      if (existing.length === 0) isUnique = true;
+      else count++;
     }
 
-    const paymentComfirmID = await generateUniquePaymentConfirmID()
+    const paymentComfirmID = await generateUniquePaymentConfirmID();
 
-    // 🔥 แก้ไขคอลัมน์จาก assembly_zip เป็น gerber_zip
+    //  แก้ไขคอลัมน์จาก assembly_zip เป็น gerber_zip
     const columns = [
-      'projectname', 'user_id', 'pcb_qty', 'notes', 'gerber_zip',
-      'status', 'confirmed_price', 'confirmed_reason', 'created_at', 'updated_at',
-      'isDelivered', 'deliveryID', 'deliveryOn', 'userName', 'userEmail',
-      'shippingName', 'shippingAddress', 'shippingCity', 'shippingPostalCode', 'shippingCountry', 'shippingPhone', 'receivePlace',
-      'billingName', 'billinggAddress', 'billingCity', 'billingPostalCode', 'billingCountry', 'billingPhone', 'billingTax',
-      'transferedNumber', 'transferedAmount', 'transferedName', 'paymentSlip', 'transferedDate',
-      'orderID', 'cartId', 'paymentComfirmID',
-      'sell_id', 'sell_name', 'sell_address', 'sell_city', 'sell_post_code', 'sell_country', 'sell_phone', 'sell_email',
-    ]
+      "projectname",
+      "user_id",
+      "pcb_qty",
+      "notes",
+      "gerber_zip",
+      "status",
+      "confirmed_price",
+      "confirmed_reason",
+      "created_at",
+      "updated_at",
+      "isDelivered",
+      "deliveryID",
+      "deliveryOn",
+      "userName",
+      "userEmail",
+      "shippingName",
+      "shippingAddress",
+      "shippingCity",
+      "shippingPostalCode",
+      "shippingCountry",
+      "shippingPhone",
+      "receivePlace",
+      "billingName",
+      "billinggAddress",
+      "billingCity",
+      "billingPostalCode",
+      "billingCountry",
+      "billingPhone",
+      "billingTax",
+      "transferedNumber",
+      "transferedAmount",
+      "transferedName",
+      "paymentSlip",
+      "transferedDate",
+      "orderID",
+      "cartId",
+      "paymentComfirmID",
+      "sell_id",
+      "sell_name",
+      "sell_address",
+      "sell_city",
+      "sell_post_code",
+      "sell_country",
+      "sell_phone",
+      "sell_email",
+    ];
 
-    const createdAt = toMySQLDatetime()
-    const updatedAt = createdAt
+    const createdAt = toMySQLDatetime();
+    const updatedAt = createdAt;
 
     const values = [
-      data.projectname || '', data.user_id || '', data.pcb_qty || 0, data.notes || '', data.assembly_zip || '',
-      data.status || 'pending', data.confirmed_price || '', data.confirmed_reason || '', createdAt, updatedAt,
-      data.isDelivered ? 1 : 0, data.deliveryID || '', data.deliveryOn || '', data.customerInfo?.customerName || '', data.customerInfo?.customerEmailAddress || '',
-      data.shippingAddress?.shippingname || '', data.shippingAddress?.address || '', data.shippingAddress?.city || '', data.shippingAddress?.postalCode || '', data.shippingAddress?.country || '', data.shippingAddress?.phone || '', data.shippingAddress?.receivePlace || '',
-      data.billingAddress?.billingName || '', data.billingAddress?.billinggAddress || '', data.billingAddress?.billingCity || '', data.billingAddress?.billingPostalCode || '', data.billingAddress?.billingCountry || '', data.billingAddress?.billingPhone || '', data.billingAddress?.tax || '',
-      data.transfer?.transferedNumber || '', data.transfer?.transferedAmount || '', data.transfer?.transferedName || '', data.paymentSlip || '',
-      data.transfer?.transferedDate ? new Date(data.transfer.transferedDate).toISOString().replace('T', ' ').slice(0, 19) : '',
-      orderID, data.cartId || '', paymentComfirmID,
-      data.sellerInfo?.sellerUserID || '', data.sellerInfo?.sellerName || '', data.sellerInfo?.sellerAddress || '', data.sellerInfo?.sellerCity || '', data.sellerInfo?.sellerPostalCode || '', data.sellerInfo?.sellerCountry || '', data.sellerInfo?.sellerPhoneNumber || '', data.sellerInfo?.sellerEmailAddress || '',
-    ]
+      data.projectname || "",
+      data.user_id || "",
+      data.pcb_qty || 0,
+      data.notes || "",
+      data.assembly_zip || "",
+      data.status || "pending",
+      data.confirmed_price || "",
+      data.confirmed_reason || "",
+      createdAt,
+      updatedAt,
+      data.isDelivered ? 1 : 0,
+      data.deliveryID || "",
+      data.deliveryOn || "",
+      data.customerInfo?.customerName || "",
+      data.customerInfo?.customerEmailAddress || "",
+      data.shippingAddress?.shippingname || "",
+      data.shippingAddress?.address || "",
+      data.shippingAddress?.city || "",
+      data.shippingAddress?.postalCode || "",
+      data.shippingAddress?.country || "",
+      data.shippingAddress?.phone || "",
+      data.shippingAddress?.receivePlace || "",
+      data.billingAddress?.billingName || "",
+      data.billingAddress?.billinggAddress || "",
+      data.billingAddress?.billingCity || "",
+      data.billingAddress?.billingPostalCode || "",
+      data.billingAddress?.billingCountry || "",
+      data.billingAddress?.billingPhone || "",
+      data.billingAddress?.tax || "",
+      data.transfer?.transferedNumber || "",
+      data.transfer?.transferedAmount || "",
+      data.transfer?.transferedName || "",
+      data.paymentSlip || "",
+      data.transfer?.transferedDate
+        ? new Date(data.transfer.transferedDate)
+          .toISOString()
+          .replace("T", " ")
+          .slice(0, 19)
+        : "",
+      orderID,
+      data.cartId || "",
+      paymentComfirmID,
+      data.sellerInfo?.sellerUserID || "",
+      data.sellerInfo?.sellerName || "",
+      data.sellerInfo?.sellerAddress || "",
+      data.sellerInfo?.sellerCity || "",
+      data.sellerInfo?.sellerPostalCode || "",
+      data.sellerInfo?.sellerCountry || "",
+      data.sellerInfo?.sellerPhoneNumber || "",
+      data.sellerInfo?.sellerEmailAddress || "",
+    ];
 
-    const placeholders = values.map(() => '?').join(',')
-    const sql = `INSERT INTO pcb_assembly_orders (${columns.join(',')}) VALUES (${placeholders})`
+    const placeholders = values.map(() => "?").join(",");
+    const sql = `INSERT INTO pcb_assembly_orders (${columns.join(",")}) VALUES (${placeholders})`;
 
-    await db.execute(sql, values)
+    await db.execute(sql, values);
 
-    return res.status(201).json({ success: true, message: 'Assembly PCB order created successfully', orderID, paymentComfirmID })
+    return res
+      .status(201)
+      .json({
+        success: true,
+        message: "Assembly PCB order created successfully",
+        orderID,
+        paymentComfirmID,
+      });
   } catch (error) {
-    return res.status(500).json({ success: false, message: 'Failed to create Assembly PCB order', error: error.message })
+    return res
+      .status(500)
+      .json({
+        success: false,
+        message: "Failed to create Assembly PCB order",
+        error: error.message,
+      });
   }
-})
+});
 
 // @desc    Update an Assembly PCB Order by ID
 const updateassemblyPCBById = asyncHandler(async (req, res) => {
-  const { id } = req.params
+  const { id } = req.params;
 
   const {
-    projectname, pcbQty, notes, assembly_zip, billingName, billingPhone, billinggAddress, billingCity, billingPostalCode, billingCountry, billingTax,
-    shippingName, shippingPhone, shippingAddress, shippingCity, shippingPostalCode, shippingCountry, receivePlace, userName, userEmail, custom_price,
-  } = req.body
+    projectname,
+    pcbQty,
+    notes,
+    assembly_zip,
+    billingName,
+    billingPhone,
+    billinggAddress,
+    billingCity,
+    billingPostalCode,
+    billingCountry,
+    billingTax,
+    shippingName,
+    shippingPhone,
+    shippingAddress,
+    shippingCity,
+    shippingPostalCode,
+    shippingCountry,
+    receivePlace,
+    userName,
+    userEmail,
+    custom_price,
+  } = req.body;
 
-  if (!custom_price || custom_price === '' || custom_price === 0) {
-    res.status(400)
-    throw new Error('Please provide a custom price')
+  if (!custom_price || custom_price === "" || custom_price === 0) {
+    res.status(400);
+    throw new Error("Please provide a custom price");
   }
 
-  const confirmed_price = custom_price
+  const confirmed_price = custom_price;
 
   try {
-    const [orderRows] = await db.query(`SELECT * FROM pcb_assembly_orders WHERE id = ?`, [id])
+    const [orderRows] = await db.query(
+      `SELECT * FROM pcb_assembly_orders WHERE id = ?`,
+      [id],
+    );
     if (orderRows.length === 0) {
-      res.status(404)
-      throw new Error('Order not found')
+      res.status(404);
+      throw new Error("Order not found");
     }
 
-    const updatedAt = new Date()
+    const updatedAt = new Date();
 
-    // 🔥 แก้ไขคอลัมน์จาก assembly_zip เป็น gerber_zip
+    //  แก้ไขคอลัมน์จาก assembly_zip เป็น gerber_zip
     const sql = `
       UPDATE pcb_assembly_orders SET
         projectname = ?, pcb_qty = ?, notes = ?, gerber_zip = ?, confirmed_price = ?,
@@ -311,76 +553,118 @@ const updateassemblyPCBById = asyncHandler(async (req, res) => {
         shippingName = ?, shippingPhone = ?, shippingAddress = ?, shippingCity = ?, shippingPostalCode = ?, shippingCountry = ?, receivePlace = ?,
         userName = ?, userEmail = ?, updated_at = ?
       WHERE id = ?
-    `
+    `;
 
     const values = [
-      projectname, pcbQty, notes, assembly_zip, confirmed_price,
-      billingName, billingPhone, billinggAddress, billingCity, billingPostalCode, billingCountry, billingTax,
-      shippingName, shippingPhone, shippingAddress, shippingCity, shippingPostalCode, shippingCountry, receivePlace,
-      userName, userEmail, updatedAt, id,
-    ]
+      projectname,
+      pcbQty,
+      notes,
+      assembly_zip,
+      confirmed_price,
+      billingName,
+      billingPhone,
+      billinggAddress,
+      billingCity,
+      billingPostalCode,
+      billingCountry,
+      billingTax,
+      shippingName,
+      shippingPhone,
+      shippingAddress,
+      shippingCity,
+      shippingPostalCode,
+      shippingCountry,
+      receivePlace,
+      userName,
+      userEmail,
+      updatedAt,
+      id,
+    ];
 
-    await db.query(sql, values)
-    res.json({ message: 'Order updated successfully' })
+    await db.query(sql, values);
+    res.json({ message: "Order updated successfully" });
   } catch (err) {
-    console.error('Error during update:', err)
-    res.status(500).json({ message: err.message })
+    console.error("Error during update:", err);
+    res.status(500).json({ message: err.message });
   }
-})
+});
 
 // @desc    Update an Assembly Delivery Order by ID
 const updateDeliveryassemblyPCBById = asyncHandler(async (req, res) => {
-  const { id } = req.params
-  const { transferedNumber } = req.body
+  const { id } = req.params;
+  const { transferedNumber } = req.body;
 
   try {
-    const [orderRows] = await db.query(`SELECT * FROM pcb_assembly_orders WHERE id = ?`, [id])
+    const [orderRows] = await db.query(
+      `SELECT * FROM pcb_assembly_orders WHERE id = ?`,
+      [id],
+    );
     if (orderRows.length === 0) {
-      res.status(404)
-      throw new Error('Order not found')
+      res.status(404);
+      throw new Error("Order not found");
     }
 
-    const deliveryOn = new Date()
+    const deliveryOn = new Date();
 
     await db.query(
       `UPDATE pcb_assembly_orders SET isDelivered = ?, deliveryOn = ?, deliveryID = ?, transferedNumber = ? WHERE id = ?`,
-      [true, deliveryOn, transferedNumber, transferedNumber, id]
-    )
-    res.json({ message: 'Order marked as delivered' })
+      [true, deliveryOn, transferedNumber, transferedNumber, id],
+    );
+    res.json({ message: "Order marked as delivered" });
   } catch (err) {
-    console.error('Error during delivery update:', err)
-    res.status(500).json({ message: err.message })
+    console.error("Error during delivery update:", err);
+    res.status(500).json({ message: err.message });
   }
-})
+});
 
 // @desc    แอดมินอนุมัติการชำระเงิน
 const updatePaymentassemblyPCBById = asyncHandler(async (req, res) => {
-  const { id } = req.params; const { status } = req.body;
-  const dbStatus = status === 'Paid' ? 'accepted' : (status === 'Reject' ? 'rejected' : 'pending');
-  await db.execute(`UPDATE pcb_assembly_orders SET status = ?, updated_at = NOW() WHERE id = ?`, [dbStatus, id]);
+  const { id } = req.params;
+  const { status } = req.body;
+  const dbStatus =
+    status === "Paid"
+      ? "accepted"
+      : status === "Reject"
+        ? "rejected"
+        : "pending";
+  await db.execute(
+    `UPDATE pcb_assembly_orders SET status = ?, updated_at = NOW() WHERE id = ?`,
+    [dbStatus, id],
+  );
   res.status(200).json({ success: true, message: `อัปเดตสำเร็จ` });
-})
+});
 
 // @desc    Delete an Assembly PCB Order by ID
 const deleteassemblyPCB = asyncHandler(async (req, res) => {
-  const { id } = req.params
+  const { id } = req.params;
   try {
     // 1. Fetch order to get files
-    const [rows] = await db.execute('SELECT paymentSlip, gerber_zip FROM pcb_assembly_orders WHERE id = ?', [id])
+    const [rows] = await db.execute(
+      "SELECT paymentSlip, gerber_zip FROM pcb_assembly_orders WHERE id = ?",
+      [id],
+    );
 
     if (rows.length > 0) {
-      const order = rows[0]
-      deleteFile(order.paymentSlip)
-      deleteFile(order.gerber_zip)
+      const order = rows[0];
+      deleteFile(order.paymentSlip);
+      deleteFile(order.gerber_zip);
     }
 
-    const [result] = await db.execute('DELETE FROM pcb_assembly_orders WHERE id = ?', [id])
-    if (result.affectedRows === 0) return res.status(404).json({ success: false, message: 'Order not found' })
-    res.status(200).json({ success: true, message: 'Order deleted successfully' })
+    const [result] = await db.execute(
+      "DELETE FROM pcb_assembly_orders WHERE id = ?",
+      [id],
+    );
+    if (result.affectedRows === 0)
+      return res
+        .status(404)
+        .json({ success: false, message: "Order not found" });
+    res
+      .status(200)
+      .json({ success: true, message: "Order deleted successfully" });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message })
+    res.status(500).json({ success: false, message: error.message });
   }
-})
+});
 
 module.exports = {
   createassemblyPCB,
@@ -393,4 +677,4 @@ module.exports = {
   updatePaymentassemblyPCBById,
   deleteassemblyPCB,
   createassemblyPCBbyAdmin,
-}
+};

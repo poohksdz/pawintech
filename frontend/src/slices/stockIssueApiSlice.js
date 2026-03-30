@@ -1,5 +1,5 @@
-import { apiSlice } from './apiSlice'
-import { STOCK_ISSUES_URL } from '../constants'
+import { apiSlice } from "./apiSlice";
+import { STOCK_ISSUES_URL } from "../constants";
 
 export const stockIssueApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
@@ -7,49 +7,49 @@ export const stockIssueApiSlice = apiSlice.injectEndpoints({
     getStockIssue: builder.query({
       query: () => ({
         url: STOCK_ISSUES_URL,
-        method: 'GET',
+        method: "GET",
       }),
-      providesTags: ['StockIssue'],
+      providesTags: ["StockIssue"],
     }),
 
     // GET single stock issue by ID
     getStockIssueById: builder.query({
       query: (id) => ({
         url: `${STOCK_ISSUES_URL}/${id}`,
-        method: 'GET',
+        method: "GET",
       }),
-      providesTags: (result, error, id) => [{ type: 'StockIssue', id }],
+      providesTags: (result, error, id) => [{ type: "StockIssue", id }],
     }),
 
     // GET stock issues by user (custom endpoint)
     getStockIssueByUser: builder.query({
       query: (userId) => ({
         url: `${STOCK_ISSUES_URL}/user/${userId}`,
-        method: 'GET',
+        method: "GET",
       }),
-      providesTags: ['StockIssue'],
+      providesTags: ["StockIssue"],
     }),
 
     // CREATE stock issue
     createStockIssue: builder.mutation({
       query: (newData) => ({
         url: STOCK_ISSUES_URL,
-        method: 'POST',
+        method: "POST",
         body: newData,
       }),
-      invalidatesTags: ['StockIssue'],
+      invalidatesTags: ["StockIssue"],
     }),
 
     // UPDATE stock issue
     updateStockIssue: builder.mutation({
       query: ({ id, ...updatedData }) => ({
         url: `${STOCK_ISSUES_URL}/${id}`,
-        method: 'PUT',
+        method: "PUT",
         body: updatedData,
       }),
       invalidatesTags: (result, error, { id }) => [
-        'StockIssue',
-        { type: 'StockIssue', id },
+        "StockIssue",
+        { type: "StockIssue", id },
       ],
     }),
 
@@ -57,12 +57,12 @@ export const stockIssueApiSlice = apiSlice.injectEndpoints({
     deleteStockIssue: builder.mutation({
       query: (id) => ({
         url: `${STOCK_ISSUES_URL}/${id}`,
-        method: 'DELETE',
+        method: "DELETE",
       }),
-      invalidatesTags: ['StockIssue'],
+      invalidatesTags: ["StockIssue"],
     }),
   }),
-})
+});
 
 export const {
   useGetStockIssueQuery,
@@ -71,4 +71,4 @@ export const {
   useCreateStockIssueMutation,
   useUpdateStockIssueMutation,
   useDeleteStockIssueMutation,
-} = stockIssueApiSlice
+} = stockIssueApiSlice;

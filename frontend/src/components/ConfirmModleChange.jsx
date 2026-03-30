@@ -1,16 +1,21 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import { useUpdateAboutimagesMutation, useUploadAboutimagesImageMutation } from '../slices/aboutImageApiSlice';
-import Modal from './ui/Modal';
-import Button from './ui/Button';
+import {
+  useUpdateAboutimagesMutation,
+  useUploadAboutimagesImageMutation,
+} from "../slices/aboutImageApiSlice";
+import Modal from "./ui/Modal";
+import Button from "./ui/Button";
 
 const ConfirmModleChange = ({ show, onHide, onConfirm, aboutImageId }) => {
   const [selectedFile, setSelectedFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
 
-  const [uploadAboutimagesImage, { isLoading: isUploading }] = useUploadAboutimagesImageMutation();
-  const [updateAboutimages, { isLoading: isUpdating }] = useUpdateAboutimagesMutation();
+  const [uploadAboutimagesImage, { isLoading: isUploading }] =
+    useUploadAboutimagesImageMutation();
+  const [updateAboutimages, { isLoading: isUpdating }] =
+    useUpdateAboutimagesMutation();
 
   const navigate = useNavigate();
 
@@ -41,10 +46,10 @@ const ConfirmModleChange = ({ show, onHide, onConfirm, aboutImageId }) => {
       try {
         await updateAboutimages({
           ID: aboutImageId,
-          images: response.image
+          images: response.image,
         }).unwrap();
-        toast.success('About Image Updated');
-        navigate('/about');
+        toast.success("About Image Updated");
+        navigate("/about");
       } catch (err) {
         toast.error(err?.data?.message || err.error);
         return; // Don't proceed if update fails
@@ -58,14 +63,11 @@ const ConfirmModleChange = ({ show, onHide, onConfirm, aboutImageId }) => {
   };
 
   return (
-    <Modal
-      isOpen={show}
-      onClose={onHide}
-      title="Confirm Update"
-    >
+    <Modal isOpen={show} onClose={onHide} title="Confirm Update">
       <div className="p-6">
         <p className="text-slate-600 mb-4">
-          Are you sure you want to update image with ID: <strong className="text-slate-900">{aboutImageId}</strong>?
+          Are you sure you want to update image with ID:{" "}
+          <strong className="text-slate-900">{aboutImageId}</strong>?
         </p>
 
         <div className="mb-6">
@@ -97,11 +99,19 @@ const ConfirmModleChange = ({ show, onHide, onConfirm, aboutImageId }) => {
         )}
 
         <div className="flex justify-end gap-3 mt-8">
-          <Button variant="secondary" onClick={onHide} disabled={isUploading || isUpdating}>
+          <Button
+            variant="secondary"
+            onClick={onHide}
+            disabled={isUploading || isUpdating}
+          >
             Cancel
           </Button>
-          <Button variant="primary" onClick={handleUpdate} disabled={isUploading || isUpdating}>
-            {isUploading || isUpdating ? 'Updating...' : 'Confirm Update'}
+          <Button
+            variant="primary"
+            onClick={handleUpdate}
+            disabled={isUploading || isUpdating}
+          >
+            {isUploading || isUpdating ? "Updating..." : "Confirm Update"}
           </Button>
         </div>
       </div>

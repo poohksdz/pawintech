@@ -1,5 +1,5 @@
-const express = require('express')
-const router = express.Router()
+const express = require("express");
+const router = express.Router();
 const {
   createcopyPCB,
   getcopyPCBById,
@@ -10,35 +10,35 @@ const {
   deletecopyPCB,
   createcopyPCBbyAdmin,
   getcopyPCBByOrderId,
-} = require('../controllers/copypcbcontroller.js')
+} = require("../controllers/copypcbcontroller.js");
 
 // ==========================
 // Routes
 // ==========================
 
 // Create
-router.post('/', createcopyPCB)
-router.post('/createcopypcbbyadmin', createcopyPCBbyAdmin)
+router.post("/", createcopyPCB);
+router.post("/createcopypcbbyadmin", createcopyPCBbyAdmin);
 
 // Get all
-router.get('/', getcopyPCBs)
+router.get("/", getcopyPCBs);
 
 // Get by user
-router.get('/user/:userId', getcopyPCBByUserId)
+router.get("/user/:userId", getcopyPCBByUserId);
 
 // Get by orderID (ทำให้เหมือน custompcb)
-router.get('/byorderid/:orderID', getcopyPCBByOrderId)
+router.get("/byorderid/:orderID", getcopyPCBByOrderId);
 
 // Update order
-router.put('/:id', updatecopyPCBById)
+router.put("/:id", updatecopyPCBById);
 
-// 🔥 ทำให้เหมือน custompcb
-router.put('/delivery/:id', updateDeliverycopyPCBById)
+//  ทำให้เหมือน custompcb
+router.put("/delivery/:id", updateDeliverycopyPCBById);
 
 // Get by ID (ต้องอยู่ล่างสุดของ GET dynamic)
-router.get('/:id', getcopyPCBById)
+router.get("/:id", getcopyPCBById);
 
 // Delete
-router.delete('/:id', deletecopyPCB)
+router.delete("/:id", deletecopyPCB);
 
-module.exports = router
+module.exports = router;

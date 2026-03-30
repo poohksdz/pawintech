@@ -1,5 +1,5 @@
-import { apiSlice } from './apiSlice'
-import { ORDERASSEMBLYCARTS_URL } from '../constants'
+import { apiSlice } from "./apiSlice";
+import { ORDERASSEMBLYCARTS_URL } from "../constants";
 
 export const assemblypcbCartApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
@@ -7,7 +7,7 @@ export const assemblypcbCartApiSlice = apiSlice.injectEndpoints({
     createAssemblycart: builder.mutation({
       query: (orderData) => ({
         url: ORDERASSEMBLYCARTS_URL,
-        method: 'POST',
+        method: "POST",
         body: orderData,
       }),
     }),
@@ -48,7 +48,7 @@ export const assemblypcbCartApiSlice = apiSlice.injectEndpoints({
     updateAssemblycartDefaultById: builder.mutation({
       query: ({ id, updatedData }) => ({
         url: `${ORDERASSEMBLYCARTS_URL}/default/${id}`,
-        method: 'PUT',
+        method: "PUT",
         body: updatedData,
       }),
     }),
@@ -65,7 +65,7 @@ export const assemblypcbCartApiSlice = apiSlice.injectEndpoints({
     updateAssemblycart: builder.mutation({
       query: ({ id, updatedData }) => ({
         url: `${ORDERASSEMBLYCARTS_URL}/${id}`,
-        method: 'PUT',
+        method: "PUT",
         body: updatedData,
       }),
     }),
@@ -74,7 +74,7 @@ export const assemblypcbCartApiSlice = apiSlice.injectEndpoints({
     updateAmountAssemblycart: builder.mutation({
       query: ({ id }) => ({
         url: `${ORDERASSEMBLYCARTS_URL}/amount/${id}`,
-        method: 'PUT',
+        method: "PUT",
       }),
     }),
 
@@ -82,7 +82,7 @@ export const assemblypcbCartApiSlice = apiSlice.injectEndpoints({
     updateAssemblycartComfirmStatus: builder.mutation({
       query: ({ id, updatedData }) => ({
         url: `${ORDERASSEMBLYCARTS_URL}/status/${id}`,
-        method: 'PUT',
+        method: "PUT",
         body: updatedData,
       }),
     }),
@@ -91,7 +91,7 @@ export const assemblypcbCartApiSlice = apiSlice.injectEndpoints({
     updateAssemblyShippingRates: builder.mutation({
       query: ({ orderId, rateData }) => ({
         url: `${ORDERASSEMBLYCARTS_URL}/Assemblyshippingrates/${orderId}`,
-        method: 'PUT',
+        method: "PUT",
         body: rateData,
       }),
     }),
@@ -100,7 +100,7 @@ export const assemblypcbCartApiSlice = apiSlice.injectEndpoints({
     updatePaymentRates: builder.mutation({
       query: ({ orderId, paymentData }) => ({
         url: `${ORDERASSEMBLYCARTS_URL}/paymentrates/${orderId}`,
-        method: 'PUT',
+        method: "PUT",
         body: paymentData,
       }),
     }),
@@ -109,7 +109,7 @@ export const assemblypcbCartApiSlice = apiSlice.injectEndpoints({
     updateDeliveryAssemblycart: builder.mutation({
       query: ({ pcborderId, transferedNumber }) => ({
         url: `${ORDERASSEMBLYCARTS_URL}/delivered/${pcborderId}`,
-        method: 'PUT',
+        method: "PUT",
         body: { transferedNumber },
       }),
     }),
@@ -118,7 +118,7 @@ export const assemblypcbCartApiSlice = apiSlice.injectEndpoints({
     deleteAssemblycart: builder.mutation({
       query: (id) => ({
         url: `${ORDERASSEMBLYCARTS_URL}/${id}`,
-        method: 'DELETE',
+        method: "DELETE",
       }),
     }),
 
@@ -133,7 +133,7 @@ export const assemblypcbCartApiSlice = apiSlice.injectEndpoints({
     uploadGerberAssemblyZip: builder.mutation({
       query: (formData) => ({
         url: `${ORDERASSEMBLYCARTS_URL}/upload/uploadgerber-zip`,
-        method: 'POST',
+        method: "POST",
         body: formData,
       }),
     }),
@@ -142,12 +142,12 @@ export const assemblypcbCartApiSlice = apiSlice.injectEndpoints({
     uploadAssemblyMultipleImages: builder.mutation({
       query: (formData) => ({
         url: `${ORDERASSEMBLYCARTS_URL}/upload/multipleimages`,
-        method: 'POST',
+        method: "POST",
         body: formData,
       }),
     }),
   }),
-})
+});
 
 export const {
   useCreateAssemblycartMutation,
@@ -167,4 +167,4 @@ export const {
   useUpdatePaymentRatesMutation,
   useGetAssemblycartDefaultQuery,
   useUpdateAssemblycartDefaultByIdMutation,
-} = assemblypcbCartApiSlice
+} = assemblypcbCartApiSlice;

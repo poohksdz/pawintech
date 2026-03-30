@@ -86,7 +86,7 @@ const resetPasswordTemplate = (resetUrl, userName) => `
             <h1>Pawin Tech</h1>
         </div>
         <div class="content">
-            <h2>สวัสดีคุณ ${userName || 'User'},</h2>
+            <h2>สวัสดีคุณ ${userName || "User"},</h2>
             <p>เราได้รับคำขอในการเปลี่ยนรหัสผ่านสำหรับบัญชีของคุณที่ <strong>Pawin Tech</strong> หากคุณเป็นคนส่งคำขอนี้ กรุณาคลิกปุ่มด้านล่างเพื่อเริ่มขั้นตอนการตั้งรหัสผ่านใหม่:</p>
             
             <div class="button-container">
@@ -109,5 +109,5 @@ const resetPasswordTemplate = (resetUrl, userName) => `
 `;
 
 module.exports = {
-    resetPasswordTemplate
+  resetPasswordTemplate,
 };

@@ -1,17 +1,17 @@
-import React from 'react';
-import { Container } from 'react-bootstrap';
-import { useSelector } from 'react-redux';
+import React from "react";
+import { Container } from "react-bootstrap";
+import { useSelector } from "react-redux";
 
 const OrderassemblyCartYouSupplySomePartWedotherestScreen = () => {
   const { language } = useSelector((state) => state.language);
 
   const translations = {
     en: {
-      title: '🚧 This feature is still under construction.',
+      title: "🚧 This feature is still under construction.",
       quote: '"We’re building this shared journey — thanks for your patience!"',
     },
     thai: {
-      title: '🚧 ฟีเจอร์นี้ยังอยู่ระหว่างการพัฒนา',
+      title: "🚧 ฟีเจอร์นี้ยังอยู่ระหว่างการพัฒนา",
       quote: '"เรากำลังสร้างฟีเจอร์นี้เพื่อการใช้งานร่วมกัน ขอบคุณที่รอคอย!"',
     },
   };
@@ -21,7 +21,7 @@ const OrderassemblyCartYouSupplySomePartWedotherestScreen = () => {
   return (
     <Container
       className="d-flex justify-content-center align-items-center text-center"
-      style={{ height: '80vh' }}
+      style={{ height: "80vh" }}
     >
       <div>
         <h4 className="text-secondary">{t.title}</h4>

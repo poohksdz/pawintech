@@ -1,4 +1,4 @@
-const express = require('express')
+const express = require("express");
 const {
   createStockIssuegoods,
   updateStockIssuegoods,
@@ -6,18 +6,18 @@ const {
   getStockIssuegoods,
   getStockIssuegoodsDetails,
   getStockIssuegoodsUser,
-} = require('../controllers/stockIssueController')
+} = require("../controllers/stockIssueController");
 
-const { protect, admin, store } = require('../middleware/authMiddleware.js')
+const { protect, admin, store } = require("../middleware/authMiddleware.js");
 
-const router = express.Router()
+const router = express.Router();
 
-router.route('/').post(protect, createStockIssuegoods).get(getStockIssuegoods)
+router.route("/").post(protect, createStockIssuegoods).get(getStockIssuegoods);
 router
-  .route('/:id')
+  .route("/:id")
   .get(getStockIssuegoodsDetails)
   .delete(protect, deleteStockIssuegoods)
-  .put(protect, updateStockIssuegoods)
-router.route('/user/:id').get(getStockIssuegoodsUser)
+  .put(protect, updateStockIssuegoods);
+router.route("/user/:id").get(getStockIssuegoodsUser);
 
-module.exports = router
+module.exports = router;

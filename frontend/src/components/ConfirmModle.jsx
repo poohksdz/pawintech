@@ -1,9 +1,15 @@
-import React from 'react';
-import Modal from './ui/Modal';
-import Button from './ui/Button';
-import { FaTrash } from 'react-icons/fa';
+import React from "react";
+import Modal from "./ui/Modal";
+import Button from "./ui/Button";
+import { FaTrash } from "react-icons/fa";
 
-function ConfirmModle({ onConfirm, onCancel, show = true, title = "Confirm Delete", text = "Are you sure you want to delete?" }) {
+function ConfirmModle({
+  onConfirm,
+  onCancel,
+  show = true,
+  title = "Confirm Delete",
+  text = "Are you sure you want to delete?",
+}) {
   return (
     <Modal
       isOpen={show}

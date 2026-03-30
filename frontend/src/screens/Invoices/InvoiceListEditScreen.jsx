@@ -1,32 +1,49 @@
-import React, { useState, useMemo } from 'react';
-import { useSelector } from 'react-redux';
-import { Link } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
-import { toast } from 'react-toastify';
+import React, { useState, useMemo } from "react";
+import { useSelector } from "react-redux";
+import { Link } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
+import { toast } from "react-toastify";
 import {
-  FaTrash, FaEdit, FaPlus, FaFileInvoiceDollar,
-  FaSearch, FaBox, FaExclamationTriangle, FaCalendarAlt, FaChevronRight
-} from 'react-icons/fa';
+  FaTrash,
+  FaEdit,
+  FaPlus,
+  FaFileInvoiceDollar,
+  FaSearch,
+  FaBox,
+  FaExclamationTriangle,
+  FaCalendarAlt,
+  FaChevronRight,
+} from "react-icons/fa";
 import { PiReceiptFill } from "react-icons/pi";
 
-import Loader from '../../components/Loader';
-import Message from '../../components/Message';
-import { useGetInvoicesQuery, useDeleteInvoiceMutation } from '../../slices/invoicesApiSlice';
+import Loader from "../../components/Loader";
+import Message from "../../components/Message";
+import {
+  useGetInvoicesQuery,
+  useDeleteInvoiceMutation,
+} from "../../slices/invoicesApiSlice";
 
 const InvoiceListEditScreen = () => {
-  const { data: invoices, isLoading, isError, error, refetch } = useGetInvoicesQuery();
+  const {
+    data: invoices,
+    isLoading,
+    isError,
+    error,
+    refetch,
+  } = useGetInvoicesQuery();
   const [deleteInvoice, { isLoading: isDeleting }] = useDeleteInvoiceMutation();
 
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [selectedInvoice, setSelectedInvoice] = useState(null);
 
   // Filter logic
   const filteredInvoices = useMemo(() => {
-    return invoices?.filter(invoice =>
-      invoice.branch_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      invoice.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      invoice.invoice_id?.toString().includes(searchTerm)
+    return invoices?.filter(
+      (invoice) =>
+        invoice.branch_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        invoice.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        invoice.invoice_id?.toString().includes(searchTerm),
     );
   }, [invoices, searchTerm]);
 
@@ -38,30 +55,33 @@ const InvoiceListEditScreen = () => {
   const handleDelete = async () => {
     try {
       await deleteInvoice(selectedInvoice.id).unwrap();
-      toast.success('Invoice removed successfully');
+      toast.success("Invoice removed successfully");
       setShowDeleteModal(false);
       refetch();
     } catch (err) {
-      toast.error(err?.data?.message || 'Failed to remove invoice');
+      toast.error(err?.data?.message || "Failed to remove invoice");
     }
   };
 
-  if (isLoading) return (
-    <div className="flex items-center justify-center min-vh-100 bg-slate-50/50">
-      <Loader />
-    </div>
-  );
+  if (isLoading)
+    return (
+      <div className="flex items-center justify-center min-vh-100 bg-slate-50/50">
+        <Loader />
+      </div>
+    );
 
-  if (isError) return (
-    <div className="max-w-4xl mx-auto p-8 pt-24">
-      <Message variant="danger">{error?.data?.message || error.message}</Message>
-    </div>
-  );
+  if (isError)
+    return (
+      <div className="max-w-4xl mx-auto p-8 pt-24">
+        <Message variant="danger">
+          {error?.data?.message || error.message}
+        </Message>
+      </div>
+    );
 
   return (
     <div className="min-h-screen bg-[#f8fafc] pb-20 pt-6 px-4 md:px-8 font-prompt">
       <div className="max-w-7xl mx-auto">
-
         {/* Header Section */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10">
           <motion.div
@@ -72,8 +92,12 @@ const InvoiceListEditScreen = () => {
             <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-indigo-600 text-white shadow-lg shadow-indigo-200 mb-2">
               <PiReceiptFill size={24} />
             </div>
-            <h1 className="text-3xl font-black text-slate-900 tracking-tight">Invoice Management</h1>
-            <p className="text-slate-500 font-medium">Create and track billing invoices for all branches</p>
+            <h1 className="text-3xl font-black text-slate-900 tracking-tight">
+              Invoice Management
+            </h1>
+            <p className="text-slate-500 font-medium">
+              Create and track billing invoices for all branches
+            </p>
           </motion.div>
 
           <motion.div
@@ -111,12 +135,24 @@ const InvoiceListEditScreen = () => {
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="bg-slate-50 border-b border-slate-100">
-                  <th className="px-8 py-5 text-[11px] font-black text-slate-500 uppercase tracking-[0.2em]">#</th>
-                  <th className="px-6 py-5 text-[11px] font-black text-slate-400 uppercase tracking-[0.2em]">Branch & Description</th>
-                  <th className="px-6 py-5 text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] text-center">Quantity</th>
-                  <th className="px-6 py-5 text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] text-right">Value</th>
-                  <th className="px-6 py-5 text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] text-center">Date</th>
-                  <th className="px-8 py-5 text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] text-center whitespace-nowrap">Actions</th>
+                  <th className="px-8 py-5 text-[11px] font-black text-slate-500 uppercase tracking-[0.2em]">
+                    #
+                  </th>
+                  <th className="px-6 py-5 text-[11px] font-black text-slate-400 uppercase tracking-[0.2em]">
+                    Branch & Description
+                  </th>
+                  <th className="px-6 py-5 text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] text-center">
+                    Quantity
+                  </th>
+                  <th className="px-6 py-5 text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] text-right">
+                    Value
+                  </th>
+                  <th className="px-6 py-5 text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] text-center">
+                    Date
+                  </th>
+                  <th className="px-8 py-5 text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] text-center whitespace-nowrap">
+                    Actions
+                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-50">
@@ -132,7 +168,9 @@ const InvoiceListEditScreen = () => {
                           <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center text-slate-300">
                             <FaBox size={24} />
                           </div>
-                          <p className="text-slate-400 font-medium">No invoices found matching your criteria</p>
+                          <p className="text-slate-400 font-medium">
+                            No invoices found matching your criteria
+                          </p>
                         </div>
                       </td>
                     </motion.tr>
@@ -146,11 +184,17 @@ const InvoiceListEditScreen = () => {
                         key={`desktop-${invoice.id}`}
                         className="hover:bg-slate-50/50 transition-colors group"
                       >
-                        <td className="px-8 py-6 font-bold text-slate-800 tabular-nums">{index + 1}</td>
+                        <td className="px-8 py-6 font-bold text-slate-800 tabular-nums">
+                          {index + 1}
+                        </td>
                         <td className="px-6 py-6">
                           <div className="flex flex-col">
-                            <span className="text-slate-900 font-bold group-hover:text-indigo-600 transition-colors">{invoice.branch_name}</span>
-                            <span className="text-slate-400 text-sm font-medium line-clamp-1 truncate max-w-[300px]">{invoice.description}</span>
+                            <span className="text-slate-900 font-bold group-hover:text-indigo-600 transition-colors">
+                              {invoice.branch_name}
+                            </span>
+                            <span className="text-slate-400 text-sm font-medium line-clamp-1 truncate max-w-[300px]">
+                              {invoice.description}
+                            </span>
                           </div>
                         </td>
                         <td className="px-6 py-6 text-center">
@@ -160,18 +204,26 @@ const InvoiceListEditScreen = () => {
                         </td>
                         <td className="px-6 py-6 text-right font-bold tabular-nums">
                           <div className="flex flex-col">
-                            <span className="text-slate-900">{parseFloat(invoice.grand_total).toLocaleString()} ฿</span>
-                            <span className="text-[10px] text-slate-400 uppercase tracking-widest font-black">Incl. VAT</span>
+                            <span className="text-slate-900">
+                              {parseFloat(invoice.grand_total).toLocaleString()}{" "}
+                              ฿
+                            </span>
+                            <span className="text-[10px] text-slate-400 uppercase tracking-widest font-black">
+                              Incl. VAT
+                            </span>
                           </div>
                         </td>
                         <td className="px-6 py-6 text-center">
                           <div className="flex flex-col items-center">
                             <span className="text-slate-600 font-bold text-sm tracking-tight capitalize">
-                              {new Date(invoice.created_at).toLocaleDateString('th-TH', {
-                                day: '2-digit',
-                                month: 'short',
-                                year: '2-digit'
-                              })}
+                              {new Date(invoice.created_at).toLocaleDateString(
+                                "th-TH",
+                                {
+                                  day: "2-digit",
+                                  month: "short",
+                                  year: "2-digit",
+                                },
+                              )}
                             </span>
                           </div>
                         </td>
@@ -219,7 +271,9 @@ const InvoiceListEditScreen = () => {
                     <span className="text-[10px] font-black text-indigo-600 uppercase tracking-widest bg-indigo-50 px-2 py-0.5 rounded-md">
                       {invoice.branch_name}
                     </span>
-                    <h3 className="font-bold text-slate-900 leading-tight pt-1">{invoice.description}</h3>
+                    <h3 className="font-bold text-slate-900 leading-tight pt-1">
+                      {invoice.description}
+                    </h3>
                   </div>
                   <div className="flex gap-2">
                     <Link
@@ -239,15 +293,20 @@ const InvoiceListEditScreen = () => {
 
                 <div className="flex items-end justify-between border-t border-slate-50 pt-3">
                   <div className="space-y-1">
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.15em]">Grand Total</p>
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.15em]">
+                      Grand Total
+                    </p>
                     <p className="text-xl font-black text-slate-900">
-                      {parseFloat(invoice.grand_total).toLocaleString()} <span className="text-sm font-bold text-slate-400 uppercase">฿</span>
+                      {parseFloat(invoice.grand_total).toLocaleString()}{" "}
+                      <span className="text-sm font-bold text-slate-400 uppercase">
+                        ฿
+                      </span>
                     </p>
                   </div>
                   <div className="flex flex-col items-end gap-1">
                     <div className="flex items-center gap-1.5 text-slate-500 font-bold text-[11px] bg-slate-50 px-2 py-1 rounded-lg">
                       <FaCalendarAlt size={10} className="text-slate-400" />
-                      {new Date(invoice.created_at).toLocaleDateString('th-TH')}
+                      {new Date(invoice.created_at).toLocaleDateString("th-TH")}
                     </div>
                   </div>
                 </div>
@@ -257,7 +316,9 @@ const InvoiceListEditScreen = () => {
           {filteredInvoices?.length === 0 && (
             <div className="text-center py-20 px-8 bg-white border border-slate-200 rounded-[2.5rem] shadow-sm">
               <FaBox size={32} className="mx-auto text-slate-200 mb-4" />
-              <p className="font-bold text-slate-400 text-sm uppercase tracking-widest">No matching invoices</p>
+              <p className="font-bold text-slate-400 text-sm uppercase tracking-widest">
+                No matching invoices
+              </p>
             </div>
           )}
         </div>
@@ -269,7 +330,6 @@ const InvoiceListEditScreen = () => {
         >
           <FaPlus size={20} />
         </Link>
-
       </div>
 
       {/* Delete Confirmation Modal */}
@@ -287,9 +347,15 @@ const InvoiceListEditScreen = () => {
                   <FaTrash size={32} />
                 </div>
                 <div className="space-y-2">
-                  <h2 className="text-2xl font-black text-slate-900 tracking-tight">Remove Invoice?</h2>
+                  <h2 className="text-2xl font-black text-slate-900 tracking-tight">
+                    Remove Invoice?
+                  </h2>
                   <p className="text-slate-500 font-medium leading-relaxed px-4">
-                    Are you sure you want to delete invoice <span className="font-black text-indigo-600">#{selectedInvoice?.invoice_id}</span>? This action is permanent.
+                    Are you sure you want to delete invoice{" "}
+                    <span className="font-black text-indigo-600">
+                      #{selectedInvoice?.invoice_id}
+                    </span>
+                    ? This action is permanent.
                   </p>
                 </div>
                 <div className="flex gap-3 pt-2">
@@ -304,7 +370,7 @@ const InvoiceListEditScreen = () => {
                     disabled={isDeleting}
                     className="flex-1 py-4 bg-rose-600 hover:bg-rose-700 text-white rounded-2xl font-black shadow-lg shadow-rose-200 transition-all active:scale-95 disabled:opacity-50"
                   >
-                    {isDeleting ? 'Deleting...' : 'Delete Now'}
+                    {isDeleting ? "Deleting..." : "Delete Now"}
                   </button>
                 </div>
               </div>

@@ -1,33 +1,32 @@
-import { apiSlice } from './apiSlice';
+import { apiSlice } from "./apiSlice";
 
-// ✅ Base URL สำหรับ Cart (ต้องมีคำว่า customcartpcbs)
-const CUSTOMPCBCARTS_URL = '/api/customcartpcbs';
+//  Base URL สำหรับ Cart (ต้องมีคำว่า customcartpcbs)
+const CUSTOMPCBCARTS_URL = "/api/customcartpcbs";
 
-// ✅ Base URL สำหรับสร้าง Order (แยกกัน)
-const CUSTOMPCB_ORDERS_URL = '/api/custompcbs';
+//  Base URL สำหรับสร้าง Order (แยกกัน)
+const CUSTOMPCB_ORDERS_URL = "/api/custompcbs";
 
 export const custompcbCartApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
-
     // ----------------------------------------------------------------
-    // 📦 Create & Read
+    //  Create & Read
     // ----------------------------------------------------------------
 
     // 1. สร้างตะกร้า (Cart)
     createCustomcart: builder.mutation({
       query: (orderData) => ({
         url: CUSTOMPCBCARTS_URL,
-        method: 'POST',
+        method: "POST",
         body: orderData,
       }),
-      invalidatesTags: ['CustomPCBCart'],
+      invalidatesTags: ["CustomPCBCart"],
     }),
 
     // 2. สร้างออเดอร์ (Convert Cart -> Order)
     createCustomOrder: builder.mutation({
       query: (orderData) => ({
         url: CUSTOMPCB_ORDERS_URL, // ยิงไปที่ Controller สร้างออเดอร์
-        method: 'POST',
+        method: "POST",
         body: orderData,
       }),
     }),
@@ -37,7 +36,7 @@ export const custompcbCartApiSlice = apiSlice.injectEndpoints({
         url: CUSTOMPCBCARTS_URL,
       }),
       keepUnusedDataFor: 5,
-      providesTags: ['CustomPCBCart'],
+      providesTags: ["CustomPCBCart"],
     }),
 
     getAllCustomcartsAccepted: builder.query({
@@ -47,7 +46,7 @@ export const custompcbCartApiSlice = apiSlice.injectEndpoints({
       keepUnusedDataFor: 5,
     }),
 
-    // ✅ ฟังก์ชันพระเอกของเรา (ดึงข้อมูลตะกร้าตาม ID)
+    //  ฟังก์ชันพระเอกของเรา (ดึงข้อมูลตะกร้าตาม ID)
     getCustomcartById: builder.query({
       query: (id) => ({
         url: `${CUSTOMPCBCARTS_URL}/${id}`, // ผลลัพธ์: /api/customcartpcbs/35
@@ -63,83 +62,83 @@ export const custompcbCartApiSlice = apiSlice.injectEndpoints({
     }),
 
     // ----------------------------------------------------------------
-    // 🔧 Updates
+    //  Updates
     // ----------------------------------------------------------------
 
-    // ✅ แก้ไข: เปลี่ยน updatedData -> data ให้ตรงกับหน้าบ้าน
+    //  แก้ไข: เปลี่ยน updatedData -> data ให้ตรงกับหน้าบ้าน
     updateCustomcart: builder.mutation({
       query: ({ id, data }) => ({
         url: `${CUSTOMPCBCARTS_URL}/${id}`,
-        method: 'PUT',
+        method: "PUT",
         body: data,
       }),
-      invalidatesTags: ['CustomPCBCart'],
+      invalidatesTags: ["CustomPCBCart"],
     }),
 
     updateAmountCustomcart: builder.mutation({
       query: ({ id }) => ({
         url: `${CUSTOMPCBCARTS_URL}/amount/${id}`,
-        method: 'PUT',
+        method: "PUT",
       }),
     }),
 
-    // ✅✅✅ แก้ไขจุดสำคัญ: เปลี่ยน updatedData -> data
+    //  แก้ไขจุดสำคัญ: เปลี่ยน updatedData -> data
     // เพื่อให้รับค่า { id: ..., data: { status: ... } } จากหน้าบ้านได้ถูกต้อง
     updateCustomcartComfirmStatus: builder.mutation({
       query: ({ id, data }) => ({
         url: `${CUSTOMPCBCARTS_URL}/status/${id}`,
-        method: 'PUT',
+        method: "PUT",
         body: data,
       }),
-      invalidatesTags: ['CustomPCBCart'],
+      invalidatesTags: ["CustomPCBCart"],
     }),
 
     updateCustomShippingRates: builder.mutation({
       query: ({ orderId, rateData }) => ({
         url: `${CUSTOMPCBCARTS_URL}/customshippingrates/${orderId}`,
-        method: 'PUT',
+        method: "PUT",
         body: rateData,
       }),
-      invalidatesTags: ['CustomPCBCart'],
+      invalidatesTags: ["CustomPCBCart"],
     }),
 
     updatePaymentRates: builder.mutation({
       query: ({ orderId, paymentData }) => ({
         url: `${CUSTOMPCBCARTS_URL}/paymentrates/${orderId}`,
-        method: 'PUT',
+        method: "PUT",
         body: paymentData,
       }),
-      invalidatesTags: ['CustomPCBCart'],
+      invalidatesTags: ["CustomPCBCart"],
     }),
 
     updateDeliveryCustomcart: builder.mutation({
       query: ({ pcborderId, transferedNumber }) => ({
         url: `${CUSTOMPCBCARTS_URL}/delivered/${pcborderId}`,
-        method: 'PUT',
+        method: "PUT",
         body: { transferedNumber },
       }),
-      invalidatesTags: ['CustomPCBCart'],
+      invalidatesTags: ["CustomPCBCart"],
     }),
 
     updatePCBManufacture: builder.mutation({
       query: ({ pcborderId, manufactureOrderNumber }) => ({
         url: `${CUSTOMPCBCARTS_URL}/${pcborderId}/pcbmanufacture`,
-        method: 'PUT',
+        method: "PUT",
         body: { manufactureOrderNumber },
       }),
-      invalidatesTags: ['CustomPCBCart'],
+      invalidatesTags: ["CustomPCBCart"],
     }),
 
     // ----------------------------------------------------------------
-    // 🗑️ Delete & Utils
+    // ️ Delete & Utils
     // ----------------------------------------------------------------
 
     deleteCustomcart: builder.mutation({
       query: (id) => ({
         url: `${CUSTOMPCBCARTS_URL}/${id}`,
-        method: 'DELETE',
+        method: "DELETE",
       }),
-      invalidatesTags: ['CustomPCBCart'],
+      invalidatesTags: ["CustomPCBCart"],
     }),
 
     getShippingRates: builder.query({
@@ -150,13 +149,13 @@ export const custompcbCartApiSlice = apiSlice.injectEndpoints({
     }),
 
     // ----------------------------------------------------------------
-    // 📤 Uploads
+    //  Uploads
     // ----------------------------------------------------------------
 
     uploadCustomCartDiagramZip: builder.mutation({
       query: (formData) => ({
         url: `${CUSTOMPCBCARTS_URL}/upload/upload-zip`,
-        method: 'POST',
+        method: "POST",
         body: formData,
       }),
     }),
@@ -164,11 +163,10 @@ export const custompcbCartApiSlice = apiSlice.injectEndpoints({
     uploadCustomCartMultipleImages: builder.mutation({
       query: (formData) => ({
         url: `${CUSTOMPCBCARTS_URL}/upload/multipleimages`,
-        method: 'POST',
+        method: "POST",
         body: formData,
       }),
     }),
-
   }),
 });
 

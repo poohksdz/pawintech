@@ -1,5 +1,5 @@
-import { INVOICES_URL } from '../constants'
-import { apiSlice } from './apiSlice'
+import { INVOICES_URL } from "../constants";
+import { apiSlice } from "./apiSlice";
 
 export const invoicesApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
@@ -7,24 +7,24 @@ export const invoicesApiSlice = apiSlice.injectEndpoints({
     getInvoices: builder.query({
       query: () => INVOICES_URL,
       keepUnusedDataFor: 5,
-      providesTags: ['Invoices'],
+      providesTags: ["Invoices"],
     }),
 
     // Fetch single invoice details
     getInvoiceDetails: builder.query({
       query: (id) => `${INVOICES_URL}/${id}`,
       keepUnusedDataFor: 5,
-      providesTags: (result, error, id) => [{ type: 'Invoice', id }],
+      providesTags: (result, error, id) => [{ type: "Invoice", id }],
     }),
 
     // Fetch single invoice details
     getInvoicesByInvoiceId: builder.query({
       query: (invoiceId) => {
         // console.log('Fetching invoice ID from frontend:', invoiceId)
-        return `${INVOICES_URL}/invoice/${invoiceId}`
+        return `${INVOICES_URL}/invoice/${invoiceId}`;
       },
       keepUnusedDataFor: 5,
-      providesTags: (result, error, id) => [{ type: 'Invoice', id }],
+      providesTags: (result, error, id) => [{ type: "Invoice", id }],
     }),
 
     // Fetch invoices by user ID
@@ -33,7 +33,7 @@ export const invoicesApiSlice = apiSlice.injectEndpoints({
       keepUnusedDataFor: 5,
       providesTags: (result, error, id) =>
         result
-          ? [...result.map((invoice) => ({ type: 'Invoice', id: invoice.id }))]
+          ? [...result.map((invoice) => ({ type: "Invoice", id: invoice.id }))]
           : [],
     }),
 
@@ -41,22 +41,22 @@ export const invoicesApiSlice = apiSlice.injectEndpoints({
     createInvoice: builder.mutation({
       query: (data) => ({
         url: INVOICES_URL,
-        method: 'POST',
+        method: "POST",
         body: data,
       }),
-      invalidatesTags: ['Invoices'], // Refresh invoice list after creation
+      invalidatesTags: ["Invoices"], // Refresh invoice list after creation
     }),
 
     // Update an existing invoice
     updateInvoice: builder.mutation({
       query: (data) => ({
         url: `${INVOICES_URL}/${data.InvoiceId}`,
-        method: 'PUT',
+        method: "PUT",
         body: data,
       }),
       invalidatesTags: (result, error, data) => [
-        'Invoices',
-        { type: 'Invoice', id: data.InvoiceId },
+        "Invoices",
+        { type: "Invoice", id: data.InvoiceId },
       ],
     }),
 
@@ -64,21 +64,21 @@ export const invoicesApiSlice = apiSlice.injectEndpoints({
     deleteInvoice: builder.mutation({
       query: (invoiceId) => ({
         url: `${INVOICES_URL}/${invoiceId}`,
-        method: 'DELETE',
+        method: "DELETE",
       }),
-      invalidatesTags: ['Invoices'], // Refresh invoice list after deletion
+      invalidatesTags: ["Invoices"], // Refresh invoice list after deletion
     }),
 
     // Delete an invoice
     deleteInvoiceByInvoiceId: builder.mutation({
       query: (invoiceId) => ({
         url: `${INVOICES_URL}/invoice_id/${invoiceId}`,
-        method: 'DELETE',
+        method: "DELETE",
       }),
-      invalidatesTags: ['Invoices'],
+      invalidatesTags: ["Invoices"],
     }),
   }),
-})
+});
 
 // Export hooks for usage in components
 export const {
@@ -90,4 +90,4 @@ export const {
   useUpdateInvoiceMutation,
   useDeleteInvoiceMutation,
   useDeleteInvoiceByInvoiceIdMutation,
-} = invoicesApiSlice
+} = invoicesApiSlice;

@@ -1,14 +1,14 @@
-import React, { useState } from 'react';
-import { useSelector } from 'react-redux';
-import { useParams, useNavigate } from 'react-router-dom';
-import { FaSearch } from 'react-icons/fa';
+import React, { useState } from "react";
+import { useSelector } from "react-redux";
+import { useParams, useNavigate } from "react-router-dom";
+import { FaSearch } from "react-icons/fa";
 
 const SearchBox = () => {
   const navigate = useNavigate();
   const { keyword: urlKeyword } = useParams();
 
   // Initialize keyword state with urlKeyword or empty string (in case it's undefined)
-  const [keyword, setKeyword] = useState(urlKeyword || '');
+  const [keyword, setKeyword] = useState(urlKeyword || "");
 
   const submitHandler = (e) => {
     e.preventDefault();
@@ -17,7 +17,7 @@ const SearchBox = () => {
       navigate(`/search/${keyword.trim()}`);
     } else {
       // Navigate to the product page if the search term is empty
-      navigate('/product');
+      navigate("/product");
     }
   };
 
@@ -26,19 +26,22 @@ const SearchBox = () => {
   // Define translation object
   const translations = {
     en: {
-      searchProduct: 'Search Products...',
-      search: 'Search',
+      searchProduct: "Search Products...",
+      search: "Search",
     },
     thai: {
-      searchProduct: 'ค้นหาสินค้า...',
-      search: 'ค้นหา',
+      searchProduct: "ค้นหาสินค้า...",
+      search: "ค้นหา",
     },
   };
 
   const t = translations[language] || translations.en;
 
   return (
-    <form onSubmit={submitHandler} className="relative flex items-center w-full max-w-md group">
+    <form
+      onSubmit={submitHandler}
+      className="relative flex items-center w-full max-w-md group"
+    >
       <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
         <FaSearch className="text-slate-400 group-focus-within:text-blue-500 transition-colors" />
       </div>

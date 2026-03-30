@@ -1,5 +1,5 @@
-import { FOLIOS_URL } from '../constants'
-import { apiSlice } from './apiSlice'
+import { FOLIOS_URL } from "../constants";
+import { apiSlice } from "./apiSlice";
 
 export const foliosApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
@@ -9,7 +9,7 @@ export const foliosApiSlice = apiSlice.injectEndpoints({
         params: { keyword, pageNumber },
       }),
       keepUnusedDataFor: 5,
-      providesTags: ['FOlios'],
+      providesTags: ["FOlios"],
     }),
     getFolioDetails: builder.query({
       query: (folioId) => ({
@@ -20,43 +20,43 @@ export const foliosApiSlice = apiSlice.injectEndpoints({
     createFolio: builder.mutation({
       query: (data) => ({
         url: `${FOLIOS_URL}`,
-        method: 'POST',
+        method: "POST",
         body: data,
       }),
-      invalidatesTags: ['Folio'],
+      invalidatesTags: ["Folio"],
     }),
     updateFolio: builder.mutation({
       query: (data) => ({
         url: `${FOLIOS_URL}/${data.folioId}`,
-        method: 'PUT',
+        method: "PUT",
         body: data,
       }),
-      invalidatesTags: ['Folios'],
+      invalidatesTags: ["Folios"],
     }),
     updateShowFrontFolio: builder.mutation({
       query: (data) => ({
         url: `${FOLIOS_URL}/${data.folioId}/showfront`,
-        method: 'PUT',
+        method: "PUT",
         body: data, // Sending { folioId, showfront }
       }),
-      invalidatesTags: ['Folios'],
+      invalidatesTags: ["Folios"],
     }),
     deleteFolio: builder.mutation({
       query: (folioId) => ({
         url: `${FOLIOS_URL}/${folioId}`,
-        method: 'DELETE',
+        method: "DELETE",
       }),
-      providesTags: ['Folio'],
+      providesTags: ["Folio"],
     }),
     uploadFolioImage: builder.mutation({
       query: (data) => ({
         url: `/api/folioImages`,
-        method: 'POST',
+        method: "POST",
         body: data,
       }),
     }),
   }),
-})
+});
 
 export const {
   useGetFoliosQuery,
@@ -66,4 +66,4 @@ export const {
   useUpdateShowFrontFolioMutation,
   useDeleteFolioMutation,
   useUploadFolioImageMutation,
-} = foliosApiSlice
+} = foliosApiSlice;

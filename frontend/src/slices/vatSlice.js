@@ -1,5 +1,5 @@
-import { VAT_URL } from '../constants'
-import { apiSlice } from './apiSlice'
+import { VAT_URL } from "../constants";
+import { apiSlice } from "./apiSlice";
 
 export const vatSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
@@ -9,7 +9,7 @@ export const vatSlice = apiSlice.injectEndpoints({
         params: { keyword, pageNumber },
       }),
       keepUnusedDataFor: 5,
-      providesTags: ['Vats'],
+      providesTags: ["Vats"],
     }),
     getVatDetails: builder.query({
       query: (vatId) => ({
@@ -20,35 +20,35 @@ export const vatSlice = apiSlice.injectEndpoints({
     createVat: builder.mutation({
       query: (data) => ({
         url: `${VAT_URL}`,
-        method: 'POST',
+        method: "POST",
         body: data,
       }),
-      invalidatesTags: ['Vat'],
+      invalidatesTags: ["Vat"],
     }),
     updateVat: builder.mutation({
       query: (data) => ({
         url: `${VAT_URL}/${data.vatId}`,
-        method: 'PUT',
+        method: "PUT",
         body: data,
       }),
-      invalidatesTags: ['Vats'],
+      invalidatesTags: ["Vats"],
     }),
     deleteVat: builder.mutation({
       query: (vatId) => ({
         url: `${VAT_URL}/${vatId}`,
-        method: 'DELETE',
+        method: "DELETE",
       }),
-      providesTags: ['vat'],
+      providesTags: ["vat"],
     }),
     uploadVatImage: builder.mutation({
       query: (data) => ({
         url: `/api/vatImages`,
-        method: 'POST',
+        method: "POST",
         body: data,
       }),
     }),
   }),
-})
+});
 
 export const {
   useGetVatsQuery,
@@ -57,4 +57,4 @@ export const {
   useUpdateVatMutation,
   useDeleteVatMutation,
   useUploadVatImageMutation,
-} = vatSlice
+} = vatSlice;

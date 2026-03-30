@@ -1,16 +1,16 @@
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import { updateCart } from '../utils/cartUtils';
-import axios from 'axios';
+import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import { updateCart } from "../utils/cartUtils";
+import axios from "axios";
 
 // --- API CONFIG ---
-const CART_URL = '/api/cart'; 
+const CART_URL = "/api/cart";
 
 // Helper: สร้าง Config สำหรับ Axios (ใส่ Token ของ User)
 const getConfig = (state) => {
   return {
     headers: {
       Authorization: `Bearer ${state.auth.userInfo.token}`,
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
     },
   };
 };
@@ -19,7 +19,7 @@ const getConfig = (state) => {
 
 // 1. ดึงตะกร้าจาก Database (ทำงานตอน Login หรือ Refresh หน้าเว็บ)
 export const fetchCartDB = createAsyncThunk(
-  'cart/fetch',
+  "cart/fetch",
   async (_, { getState, rejectWithValue }) => {
     try {
       const { auth } = getState();
@@ -31,12 +31,12 @@ export const fetchCartDB = createAsyncThunk(
     } catch (err) {
       return rejectWithValue(err.response?.data?.message || err.message);
     }
-  }
+  },
 );
 
 // 2. บันทึกตะกร้าลง Database (ทำงานตอนเพิ่ม/ลบสินค้า)
 export const syncCartDB = createAsyncThunk(
-  'cart/sync',
+  "cart/sync",
   async (_, { getState }) => {
     const state = getState();
     // ถ้าเป็น Guest ไม่ต้องเซฟลง DB (ใช้แค่ LocalStorage ก็พอ)
@@ -44,20 +44,29 @@ export const syncCartDB = createAsyncThunk(
 
     try {
       // ส่งสินค้าทั้งหมดไปเซฟทับที่ Server
-      await axios.post(CART_URL, { cartItems: state.cart.cartItems }, getConfig(state));
+      await axios.post(
+        CART_URL,
+        { cartItems: state.cart.cartItems },
+        getConfig(state),
+      );
     } catch (err) {
       console.error("Sync Cart Error:", err);
     }
-  }
+  },
 );
 
 // --- INITIAL STATE ---
-const initialState = localStorage.getItem('cart')
-  ? JSON.parse(localStorage.getItem('cart'))
-  : { cartItems: [], shippingAddress: {}, billingAddress: {}, paymentMethod: 'PayPal' };
+const initialState = localStorage.getItem("cart")
+  ? JSON.parse(localStorage.getItem("cart"))
+  : {
+      cartItems: [],
+      shippingAddress: {},
+      billingAddress: {},
+      paymentMethod: "PayPal",
+    };
 
 const cartSlice = createSlice({
-  name: 'cart',
+  name: "cart",
   initialState,
   reducers: {
     // --- Standard Actions (เปลี่ยนหน้าจอทันที เพื่อความลื่นไหล) ---
@@ -68,62 +77,63 @@ const cartSlice = createSlice({
       if (existItem) {
         const newQty = replaceQty ? item.qty : existItem.qty + item.qty;
         state.cartItems = state.cartItems.map((x) =>
-          x._id === existItem._id ? { ...item, qty: newQty } : x
+          x._id === existItem._id ? { ...item, qty: newQty } : x,
         );
       } else {
         state.cartItems = [...state.cartItems, item];
       }
       updateCart(state);
-      localStorage.setItem('cart', JSON.stringify(state));
+      localStorage.setItem("cart", JSON.stringify(state));
     },
 
     removeFromCart: (state, action) => {
       state.cartItems = state.cartItems.filter((x) => x._id !== action.payload);
       updateCart(state);
-      localStorage.setItem('cart', JSON.stringify(state));
+      localStorage.setItem("cart", JSON.stringify(state));
     },
 
     saveShippingAddress: (state, action) => {
       state.shippingAddress = action.payload;
       updateCart(state);
-      localStorage.setItem('cart', JSON.stringify(state));
+      localStorage.setItem("cart", JSON.stringify(state));
     },
     savePaymentMethod: (state, action) => {
       state.paymentMethod = action.payload;
       updateCart(state);
-      localStorage.setItem('cart', JSON.stringify(state));
+      localStorage.setItem("cart", JSON.stringify(state));
     },
     saveBillingAddress: (state, action) => {
       state.billingAddress = action.payload;
       updateCart(state);
-      localStorage.setItem('cart', JSON.stringify(state));
+      localStorage.setItem("cart", JSON.stringify(state));
     },
     savePaymentTransfer: (state, action) => {
       state.paymentTransfer = action.payload;
       updateCart(state);
-      localStorage.setItem('cart', JSON.stringify(state));
+      localStorage.setItem("cart", JSON.stringify(state));
     },
     clearCartItems: (state) => {
       state.cartItems = [];
       updateCart(state);
-      localStorage.setItem('cart', JSON.stringify(state));
+      localStorage.setItem("cart", JSON.stringify(state));
     },
     updateCartPrice: (state, action) => {
-      const { receivePlace, shippingPrice, totalPrice, vatPrice } = action.payload;
+      const { receivePlace, shippingPrice, totalPrice, vatPrice } =
+        action.payload;
       state.receivePlace = receivePlace;
       state.shippingPrice = shippingPrice;
       state.totalPrice = totalPrice;
       state.vatPrice = vatPrice;
-      localStorage.setItem('cart', JSON.stringify(state));
+      localStorage.setItem("cart", JSON.stringify(state));
     },
 
-    // ✅ Reset Cart: ใช้ตอน Logout (เคลียร์เกลี้ยง เพื่อความปลอดภัย)
+    //  Reset Cart: ใช้ตอน Logout (เคลียร์เกลี้ยง เพื่อความปลอดภัย)
     resetCart: (state) => {
       state.cartItems = [];
       state.shippingAddress = {};
       state.billingAddress = {};
-      state.paymentMethod = 'PayPal';
-      localStorage.removeItem('cart'); // ลบจากเครื่องนี้ทิ้งไปเลย
+      state.paymentMethod = "PayPal";
+      localStorage.removeItem("cart"); // ลบจากเครื่องนี้ทิ้งไปเลย
     },
   },
 
@@ -134,10 +144,10 @@ const cartSlice = createSlice({
       if (action.payload && action.payload.cartItems) {
         state.cartItems = action.payload.cartItems;
         updateCart(state);
-        localStorage.setItem('cart', JSON.stringify(state)); // Sync กลับ LocalStorage กันเหนียว
+        localStorage.setItem("cart", JSON.stringify(state)); // Sync กลับ LocalStorage กันเหนียว
       }
     });
-  }
+  },
 });
 
 export const {

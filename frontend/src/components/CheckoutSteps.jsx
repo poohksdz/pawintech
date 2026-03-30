@@ -1,21 +1,21 @@
-import React from 'react';
-import { Nav } from 'react-bootstrap';
-import { Link } from 'react-router-dom';
+import React from "react";
+import { Nav } from "react-bootstrap";
+import { Link } from "react-router-dom";
 
-// ✅ เพิ่ม Props: loginPath, shippingPath, paymentPath, placeOrderPath
+//  เพิ่ม Props: loginPath, shippingPath, paymentPath, placeOrderPath
 // ถ้าไม่ส่งค่ามา จะใช้ค่า Default ('/shipping', '/payment' ฯลฯ) เพื่อให้ระบบเดิมไม่พัง
-const CheckoutSteps = ({ 
-  step1, 
-  step2, 
-  step3, 
+const CheckoutSteps = ({
+  step1,
+  step2,
+  step3,
   step4,
-  loginPath = '/login',
-  shippingPath = '/shipping',
-  paymentPath = '/payment',
-  placeOrderPath = '/placeorder'
+  loginPath = "/login",
+  shippingPath = "/shipping",
+  paymentPath = "/payment",
+  placeOrderPath = "/placeorder",
 }) => {
   return (
-    <Nav className='justify-content-center mb-4'>
+    <Nav className="justify-content-center mb-4">
       <Nav.Item>
         {step1 ? (
           <Nav.Link as={Link} to={loginPath}>

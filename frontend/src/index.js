@@ -26,7 +26,7 @@ import RegisterScreen from './screens/RegisterScreen'
 import ShippingScreen from './screens/ShippingScreen'
 import PaymentScreen from './screens/PaymentScreen'
 import OrderPCBShippingScreen from './screens/OrderPCB/OrderPCBShippingScreen'
-// ✅ นำเข้าหน้า Payment ของ Standard PCB
+//  นำเข้าหน้า Payment ของ Standard PCB
 import OrderPCBPaymentScreen from './screens/OrderPCB/OrderPCBPaymentScreen'
 import PlaceOrderScreen from './screens/PlaceOrderScreen'
 import OrderScreen from './screens/OrderScreen'
@@ -74,6 +74,7 @@ import FolioEditScreen from './screens/admin/FolioEditScreen'
 import AssemblyBoardEditScreen from './screens/admin/AssemblyBoardEditScreen'
 import OrderPCBEditScreen from './screens/admin/OrderPCBEditScreen'
 import OrderPCBListScreen from './screens/admin/OrderPCBListScreen'
+import OrderPCBCartListScreen from './screens/admin/OrderPCBCartListScreen'
 import OrderPCBEditsScreen from './screens/admin/OrderPCBEditsScreen'
 import OrderPCBEditListsScreen from './screens/admin/OrderPCBEditListsScreen'
 import ServiceAllScreen from './screens/ServiceAllScreen'
@@ -241,14 +242,14 @@ const router = createBrowserRouter(
         <Route path='/assemblypcb' element={<OrderassemblySetScreen />} />
 
         {/* =========================================
-            {/* ✅ Registered users (ลูกค้าทั่วไป) */}
+             Registered users (ลูกค้าทั่วไป)
         ========================================= */}
         <Route path='' element={<PrivateRoute />}>
           <Route path='/shipping' element={<ShippingScreen />} />
           <Route path='/payment' element={<PaymentScreen />} />
           <Route path='/pcbshipping' element={<OrderPCBShippingScreen />} />
 
-          {/* ✅ เพิ่ม Route สำหรับหน้า Payment ของ Standard PCB */}
+          {/*  เพิ่ม Route สำหรับหน้า Payment ของ Standard PCB */}
           <Route path='/pcbpayment' element={<OrderPCBPaymentScreen />} />
           <Route path='/pcbpayment/:id' element={<OrderPCBPaymentScreen />} />
 
@@ -257,8 +258,22 @@ const router = createBrowserRouter(
           <Route path='/copypcbpayment/:id' element={<CopyPCBPaymentScreen />} />
 
           {/* Order Assembly PCB */}
-          <Route path='/assemblypcbshipping/:id' element={<OrderassemblyShppingScreen />} />
-          <Route path='/assemblypcbpayment/:id' element={<OrderassemblyPaymentScreen />} />
+          <Route
+            path='/assemblypcbshipping'
+            element={<OrderassemblyShppingScreen />}
+          />
+          <Route
+            path='/assemblypcbshipping/:id'
+            element={<OrderassemblyShppingScreen />}
+          />
+          <Route
+            path='/assemblypcbpayment'
+            element={<OrderassemblyPaymentScreen />}
+          />
+          <Route
+            path='/assemblypcbpayment/:id'
+            element={<OrderassemblyPaymentScreen />}
+          />
 
           <Route path='/productcart' element={<OrderProductCartScreen />} />
           <Route path='/pcbcart' element={<OrderPCBCartScreen />} />
@@ -287,7 +302,7 @@ const router = createBrowserRouter(
             element={<OrderassemblyProfileListScreen />}
           />
 
-          {/* ✅ เพิ่ม Custom PCB Shipping & Payment Routes */}
+          {/*  เพิ่ม Custom PCB Shipping & Payment Routes */}
           <Route
             path='/custompcbshipping/:id'
             element={<CustomPCBShippingScreen />}

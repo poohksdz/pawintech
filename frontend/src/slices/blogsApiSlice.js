@@ -1,5 +1,5 @@
-import { BLOGS_URL } from '../constants'
-import { apiSlice } from './apiSlice'
+import { BLOGS_URL } from "../constants";
+import { apiSlice } from "./apiSlice";
 
 export const blogsApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
@@ -9,7 +9,7 @@ export const blogsApiSlice = apiSlice.injectEndpoints({
         params: { keyword, pageNumber },
       }),
       keepUnusedDataFor: 5,
-      providesTags: ['Blogs'],
+      providesTags: ["Blogs"],
     }),
     getBlogDetails: builder.query({
       query: (blogId) => ({
@@ -20,43 +20,43 @@ export const blogsApiSlice = apiSlice.injectEndpoints({
     createBlog: builder.mutation({
       query: (data) => ({
         url: `${BLOGS_URL}`,
-        method: 'POST',
+        method: "POST",
         body: data,
       }),
-      invalidatesTags: ['Blog'],
+      invalidatesTags: ["Blog"],
     }),
     updateBlog: builder.mutation({
       query: (data) => ({
         url: `${BLOGS_URL}/${data.blogId}`,
-        method: 'PUT',
+        method: "PUT",
         body: data,
       }),
-      invalidatesTags: ['Blogs'],
+      invalidatesTags: ["Blogs"],
     }),
     updateShowFrontBlog: builder.mutation({
       query: (data) => ({
         url: `${BLOGS_URL}/${data.blogId}/showfront`,
-        method: 'PUT',
+        method: "PUT",
         body: data, // Sending { blogId, showfront }
       }),
-      invalidatesTags: ['Blogs'],
+      invalidatesTags: ["Blogs"],
     }),
     deleteBlog: builder.mutation({
       query: (blogId) => ({
         url: `${BLOGS_URL}/${blogId}`,
-        method: 'DELETE',
+        method: "DELETE",
       }),
-      providesTags: ['Blog'],
+      providesTags: ["Blog"],
     }),
     uploadBlogImage: builder.mutation({
       query: (data) => ({
         url: `/api/blogImages`,
-        method: 'POST',
+        method: "POST",
         body: data,
       }),
     }),
   }),
-})
+});
 
 export const {
   useGetBlogsQuery,
@@ -66,4 +66,4 @@ export const {
   useUpdateShowFrontBlogMutation,
   useDeleteBlogMutation,
   useUploadBlogImageMutation,
-} = blogsApiSlice
+} = blogsApiSlice;

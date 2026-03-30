@@ -1,21 +1,27 @@
-import { useState } from 'react';
-import { useSelector } from 'react-redux';
-import { Button, Modal, Form } from 'react-bootstrap';
-import { toast } from 'react-toastify';
-import { useUpdateCustomcartComfirmStatusMutation } from '../../slices/custompcbCartApiSlice';
+import { useState } from "react";
+import { useSelector } from "react-redux";
+import { Button, Modal, Form } from "react-bootstrap";
+import { toast } from "react-toastify";
+import { useUpdateCustomcartComfirmStatusMutation } from "../../slices/custompcbCartApiSlice";
 
-const CustomPCBCartConfirmModule = ({ show, handleClose, pcborderId, onConfirm }) => {
-  const [updateCustomcartComfirmStatus] = useUpdateCustomcartComfirmStatusMutation();
+const CustomPCBCartConfirmModule = ({
+  show,
+  handleClose,
+  pcborderId,
+  onConfirm,
+}) => {
+  const [updateCustomcartComfirmStatus] =
+    useUpdateCustomcartComfirmStatusMutation();
   const { language } = useSelector((state) => state.language);
 
-  const [status, setStatus] = useState('accepted');
-  const [confirmedPrice, setConfirmedPrice] = useState('');
-  const [confirmedReason, setConfirmedReason] = useState('');
+  const [status, setStatus] = useState("accepted");
+  const [confirmedPrice, setConfirmedPrice] = useState("");
+  const [confirmedReason, setConfirmedReason] = useState("");
 
   const handleConfirm = async () => {
     const updatedData = {
       status,
-      confirmed_price: status === 'accepted' ? confirmedPrice : '-',
+      confirmed_price: status === "accepted" ? confirmedPrice : "-",
       confirmed_reason: confirmedReason,
     };
 
@@ -28,33 +34,33 @@ const CustomPCBCartConfirmModule = ({ show, handleClose, pcborderId, onConfirm }
       toast.success(`Order PCB marked as ${status}`);
       onConfirm();
       handleClose();
-      setConfirmedPrice('');
-      setConfirmedReason('');
+      setConfirmedPrice("");
+      setConfirmedReason("");
     } catch (error) {
-      toast.error(error?.data?.message || 'Failed to update order PCB status');
+      toast.error(error?.data?.message || "Failed to update order PCB status");
     }
   };
 
   const translations = {
     en: {
-      ConfirmOrdersLbl: 'Confirm Order',
-      CloseLbl: 'Close',
-      StatusLbl: 'Select Status',
-      AcceptLbl: 'Accepted',
-      RejectLbl: 'Rejected',
-      ConfirmBtn: 'Confirm',
-      ConfirmedPriceLbl: 'Confirmed Price (฿)',
-      ConfirmedreasonLbl: 'Reason',
+      ConfirmOrdersLbl: "Confirm Order",
+      CloseLbl: "Close",
+      StatusLbl: "Select Status",
+      AcceptLbl: "Accepted",
+      RejectLbl: "Rejected",
+      ConfirmBtn: "Confirm",
+      ConfirmedPriceLbl: "Confirmed Price (฿)",
+      ConfirmedreasonLbl: "Reason",
     },
     thai: {
-      ConfirmOrdersLbl: 'ยืนยันคำสั่งซื้อ',
-      CloseLbl: 'ปิด',
-      StatusLbl: 'เลือกสถานะ',
-      AcceptLbl: 'ยอมรับ',
-      RejectLbl: 'ปฏิเสธ',
-      ConfirmBtn: 'ยืนยัน',
-      ConfirmedPriceLbl: 'ราคายืนยัน (฿)',
-      ConfirmedreasonLbl: 'เหตุผล',
+      ConfirmOrdersLbl: "ยืนยันคำสั่งซื้อ",
+      CloseLbl: "ปิด",
+      StatusLbl: "เลือกสถานะ",
+      AcceptLbl: "ยอมรับ",
+      RejectLbl: "ปฏิเสธ",
+      ConfirmBtn: "ยืนยัน",
+      ConfirmedPriceLbl: "ราคายืนยัน (฿)",
+      ConfirmedreasonLbl: "เหตุผล",
     },
   };
 
@@ -69,13 +75,16 @@ const CustomPCBCartConfirmModule = ({ show, handleClose, pcborderId, onConfirm }
         <Form>
           <Form.Group className="mb-3" controlId="statusSelect">
             <Form.Label>{t.StatusLbl}</Form.Label>
-            <Form.Select value={status} onChange={(e) => setStatus(e.target.value)}>
+            <Form.Select
+              value={status}
+              onChange={(e) => setStatus(e.target.value)}
+            >
               <option value="accepted">{t.AcceptLbl}</option>
               <option value="rejected">{t.RejectLbl}</option>
             </Form.Select>
           </Form.Group>
 
-          {status === 'accepted' && (
+          {status === "accepted" && (
             <Form.Group className="mb-3" controlId="confirmedPriceInput">
               <Form.Label>{t.ConfirmedPriceLbl}</Form.Label>
               <Form.Control
@@ -108,7 +117,7 @@ const CustomPCBCartConfirmModule = ({ show, handleClose, pcborderId, onConfirm }
         <Button
           variant="primary"
           onClick={handleConfirm}
-          disabled={status === 'accepted' && !confirmedPrice}
+          disabled={status === "accepted" && !confirmedPrice}
         >
           {t.ConfirmBtn}
         </Button>

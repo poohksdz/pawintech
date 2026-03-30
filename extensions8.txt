@@ -1,0 +1,5 @@
+﻿anysphere.remote-containers
+bradlc.vscode-tailwindcss
+google.gemini-cli-vscode-ide-companion
+ms-azuretools.vscode-containers
+ritwickdey.liveserver

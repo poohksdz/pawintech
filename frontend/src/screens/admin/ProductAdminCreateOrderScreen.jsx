@@ -1,9 +1,7 @@
-import React from 'react'
+import React from "react";
 
 const ProductAdminCreateOrderScreen = () => {
-  return (
-    <div>ProductAdminCreateOrderScreen</div>
-  )
-}
+  return <div>ProductAdminCreateOrderScreen</div>;
+};
 
-export default ProductAdminCreateOrderScreen
+export default ProductAdminCreateOrderScreen;

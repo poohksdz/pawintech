@@ -1,17 +1,17 @@
-const nodemailer = require('nodemailer')
+const nodemailer = require("nodemailer");
 
 // Function to send an email
 const sendEmail = async ({ to, subject, text }) => {
   try {
     const transporter = nodemailer.createTransport({
-      host: 'smtp.gmail.com',
+      host: "smtp.gmail.com",
       port: 587,
       secure: false,
       auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS,
       },
-    })
+    });
 
     const mailOptions = {
       from: `"Your App Name"`,
@@ -19,17 +19,17 @@ const sendEmail = async ({ to, subject, text }) => {
       to,
       subject,
       text,
-    }
+    };
 
-    const info = await transporter.sendMail(mailOptions)
+    const info = await transporter.sendMail(mailOptions);
     // console.log(`Email sent: ${info.messageId}`)
   } catch (error) {
-    console.error(`Error sending email: ${error.message}`)
-    throw new Error('Email could not be sent')
+    console.error(`Error sending email: ${error.message}`);
+    throw new Error("Email could not be sent");
   }
-}
+};
 
-module.exports = { sendEmail }
+module.exports = { sendEmail };
 
 // const nodemailer = require('nodemailer')
 

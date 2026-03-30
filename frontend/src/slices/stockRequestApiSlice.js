@@ -1,59 +1,59 @@
-import { apiSlice } from './apiSlice'
-import { STOCK_REQUESTS_URL } from '../constants'
+import { apiSlice } from "./apiSlice";
+import { STOCK_REQUESTS_URL } from "../constants";
 
 export const stockRequestApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
     getStockRequest: builder.query({
       query: () => ({
         url: STOCK_REQUESTS_URL,
-        method: 'GET',
+        method: "GET",
       }),
-      providesTags: ['StockRequest'],
+      providesTags: ["StockRequest"],
     }),
 
     getStockRequestDetails: builder.query({
       query: (id) => `${STOCK_REQUESTS_URL}/${id}`,
-      providesTags: ['StockRequest'],
+      providesTags: ["StockRequest"],
     }),
 
     getStockRequestUser: builder.query({
       query: (userId) => `${STOCK_REQUESTS_URL}/user/${userId}`,
-      providesTags: ['StockRequest'],
+      providesTags: ["StockRequest"],
     }),
 
     createStockRequest: builder.mutation({
       query: (data) => ({
         url: STOCK_REQUESTS_URL,
-        method: 'POST',
+        method: "POST",
         body: data,
       }),
-      invalidatesTags: ['StockRequest'],
+      invalidatesTags: ["StockRequest"],
     }),
 
     updateStockRequest: builder.mutation({
       query: ({ id, ...data }) => ({
         url: `${STOCK_REQUESTS_URL}/${id}`,
-        method: 'PUT',
+        method: "PUT",
         body: data,
       }),
-      invalidatesTags: ['StockRequest'],
+      invalidatesTags: ["StockRequest"],
     }),
 
     updateStockRequestQty: builder.mutation({
       query: ({ id, qty }) => ({
         url: `${STOCK_REQUESTS_URL}/updaterequestqty/${id}`,
-        method: 'PUT',
+        method: "PUT",
         body: { qty },
       }),
-      invalidatesTags: ['StockRequest'],
+      invalidatesTags: ["StockRequest"],
     }),
 
     deleteStockRequest: builder.mutation({
       query: (id) => ({
         url: `${STOCK_REQUESTS_URL}/${id}`,
-        method: 'DELETE',
+        method: "DELETE",
       }),
-      invalidatesTags: ['StockRequest'],
+      invalidatesTags: ["StockRequest"],
     }),
 
     // ============================
@@ -61,21 +61,21 @@ export const stockRequestApiSlice = apiSlice.injectEndpoints({
     // ============================
     getStockRequestImportance: builder.query({
       query: () => `${STOCK_REQUESTS_URL}/importance/all`,
-      providesTags: ['StockRequest'],
+      providesTags: ["StockRequest"],
     }),
 
     getStockRequestImportanceByUser: builder.query({
       query: (userId) => `${STOCK_REQUESTS_URL}/importance/${userId}`,
-      providesTags: ['StockRequest'],
+      providesTags: ["StockRequest"],
     }),
 
     updateStockRequestImportance: builder.mutation({
       query: ({ id, ...data }) => ({
         url: `${STOCK_REQUESTS_URL}/importance/update/${id}`,
-        method: 'PUT',
+        method: "PUT",
         body: data,
       }),
-      invalidatesTags: ['StockRequest'],
+      invalidatesTags: ["StockRequest"],
     }),
 
     // ============================
@@ -83,24 +83,24 @@ export const stockRequestApiSlice = apiSlice.injectEndpoints({
     // ============================
     getStockRequestCancel: builder.query({
       query: () => `${STOCK_REQUESTS_URL}/cancel`,
-      providesTags: ['StockRequest'],
+      providesTags: ["StockRequest"],
     }),
 
     getStockRequestCancelByUser: builder.query({
       query: (userId) => `${STOCK_REQUESTS_URL}/cancel/${userId}`,
-      providesTags: ['StockRequest'],
+      providesTags: ["StockRequest"],
     }),
 
     updateStockRequestCancel: builder.mutation({
       query: ({ id, ...data }) => ({
         url: `${STOCK_REQUESTS_URL}/cancel/update/${id}`,
-        method: 'PUT',
+        method: "PUT",
         body: data,
       }),
-      invalidatesTags: ['StockRequest'],
+      invalidatesTags: ["StockRequest"],
     }),
   }),
-})
+});
 
 export const {
   useGetStockRequestQuery,
@@ -120,4 +120,4 @@ export const {
   useGetStockRequestCancelQuery,
   useGetStockRequestCancelByUserQuery,
   useUpdateStockRequestCancelMutation,
-} = stockRequestApiSlice
+} = stockRequestApiSlice;

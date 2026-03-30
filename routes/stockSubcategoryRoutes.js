@@ -1,4 +1,4 @@
-const express = require('express')
+const express = require("express");
 const {
   createStockSubcategory,
   updateStockSubcategory,
@@ -6,19 +6,22 @@ const {
   getStockSubcategory,
   getStockSubcategoryDetails,
   getStockSubcategoryByCategory,
-} = require('../controllers/stockSubcategoryController')
+} = require("../controllers/stockSubcategoryController");
 
-const { protect, admin } = require('../middleware/authMiddleware.js')
+const { protect, admin } = require("../middleware/authMiddleware.js");
 
-const router = express.Router()
+const router = express.Router();
 
-router.route('/subcategorybycategory').get(getStockSubcategoryByCategory)
+router.route("/subcategorybycategory").get(getStockSubcategoryByCategory);
 
-router.route('/').post(protect, createStockSubcategory).get(getStockSubcategory)
 router
-  .route('/:id')
+  .route("/")
+  .post(protect, createStockSubcategory)
+  .get(getStockSubcategory);
+router
+  .route("/:id")
   .get(getStockSubcategoryDetails)
   .delete(protect, deleteStockSubcategory)
-  .put(protect, updateStockSubcategory)
+  .put(protect, updateStockSubcategory);
 
-module.exports = router
+module.exports = router;

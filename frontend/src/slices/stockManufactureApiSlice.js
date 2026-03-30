@@ -1,5 +1,5 @@
-import { apiSlice } from './apiSlice'
-import { STOCK_MANUFACTURES_URL } from '../constants'
+import { apiSlice } from "./apiSlice";
+import { STOCK_MANUFACTURES_URL } from "../constants";
 
 export const stockManufactureApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
@@ -7,39 +7,39 @@ export const stockManufactureApiSlice = apiSlice.injectEndpoints({
     getStockManufactures: builder.query({
       query: () => ({
         url: STOCK_MANUFACTURES_URL,
-        method: 'GET',
+        method: "GET",
       }),
-      providesTags: ['StockManufacture'],
+      providesTags: ["StockManufacture"],
     }),
 
     // GET manufacture by ID
     getStockManufactureDetails: builder.query({
       query: (id) => ({
         url: `${STOCK_MANUFACTURES_URL}/${id}`,
-        method: 'GET',
+        method: "GET",
       }),
-      providesTags: (result, error, id) => [{ type: 'StockManufacture', id }],
+      providesTags: (result, error, id) => [{ type: "StockManufacture", id }],
     }),
 
     // POST create new manufacture
     createStockManufacture: builder.mutation({
       query: (data) => ({
         url: STOCK_MANUFACTURES_URL,
-        method: 'POST',
+        method: "POST",
         body: data,
       }),
-      invalidatesTags: ['StockManufacture'],
+      invalidatesTags: ["StockManufacture"],
     }),
 
     // PUT update manufacture by ID
     updateStockManufacture: builder.mutation({
       query: ({ id, ...data }) => ({
         url: `${STOCK_MANUFACTURES_URL}/${id}`,
-        method: 'PUT',
+        method: "PUT",
         body: data,
       }),
       invalidatesTags: (result, error, { id }) => [
-        { type: 'StockManufacture', id },
+        { type: "StockManufacture", id },
       ],
     }),
 
@@ -47,12 +47,12 @@ export const stockManufactureApiSlice = apiSlice.injectEndpoints({
     deleteStockManufacture: builder.mutation({
       query: (id) => ({
         url: `${STOCK_MANUFACTURES_URL}/${id}`,
-        method: 'DELETE',
+        method: "DELETE",
       }),
-      invalidatesTags: ['StockManufacture'],
+      invalidatesTags: ["StockManufacture"],
     }),
   }),
-})
+});
 
 export const {
   useGetStockManufacturesQuery,
@@ -60,4 +60,4 @@ export const {
   useCreateStockManufactureMutation,
   useUpdateStockManufactureMutation,
   useDeleteStockManufactureMutation,
-} = stockManufactureApiSlice
+} = stockManufactureApiSlice;

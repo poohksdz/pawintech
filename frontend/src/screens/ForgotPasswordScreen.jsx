@@ -1,38 +1,43 @@
-import { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { useSelector } from 'react-redux';
-import { useRequestPasswordResetMutation } from '../slices/usersApiSlice';
-import { toast } from 'react-toastify';
-import { FaEnvelope, FaChevronLeft, FaCheckCircle } from 'react-icons/fa';
+import { useState, useEffect } from "react";
+import { Link, useLocation } from "react-router-dom";
+import { useSelector } from "react-redux";
+import { useRequestPasswordResetMutation } from "../slices/usersApiSlice";
+import { toast } from "react-toastify";
+import { FaEnvelope, FaChevronLeft, FaCheckCircle } from "react-icons/fa";
 
 const ForgotPasswordScreen = () => {
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState("");
   const [isSubmitted, setIsSubmitted] = useState(false);
 
-  const [requestPasswordReset, { isLoading }] = useRequestPasswordResetMutation();
+  const [requestPasswordReset, { isLoading }] =
+    useRequestPasswordResetMutation();
   const { state } = useLocation();
   const { language } = useSelector((state) => state.language);
 
   const translations = {
     en: {
-      title: 'Forgot Password',
-      subtitle: 'No worries! Enter your email and we\'ll send you instructions to reset your password.',
-      emailLabel: 'Email Address',
-      emailPlaceholder: 'Enter your email',
-      sendLink: 'Send Reset Link',
-      backToLogin: 'Back to Sign In',
-      successTitle: 'Check your email',
-      successDetail: 'We have sent password recovery instructions to your email address.',
+      title: "Forgot Password",
+      subtitle:
+        "No worries! Enter your email and we'll send you instructions to reset your password.",
+      emailLabel: "Email Address",
+      emailPlaceholder: "Enter your email",
+      sendLink: "Send Reset Link",
+      backToLogin: "Back to Sign In",
+      successTitle: "Check your email",
+      successDetail:
+        "We have sent password recovery instructions to your email address.",
     },
     thai: {
-      title: 'ลืมรหัสผ่าน',
-      subtitle: 'ไม่ต้องกังวล! กรอกอีเมลของคุณแล้วเราจะส่งวิธีตั้งรหัสผ่านใหม่ไปให้ครับ',
-      emailLabel: 'อีเมลของคุณ',
-      emailPlaceholder: 'กรอกอีเมลของคุณที่นี่',
-      sendLink: 'ส่งลิงก์รีเซ็ต',
-      backToLogin: 'กลับไปหน้าเข้าสู่ระบบ',
-      successTitle: 'ตรวจสอบอีเมลของคุณ',
-      successDetail: 'เราได้ส่งขั้นตอนการกู้คืนรหัสผ่านไปยังที่อยู่อีเมลของคุณเรียบร้อยแล้ว',
+      title: "ลืมรหัสผ่าน",
+      subtitle:
+        "ไม่ต้องกังวล! กรอกอีเมลของคุณแล้วเราจะส่งวิธีตั้งรหัสผ่านใหม่ไปให้ครับ",
+      emailLabel: "อีเมลของคุณ",
+      emailPlaceholder: "กรอกอีเมลของคุณที่นี่",
+      sendLink: "ส่งลิงก์รีเซ็ต",
+      backToLogin: "กลับไปหน้าเข้าสู่ระบบ",
+      successTitle: "ตรวจสอบอีเมลของคุณ",
+      successDetail:
+        "เราได้ส่งขั้นตอนการกู้คืนรหัสผ่านไปยังที่อยู่อีเมลของคุณเรียบร้อยแล้ว",
     },
   };
 
@@ -45,7 +50,9 @@ const ForgotPasswordScreen = () => {
   const submitHandler = async (e) => {
     e.preventDefault();
     if (!email) {
-      toast.error(language === 'thai' ? 'กรุณากรอกอีเมล' : 'Please enter your email');
+      toast.error(
+        language === "thai" ? "กรุณากรอกอีเมล" : "Please enter your email",
+      );
       return;
     }
 
@@ -53,7 +60,7 @@ const ForgotPasswordScreen = () => {
       await requestPasswordReset({ email }).unwrap();
       setIsSubmitted(true);
     } catch (err) {
-      toast.error(err?.data?.message || err.error || 'An error occurred');
+      toast.error(err?.data?.message || err.error || "An error occurred");
     }
   };
 
@@ -62,16 +69,22 @@ const ForgotPasswordScreen = () => {
       {/* --- LEFT SIDE: FORM --- */}
       <div className="w-full lg:w-1/2 flex items-center justify-center p-8 sm:p-12 lg:p-16 animate__animated animate__fadeInLeft">
         <div className="w-full max-w-[450px] space-y-8">
-
           {/* Header */}
           <div className="text-center lg:text-left">
-            <Link to="/login" className="inline-flex items-center text-sm font-bold text-slate-400 hover:text-indigo-600 transition-colors mb-8 group">
+            <Link
+              to="/login"
+              className="inline-flex items-center text-sm font-bold text-slate-400 hover:text-indigo-600 transition-colors mb-8 group"
+            >
               <FaChevronLeft className="mr-2 group-hover:-translate-x-1 transition-transform" />
               {t.backToLogin}
             </Link>
 
             <div className="mb-6">
-              <img src="/image/favicon.ico" alt="Logo" className="h-12 w-auto mb-6 mx-auto lg:mx-0 object-contain" />
+              <img
+                src="/image/favicon.ico"
+                alt="Logo"
+                className="h-12 w-auto mb-6 mx-auto lg:mx-0 object-contain"
+              />
               <h2 className="text-3xl font-black text-slate-900 tracking-tighter uppercase mb-2">
                 {isSubmitted ? t.successTitle : t.title}
               </h2>
@@ -84,15 +97,28 @@ const ForgotPasswordScreen = () => {
           {isSubmitted ? (
             <div className="space-y-6 animate__animated animate__fadeInUp">
               <div className="bg-emerald-50 border border-emerald-100 rounded-[2.5rem] p-8 text-center shadow-sm">
-                <FaCheckCircle size={64} className="text-emerald-500 mx-auto mb-4" />
-                <p className="text-emerald-800 font-bold">{language === 'thai' ? 'ส่งอีเมลเรียบร้อยแล้ว!' : 'Email Sent Successfully!'}</p>
+                <FaCheckCircle
+                  size={64}
+                  className="text-emerald-500 mx-auto mb-4"
+                />
+                <p className="text-emerald-800 font-bold">
+                  {language === "thai"
+                    ? "ส่งอีเมลเรียบร้อยแล้ว!"
+                    : "Email Sent Successfully!"}
+                </p>
               </div>
-              <Link to="/login" className="block w-full text-center py-4 bg-slate-900 text-white rounded-2xl font-bold hover:bg-slate-800 transition-all shadow-lg active:scale-95">
+              <Link
+                to="/login"
+                className="block w-full text-center py-4 bg-slate-900 text-white rounded-2xl font-bold hover:bg-slate-800 transition-all shadow-lg active:scale-95"
+              >
                 {t.backToLogin}
               </Link>
             </div>
           ) : (
-            <form className="space-y-6 animate__animated animate__fadeInUp" onSubmit={submitHandler}>
+            <form
+              className="space-y-6 animate__animated animate__fadeInUp"
+              onSubmit={submitHandler}
+            >
               <div>
                 <label className="block text-xs font-black text-slate-500 uppercase tracking-widest mb-3">
                   {t.emailLabel}
@@ -119,7 +145,9 @@ const ForgotPasswordScreen = () => {
               >
                 {isLoading ? (
                   <div className="w-6 h-6 border-3 border-white border-t-transparent rounded-full animate-spin"></div>
-                ) : t.sendLink}
+                ) : (
+                  t.sendLink
+                )}
               </button>
             </form>
           )}
@@ -135,9 +163,14 @@ const ForgotPasswordScreen = () => {
         />
         <div className="absolute inset-0 bg-gradient-to-tr from-slate-900/60 to-indigo-900/40 backdrop-blur-[2px]"></div>
         <div className="relative z-10 w-full h-full flex flex-col justify-end p-20 text-white">
-          <h3 className="text-5xl font-black mb-6 tracking-tighter leading-none uppercase">Secure Your<br />Future.</h3>
+          <h3 className="text-5xl font-black mb-6 tracking-tighter leading-none uppercase">
+            Secure Your
+            <br />
+            Future.
+          </h3>
           <p className="text-xl text-slate-200 max-w-md font-medium leading-relaxed">
-            Industry-standard encryption and security protocols protecting your account and data.
+            Industry-standard encryption and security protocols protecting your
+            account and data.
           </p>
         </div>
       </div>

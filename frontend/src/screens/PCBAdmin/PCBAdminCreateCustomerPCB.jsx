@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import {
   Container,
   Row,
@@ -7,137 +7,141 @@ import {
   Button,
   Image,
   Card,
-} from 'react-bootstrap';
-import { toast } from 'react-toastify';
-import { useSelector } from 'react-redux';
-import { useNavigate } from 'react-router-dom';
+} from "react-bootstrap";
+import { toast } from "react-toastify";
+import { useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
 import {
   useCreateCustomPCBbyAdminMutation,
   useUploadDiagramZipMutation,
   useUploadMultipleImagesMutation,
-} from '../../slices/custompcbApiSlice';
-import { useUploadPaymentSlipImageMutation } from '../../slices/ordersApiSlice';
+} from "../../slices/custompcbApiSlice";
+import { useUploadPaymentSlipImageMutation } from "../../slices/ordersApiSlice";
 import Loader from "../../components/Loader";
 
 const PCBAdminCreateCustomerPCB = () => {
   const { language } = useSelector((state) => state.language);
-  const navigate = useNavigate()
-  const { userInfo } = useSelector((state) => state.auth)
+  const navigate = useNavigate();
+  const { userInfo } = useSelector((state) => state.auth);
 
-  const [formData, setFormData] = useState({ pcbQty: 5, zipFile: null })
-  const [projectname, setProjectName] = useState('')
-  const [isLoading, setIsLoading] = useState(false)
+  const [formData, setFormData] = useState({ pcbQty: 5, zipFile: null });
+  const [projectname, setProjectName] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
-  const [diagramImages, setDiagramImages] = useState([]) // [{file, url}]
-  const [notes, setNotes] = useState('')
-
+  const [diagramImages, setDiagramImages] = useState([]); // [{file, url}]
+  const [notes, setNotes] = useState("");
 
   // payment slip image path returned from server
-  const [slipImagePath, setSlipImagePath] = useState('');
+  const [slipImagePath, setSlipImagePath] = useState("");
 
-  const [status, setStatus] = useState('accepted')
-  const [confirmedPrice, setConfirmedPrice] = useState('')
-  const [confirmedReason, setConfirmedReason] = useState('')
+  const [status, setStatus] = useState("accepted");
+  const [confirmedPrice, setConfirmedPrice] = useState("");
+  const [confirmedReason, setConfirmedReason] = useState("");
 
   // Customer Information
-  const [customerUserID, setCustomerUserID] = useState('')
-  const [customerCompanyName, setCustomerCompanyName] = useState('')
-  const [customerName, setCustomerName] = useState('')
-  const [customerAddress, setCustomerAddress] = useState('')
-  const [customerEmailAddress, setCustomerEmailAddress] = useState('')
-  const [customerPhoneNumber, setCustomerPhoneNumber] = useState('')
+  const [customerUserID, setCustomerUserID] = useState("");
+  const [customerCompanyName, setCustomerCompanyName] = useState("");
+  const [customerName, setCustomerName] = useState("");
+  const [customerAddress, setCustomerAddress] = useState("");
+  const [customerEmailAddress, setCustomerEmailAddress] = useState("");
+  const [customerPhoneNumber, setCustomerPhoneNumber] = useState("");
 
   // Shipping Address
-  const [shippingname, setShippingname] = useState('')
-  const [address, setAddress] = useState('')
-  const [city, setCity] = useState('')
-  const [postalCode, setPostalCode] = useState('')
-  const [country, setCountry] = useState('')
-  const [phone, setPhone] = useState('')
+  const [shippingname, setShippingname] = useState("");
+  const [address, setAddress] = useState("");
+  const [city, setCity] = useState("");
+  const [postalCode, setPostalCode] = useState("");
+  const [country, setCountry] = useState("");
+  const [phone, setPhone] = useState("");
 
   // Billing Address
-  const [billingName, setBillingName] = useState('')
-  const [billinggAddress, setBillinggAddress] = useState('')
-  const [billingCity, setBillingCity] = useState('')
-  const [billingPostalCode, setBillingPostalCode] = useState('')
-  const [billingCountry, setBillingCountry] = useState('')
-  const [billingPhone, setBillingPhone] = useState('')
-  const [tax, setTax] = useState('')
+  const [billingName, setBillingName] = useState("");
+  const [billinggAddress, setBillinggAddress] = useState("");
+  const [billingCity, setBillingCity] = useState("");
+  const [billingPostalCode, setBillingPostalCode] = useState("");
+  const [billingCountry, setBillingCountry] = useState("");
+  const [billingPhone, setBillingPhone] = useState("");
+  const [tax, setTax] = useState("");
 
-  const [isReceiveCompleteSelected, setIsReceiveCompleteSelected] = useState(false)
-  const [isBillingCompleteSelected, setIsBillingCompleteSelected] = useState(false)
+  const [isReceiveCompleteSelected, setIsReceiveCompleteSelected] =
+    useState(false);
+  const [isBillingCompleteSelected, setIsBillingCompleteSelected] =
+    useState(false);
 
   const [createCustomPCBbyAdmin, { isLoading: createCustomPCBLoading }] =
-    useCreateCustomPCBbyAdminMutation()
-  const [uploadDiagramZip] = useUploadDiagramZipMutation()
-  const [uploadMultipleImages] = useUploadMultipleImagesMutation()
-  const [uploadPaymentSlipImage, { isLoading: isImageUploading }] = useUploadPaymentSlipImageMutation();
+    useCreateCustomPCBbyAdminMutation();
+  const [uploadDiagramZip] = useUploadDiagramZipMutation();
+  const [uploadMultipleImages] = useUploadMultipleImagesMutation();
+  const [uploadPaymentSlipImage, { isLoading: isImageUploading }] =
+    useUploadPaymentSlipImageMutation();
 
   const handleChange = (field, value) => {
-    setFormData((prev) => ({ ...prev, [field]: value }))
-  }
+    setFormData((prev) => ({ ...prev, [field]: value }));
+  };
 
   const handleRadioReceiveChange = (e) => {
-    setIsReceiveCompleteSelected(e.target.value === 'atcompany')
-  }
+    setIsReceiveCompleteSelected(e.target.value === "atcompany");
+  };
 
   const handleRadioChange = (e) => {
-    setIsBillingCompleteSelected(e.target.value === 'complete')
-  }
+    setIsBillingCompleteSelected(e.target.value === "complete");
+  };
 
   const handleImageUpload = (event) => {
-    const files = Array.from(event.target.files || [])
-    if (files.length === 0) return
+    const files = Array.from(event.target.files || []);
+    if (files.length === 0) return;
 
     const previews = files.map((file) => ({
       file,
       url: URL.createObjectURL(file),
-    }))
+    }));
 
-    setDiagramImages((prev) => [...prev, ...previews])
-    event.target.value = '' // allow selecting same file again
-  }
+    setDiagramImages((prev) => [...prev, ...previews]);
+    event.target.value = ""; // allow selecting same file again
+  };
 
   const removeImage = (index) => {
     setDiagramImages((prev) => {
-      const item = prev[index]
-      if (item?.url) URL.revokeObjectURL(item.url)
-      return prev.filter((_, i) => i !== index)
-    })
-  }
+      const item = prev[index];
+      if (item?.url) URL.revokeObjectURL(item.url);
+      return prev.filter((_, i) => i !== index);
+    });
+  };
 
   // cleanup blob urls on unmount
   useEffect(() => {
     return () => {
-      diagramImages.forEach((img) => img?.url && URL.revokeObjectURL(img.url))
-    }
+      diagramImages.forEach((img) => img?.url && URL.revokeObjectURL(img.url));
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, []);
 
   const uploadDiagramImages = async () => {
-    const form = new FormData()
-    diagramImages.forEach((img) => form.append('images', img.file))
-    const res = await uploadMultipleImages(form).unwrap()
+    const form = new FormData();
+    diagramImages.forEach((img) => form.append("images", img.file));
+    const res = await uploadMultipleImages(form).unwrap();
     // expect: { images: [{ path: '...' }, ...] } or array of strings
-    return (res?.images || []).map((img) => typeof img === 'string' ? img : img.path)
-  }
+    return (res?.images || []).map((img) =>
+      typeof img === "string" ? img : img.path,
+    );
+  };
 
   const uploadDiagramZipHandler = async () => {
-    if (!formData.zipFile) return null
-    const form = new FormData()
-    form.append('diagramZip', formData.zipFile)
-    const res = await uploadDiagramZip(form).unwrap()
+    if (!formData.zipFile) return null;
+    const form = new FormData();
+    form.append("diagramZip", formData.zipFile);
+    const res = await uploadDiagramZip(form).unwrap();
     // expect: { path: '...' }
-    return res?.path || null
-  }
+    return res?.path || null;
+  };
 
   const uploadPaymentSlipImageHandler = async (e) => {
     const formData = new FormData();
-    formData.append('image', e.target.files[0]);
+    formData.append("image", e.target.files[0]);
 
     try {
       const res = await uploadPaymentSlipImage(formData).unwrap();
-      const path = res?.image?.path ?? res?.image ?? '';
+      const path = res?.image?.path ?? res?.image ?? "";
       setSlipImagePath(path);
       toast.success(res.message);
     } catch (err) {
@@ -145,20 +149,21 @@ const PCBAdminCreateCustomerPCB = () => {
     }
   };
 
-  const removeSlipImage = () => setSlipImagePath('');
+  const removeSlipImage = () => setSlipImagePath("");
 
   const orderNowHandler = async (e) => {
-    e.preventDefault()
+    e.preventDefault();
 
-    if (!userInfo) return navigate('/login')
-    if (!projectname.trim()) return toast.error('Please enter a project name.')
-    if (diagramImages.length === 0) return toast.error('Please upload at least 1 diagram image.')
+    if (!userInfo) return navigate("/login");
+    if (!projectname.trim()) return toast.error("Please enter a project name.");
+    if (diagramImages.length === 0)
+      return toast.error("Please upload at least 1 diagram image.");
 
     try {
-      setIsLoading(true)
+      setIsLoading(true);
 
-      const uploadedImages = await uploadDiagramImages()
-      const uploadedZipPath = await uploadDiagramZipHandler()
+      const uploadedImages = await uploadDiagramImages();
+      const uploadedZipPath = await uploadDiagramZipHandler();
 
       const customerInfo = {
         customerUserID,
@@ -167,7 +172,7 @@ const PCBAdminCreateCustomerPCB = () => {
         customerAddress,
         customerEmailAddress,
         customerPhoneNumber,
-      }
+      };
 
       const sellerInfo = {
         sellerUserID: userInfo._id,
@@ -178,7 +183,7 @@ const PCBAdminCreateCustomerPCB = () => {
         sellerCountry: userInfo.country,
         sellerEmailAddress: userInfo.email,
         sellerPhoneNumber: userInfo.phone,
-      }
+      };
 
       const shippingAddress = {
         shippingname,
@@ -187,8 +192,8 @@ const PCBAdminCreateCustomerPCB = () => {
         postalCode,
         country,
         phone,
-        receivePlace: isReceiveCompleteSelected ? 'atcompany' : 'bysending',
-      }
+        receivePlace: isReceiveCompleteSelected ? "atcompany" : "bysending",
+      };
 
       const billingAddress = {
         billingName,
@@ -198,7 +203,7 @@ const PCBAdminCreateCustomerPCB = () => {
         billingCountry,
         billingPhone,
         tax,
-      }
+      };
 
       const payload = {
         user_id: userInfo._id,
@@ -211,100 +216,99 @@ const PCBAdminCreateCustomerPCB = () => {
         diagramImages: uploadedImages,
         diagram_zip: uploadedZipPath, // NOTE: rename if your backend expects different key
         status,
-        confirmed_price: status === 'accepted' ? confirmedPrice : '-',
+        confirmed_price: status === "accepted" ? confirmedPrice : "-",
         confirmed_reason: confirmedReason,
         shippingAddress,
         billingAddress,
-      }
+      };
 
-      await createCustomPCBbyAdmin(payload).unwrap()
+      await createCustomPCBbyAdmin(payload).unwrap();
 
-      toast.success('Order placed successfully!')
-      navigate('/')
+      toast.success("Order placed successfully!");
+      navigate("/");
     } catch (err) {
-      console.error(err)
-      toast.error(err?.data?.message || 'Failed to submit order.')
+      console.error(err);
+      toast.error(err?.data?.message || "Failed to submit order.");
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const translations = {
     en: {
-      PleaseSelectReceiveAddressLabel: 'Please select receive address',
-      ReceiveProductBySendingLabel: 'Receive product by sending',
-      ReceiveProductAtCompanyLabel: 'Receive product at company',
+      PleaseSelectReceiveAddressLabel: "Please select receive address",
+      ReceiveProductBySendingLabel: "Receive product by sending",
+      ReceiveProductAtCompanyLabel: "Receive product at company",
 
-      PleaseSelectBillingAddressLabel: 'Please select billing address',
-      ShortBillingAddressLabel: 'Short billing address',
-      CompleteBillingAddressLabel: 'Complete billing address',
-      billingAddressLbl: 'Billing Address',
+      PleaseSelectBillingAddressLabel: "Please select billing address",
+      ShortBillingAddressLabel: "Short billing address",
+      CompleteBillingAddressLabel: "Complete billing address",
+      billingAddressLbl: "Billing Address",
 
-      nameLabel: 'Name',
-      namePlaceholder: 'Enter name',
-      addressLabel: 'Address',
-      address: 'Enter address',
-      cityLabel: 'City',
-      city: 'Enter city',
-      postalCodeLabel: 'Postal Code',
-      postalCode: 'Enter postal code',
-      countryLabel: 'Country',
-      country: 'Enter country',
-      phoneLabel: 'Phone',
-      phone: 'Enter phone',
+      nameLabel: "Name",
+      namePlaceholder: "Enter name",
+      addressLabel: "Address",
+      address: "Enter address",
+      cityLabel: "City",
+      city: "Enter city",
+      postalCodeLabel: "Postal Code",
+      postalCode: "Enter postal code",
+      countryLabel: "Country",
+      country: "Enter country",
+      phoneLabel: "Phone",
+      phone: "Enter phone",
 
-      TaxLabel: 'Tax ID',
-      Tax: 'Enter tax id',
+      TaxLabel: "Tax ID",
+      Tax: "Enter tax id",
 
-      StatusLbl: 'Status',
-      AcceptLbl: 'Accepted',
-      RejectLbl: 'Rejected',
+      StatusLbl: "Status",
+      AcceptLbl: "Accepted",
+      RejectLbl: "Rejected",
 
-      ConfirmedPriceLbl: 'Confirmed Price',
-      ConfirmedreasonLbl: 'Confirmed Reason',
+      ConfirmedPriceLbl: "Confirmed Price",
+      ConfirmedreasonLbl: "Confirmed Reason",
     },
     thai: {
-      PleaseSelectReceiveAddressLabel: 'กรุณาเลือกที่อยู่สำหรับรับสินค้า',
-      ReceiveProductBySendingLabel: 'รับสินค้าทางจัดส่ง',
-      ReceiveProductAtCompanyLabel: 'รับสินค้าที่บริษัท',
+      PleaseSelectReceiveAddressLabel: "กรุณาเลือกที่อยู่สำหรับรับสินค้า",
+      ReceiveProductBySendingLabel: "รับสินค้าทางจัดส่ง",
+      ReceiveProductAtCompanyLabel: "รับสินค้าที่บริษัท",
 
-      PleaseSelectBillingAddressLabel: 'กรุณาเลือกที่อยู่สำหรับออกบิล',
-      ShortBillingAddressLabel: 'ที่อยู่บิลแบบสั้น',
-      CompleteBillingAddressLabel: 'ที่อยู่บิลแบบเต็ม',
-      billingAddressLbl: 'ที่อยู่สำหรับออกบิล',
+      PleaseSelectBillingAddressLabel: "กรุณาเลือกที่อยู่สำหรับออกบิล",
+      ShortBillingAddressLabel: "ที่อยู่บิลแบบสั้น",
+      CompleteBillingAddressLabel: "ที่อยู่บิลแบบเต็ม",
+      billingAddressLbl: "ที่อยู่สำหรับออกบิล",
 
-      nameLabel: 'ชื่อ',
-      namePlaceholder: 'กรอกชื่อ',
-      addressLabel: 'ที่อยู่',
-      address: 'กรอกที่อยู่',
-      cityLabel: 'เมือง/อำเภอ',
-      city: 'กรอกเมือง/อำเภอ',
-      postalCodeLabel: 'รหัสไปรษณีย์',
-      postalCode: 'กรอกรหัสไปรษณีย์',
-      countryLabel: 'ประเทศ',
-      country: 'กรอกประเทศ',
-      phoneLabel: 'เบอร์โทร',
-      phone: 'กรอกเบอร์โทร',
+      nameLabel: "ชื่อ",
+      namePlaceholder: "กรอกชื่อ",
+      addressLabel: "ที่อยู่",
+      address: "กรอกที่อยู่",
+      cityLabel: "เมือง/อำเภอ",
+      city: "กรอกเมือง/อำเภอ",
+      postalCodeLabel: "รหัสไปรษณีย์",
+      postalCode: "กรอกรหัสไปรษณีย์",
+      countryLabel: "ประเทศ",
+      country: "กรอกประเทศ",
+      phoneLabel: "เบอร์โทร",
+      phone: "กรอกเบอร์โทร",
 
-      TaxLabel: 'เลขผู้เสียภาษี',
-      Tax: 'กรอกเลขผู้เสียภาษี',
+      TaxLabel: "เลขผู้เสียภาษี",
+      Tax: "กรอกเลขผู้เสียภาษี",
 
-      StatusLbl: 'สถานะ',
-      AcceptLbl: 'รับออเดอร์',
-      RejectLbl: 'ปฏิเสธ',
+      StatusLbl: "สถานะ",
+      AcceptLbl: "รับออเดอร์",
+      RejectLbl: "ปฏิเสธ",
 
-      ConfirmedPriceLbl: 'ราคายืนยัน',
-      ConfirmedreasonLbl: 'เหตุผล/หมายเหตุ',
+      ConfirmedPriceLbl: "ราคายืนยัน",
+      ConfirmedreasonLbl: "เหตุผล/หมายเหตุ",
     },
-  }
+  };
 
-  // ✅ make t() a function
-  const t = (key, fallback = '') =>
+  //  make t() a function
+  const t = (key, fallback = "") =>
     translations?.[language]?.[key] ??
     translations?.en?.[key] ??
     fallback ??
-    key
-
+    key;
 
   return (
     <Container className="my-4">
@@ -324,22 +328,29 @@ const PCBAdminCreateCustomerPCB = () => {
             </Card>
 
             <Card className="p-3 mb-4">
-              <Card.Title className='pb-1'>Diagram Images (Idea and Example)</Card.Title>
+              <Card.Title className="pb-1">
+                Diagram Images (Idea and Example)
+              </Card.Title>
 
-              <Form.Control type="file" accept="image/*" multiple onChange={handleImageUpload} />
+              <Form.Control
+                type="file"
+                accept="image/*"
+                multiple
+                onChange={handleImageUpload}
+              />
 
               <div className="d-flex flex-wrap mt-3 gap-2">
                 {diagramImages.map((img, idx) => (
-                  <div key={idx} style={{ position: 'relative' }}>
+                  <div key={idx} style={{ position: "relative" }}>
                     <Image
                       src={img.url}
                       alt={`Diagram ${idx + 1}`}
                       thumbnail
                       style={{
-                        width: '100px',
-                        height: '100px',
-                        objectFit: 'cover',
-                        borderRadius: '5px',
+                        width: "100px",
+                        height: "100px",
+                        objectFit: "cover",
+                        borderRadius: "5px",
                       }}
                     />
                     <Button
@@ -347,12 +358,12 @@ const PCBAdminCreateCustomerPCB = () => {
                       variant="danger"
                       size="sm"
                       style={{
-                        position: 'absolute',
-                        top: '2px',
-                        right: '2px',
-                        padding: '0 6px',
-                        borderRadius: '50%',
-                        lineHeight: '1',
+                        position: "absolute",
+                        top: "2px",
+                        right: "2px",
+                        padding: "0 6px",
+                        borderRadius: "50%",
+                        lineHeight: "1",
                       }}
                       onClick={() => removeImage(idx)}
                     >
@@ -362,17 +373,27 @@ const PCBAdminCreateCustomerPCB = () => {
                 ))}
               </div>
 
-              <div className="mt-2 text-muted">{diagramImages.length} image(s) selected</div>
+              <div className="mt-2 text-muted">
+                {diagramImages.length} image(s) selected
+              </div>
             </Card>
 
             <Card className="p-3 mb-4">
-              <Card.Title className='pb-1'>Diagram Zip File or Diagram Rar File (If Have)</Card.Title>
+              <Card.Title className="pb-1">
+                Diagram Zip File or Diagram Rar File (If Have)
+              </Card.Title>
               <Form.Control
                 type="file"
                 accept=".zip,.rar"
-                onChange={(e) => handleChange('zipFile', e.target.files?.[0] || null)}
+                onChange={(e) =>
+                  handleChange("zipFile", e.target.files?.[0] || null)
+                }
               />
-              {formData.zipFile && <div className="mt-2 text-muted">Selected: {formData.zipFile.name}</div>}
+              {formData.zipFile && (
+                <div className="mt-2 text-muted">
+                  Selected: {formData.zipFile.name}
+                </div>
+              )}
             </Card>
 
             <Card className="p-3 mb-4">
@@ -401,7 +422,9 @@ const PCBAdminCreateCustomerPCB = () => {
             </Form.Group>
 
             <Form.Group className="my-2" controlId="customerCompanyName">
-              <Form.Label>Customer Company Name (If no company, leave customer name)</Form.Label>
+              <Form.Label>
+                Customer Company Name (If no company, leave customer name)
+              </Form.Label>
               <Form.Control
                 type="text"
                 placeholder="Enter customer company name"
@@ -426,7 +449,7 @@ const PCBAdminCreateCustomerPCB = () => {
               <Form.Label>Customer Address</Form.Label>
               <Form.Control
                 type="text"
-                placeholder='Enter customer address'
+                placeholder="Enter customer address"
                 value={customerAddress}
                 onChange={(e) => setCustomerAddress(e.target.value)}
                 required
@@ -437,7 +460,7 @@ const PCBAdminCreateCustomerPCB = () => {
               <Form.Label>Customer Email Address</Form.Label>
               <Form.Control
                 type="text"
-                placeholder='Enter customer email address'
+                placeholder="Enter customer email address"
                 value={customerEmailAddress}
                 onChange={(e) => setCustomerEmailAddress(e.target.value)}
                 required
@@ -448,7 +471,7 @@ const PCBAdminCreateCustomerPCB = () => {
               <Form.Label>Customer Phone Number</Form.Label>
               <Form.Control
                 type="text"
-                placeholder='Enter customer phone number'
+                placeholder="Enter customer phone number"
                 value={customerPhoneNumber}
                 onChange={(e) => setCustomerPhoneNumber(e.target.value)}
                 required
@@ -459,11 +482,19 @@ const PCBAdminCreateCustomerPCB = () => {
 
             {/* -- Address Section -- */}
             <Form.Group className="my-2" controlId="ReceiveSelect">
-              <h5>{t('PleaseSelectReceiveAddressLabel', 'Please select receive address')}</h5>
+              <h5>
+                {t(
+                  "PleaseSelectReceiveAddressLabel",
+                  "Please select receive address",
+                )}
+              </h5>
               <div className="d-flex justify-content-between">
                 <Form.Check
                   type="radio"
-                  label={t('ReceiveProductBySendingLabel', 'Receive product by sending')}
+                  label={t(
+                    "ReceiveProductBySendingLabel",
+                    "Receive product by sending",
+                  )}
                   name="receiveAddressFormat"
                   id="receiveBySending"
                   value="bysending"
@@ -472,7 +503,10 @@ const PCBAdminCreateCustomerPCB = () => {
                 />
                 <Form.Check
                   type="radio"
-                  label={t('ReceiveProductAtCompanyLabel', 'Receive product at company')}
+                  label={t(
+                    "ReceiveProductAtCompanyLabel",
+                    "Receive product at company",
+                  )}
                   name="receiveAddressFormat"
                   id="receiveAtCompany"
                   value="atcompany"
@@ -483,7 +517,10 @@ const PCBAdminCreateCustomerPCB = () => {
             </Form.Group>
 
             {isReceiveCompleteSelected && (
-              <div style={{ border: '2px solid gray', padding: '10px' }} className="mb-3">
+              <div
+                style={{ border: "2px solid gray", padding: "10px" }}
+                className="mb-3"
+              >
                 You selected to receive product at our company.
               </div>
             )}
@@ -491,10 +528,10 @@ const PCBAdminCreateCustomerPCB = () => {
             {!isReceiveCompleteSelected && (
               <>
                 <Form.Group className="my-2" controlId="shippingname">
-                  <Form.Label>{t('nameLabel', 'Name')}</Form.Label>
+                  <Form.Label>{t("nameLabel", "Name")}</Form.Label>
                   <Form.Control
                     type="text"
-                    placeholder={t('namePlaceholder', 'Enter name')}
+                    placeholder={t("namePlaceholder", "Enter name")}
                     value={shippingname}
                     onChange={(e) => setShippingname(e.target.value)}
                     required
@@ -502,10 +539,10 @@ const PCBAdminCreateCustomerPCB = () => {
                 </Form.Group>
 
                 <Form.Group className="my-2" controlId="address">
-                  <Form.Label>{t('addressLabel', 'Address')}</Form.Label>
+                  <Form.Label>{t("addressLabel", "Address")}</Form.Label>
                   <Form.Control
                     type="text"
-                    placeholder={t('address', 'Enter address')}
+                    placeholder={t("address", "Enter address")}
                     value={address}
                     onChange={(e) => setAddress(e.target.value)}
                     required
@@ -513,10 +550,10 @@ const PCBAdminCreateCustomerPCB = () => {
                 </Form.Group>
 
                 <Form.Group className="my-2" controlId="city">
-                  <Form.Label>{t('cityLabel', 'City')}</Form.Label>
+                  <Form.Label>{t("cityLabel", "City")}</Form.Label>
                   <Form.Control
                     type="text"
-                    placeholder={t('city', 'Enter city')}
+                    placeholder={t("city", "Enter city")}
                     value={city}
                     onChange={(e) => setCity(e.target.value)}
                     required
@@ -524,10 +561,10 @@ const PCBAdminCreateCustomerPCB = () => {
                 </Form.Group>
 
                 <Form.Group className="my-2" controlId="postalCode">
-                  <Form.Label>{t('postalCodeLabel', 'Postal Code')}</Form.Label>
+                  <Form.Label>{t("postalCodeLabel", "Postal Code")}</Form.Label>
                   <Form.Control
                     type="text"
-                    placeholder={t('postalCode', 'Enter postal code')}
+                    placeholder={t("postalCode", "Enter postal code")}
                     value={postalCode}
                     onChange={(e) => setPostalCode(e.target.value)}
                     required
@@ -535,10 +572,10 @@ const PCBAdminCreateCustomerPCB = () => {
                 </Form.Group>
 
                 <Form.Group className="my-2" controlId="country">
-                  <Form.Label>{t('countryLabel', 'Country')}</Form.Label>
+                  <Form.Label>{t("countryLabel", "Country")}</Form.Label>
                   <Form.Control
                     type="text"
-                    placeholder={t('country', 'Enter country')}
+                    placeholder={t("country", "Enter country")}
                     value={country}
                     onChange={(e) => setCountry(e.target.value)}
                     required
@@ -546,10 +583,10 @@ const PCBAdminCreateCustomerPCB = () => {
                 </Form.Group>
 
                 <Form.Group className="my-2" controlId="phone">
-                  <Form.Label>{t('phoneLabel', 'Phone')}</Form.Label>
+                  <Form.Label>{t("phoneLabel", "Phone")}</Form.Label>
                   <Form.Control
                     type="text"
-                    placeholder={t('phone', 'Enter phone')}
+                    placeholder={t("phone", "Enter phone")}
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
                     required
@@ -559,11 +596,19 @@ const PCBAdminCreateCustomerPCB = () => {
                 <hr />
 
                 <Form.Group className="my-2" controlId="BillingSelect">
-                  <h5>{t('PleaseSelectBillingAddressLabel', 'Please select billing address')}</h5>
+                  <h5>
+                    {t(
+                      "PleaseSelectBillingAddressLabel",
+                      "Please select billing address",
+                    )}
+                  </h5>
                   <div className="d-flex justify-content-between">
                     <Form.Check
                       type="radio"
-                      label={t('ShortBillingAddressLabel', 'Short billing address')}
+                      label={t(
+                        "ShortBillingAddressLabel",
+                        "Short billing address",
+                      )}
                       name="billingAddressFormat"
                       id="billingShort"
                       value="short"
@@ -572,7 +617,10 @@ const PCBAdminCreateCustomerPCB = () => {
                     />
                     <Form.Check
                       type="radio"
-                      label={t('CompleteBillingAddressLabel', 'Complete billing address')}
+                      label={t(
+                        "CompleteBillingAddressLabel",
+                        "Complete billing address",
+                      )}
                       name="billingAddressFormat"
                       id="billingComplete"
                       value="complete"
@@ -586,13 +634,13 @@ const PCBAdminCreateCustomerPCB = () => {
 
                 {isBillingCompleteSelected && (
                   <>
-                    <h5>{t('billingAddressLbl', 'Billing Address')}</h5>
+                    <h5>{t("billingAddressLbl", "Billing Address")}</h5>
 
                     <Form.Group className="my-2" controlId="billingName">
-                      <Form.Label>{t('nameLabel', 'Name')}</Form.Label>
+                      <Form.Label>{t("nameLabel", "Name")}</Form.Label>
                       <Form.Control
                         type="text"
-                        placeholder={t('namePlaceholder', 'Enter name')}
+                        placeholder={t("namePlaceholder", "Enter name")}
                         value={billingName}
                         onChange={(e) => setBillingName(e.target.value)}
                         required
@@ -600,10 +648,10 @@ const PCBAdminCreateCustomerPCB = () => {
                     </Form.Group>
 
                     <Form.Group className="my-2" controlId="billinggAddress">
-                      <Form.Label>{t('addressLabel', 'Address')}</Form.Label>
+                      <Form.Label>{t("addressLabel", "Address")}</Form.Label>
                       <Form.Control
                         type="text"
-                        placeholder={t('address', 'Enter address')}
+                        placeholder={t("address", "Enter address")}
                         value={billinggAddress}
                         onChange={(e) => setBillinggAddress(e.target.value)}
                         required
@@ -611,10 +659,10 @@ const PCBAdminCreateCustomerPCB = () => {
                     </Form.Group>
 
                     <Form.Group className="my-2" controlId="billingCity">
-                      <Form.Label>{t('cityLabel', 'City')}</Form.Label>
+                      <Form.Label>{t("cityLabel", "City")}</Form.Label>
                       <Form.Control
                         type="text"
-                        placeholder={t('city', 'Enter city')}
+                        placeholder={t("city", "Enter city")}
                         value={billingCity}
                         onChange={(e) => setBillingCity(e.target.value)}
                         required
@@ -622,10 +670,12 @@ const PCBAdminCreateCustomerPCB = () => {
                     </Form.Group>
 
                     <Form.Group className="my-2" controlId="billingPostalCode">
-                      <Form.Label>{t('postalCodeLabel', 'Postal Code')}</Form.Label>
+                      <Form.Label>
+                        {t("postalCodeLabel", "Postal Code")}
+                      </Form.Label>
                       <Form.Control
                         type="text"
-                        placeholder={t('postalCode', 'Enter postal code')}
+                        placeholder={t("postalCode", "Enter postal code")}
                         value={billingPostalCode}
                         onChange={(e) => setBillingPostalCode(e.target.value)}
                         required
@@ -633,10 +683,10 @@ const PCBAdminCreateCustomerPCB = () => {
                     </Form.Group>
 
                     <Form.Group className="my-2" controlId="billingCountry">
-                      <Form.Label>{t('countryLabel', 'Country')}</Form.Label>
+                      <Form.Label>{t("countryLabel", "Country")}</Form.Label>
                       <Form.Control
                         type="text"
-                        placeholder={t('country', 'Enter country')}
+                        placeholder={t("country", "Enter country")}
                         value={billingCountry}
                         onChange={(e) => setBillingCountry(e.target.value)}
                         required
@@ -644,10 +694,10 @@ const PCBAdminCreateCustomerPCB = () => {
                     </Form.Group>
 
                     <Form.Group className="my-2" controlId="billingPhone">
-                      <Form.Label>{t('phoneLabel', 'Phone')}</Form.Label>
+                      <Form.Label>{t("phoneLabel", "Phone")}</Form.Label>
                       <Form.Control
                         type="text"
-                        placeholder={t('phone', 'Enter phone')}
+                        placeholder={t("phone", "Enter phone")}
                         value={billingPhone}
                         onChange={(e) => setBillingPhone(e.target.value)}
                         required
@@ -655,10 +705,10 @@ const PCBAdminCreateCustomerPCB = () => {
                     </Form.Group>
 
                     <Form.Group className="my-2" controlId="tax">
-                      <Form.Label>{t('TaxLabel', 'Tax ID')}</Form.Label>
+                      <Form.Label>{t("TaxLabel", "Tax ID")}</Form.Label>
                       <Form.Control
                         type="text"
-                        placeholder={t('Tax', 'Enter tax id')}
+                        placeholder={t("Tax", "Enter tax id")}
                         value={tax}
                         onChange={(e) => setTax(e.target.value)}
                         required
@@ -673,22 +723,30 @@ const PCBAdminCreateCustomerPCB = () => {
           <Col xl={3}>
             <Card className="p-4">
               <div className="d-flex flex-column align-items-stretch">
-
                 <Form.Group className="mb-3 w-100" controlId="statusSelect">
-                  <Form.Label>{t('StatusLbl', 'Status')}</Form.Label>
+                  <Form.Label>{t("StatusLbl", "Status")}</Form.Label>
                   <Form.Select
                     className="w-100"
                     value={status}
                     onChange={(e) => setStatus(e.target.value)}
                   >
-                    <option value="accepted">{t('AcceptLbl', 'Accepted')}</option>
-                    <option value="rejected">{t('RejectLbl', 'Rejected')}</option>
+                    <option value="accepted">
+                      {t("AcceptLbl", "Accepted")}
+                    </option>
+                    <option value="rejected">
+                      {t("RejectLbl", "Rejected")}
+                    </option>
                   </Form.Select>
                 </Form.Group>
 
-                {status === 'accepted' && (
-                  <Form.Group className="mb-3 w-100" controlId="confirmedPriceInput">
-                    <Form.Label>{t('ConfirmedPriceLbl', 'Confirmed Price')}</Form.Label>
+                {status === "accepted" && (
+                  <Form.Group
+                    className="mb-3 w-100"
+                    controlId="confirmedPriceInput"
+                  >
+                    <Form.Label>
+                      {t("ConfirmedPriceLbl", "Confirmed Price")}
+                    </Form.Label>
                     <Form.Control
                       className="w-100"
                       type="number"
@@ -701,7 +759,9 @@ const PCBAdminCreateCustomerPCB = () => {
                 )}
 
                 <Form.Group className="mb-3 w-100" controlId="confirmedReason">
-                  <Form.Label>{t('ConfirmedreasonLbl', 'Confirmed Reason')}</Form.Label>
+                  <Form.Label>
+                    {t("ConfirmedreasonLbl", "Confirmed Reason")}
+                  </Form.Label>
                   <Form.Control
                     className="w-100"
                     as="textarea"
@@ -713,26 +773,34 @@ const PCBAdminCreateCustomerPCB = () => {
 
                 <Form.Group as={Row} className="mb-3">
                   <Form.Label>Slip Image</Form.Label>
-                  <Col >
-                    <Form.Control type="file" accept="image/*" onChange={uploadPaymentSlipImageHandler} />
+                  <Col>
+                    <Form.Control
+                      type="file"
+                      accept="image/*"
+                      onChange={uploadPaymentSlipImageHandler}
+                    />
                     {isImageUploading && <Loader />}
                   </Col>
                 </Form.Group>
 
                 {/* preview uploaded slip image (single) */}
                 {slipImagePath && (
-                  <div style={{ position: 'relative', marginBottom: 12 }}>
+                  <div style={{ position: "relative", marginBottom: 12 }}>
                     <Image
                       src={slipImagePath}
                       alt="Slip"
                       thumbnail
-                      style={{ width: '100%', maxHeight: 200, objectFit: 'contain' }}
+                      style={{
+                        width: "100%",
+                        maxHeight: 200,
+                        objectFit: "contain",
+                      }}
                     />
                     <Button
                       variant="danger"
                       size="sm"
                       onClick={removeSlipImage}
-                      style={{ position: 'absolute', top: 8, right: 8 }}
+                      style={{ position: "absolute", top: 8, right: 8 }}
                     >
                       X
                     </Button>
@@ -747,8 +815,8 @@ const PCBAdminCreateCustomerPCB = () => {
                     min="5"
                     value={formData.pcbQty}
                     onChange={(e) => {
-                      const value = parseInt(e.target.value, 10) || 0
-                      handleChange('pcbQty', Math.max(5, value))
+                      const value = parseInt(e.target.value, 10) || 0;
+                      handleChange("pcbQty", Math.max(5, value));
                     }}
                   />
 
@@ -757,22 +825,26 @@ const PCBAdminCreateCustomerPCB = () => {
                     className="w-100 mt-3"
                     disabled={createCustomPCBLoading || isLoading}
                   >
-                    {createCustomPCBLoading || isLoading ? 'Submitting...' : 'SUBMIT'}
+                    {createCustomPCBLoading || isLoading
+                      ? "Submitting..."
+                      : "SUBMIT"}
                   </Button>
                 </Form.Group>
-
               </div>
             </Card>
 
-            <div className="mt-3 text-center text-muted" style={{ fontSize: '0.9rem' }}>
-              After submitting, please wait for admin to accept the order and confirm the price.
+            <div
+              className="mt-3 text-center text-muted"
+              style={{ fontSize: "0.9rem" }}
+            >
+              After submitting, please wait for admin to accept the order and
+              confirm the price.
             </div>
           </Col>
-
         </Row>
       </Form>
     </Container>
   );
 };
 
-export default PCBAdminCreateCustomerPCB
+export default PCBAdminCreateCustomerPCB;

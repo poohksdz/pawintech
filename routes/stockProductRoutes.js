@@ -1,33 +1,37 @@
-const express = require('express')
-const router = express.Router()
+const express = require("express");
+const router = express.Router();
 
 const {
   getStockProducts,
   getStockProductById,
+  getStockProductByBarcode,
   createStockProduct,
   updateStockProduct,
   deleteStockProduct,
   updateStockProductQty,
   updateStockProductQtyByElectotronixPN,
   toggleStarProduct,
-} = require('../controllers/stockProductController.js')
+} = require("../controllers/stockProductController.js");
 
-const { protect, admin, store } = require('../middleware/authMiddleware.js')
+const { protect, admin, store } = require("../middleware/authMiddleware.js");
 
-router.route('/').get(protect, getStockProducts).post(protect, createStockProduct)
+router.route("/barcode/:barcode").get(protect, getStockProductByBarcode);
 
 router
-  .route('/:id')
+  .route("/")
+  .get(protect, getStockProducts)
+  .post(protect, createStockProduct);
+
+router
+  .route("/:id")
   .get(protect, getStockProductById)
   .put(protect, updateStockProduct)
-  .delete(protect, deleteStockProduct)
+  .delete(protect, deleteStockProduct);
 
 router
-  .route('/updateProductQtyByElectotronixPN/:electotronixPN')
-  .put(protect, updateStockProductQtyByElectotronixPN)
+  .route("/updateProductQtyByElectotronixPN/:electotronixPN")
+  .put(protect, updateStockProductQtyByElectotronixPN);
 
-router
-  .route('/:id/star')
-  .put(protect, toggleStarProduct)
+router.route("/:id/star").put(protect, toggleStarProduct);
 
-module.exports = router
+module.exports = router;

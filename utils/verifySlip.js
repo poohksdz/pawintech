@@ -1,9 +1,9 @@
-const Tesseract = require('tesseract.js');
-const sharp = require('sharp');
-const jsQR = require('jsqr');
-const fs = require('fs');
-const asyncHandler = require('../middleware/asyncHandler');
-const { pool } = require('../config/db');
+const Tesseract = require("tesseract.js");
+const sharp = require("sharp");
+const jsQR = require("jsqr");
+const fs = require("fs");
+const asyncHandler = require("../middleware/asyncHandler");
+const { pool } = require("../config/db");
 
 const createassemblyPCB = asyncHandler(async (req, res) => {
   try {
@@ -22,7 +22,7 @@ const createassemblyPCB = asyncHandler(async (req, res) => {
     // =========================
     const [cartRows] = await pool.query(
       "SELECT * FROM pcb_assembly_carts WHERE id = ?",
-      [cartId]
+      [cartId],
     );
 
     if (cartRows.length === 0) {
@@ -35,10 +35,9 @@ const createassemblyPCB = asyncHandler(async (req, res) => {
     // =========================
     // 2️⃣ OCR อ่านข้อความ
     // =========================
-    const { data: { text } } = await Tesseract.recognize(
-      imagePath,
-      'tha+eng'
-    );
+    const {
+      data: { text },
+    } = await Tesseract.recognize(imagePath, "tha+eng");
 
     if (!text.includes("บาท") && !text.includes("THB")) {
       fs.unlinkSync(imagePath);
@@ -48,7 +47,10 @@ const createassemblyPCB = asyncHandler(async (req, res) => {
     // ตรวจสอบยอดเงินจาก confirmed_price
     const expectedAmount = Number(cart.confirmed_price).toFixed(2);
 
-    if (!text.includes(expectedAmount) && !text.includes(Number(cart.confirmed_price).toString())) {
+    if (
+      !text.includes(expectedAmount) &&
+      !text.includes(Number(cart.confirmed_price).toString())
+    ) {
       fs.unlinkSync(imagePath);
       return res.status(400).json({ message: "ยอดเงินไม่ตรงกับราคาที่ยืนยัน" });
     }
@@ -64,7 +66,7 @@ const createassemblyPCB = asyncHandler(async (req, res) => {
     const qr = jsQR(
       new Uint8ClampedArray(image.data),
       image.info.width,
-      image.info.height
+      image.info.height,
     );
 
     if (!qr) {
@@ -102,22 +104,18 @@ const createassemblyPCB = asyncHandler(async (req, res) => {
 
     const [result] = await pool.query(
       "INSERT INTO pcb_assembly_orders SET ?",
-      insertData
+      insertData,
     );
 
     // =========================
     // 5️⃣ ลบ cart
     // =========================
-    await pool.query(
-      "DELETE FROM pcb_assembly_carts WHERE id = ?",
-      [cartId]
-    );
+    await pool.query("DELETE FROM pcb_assembly_carts WHERE id = ?", [cartId]);
 
     res.status(201).json({
       message: "Order created and slip verified successfully",
       orderId: result.insertId,
     });
-
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Slip verification failed" });
@@ -125,5 +123,5 @@ const createassemblyPCB = asyncHandler(async (req, res) => {
 });
 
 module.exports = {
-  createassemblyPCB
+  createassemblyPCB,
 };

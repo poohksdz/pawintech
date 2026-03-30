@@ -1,5 +1,5 @@
-import { apiSlice } from './apiSlice'
-import { STOCK_RECEIVES_URL } from '../constants'
+import { apiSlice } from "./apiSlice";
+import { STOCK_RECEIVES_URL } from "../constants";
 
 export const stockReceiveApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
@@ -7,40 +7,40 @@ export const stockReceiveApiSlice = apiSlice.injectEndpoints({
     getStockReceive: builder.query({
       query: () => ({
         url: STOCK_RECEIVES_URL,
-        method: 'GET',
+        method: "GET",
       }),
-      providesTags: ['StockReceive'],
+      providesTags: ["StockReceive"],
     }),
 
     // GET a single stock receive by ID
     getStockReceiveById: builder.query({
       query: (id) => ({
         url: `${STOCK_RECEIVES_URL}/${id}`,
-        method: 'GET',
+        method: "GET",
       }),
-      providesTags: (result, error, id) => [{ type: 'StockReceive', id }],
+      providesTags: (result, error, id) => [{ type: "StockReceive", id }],
     }),
 
     // CREATE a new stock receive
     createStockReceive: builder.mutation({
       query: (newData) => ({
         url: STOCK_RECEIVES_URL,
-        method: 'POST',
+        method: "POST",
         body: newData,
       }),
-      invalidatesTags: ['StockReceive'],
+      invalidatesTags: ["StockReceive"],
     }),
 
     // UPDATE a stock receive
     updateStockReceive: builder.mutation({
       query: ({ id, ...updatedData }) => ({
         url: `${STOCK_RECEIVES_URL}/${id}`,
-        method: 'PUT',
+        method: "PUT",
         body: updatedData,
       }),
       invalidatesTags: (result, error, { id }) => [
-        'StockReceive',
-        { type: 'StockReceive', id },
+        "StockReceive",
+        { type: "StockReceive", id },
       ],
     }),
 
@@ -48,12 +48,12 @@ export const stockReceiveApiSlice = apiSlice.injectEndpoints({
     deleteStockReceive: builder.mutation({
       query: (id) => ({
         url: `${STOCK_RECEIVES_URL}/${id}`,
-        method: 'DELETE',
+        method: "DELETE",
       }),
-      invalidatesTags: ['StockReceive'],
+      invalidatesTags: ["StockReceive"],
     }),
   }),
-})
+});
 
 export const {
   useGetStockReceiveQuery,
@@ -61,4 +61,4 @@ export const {
   useCreateStockReceiveMutation,
   useUpdateStockReceiveMutation,
   useDeleteStockReceiveMutation,
-} = stockReceiveApiSlice
+} = stockReceiveApiSlice;

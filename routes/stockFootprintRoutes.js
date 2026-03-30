@@ -1,4 +1,4 @@
-const express = require('express')
+const express = require("express");
 const {
   getStockFootprintByCategory,
   createStockFootprint,
@@ -6,18 +6,18 @@ const {
   deleteStockFootprint,
   getStockFootprint,
   getStockFootprintDetails,
-} = require('../controllers/stockFootprintController.js')
+} = require("../controllers/stockFootprintController.js");
 
-const { protect, admin, store } = require('../middleware/authMiddleware.js')
+const { protect, admin, store } = require("../middleware/authMiddleware.js");
 
-const router = express.Router()
+const router = express.Router();
 
-router.route('/footprintbycategory').get(getStockFootprintByCategory)
-router.route('/').post(protect, createStockFootprint).get(getStockFootprint)
+router.route("/footprintbycategory").get(getStockFootprintByCategory);
+router.route("/").post(protect, createStockFootprint).get(getStockFootprint);
 router
-  .route('/:id')
+  .route("/:id")
   .get(getStockFootprintDetails)
   .delete(protect, deleteStockFootprint)
-  .put(protect, updateStockFootprint)
+  .put(protect, updateStockFootprint);
 
-module.exports = router
+module.exports = router;

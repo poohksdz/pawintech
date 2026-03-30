@@ -1,5 +1,5 @@
-import { ABOUTIMAGES_URL } from '../constants'
-import { apiSlice } from './apiSlice'
+import { ABOUTIMAGES_URL } from "../constants";
+import { apiSlice } from "./apiSlice";
 
 export const aboutImageApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
@@ -9,7 +9,7 @@ export const aboutImageApiSlice = apiSlice.injectEndpoints({
         params: { keyword, pageNumber },
       }),
       keepUnusedDataFor: 5,
-      providesTags: ['Aboutimages'],
+      providesTags: ["Aboutimages"],
     }),
     getAboutimagesDetails: builder.query({
       query: (aboutimagesId) => ({
@@ -20,43 +20,43 @@ export const aboutImageApiSlice = apiSlice.injectEndpoints({
     createAboutimages: builder.mutation({
       query: (data) => ({
         url: `${ABOUTIMAGES_URL}`,
-        method: 'POST',
+        method: "POST",
         body: data,
       }),
-      invalidatesTags: ['Aboutimages'],
+      invalidatesTags: ["Aboutimages"],
     }),
     updateAboutimages: builder.mutation({
       query: (data) => ({
         url: `${ABOUTIMAGES_URL}/${data.aboutimagesId}`,
-        method: 'PUT',
+        method: "PUT",
         body: data,
       }),
-      invalidatesTags: ['Aboutimages'],
+      invalidatesTags: ["Aboutimages"],
     }),
     updateShowFrontAboutimages: builder.mutation({
       query: (data) => ({
         url: `${ABOUTIMAGES_URL}/showfront`,
-        method: 'PUT',
+        method: "PUT",
         body: data, // Sending { aboutimagesId, showfront }
       }),
-      invalidatesTags: ['Aboutimages'],
+      invalidatesTags: ["Aboutimages"],
     }),
     deleteAboutimages: builder.mutation({
       query: (aboutimagesId) => ({
         url: `${ABOUTIMAGES_URL}/${aboutimagesId}`,
-        method: 'DELETE',
+        method: "DELETE",
       }),
-      invalidatesTags: ['Aboutimages'],
+      invalidatesTags: ["Aboutimages"],
     }),
     uploadAboutimagesImage: builder.mutation({
       query: (data) => ({
         url: `/api/aboutimages`,
-        method: 'POST',
+        method: "POST",
         body: data,
       }),
     }),
   }),
-})
+});
 
 export const {
   useGetAboutimagesQuery,
@@ -66,4 +66,4 @@ export const {
   useUpdateShowFrontAboutimagesMutation,
   useDeleteAboutimagesMutation,
   useUploadAboutimagesImageMutation,
-} = aboutImageApiSlice
+} = aboutImageApiSlice;

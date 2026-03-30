@@ -1,22 +1,22 @@
-import React, { useState } from 'react';
-import { useSelector } from 'react-redux';
+import React, { useState } from "react";
+import { useSelector } from "react-redux";
 import {
   useGetStockCategoriesQuery,
   useUpdateStockCategoryMutation,
   useDeleteStockCategoryMutation,
   useCreateStockCategoryMutation,
-} from '../../../slices/stockCategoryApiSlice';
+} from "../../../slices/stockCategoryApiSlice";
 
-import Loader from '../../../components/Loader';
-import Message from '../../../components/Message';
+import Loader from "../../../components/Loader";
+import Message from "../../../components/Message";
 
 // Custom Tailwind Components
-import Button from '../../../components/ui/Button';
-import Modal from '../../../components/ui/Modal';
-import Input from '../../../components/ui/Input';
-import Table from '../../../components/ui/Table';
-import { Card, CardHeader, CardBody } from '../../../components/ui/Card';
-import { Edit, Trash2, Plus } from 'lucide-react';
+import Button from "../../../components/ui/Button";
+import Modal from "../../../components/ui/Modal";
+import Input from "../../../components/ui/Input";
+import Table from "../../../components/ui/Table";
+import { Card, CardHeader, CardBody } from "../../../components/ui/Card";
+import { Edit, Trash2, Plus } from "lucide-react";
 
 const StockListCategoryScreen = () => {
   const { userInfo } = useSelector((state) => state.auth);
@@ -35,7 +35,7 @@ const StockListCategoryScreen = () => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   const [selectedCategory, setSelectedCategory] = useState({});
-  const [formData, setFormData] = useState({ category: '', createuser: '' });
+  const [formData, setFormData] = useState({ category: "", createuser: "" });
 
   const [createStockCategory] = useCreateStockCategoryMutation();
   const [updateStockCategory] = useUpdateStockCategoryMutation();
@@ -53,7 +53,7 @@ const StockListCategoryScreen = () => {
       createuser: userInfo.name,
     });
     setShowCreateModal(false);
-    setFormData({ category: '' }); // reset form
+    setFormData({ category: "" }); // reset form
   };
 
   // Edit Category
@@ -75,7 +75,7 @@ const StockListCategoryScreen = () => {
 
   // Open modals
   const openCreateModal = () => {
-    setFormData({ category: '', createuser: '' });
+    setFormData({ category: "", createuser: "" });
     setShowCreateModal(true);
   };
 
@@ -96,9 +96,7 @@ const StockListCategoryScreen = () => {
   if (isLoading) return <Loader />;
   if (error)
     return (
-      <Message variant="danger">
-        {error?.data?.message || error.error}
-      </Message>
+      <Message variant="danger">{error?.data?.message || error.error}</Message>
     );
 
   return (
@@ -127,7 +125,10 @@ const StockListCategoryScreen = () => {
             <Table.Body>
               {categoryData.length === 0 ? (
                 <Table.Row>
-                  <Table.Cell colSpan="5" className="text-center py-6 text-slate-500">
+                  <Table.Cell
+                    colSpan="5"
+                    className="text-center py-6 text-slate-500"
+                  >
                     No categories found.
                   </Table.Cell>
                 </Table.Row>
@@ -135,8 +136,12 @@ const StockListCategoryScreen = () => {
                 categoryData.map((cat, index) => (
                   <Table.Row key={cat.ID}>
                     <Table.Cell>{index + 1}</Table.Cell>
-                    <Table.Cell className="font-mono text-slate-600">{cat.categoryid}</Table.Cell>
-                    <Table.Cell className="font-medium text-slate-800">{cat.category}</Table.Cell>
+                    <Table.Cell className="font-mono text-slate-600">
+                      {cat.categoryid}
+                    </Table.Cell>
+                    <Table.Cell className="font-medium text-slate-800">
+                      {cat.category}
+                    </Table.Cell>
                     <Table.Cell>{cat.createuser}</Table.Cell>
                     <Table.Cell className="text-right flex justify-end gap-2">
                       <Button
@@ -171,8 +176,12 @@ const StockListCategoryScreen = () => {
         title="Create Category"
         footer={
           <>
-            <Button variant="light" onClick={() => setShowCreateModal(false)}>Close</Button>
-            <Button variant="primary" onClick={handleCreate}>Create</Button>
+            <Button variant="light" onClick={() => setShowCreateModal(false)}>
+              Close
+            </Button>
+            <Button variant="primary" onClick={handleCreate}>
+              Create
+            </Button>
           </>
         }
       >
@@ -192,8 +201,15 @@ const StockListCategoryScreen = () => {
         title={`Edit Category [ID: ${selectedCategory.categoryid}]`}
         footer={
           <>
-            <Button variant="light" onClick={() => setShowEditModal(false)}>Close</Button>
-            <Button variant="primary" onClick={() => setShowConfirmUpdate(true)}>Update</Button>
+            <Button variant="light" onClick={() => setShowEditModal(false)}>
+              Close
+            </Button>
+            <Button
+              variant="primary"
+              onClick={() => setShowConfirmUpdate(true)}
+            >
+              Update
+            </Button>
           </>
         }
       >
@@ -214,16 +230,24 @@ const StockListCategoryScreen = () => {
         size="sm"
         footer={
           <>
-            <Button variant="light" onClick={() => setShowConfirmUpdate(false)}>Cancel</Button>
-            <Button variant="primary" onClick={() => {
-              handleEdit();
-              setShowConfirmUpdate(false);
-            }}>Yes, Update</Button>
+            <Button variant="light" onClick={() => setShowConfirmUpdate(false)}>
+              Cancel
+            </Button>
+            <Button
+              variant="primary"
+              onClick={() => {
+                handleEdit();
+                setShowConfirmUpdate(false);
+              }}
+            >
+              Yes, Update
+            </Button>
           </>
         }
       >
         <p className="text-slate-600">
-          Are you sure you want to update <strong className="text-slate-900">{formData.category}</strong>?
+          Are you sure you want to update{" "}
+          <strong className="text-slate-900">{formData.category}</strong>?
         </p>
       </Modal>
 
@@ -235,13 +259,21 @@ const StockListCategoryScreen = () => {
         size="sm"
         footer={
           <>
-            <Button variant="light" onClick={() => setShowDeleteModal(false)}>Cancel</Button>
-            <Button variant="danger" onClick={handleDelete}>Delete</Button>
+            <Button variant="light" onClick={() => setShowDeleteModal(false)}>
+              Cancel
+            </Button>
+            <Button variant="danger" onClick={handleDelete}>
+              Delete
+            </Button>
           </>
         }
       >
         <p className="text-slate-600">
-          Are you sure you want to delete <strong className="text-slate-900">{selectedCategory.category}</strong>?
+          Are you sure you want to delete{" "}
+          <strong className="text-slate-900">
+            {selectedCategory.category}
+          </strong>
+          ?
         </p>
       </Modal>
     </div>
@@ -249,4 +281,3 @@ const StockListCategoryScreen = () => {
 };
 
 export default StockListCategoryScreen;
-

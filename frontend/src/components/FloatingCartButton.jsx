@@ -1,7 +1,7 @@
-import React from 'react';
-import { FaShoppingCart } from 'react-icons/fa';
-import { useSelector } from 'react-redux';
-import { Link } from 'react-router-dom';
+import React from "react";
+import { FaShoppingCart } from "react-icons/fa";
+import { useSelector } from "react-redux";
+import { Link } from "react-router-dom";
 
 const FloatingCartButton = () => {
   const { cartItems } = useSelector((state) => state.cart);

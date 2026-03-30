@@ -1,35 +1,34 @@
 // src/slices/copypcbApiSlice.js
 
-import { apiSlice } from './apiSlice'
-import { COPYPCBS_URL } from '../constants'
+import { apiSlice } from "./apiSlice";
+import { COPYPCBS_URL } from "../constants";
 
 export const copypcbApiSlice = apiSlice.injectEndpoints({
   overrideExisting: false,
   endpoints: (builder) => ({
-
     createcopyPCB: builder.mutation({
       query: (orderData) => ({
         url: COPYPCBS_URL,
-        method: 'POST',
+        method: "POST",
         body: orderData, // รับ object ตรง ๆ ไม่ต้องซ้อน
       }),
-      invalidatesTags: ['CopyPCB'],
+      invalidatesTags: ["CopyPCB"],
     }),
 
     createcopyPCBbyAdmin: builder.mutation({
       query: (orderData) => ({
         url: `${COPYPCBS_URL}/createcopypcbbyadmin`,
-        method: 'POST',
+        method: "POST",
         body: orderData,
       }),
-      invalidatesTags: ['CopyPCB'],
+      invalidatesTags: ["CopyPCB"],
     }),
 
     getAllcopyPCBs: builder.query({
       query: () => ({
         url: COPYPCBS_URL,
       }),
-      providesTags: ['CopyPCB'],
+      providesTags: ["CopyPCB"],
       keepUnusedDataFor: 5,
     }),
 
@@ -37,7 +36,7 @@ export const copypcbApiSlice = apiSlice.injectEndpoints({
       query: (id) => ({
         url: `${COPYPCBS_URL}/${id}`,
       }),
-      providesTags: ['CopyPCB'],
+      providesTags: ["CopyPCB"],
       keepUnusedDataFor: 5,
     }),
 
@@ -45,31 +44,31 @@ export const copypcbApiSlice = apiSlice.injectEndpoints({
       query: (id) => ({
         url: `${COPYPCBS_URL}/order/${id}`,
       }),
-      providesTags: ['CopyPCB'],
+      providesTags: ["CopyPCB"],
       keepUnusedDataFor: 5,
     }),
 
     updatecopyPCB: builder.mutation({
       query: ({ id, updatedData }) => ({
         url: `${COPYPCBS_URL}/${id}`,
-        method: 'PUT',
+        method: "PUT",
         body: updatedData,
       }),
-      invalidatesTags: ['CopyPCB'],
+      invalidatesTags: ["CopyPCB"],
     }),
 
     deletecopyPCB: builder.mutation({
       query: (id) => ({
         url: `${COPYPCBS_URL}/${id}`,
-        method: 'DELETE',
+        method: "DELETE",
       }),
-      invalidatesTags: ['CopyPCB'],
+      invalidatesTags: ["CopyPCB"],
     }),
 
     updateShippingRates: builder.mutation({
       query: (rateData) => ({
         url: `${COPYPCBS_URL}/shippingrates`,
-        method: 'PUT',
+        method: "PUT",
         body: rateData,
       }),
     }),
@@ -77,19 +76,19 @@ export const copypcbApiSlice = apiSlice.injectEndpoints({
     updateDeliverycopyPCB: builder.mutation({
       query: ({ pcborderId, transferedNumber }) => ({
         url: `${COPYPCBS_URL}/delivered/${pcborderId}`,
-        method: 'PUT',
+        method: "PUT",
         body: { transferedNumber },
       }),
-      invalidatesTags: ['CopyPCB'],
+      invalidatesTags: ["CopyPCB"],
     }),
 
     updatePCBManufacture: builder.mutation({
       query: ({ pcborderId, manufactureOrderNumber }) => ({
         url: `${COPYPCBS_URL}/${pcborderId}/pcbmanufacture`,
-        method: 'PUT',
+        method: "PUT",
         body: { manufactureOrderNumber },
       }),
-      invalidatesTags: ['CopyPCB'],
+      invalidatesTags: ["CopyPCB"],
     }),
 
     getShippingRates: builder.query({
@@ -103,7 +102,7 @@ export const copypcbApiSlice = apiSlice.injectEndpoints({
       query: (orderID) => ({
         url: `${COPYPCBS_URL}/byorderid/${orderID}`,
       }),
-      providesTags: ['CopyPCB'],
+      providesTags: ["CopyPCB"],
       keepUnusedDataFor: 5,
     }),
 
@@ -111,14 +110,14 @@ export const copypcbApiSlice = apiSlice.injectEndpoints({
       query: (userId) => ({
         url: `${COPYPCBS_URL}/user/${userId}`,
       }),
-      providesTags: ['CopyPCB'],
+      providesTags: ["CopyPCB"],
       keepUnusedDataFor: 5,
     }),
 
     uploadcopypcbZip: builder.mutation({
       query: (formData) => ({
         url: `${COPYPCBS_URL}/upload/upload-zip`,
-        method: 'POST',
+        method: "POST",
         body: formData,
       }),
     }),
@@ -126,13 +125,12 @@ export const copypcbApiSlice = apiSlice.injectEndpoints({
     uploadMultipleCopyPCBImages: builder.mutation({
       query: (formData) => ({
         url: `${COPYPCBS_URL}/upload/multiplecopypcbimages`,
-        method: 'POST',
+        method: "POST",
         body: formData,
       }),
     }),
-
   }),
-})
+});
 
 export const {
   useCreatecopyPCBMutation,
@@ -150,4 +148,4 @@ export const {
   useUploadcopypcbZipMutation,
   useUploadMultipleCopyPCBImagesMutation,
   useCreatecopyPCBbyAdminMutation,
-} = copypcbApiSlice
+} = copypcbApiSlice;

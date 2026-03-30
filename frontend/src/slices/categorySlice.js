@@ -1,15 +1,15 @@
-import { CATEGORYS_URL } from '../constants';
-import { apiSlice } from './apiSlice';
+import { CATEGORYS_URL } from "../constants";
+import { apiSlice } from "./apiSlice";
 
 export const categorysApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
     getCategorys: builder.query({
-      query: ({ keyword = '', pageNumber = 1 }) => ({
+      query: ({ keyword = "", pageNumber = 1 }) => ({
         url: CATEGORYS_URL,
         params: { keyword, pageNumber },
       }),
       keepUnusedDataFor: 5,
-      providesTags: ['Categorys'],
+      providesTags: ["Categorys"],
     }),
     getCategoryDetails: builder.query({
       query: (categoryId) => ({
@@ -20,31 +20,31 @@ export const categorysApiSlice = apiSlice.injectEndpoints({
     createCategory: builder.mutation({
       query: (data) => ({
         url: `${CATEGORYS_URL}`,
-        method: 'POST',
+        method: "POST",
         body: data,
       }),
-      invalidatesTags: ['Categorys'],
+      invalidatesTags: ["Categorys"],
     }),
     // Inside the categorysApiSlice
     updateCategory: builder.mutation({
       query: (data) => ({
         url: `${CATEGORYS_URL}/${data.categoryId}`, // Ensure categoryId is part of the URL
-        method: 'PUT',
+        method: "PUT",
         body: {
           categoryName: data.categoryName,
           categoryNameThai: data.categoryNameThai,
           categoryShortName: data.categoryShortName,
         },
       }),
-      invalidatesTags: ['Categorys'],
+      invalidatesTags: ["Categorys"],
     }),
 
     deleteCategory: builder.mutation({
       query: (categoryId) => ({
         url: `${CATEGORYS_URL}/${categoryId}`,
-        method: 'DELETE',
+        method: "DELETE",
       }),
-      invalidatesTags: ['Categorys'],
+      invalidatesTags: ["Categorys"],
     }),
   }),
 });

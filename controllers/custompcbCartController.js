@@ -1,5 +1,5 @@
 const asyncHandler = require('../middleware/asyncHandler')
-const { pool } = require('../config/db.js') 
+const { pool } = require('../config/db.js')
 
 // Utility: Generate timestamp string
 const getTimestamp = () => {
@@ -53,7 +53,7 @@ const getCustomCartPCBById = asyncHandler(async (req, res) => {
 
 // @desc    Fetch PCB Custom Cart orders by User ID
 const getCustomCartPCBByUserId = asyncHandler(async (req, res) => {
-  const user_id = req.params.userId || req.user?._id 
+  const user_id = req.params.userId || req.user?._id
 
   try {
     const [rows] = await pool.query('SELECT * FROM pcb_custom_carts WHERE user_id = ? ORDER BY created_at DESC', [user_id])
@@ -160,7 +160,7 @@ const updateCustomCartPCB = asyncHandler(async (req, res) => {
 
     const sql = `UPDATE pcb_custom_carts SET ${fields.join(', ')} WHERE id=?`
     await pool.query(sql, params)
-    
+
     res.status(200).json({ success: true, message: 'Order updated successfully' })
   } catch (error) {
     res.status(500).json({ success: false, message: error.message })
@@ -196,7 +196,7 @@ const updateStatusCustomCartPCBById = asyncHandler(async (req, res) => {
 
     values.push(id)
     const sql = `UPDATE pcb_custom_carts SET ${updateFields.join(', ')}, updated_at=NOW() WHERE id = ?`
-    
+
     await pool.query(sql, values)
     res.status(200).json({ success: true, message: 'Status updated' })
   } catch (error) {
@@ -207,7 +207,7 @@ const updateStatusCustomCartPCBById = asyncHandler(async (req, res) => {
 // @desc    Update Delivery Info
 const updateDeliveryCustomCartPCBById = asyncHandler(async (req, res) => {
   const { id } = req.params
-  const { transferedNumber } = req.body 
+  const { transferedNumber } = req.body
 
   try {
     const sql = `UPDATE pcb_custom_carts SET isDelivered=1, deliveryOn=NOW(), deliveryID=?, transferedNumber=? WHERE id=?`

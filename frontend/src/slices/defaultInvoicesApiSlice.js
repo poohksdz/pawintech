@@ -1,5 +1,5 @@
-import { DEFAULT_INVOICES_URL } from '../constants'
-import { apiSlice } from './apiSlice'
+import { DEFAULT_INVOICES_URL } from "../constants";
+import { apiSlice } from "./apiSlice";
 
 export const defaultInvoicesApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
@@ -9,7 +9,7 @@ export const defaultInvoicesApiSlice = apiSlice.injectEndpoints({
         params: { keyword, pageNumber },
       }),
       keepUnusedDataFor: 5,
-      providesTags: ['DefaultInvoices'],
+      providesTags: ["DefaultInvoices"],
     }),
     getDefaultInvoiceDetails: builder.query({
       query: (defaultInvoiceId) => ({
@@ -26,43 +26,43 @@ export const defaultInvoicesApiSlice = apiSlice.injectEndpoints({
     createDefaultInvoice: builder.mutation({
       query: (data) => ({
         url: `${DEFAULT_INVOICES_URL}`,
-        method: 'POST',
+        method: "POST",
         body: data,
       }),
-      invalidatesTags: ['defaultInvoice'],
+      invalidatesTags: ["defaultInvoice"],
     }),
     updateDefaultInvoice: builder.mutation({
       query: (data) => ({
         url: `${DEFAULT_INVOICES_URL}/${data.id}`,
-        method: 'PUT',
+        method: "PUT",
         body: data,
       }),
-      invalidatesTags: ['DefaultInvoices'],
+      invalidatesTags: ["DefaultInvoices"],
     }),
     updateUseingDefaultInvoice: builder.mutation({
       query: (data) => ({
         url: `${DEFAULT_INVOICES_URL}/${data.defaultInvoiceId}/use`,
-        method: 'PUT',
+        method: "PUT",
         body: data,
       }),
-      invalidatesTags: ['DefaultInvoices'],
+      invalidatesTags: ["DefaultInvoices"],
     }),
     deleteDefaultInvoice: builder.mutation({
       query: (defaultInvoiceId) => ({
         url: `${DEFAULT_INVOICES_URL}/${defaultInvoiceId}`,
-        method: 'DELETE',
+        method: "DELETE",
       }),
-      providesTags: ['defaultInvoice'],
+      providesTags: ["defaultInvoice"],
     }),
     uploadDefaultInvoiceImage: builder.mutation({
       query: (data) => ({
         url: `/api/defaultInvoiceImages`,
-        method: 'POST',
+        method: "POST",
         body: data,
       }),
     }),
   }),
-})
+});
 
 export const {
   useGetDefaultInvoicesQuery,
@@ -73,4 +73,4 @@ export const {
   useUpdateUseingDefaultInvoiceMutation,
   useDeleteDefaultInvoiceMutation,
   useUploadDefaultInvoiceImageMutation,
-} = defaultInvoicesApiSlice
+} = defaultInvoicesApiSlice;

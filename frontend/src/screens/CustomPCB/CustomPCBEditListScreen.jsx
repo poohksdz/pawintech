@@ -1,16 +1,29 @@
-import React, { useState } from 'react';
-import { useSelector } from 'react-redux';
-import Loader from '../../components/Loader';
-import Message from '../../components/Message'; 
-import { useGetAllCustomPCBsQuery, useDeleteCustomPCBMutation } from '../../slices/custompcbApiSlice';
-// ✅ แก้ไข: เพิ่ม Container เข้ามาในบรรทัดนี้แล้ว
-import { Table, Button, Row, Col, Modal, Badge, Card, Container } from 'react-bootstrap'; 
-import { FaEdit, FaTrash } from 'react-icons/fa';
-import { Link } from 'react-router-dom';
+import React, { useState } from "react";
+import { useSelector } from "react-redux";
+import Loader from "../../components/Loader";
+import Message from "../../components/Message";
+import {
+  useGetAllCustomPCBsQuery,
+  useDeleteCustomPCBMutation,
+} from "../../slices/custompcbApiSlice";
+//  แก้ไข: เพิ่ม Container เข้ามาในบรรทัดนี้แล้ว
+import {
+  Table,
+  Button,
+  Row,
+  Col,
+  Modal,
+  Badge,
+  Card,
+  Container,
+} from "react-bootstrap";
+import { FaEdit, FaTrash } from "react-icons/fa";
+import { Link } from "react-router-dom";
 
 const CustomPCBEditListScreen = () => {
   const { data, isLoading, error, refetch } = useGetAllCustomPCBsQuery();
-  const [deleteCustomPCB, { isLoading: loadingDelete }] = useDeleteCustomPCBMutation();
+  const [deleteCustomPCB, { isLoading: loadingDelete }] =
+    useDeleteCustomPCBMutation();
 
   const [showModal, setShowModal] = useState(false);
   const [selectedOrderId, setSelectedOrderId] = useState(null);
@@ -33,32 +46,33 @@ const CustomPCBEditListScreen = () => {
   const { language } = useSelector((state) => state.language);
   const translations = {
     en: {
-      CustomOrderListLbl: 'Custom PCB Order Management',
-      ErrorMessageLbl: 'No custom PCB orders found.',
-      projectIDLbl: 'Order ID',
-      projectnameLbl: 'Project Name',
-      QtyLbl: 'Qty',
-      TotalPriceLbl: 'Price (฿)',
-      DATELbl: 'Date',
-      EDITLbl: 'Actions',
-      ConfirmLbl: 'Confirm Delete',
-      CloseLbl: 'Cancel',
-      Areyousure: 'Confirm Deletion?',
-      Actioncannotbendone: 'This will permanently remove the order from the system.',
+      CustomOrderListLbl: "Custom PCB Order Management",
+      ErrorMessageLbl: "No custom PCB orders found.",
+      projectIDLbl: "Order ID",
+      projectnameLbl: "Project Name",
+      QtyLbl: "Qty",
+      TotalPriceLbl: "Price (฿)",
+      DATELbl: "Date",
+      EDITLbl: "Actions",
+      ConfirmLbl: "Confirm Delete",
+      CloseLbl: "Cancel",
+      Areyousure: "Confirm Deletion?",
+      Actioncannotbendone:
+        "This will permanently remove the order from the system.",
     },
     thai: {
-      CustomOrderListLbl: 'จัดการรายการสั่งทำ PCB',
-      ErrorMessageLbl: 'ไม่พบคำสั่งซื้อ PCB แบบกำหนดเอง',
-      projectIDLbl: 'รหัสสั่งซื้อ',
-      projectnameLbl: 'ชื่อโปรเจกต์',
-      QtyLbl: 'จำนวน',
-      TotalPriceLbl: 'ราคา (฿)',
-      DATELbl: 'วันที่',
-      EDITLbl: 'จัดการ',
-      ConfirmLbl: 'ยืนยันการลบ',
-      CloseLbl: 'ยกเลิก',
-      Areyousure: 'ยืนยันการลบข้อมูล?',
-      Actioncannotbendone: 'การกระทำนี้จะไม่สามารถกู้คืนข้อมูลกลับมาได้',
+      CustomOrderListLbl: "จัดการรายการสั่งทำ PCB",
+      ErrorMessageLbl: "ไม่พบคำสั่งซื้อ PCB แบบกำหนดเอง",
+      projectIDLbl: "รหัสสั่งซื้อ",
+      projectnameLbl: "ชื่อโปรเจกต์",
+      QtyLbl: "จำนวน",
+      TotalPriceLbl: "ราคา (฿)",
+      DATELbl: "วันที่",
+      EDITLbl: "จัดการ",
+      ConfirmLbl: "ยืนยันการลบ",
+      CloseLbl: "ยกเลิก",
+      Areyousure: "ยืนยันการลบข้อมูล?",
+      Actioncannotbendone: "การกระทำนี้จะไม่สามารถกู้คืนข้อมูลกลับมาได้",
     },
   };
 
@@ -76,16 +90,23 @@ const CustomPCBEditListScreen = () => {
           </h2>
         </Col>
         <Col xs="auto">
-           <Button variant="outline-primary" size="sm" onClick={() => refetch()} className="rounded-pill px-3 shadow-sm">
-             Refresh Data
-           </Button>
+          <Button
+            variant="outline-primary"
+            size="sm"
+            onClick={() => refetch()}
+            className="rounded-pill px-3 shadow-sm"
+          >
+            Refresh Data
+          </Button>
         </Col>
       </Row>
 
       {isLoading ? (
         <Loader />
       ) : error ? (
-        <Message variant="danger">{error?.data?.message || error.message}</Message>
+        <Message variant="danger">
+          {error?.data?.message || error.message}
+        </Message>
       ) : (
         <Card className="shadow-sm border-0 rounded-4 overflow-hidden">
           <Table hover responsive className="mb-0 align-middle">
@@ -119,7 +140,9 @@ const CustomPCBEditListScreen = () => {
                         ฿{parseFloat(order.confirmed_price).toLocaleString()}
                       </span>
                     ) : (
-                      <Badge bg="warning" text="dark" className="fw-normal">Waiting for Quote</Badge>
+                      <Badge bg="warning" text="dark" className="fw-normal">
+                        Waiting for Quote
+                      </Badge>
                     )}
                   </td>
                   <td className="text-muted small">
@@ -133,7 +156,8 @@ const CustomPCBEditListScreen = () => {
                         variant="primary"
                         className="btn-sm rounded-3 d-flex align-items-center px-3 shadow-sm"
                       >
-                        <FaEdit className="me-1" /> {language === 'thai' ? 'ตรวจงาน' : 'Review'}
+                        <FaEdit className="me-1" />{" "}
+                        {language === "thai" ? "ตรวจงาน" : "Review"}
                       </Button>
                       <Button
                         variant="outline-danger"
@@ -149,7 +173,7 @@ const CustomPCBEditListScreen = () => {
               ))}
             </tbody>
           </Table>
-          
+
           {(!data?.data || data.data.length === 0) && (
             <div className="text-center py-5">
               <p className="text-muted mb-0">{t.ErrorMessageLbl}</p>
@@ -167,10 +191,18 @@ const CustomPCBEditListScreen = () => {
           <h4 className="fw-bold">{t.Areyousure}</h4>
           <p className="text-muted">{t.Actioncannotbendone}</p>
           <div className="d-flex justify-content-center gap-2 mt-4">
-            <Button variant="light" className="px-4 rounded-pill" onClick={() => setShowModal(false)}>
+            <Button
+              variant="light"
+              className="px-4 rounded-pill"
+              onClick={() => setShowModal(false)}
+            >
               {t.CloseLbl}
             </Button>
-            <Button variant="danger" className="px-4 rounded-pill shadow-sm" onClick={handleConfirmDelete}>
+            <Button
+              variant="danger"
+              className="px-4 rounded-pill shadow-sm"
+              onClick={handleConfirmDelete}
+            >
               {t.ConfirmLbl}
             </Button>
           </div>

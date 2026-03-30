@@ -1,56 +1,56 @@
-import { createSlice } from '@reduxjs/toolkit'
+import { createSlice } from "@reduxjs/toolkit";
 
 // Function to set a cookie
 const setCookie = (name, value, days) => {
-  const date = new Date()
-  date.setTime(date.getTime() + days * 24 * 60 * 60 * 1000)
-  const expires = 'expires=' + date.toUTCString()
+  const date = new Date();
+  date.setTime(date.getTime() + days * 24 * 60 * 60 * 1000);
+  const expires = "expires=" + date.toUTCString();
   document.cookie =
-    name + '=' + encodeURIComponent(value) + ';' + expires + ';path=/'
-}
+    name + "=" + encodeURIComponent(value) + ";" + expires + ";path=/";
+};
 
 // Function to get a cookie value
 const getCookie = (name) => {
-  let decodedCookies = decodeURIComponent(document.cookie)
-  let cookies = decodedCookies.split(';')
+  let decodedCookies = decodeURIComponent(document.cookie);
+  let cookies = decodedCookies.split(";");
   for (let cookie of cookies) {
-    let [key, value] = cookie.trim().split('=')
-    if (key === name) return value
+    let [key, value] = cookie.trim().split("=");
+    if (key === name) return value;
   }
-  return null
-}
+  return null;
+};
 
 const initialState = {
-  userInfo: getCookie('userInfo') ? JSON.parse(getCookie('userInfo')) : null,
-}
+  userInfo: getCookie("userInfo") ? JSON.parse(getCookie("userInfo")) : null,
+};
 
 const authSlice = createSlice({
-  name: 'auth',
+  name: "auth",
   initialState,
   reducers: {
     setCredentials: (state, action) => {
-      state.userInfo = action.payload
-      setCookie('userInfo', JSON.stringify(action.payload), 7) // Store in cookie for 7 days
+      state.userInfo = action.payload;
+      setCookie("userInfo", JSON.stringify(action.payload), 7); // Store in cookie for 7 days
     },
     logout: (state, action) => {
-      state.userInfo = null
-      state.cart = null
+      state.userInfo = null;
+      state.cart = null;
       // Remove 'userInfo' and 'cart' cookies
       document.cookie =
-        'userInfo=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/'
-      document.cookie = 'cart=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/'
+        "userInfo=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/";
+      document.cookie = "cart=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/";
       // Clear any other cookies if needed
 
       // Clear the rest of the state
-      localStorage.clear()
+      localStorage.clear();
       // window.location.reload();
     },
   },
-})
+});
 
-export const { setCredentials, logout } = authSlice.actions
+export const { setCredentials, logout } = authSlice.actions;
 
-export default authSlice.reducer
+export default authSlice.reducer;
 
 // import { createSlice } from '@reduxjs/toolkit'
 

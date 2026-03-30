@@ -1,5 +1,5 @@
-import { apiSlice } from './apiSlice'
-import { STOCK_CATEGORIES_URL } from '../constants'
+import { apiSlice } from "./apiSlice";
+import { STOCK_CATEGORIES_URL } from "../constants";
 
 export const stockCategoryApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
@@ -7,39 +7,39 @@ export const stockCategoryApiSlice = apiSlice.injectEndpoints({
     getStockCategories: builder.query({
       query: () => ({
         url: STOCK_CATEGORIES_URL,
-        method: 'GET',
+        method: "GET",
       }),
-      providesTags: ['StockCategory'],
+      providesTags: ["StockCategory"],
     }),
 
     // GET one category details
     getStockCategoryDetails: builder.query({
       query: (id) => ({
         url: `${STOCK_CATEGORIES_URL}/${id}`,
-        method: 'GET',
+        method: "GET",
       }),
-      providesTags: (result, error, id) => [{ type: 'StockCategory', id }],
+      providesTags: (result, error, id) => [{ type: "StockCategory", id }],
     }),
 
     // CREATE new category
     createStockCategory: builder.mutation({
       query: (newData) => ({
         url: STOCK_CATEGORIES_URL,
-        method: 'POST',
+        method: "POST",
         body: newData,
       }),
-      invalidatesTags: ['StockCategory'],
+      invalidatesTags: ["StockCategory"],
     }),
 
     // UPDATE category
     updateStockCategory: builder.mutation({
       query: ({ id, ...updatedData }) => ({
         url: `${STOCK_CATEGORIES_URL}/${id}`,
-        method: 'PUT',
+        method: "PUT",
         body: updatedData,
       }),
       invalidatesTags: (result, error, { id }) => [
-        { type: 'StockCategory', id },
+        { type: "StockCategory", id },
       ],
     }),
 
@@ -47,12 +47,12 @@ export const stockCategoryApiSlice = apiSlice.injectEndpoints({
     deleteStockCategory: builder.mutation({
       query: (id) => ({
         url: `${STOCK_CATEGORIES_URL}/${id}`,
-        method: 'DELETE',
+        method: "DELETE",
       }),
-      invalidatesTags: ['StockCategory'],
+      invalidatesTags: ["StockCategory"],
     }),
   }),
-})
+});
 
 export const {
   useGetStockCategoriesQuery,
@@ -60,4 +60,4 @@ export const {
   useCreateStockCategoryMutation,
   useUpdateStockCategoryMutation,
   useDeleteStockCategoryMutation,
-} = stockCategoryApiSlice
+} = stockCategoryApiSlice;

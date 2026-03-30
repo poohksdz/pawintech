@@ -6,7 +6,10 @@ import { Form, Button, Alert } from "react-bootstrap";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
 import { toast } from "react-toastify";
-import { useCreateBlogMutation, useUploadBlogImageMutation } from "../../slices/blogsApiSlice";
+import {
+  useCreateBlogMutation,
+  useUploadBlogImageMutation,
+} from "../../slices/blogsApiSlice";
 import Loader from "../../components/Loader";
 import FormContainer from "../../components/FormContainer";
 
@@ -21,7 +24,8 @@ const BlogCreateScreen = () => {
 
   const navigate = useNavigate();
   const [createBlog, { isLoading: isCreating }] = useCreateBlogMutation();
-  const [uploadBlogImage, { isLoading: isUploading }] = useUploadBlogImageMutation();
+  const [uploadBlogImage, { isLoading: isUploading }] =
+    useUploadBlogImageMutation();
 
   // ** Image Upload Handler **
   const uploadBlogImageHandler = async (e) => {
@@ -38,63 +42,66 @@ const BlogCreateScreen = () => {
   };
 
   // ** ReactQuill Modules for Rich Text Editing **
-  const modules = useMemo(() => ({
-    toolbar: {
-      container: [
-        [{ header: [1, 2, 3, false] }, { font: [] }],
-        [{ color: [] }, { background: [] }],
-        ["bold", "italic", "underline"],
-        [{ list: "ordered" }, { list: "bullet" }],
-        ["link", "image", "video"],
-        [{ script: "sub" }, { script: "super" }],
-      ],
-      handlers: {
-        image: function () {
-          const input = document.createElement("input");
-          input.setAttribute("type", "file");
-          input.setAttribute("accept", "image/*");
-          input.click();
+  const modules = useMemo(
+    () => ({
+      toolbar: {
+        container: [
+          [{ header: [1, 2, 3, false] }, { font: [] }],
+          [{ color: [] }, { background: [] }],
+          ["bold", "italic", "underline"],
+          [{ list: "ordered" }, { list: "bullet" }],
+          ["link", "image", "video"],
+          [{ script: "sub" }, { script: "super" }],
+        ],
+        handlers: {
+          image: function () {
+            const input = document.createElement("input");
+            input.setAttribute("type", "file");
+            input.setAttribute("accept", "image/*");
+            input.click();
 
-          input.onchange = async () => {
-            const file = input.files[0];
-            if (file) {
-              const formData = new FormData();
-              formData.append("image", file);
-              try {
-                const res = await uploadBlogImage(formData).unwrap();
+            input.onchange = async () => {
+              const file = input.files[0];
+              if (file) {
+                const formData = new FormData();
+                formData.append("image", file);
+                try {
+                  const res = await uploadBlogImage(formData).unwrap();
+                  const editor = this.quill;
+                  const range = editor.getSelection();
+                  editor.insertEmbed(range.index, "image", res.image);
+                } catch (err) {
+                  toast.error("Image upload failed");
+                }
+              }
+            };
+          },
+
+          video: function () {
+            const url = prompt("Enter YouTube URL:");
+            if (url) {
+              let videoId = null;
+              if (url.includes("watch?v=")) {
+                videoId = url.split("v=")[1]?.split("&")[0];
+              } else if (url.includes("shorts/")) {
+                videoId = url.split("shorts/")[1]?.split("?")[0];
+              }
+
+              if (videoId) {
+                const videoUrl = `https://www.youtube.com/embed/${videoId}`;
                 const editor = this.quill;
                 const range = editor.getSelection();
-                editor.insertEmbed(range.index, "image", res.image);
-              } catch (err) {
-                toast.error("Image upload failed");
+                editor.insertEmbed(range.index, "video", videoUrl);
+              } else {
+                alert("Invalid YouTube URL. Please enter a valid link.");
               }
             }
-          };
-        },
-
-        video: function () {
-          const url = prompt("Enter YouTube URL:");
-          if (url) {
-            let videoId = null;
-            if (url.includes("watch?v=")) {
-              videoId = url.split("v=")[1]?.split("&")[0];
-            } else if (url.includes("shorts/")) {
-              videoId = url.split("shorts/")[1]?.split("?")[0];
-            }
-
-            if (videoId) {
-              const videoUrl = `https://www.youtube.com/embed/${videoId}`;
-              const editor = this.quill;
-              const range = editor.getSelection();
-              editor.insertEmbed(range.index, "video", videoUrl);
-            } else {
-              alert("Invalid YouTube URL. Please enter a valid link.");
-            }
-          }
+          },
         },
       },
-    },
-  }), [uploadBlogImage]); // Added uploadBlogImage as dependency
+    }),
+    [uploadBlogImage],
+  ); // Added uploadBlogImage as dependency
 
   // ** Handle Blog Creation **
   const handleSubmit = async (e) => {
@@ -103,7 +110,13 @@ const BlogCreateScreen = () => {
     setError("");
 
     try {
-      await createBlog({ title, content, titleThai, contentThai, image }).unwrap();
+      await createBlog({
+        title,
+        content,
+        titleThai,
+        contentThai,
+        image,
+      }).unwrap();
       toast.success("Blog created successfully!");
       navigate("/admin/bloglist"); // Redirect to blog list
     } catch (err) {
@@ -160,7 +173,11 @@ const BlogCreateScreen = () => {
 
   return (
     <>
-      <Link to="/admin/bloglist" className="btn btn-light my-3" style={{ color: "#303d4a" }}>
+      <Link
+        to="/admin/bloglist"
+        className="btn btn-light my-3"
+        style={{ color: "#303d4a" }}
+      >
         {t.goBackLbl}
       </Link>
       <FormContainer>
@@ -169,22 +186,42 @@ const BlogCreateScreen = () => {
         <Form onSubmit={handleSubmit}>
           <Form.Group className="mb-3">
             <Form.Label>{t.titleLbl}</Form.Label>
-            <Form.Control type="text" value={title} onChange={(e) => setTitle(e.target.value)} required placeholder={t.enterTitleLbl} />
+            <Form.Control
+              type="text"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              required
+              placeholder={t.enterTitleLbl}
+            />
           </Form.Group>
 
           <Form.Group className="mb-3">
             <Form.Label>{t.contentLbl}</Form.Label>
-            <ReactQuill value={content} onChange={setContent} modules={modules} />
+            <ReactQuill
+              value={content}
+              onChange={setContent}
+              modules={modules}
+            />
           </Form.Group>
 
           <Form.Group className="mb-3">
             <Form.Label>{t.titleThaiLbl}</Form.Label>
-            <Form.Control type="text" value={titleThai} onChange={(e) => setTitleThai(e.target.value)} required placeholder={t.enterTitleThaiLbl} />
+            <Form.Control
+              type="text"
+              value={titleThai}
+              onChange={(e) => setTitleThai(e.target.value)}
+              required
+              placeholder={t.enterTitleThaiLbl}
+            />
           </Form.Group>
 
           <Form.Group className="mb-3">
             <Form.Label>{t.contentThaiLbl}</Form.Label>
-            <ReactQuill value={contentThai} onChange={setContentThai} modules={modules} />
+            <ReactQuill
+              value={contentThai}
+              onChange={setContentThai}
+              modules={modules}
+            />
           </Form.Group>
 
           <Form.Group controlId="image" className="my-3">

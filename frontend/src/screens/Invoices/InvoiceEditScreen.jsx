@@ -1,46 +1,61 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate, useParams, Link } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
-import { toast } from 'react-toastify';
+import React, { useState, useEffect } from "react";
+import { useNavigate, useParams, Link } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
+import { toast } from "react-toastify";
 import {
-  FaArrowLeft, FaSave, FaEdit, FaFileInvoiceDollar,
-  FaRegBuilding, FaListAlt, FaHashtag, FaTag, FaMoneyBillWave, FaCalendarAlt
-} from 'react-icons/fa';
+  FaArrowLeft,
+  FaSave,
+  FaEdit,
+  FaFileInvoiceDollar,
+  FaRegBuilding,
+  FaListAlt,
+  FaHashtag,
+  FaTag,
+  FaMoneyBillWave,
+  FaCalendarAlt,
+} from "react-icons/fa";
 import { PiReceiptFill } from "react-icons/pi";
-import { useGetInvoiceDetailsQuery, useUpdateInvoiceMutation } from '../../slices/invoicesApiSlice';
-import Loader from '../../components/Loader';
-import Message from '../../components/Message';
+import {
+  useGetInvoiceDetailsQuery,
+  useUpdateInvoiceMutation,
+} from "../../slices/invoicesApiSlice";
+import Loader from "../../components/Loader";
+import Message from "../../components/Message";
 
 const InvoiceEditScreen = () => {
   const { id: invoiceId } = useParams();
   const navigate = useNavigate();
 
-  const { data: invoice, isLoading, error } = useGetInvoiceDetailsQuery(invoiceId);
+  const {
+    data: invoice,
+    isLoading,
+    error,
+  } = useGetInvoiceDetailsQuery(invoiceId);
   const [updateInvoice, { isLoading: isUpdating }] = useUpdateInvoiceMutation();
 
   const [formData, setFormData] = useState({
-    branch_name: '',
-    description: '',
-    qty: '',
-    unit: '',
-    unit_price: '',
-    grand_total: '',
-    customerName: '',
-    date: '',
+    branch_name: "",
+    description: "",
+    qty: "",
+    unit: "",
+    unit_price: "",
+    grand_total: "",
+    customerName: "",
+    date: "",
     userId: 1,
   });
 
   useEffect(() => {
     if (invoice) {
       setFormData({
-        branch_name: invoice.branch_name || '',
-        description: invoice.description || '',
-        qty: invoice.qty || '',
-        unit: invoice.unit || '',
-        unit_price: invoice.unit_price || '',
-        grand_total: invoice.grand_total || '',
-        customerName: invoice.customerName || '',
-        date: invoice.date ? invoice.date.split('T')[0] : '', // Adjust date format if needed
+        branch_name: invoice.branch_name || "",
+        description: invoice.description || "",
+        qty: invoice.qty || "",
+        unit: invoice.unit || "",
+        unit_price: invoice.unit_price || "",
+        grand_total: invoice.grand_total || "",
+        customerName: invoice.customerName || "",
+        date: invoice.date ? invoice.date.split("T")[0] : "", // Adjust date format if needed
         userId: invoice.userId || 1,
       });
     }
@@ -49,9 +64,9 @@ const InvoiceEditScreen = () => {
   const handleChange = (field, value) => {
     const updated = { ...formData, [field]: value };
 
-    if (field === 'qty' || field === 'unit_price') {
-      const q = field === 'qty' ? value : formData.qty;
-      const p = field === 'unit_price' ? value : formData.unit_price;
+    if (field === "qty" || field === "unit_price") {
+      const q = field === "qty" ? value : formData.qty;
+      const p = field === "unit_price" ? value : formData.unit_price;
       if (q && p) {
         updated.grand_total = (parseFloat(q) * parseFloat(p)).toFixed(2);
       }
@@ -64,14 +79,23 @@ const InvoiceEditScreen = () => {
     e.preventDefault();
     try {
       await updateInvoice({ InvoiceId: invoiceId, ...formData }).unwrap();
-      toast.success('Invoice updated successfully');
-      navigate('/admin/invoicelist');
+      toast.success("Invoice updated successfully");
+      navigate("/admin/invoicelist");
     } catch (err) {
-      toast.error(err?.data?.message || 'Failed to update invoice');
+      toast.error(err?.data?.message || "Failed to update invoice");
     }
   };
 
-  const InputField = ({ label, icon: Icon, value, onChange, type = "text", placeholder = "", required = true, step = "any" }) => (
+  const InputField = ({
+    label,
+    icon: Icon,
+    value,
+    onChange,
+    type = "text",
+    placeholder = "",
+    required = true,
+    step = "any",
+  }) => (
     <div className="space-y-2">
       <label className="flex items-center gap-2 text-[11px] font-black text-slate-500 uppercase tracking-[0.2em] ml-1">
         <Icon size={12} className="text-slate-400" />
@@ -91,23 +115,31 @@ const InvoiceEditScreen = () => {
     </div>
   );
 
-  if (isLoading) return (
-    <div className="flex items-center justify-center min-vh-100 bg-slate-50/50">
-      <Loader />
-    </div>
-  );
+  if (isLoading)
+    return (
+      <div className="flex items-center justify-center min-vh-100 bg-slate-50/50">
+        <Loader />
+      </div>
+    );
 
-  if (error) return (
-    <div className="max-w-4xl mx-auto p-8 pt-24">
-      <Message variant="danger">{error?.data?.message || error.message}</Message>
-      <Link to="/admin/invoicelist" className="text-indigo-600 font-bold mt-4 inline-block">Back to List</Link>
-    </div>
-  );
+  if (error)
+    return (
+      <div className="max-w-4xl mx-auto p-8 pt-24">
+        <Message variant="danger">
+          {error?.data?.message || error.message}
+        </Message>
+        <Link
+          to="/admin/invoicelist"
+          className="text-indigo-600 font-bold mt-4 inline-block"
+        >
+          Back to List
+        </Link>
+      </div>
+    );
 
   return (
     <div className="min-h-screen bg-[#f8fafc] pb-20 pt-6 px-4 md:px-8 font-prompt">
       <div className="max-w-4xl mx-auto">
-
         {/* Back Navigation */}
         <Link
           to="/admin/invoicelist"
@@ -128,8 +160,13 @@ const InvoiceEditScreen = () => {
           <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-slate-900 text-white shadow-lg mb-2">
             <FaEdit size={20} />
           </div>
-          <h1 className="text-3xl font-black text-slate-900 tracking-tight">Edit Invoice</h1>
-          <p className="text-slate-500 font-medium">Update details for invoice <span className="text-indigo-600">#{invoice?.invoice_id}</span></p>
+          <h1 className="text-3xl font-black text-slate-900 tracking-tight">
+            Edit Invoice
+          </h1>
+          <p className="text-slate-500 font-medium">
+            Update details for invoice{" "}
+            <span className="text-indigo-600">#{invoice?.invoice_id}</span>
+          </p>
         </motion.div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -139,11 +176,12 @@ const InvoiceEditScreen = () => {
             className="bg-white rounded-[2.5rem] border border-slate-200 shadow-xl shadow-slate-200/40 p-8 md:p-12"
           >
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-
               {/* Basic Info Section */}
               <div className="space-y-8">
                 <h2 className="text-lg font-black text-slate-900 flex items-center gap-3">
-                  <span className="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-xs">01</span>
+                  <span className="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-xs">
+                    01
+                  </span>
                   General Information
                 </h2>
 
@@ -151,7 +189,7 @@ const InvoiceEditScreen = () => {
                   label="Branch Name"
                   icon={FaRegBuilding}
                   value={formData.branch_name}
-                  onChange={(val) => handleChange('branch_name', val)}
+                  onChange={(val) => handleChange("branch_name", val)}
                   placeholder="e.g. Bangkok Main Branch"
                 />
 
@@ -159,7 +197,7 @@ const InvoiceEditScreen = () => {
                   label="Customer Name"
                   icon={FaFileInvoiceDollar}
                   value={formData.customerName}
-                  onChange={(val) => handleChange('customerName', val)}
+                  onChange={(val) => handleChange("customerName", val)}
                   placeholder="Client or Company name"
                 />
 
@@ -170,7 +208,9 @@ const InvoiceEditScreen = () => {
                   </label>
                   <textarea
                     value={formData.description}
-                    onChange={(e) => handleChange('description', e.target.value)}
+                    onChange={(e) =>
+                      handleChange("description", e.target.value)
+                    }
                     placeholder="Provide details about the service or product..."
                     rows="4"
                     className="w-full px-5 py-4 bg-white border border-slate-200 rounded-2xl focus:outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all font-medium text-slate-700 shadow-sm"
@@ -181,7 +221,9 @@ const InvoiceEditScreen = () => {
               {/* Pricing & Details Section */}
               <div className="space-y-8">
                 <h2 className="text-lg font-black text-slate-900 flex items-center gap-3">
-                  <span className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-xs">02</span>
+                  <span className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-xs">
+                    02
+                  </span>
                   Billing Details
                 </h2>
 
@@ -191,14 +233,14 @@ const InvoiceEditScreen = () => {
                     icon={FaHashtag}
                     type="number"
                     value={formData.qty}
-                    onChange={(val) => handleChange('qty', val)}
+                    onChange={(val) => handleChange("qty", val)}
                     placeholder="0"
                   />
                   <InputField
                     label="Unit"
                     icon={FaTag}
                     value={formData.unit}
-                    onChange={(val) => handleChange('unit', val)}
+                    onChange={(val) => handleChange("unit", val)}
                     placeholder="pcs/set"
                   />
                 </div>
@@ -208,7 +250,7 @@ const InvoiceEditScreen = () => {
                   icon={FaMoneyBillWave}
                   type="number"
                   value={formData.unit_price}
-                  onChange={(val) => handleChange('unit_price', val)}
+                  onChange={(val) => handleChange("unit_price", val)}
                   placeholder="0.00"
                 />
 
@@ -218,7 +260,7 @@ const InvoiceEditScreen = () => {
                     icon={FaMoneyBillWave}
                     type="number"
                     value={formData.grand_total}
-                    onChange={(val) => handleChange('grand_total', val)}
+                    onChange={(val) => handleChange("grand_total", val)}
                     placeholder="0.00"
                   />
                 </div>
@@ -228,10 +270,9 @@ const InvoiceEditScreen = () => {
                   icon={FaCalendarAlt}
                   type="date"
                   value={formData.date}
-                  onChange={(val) => handleChange('date', val)}
+                  onChange={(val) => handleChange("date", val)}
                 />
               </div>
-
             </div>
 
             <div className="mt-12 pt-8 border-t border-slate-100 flex flex-col md:flex-row gap-4 items-center justify-end">
@@ -246,12 +287,19 @@ const InvoiceEditScreen = () => {
                 disabled={isUpdating}
                 className="w-full md:w-auto px-10 py-4 bg-slate-900 hover:bg-emerald-600 text-white rounded-2xl font-black shadow-xl shadow-slate-200 hover:shadow-emerald-200 transition-all active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2"
               >
-                {isUpdating ? <><Loader size="sm" /> Saving...</> : <><FaSave /> Save Changes</>}
+                {isUpdating ? (
+                  <>
+                    <Loader size="sm" /> Saving...
+                  </>
+                ) : (
+                  <>
+                    <FaSave /> Save Changes
+                  </>
+                )}
               </button>
             </div>
           </motion.div>
         </form>
-
       </div>
 
       <style>{`

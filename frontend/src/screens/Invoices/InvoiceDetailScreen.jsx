@@ -1,4 +1,4 @@
-// import React, { useRef } from "react"; 
+// import React, { useRef } from "react";
 // import { useSelector } from 'react-redux';
 // import jsPDF from "jspdf";
 // import html2canvas from "html2canvas";
@@ -6,7 +6,7 @@
 // import { useGetInvoicesByInvoiceIdQuery } from '../../slices/invoicesApiSlice';
 
 // const InvoiceDetailScreen = () => {
-//   const componentRef = useRef(); 
+//   const componentRef = useRef();
 //   const invoiceId = 1;
 //   const { data: defaultData, isLoading: defaultLoading, error: defaultError } = useGetDefaultInvoiceDetailsQuery(1);
 //   const { data: invoicesData, isLoading: invoicesLoading, error: invoicesError } = useGetInvoicesByInvoiceIdQuery(invoiceId);
@@ -91,9 +91,9 @@
 //             <div>
 //               <p>
 //               <strong>เลขที่:</strong> {" "} <br />
-//               <strong>วันที่:</strong>{" "} <br /> 
+//               <strong>วันที่:</strong>{" "} <br />
 //               <strong>ยืนราคาภายใน:</strong>  <br />
-//               <strong>จำนวนวันเคดิต:</strong>   <br /> 
+//               <strong>จำนวนวันเคดิต:</strong>   <br />
 //               </p>
 //             </div>
 //           </div>
@@ -239,38 +239,37 @@
 
 // export default InvoiceDetailScreen;
 
-
-import React from 'react'
-import { Container } from 'react-bootstrap';
-import { useSelector } from 'react-redux';
+import React from "react";
+import { Container } from "react-bootstrap";
+import { useSelector } from "react-redux";
 
 const InvoiceDetailScreen = () => {
   const { language } = useSelector((state) => state.language);
 
   const translations = {
     en: {
-      title: '🚧 This feature is still under construction.',
+      title: "🚧 This feature is still under construction.",
       quote: '"We’re building this shared journey — thanks for your patience!"',
     },
     thai: {
-      title: '🚧 ฟีเจอร์นี้ยังอยู่ระหว่างการพัฒนา',
+      title: "🚧 ฟีเจอร์นี้ยังอยู่ระหว่างการพัฒนา",
       quote: '"เรากำลังสร้างฟีเจอร์นี้เพื่อการใช้งานร่วมกัน ขอบคุณที่รอคอย!"',
     },
   };
 
   const t = translations[language] || translations.en;
-  
-    return (
-      <Container
-        className="d-flex justify-content-center align-items-center text-center"
-        style={{ height: '80vh' }}
-      >
-        <div>
-          <h4 className="text-secondary">{t.title}</h4>
-          <p className="text-muted mt-3">{t.quote}</p>
-        </div>
-      </Container>
-    );
-  };
 
-export default InvoiceDetailScreen
+  return (
+    <Container
+      className="d-flex justify-content-center align-items-center text-center"
+      style={{ height: "80vh" }}
+    >
+      <div>
+        <h4 className="text-secondary">{t.title}</h4>
+        <p className="text-muted mt-3">{t.quote}</p>
+      </div>
+    </Container>
+  );
+};
+
+export default InvoiceDetailScreen;

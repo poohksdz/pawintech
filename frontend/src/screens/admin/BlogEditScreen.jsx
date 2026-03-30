@@ -1,27 +1,33 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { useSelector } from 'react-redux';
+import { useSelector } from "react-redux";
 import { Link } from "react-router-dom";
 import { Form, Button, Alert } from "react-bootstrap";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
 import { toast } from "react-toastify";
-import { useGetBlogDetailsQuery, useUpdateBlogMutation, useUploadBlogImageMutation } from "../../slices/blogsApiSlice"; 
+import {
+  useGetBlogDetailsQuery,
+  useUpdateBlogMutation,
+  useUploadBlogImageMutation,
+} from "../../slices/blogsApiSlice";
 import Loader from "../../components/Loader";
-import FormContainer from '../../components/FormContainer';
+import FormContainer from "../../components/FormContainer";
 
 const BlogEditScreen = () => {
-  const { id: blogId } = useParams(); 
+  const { id: blogId } = useParams();
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
-  const [titleThai, setTitleThai] = useState(""); 
+  const [titleThai, setTitleThai] = useState("");
   const [contentThai, setContentThai] = useState("");
-  const [image, setImage] = useState(""); 
+  const [image, setImage] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const { data: blog, isLoading: isBlogLoading } = useGetBlogDetailsQuery(blogId);
-  const [uploadBlogImage, { isLoading: isImageUploading }] = useUploadBlogImageMutation();
+  const { data: blog, isLoading: isBlogLoading } =
+    useGetBlogDetailsQuery(blogId);
+  const [uploadBlogImage, { isLoading: isImageUploading }] =
+    useUploadBlogImageMutation();
   const [updateBlog, { isLoading: isUpdatingPost }] = useUpdateBlogMutation();
   const navigate = useNavigate();
 
@@ -32,86 +38,89 @@ const BlogEditScreen = () => {
     try {
       const res = await uploadBlogImage(formData).unwrap();
       toast.success(res.message);
-      setImage(res.image); 
+      setImage(res.image);
     } catch (err) {
       toast.error(err?.data?.message || err.error);
     }
   };
 
-  const modules = useMemo(() => ({
-    toolbar: {
-      container: [
-        [{ header: [1, 2, 3, false] },{ font: [] }], 
-        [{ color: [] }, { background: [] }], 
-        ["bold", "italic", "underline"], 
-        [{ list: "ordered" }, { list: "bullet" }], 
-        ["link", "image", "video"], 
-        [{ script: "sub" }, { script: "super" }], 
-      ],
-      handlers: {
-        image: function () {
-          const input = document.createElement("input");
-          input.setAttribute("type", "file");
-          input.setAttribute("accept", "image/*");
-          input.click();
+  const modules = useMemo(
+    () => ({
+      toolbar: {
+        container: [
+          [{ header: [1, 2, 3, false] }, { font: [] }],
+          [{ color: [] }, { background: [] }],
+          ["bold", "italic", "underline"],
+          [{ list: "ordered" }, { list: "bullet" }],
+          ["link", "image", "video"],
+          [{ script: "sub" }, { script: "super" }],
+        ],
+        handlers: {
+          image: function () {
+            const input = document.createElement("input");
+            input.setAttribute("type", "file");
+            input.setAttribute("accept", "image/*");
+            input.click();
 
-          input.onchange = async () => {
-            const file = input.files[0];
-            if (file) {
-              const formData = new FormData();
-              formData.append("image", file);
-              try {
-                const res = await uploadBlogImage(formData).unwrap();
+            input.onchange = async () => {
+              const file = input.files[0];
+              if (file) {
+                const formData = new FormData();
+                formData.append("image", file);
+                try {
+                  const res = await uploadBlogImage(formData).unwrap();
+                  const editor = this.quill;
+                  const range = editor.getSelection();
+                  editor.insertEmbed(range.index, "image", res.image);
+                } catch (err) {
+                  toast.error("Image upload failed");
+                }
+              }
+            };
+          },
+          video: function () {
+            const url = prompt("Enter YouTube URL:");
+            if (url) {
+              let videoId = null;
+              if (url.includes("watch?v=")) {
+                videoId = url.split("v=")[1]?.split("&")[0];
+              } else if (url.includes("shorts/")) {
+                videoId = url.split("shorts/")[1]?.split("?")[0];
+              }
+              if (videoId) {
+                const videoUrl = `https://www.youtube.com/embed/${videoId}`;
                 const editor = this.quill;
                 const range = editor.getSelection();
-                editor.insertEmbed(range.index, "image", res.image); 
-              } catch (err) {
-                toast.error("Image upload failed");
+                editor.insertEmbed(range.index, "video", videoUrl);
+              } else {
+                alert("Invalid YouTube URL. Please enter a valid link.");
               }
             }
-          }; 
+          },
         },
-        video: function () {
-          const url = prompt("Enter YouTube URL:");
-          if (url) {
-            let videoId = null;
-            if (url.includes("watch?v=")) {
-              videoId = url.split("v=")[1]?.split("&")[0]; 
-            } else if (url.includes("shorts/")) {
-              videoId = url.split("shorts/")[1]?.split("?")[0]; 
-            }
-            if (videoId) {
-              const videoUrl = `https://www.youtube.com/embed/${videoId}`;
-              const editor = this.quill;
-              const range = editor.getSelection();
-              editor.insertEmbed(range.index, "video", videoUrl);
-            } else {
-              alert("Invalid YouTube URL. Please enter a valid link.");
-            }
-          }
-        }        
       },
-    },
-  }), [uploadBlogImage]); 
+    }),
+    [uploadBlogImage],
+  );
 
   // --- FIXED: handleSubmit as an async function ---
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError("");
- 
+
     try {
       await updateBlog({
-        blogId, 
+        blogId,
         title,
         content,
         titleThai,
         contentThai,
-        image, 
+        image,
       }).unwrap();
 
       toast.success("Post updated!");
-      navigate("/admin/bloglist"); 
+      navigate("/admin/bloglist");
     } catch (err) {
       setError("Failed to update post. Please try again.");
       console.error("Error updating post:", err);
@@ -123,38 +132,38 @@ const BlogEditScreen = () => {
 
   const translations = {
     en: {
-      goBackLbl: 'Go Back',
-      editBlogLbl: 'Edit Blog Post',
-      titleLbl: 'Title in English',
-      enterTitleLbl: 'Enter title in English',
-      contentLbl: 'Content in English',
-      enterContentLbl: 'Enter content in English',
-      titleThaiLbl: 'Title in Thai',
-      enterTitleThaiLbl: 'Enter title in Thai',
-      contentThaiLbl: 'Content in Thai',
-      enterContentThaiLbl: 'Enter content in Thai',
-      imageLbl: 'Image (640x510)',
-      previewImageLbl: 'Preview Image (640x510)',
-      updateLbl: 'Update',
-      updatingLbl: 'Updating...',
-      errorUpdatingPostLbl: 'Failed to update post. Please try again.',
+      goBackLbl: "Go Back",
+      editBlogLbl: "Edit Blog Post",
+      titleLbl: "Title in English",
+      enterTitleLbl: "Enter title in English",
+      contentLbl: "Content in English",
+      enterContentLbl: "Enter content in English",
+      titleThaiLbl: "Title in Thai",
+      enterTitleThaiLbl: "Enter title in Thai",
+      contentThaiLbl: "Content in Thai",
+      enterContentThaiLbl: "Enter content in Thai",
+      imageLbl: "Image (640x510)",
+      previewImageLbl: "Preview Image (640x510)",
+      updateLbl: "Update",
+      updatingLbl: "Updating...",
+      errorUpdatingPostLbl: "Failed to update post. Please try again.",
     },
     thai: {
-      goBackLbl: 'ย้อนกลับ',
-      editBlogLbl: 'แก้ไขบล็อกโพสต์',
-      titleLbl: 'ชื่อภาษาอังกฤษ',
-      enterTitleLbl: 'กรอกชื่อภาษาอังกฤษ',
-      contentLbl: 'เนื้อหาภาษาอังกฤษ',
-      enterContentLbl: 'กรอกเนื้อหาภาษาอังกฤษ',
-      titleThaiLbl: 'ชื่อภาษาไทย',
-      enterTitleThaiLbl: 'กรอกชื่อภาษาไทย',
-      contentThaiLbl: 'เนื้อหาภาษาไทย',
-      enterContentThaiLbl: 'กรอกเนื้อหาภาษาไทย',
-      imageLbl: 'รูปภาพ (640x510)',
-      previewImageLbl: 'แสดงตัวอย่างภาพ (640x510)',
-      updateLbl: 'อัปเดต',
-      updatingLbl: 'กำลังอัปเดต...',
-      errorUpdatingPostLbl: 'ไม่สามารถอัปเดตโพสต์ได้ กรุณาลองใหม่อีกครั้ง',
+      goBackLbl: "ย้อนกลับ",
+      editBlogLbl: "แก้ไขบล็อกโพสต์",
+      titleLbl: "ชื่อภาษาอังกฤษ",
+      enterTitleLbl: "กรอกชื่อภาษาอังกฤษ",
+      contentLbl: "เนื้อหาภาษาอังกฤษ",
+      enterContentLbl: "กรอกเนื้อหาภาษาอังกฤษ",
+      titleThaiLbl: "ชื่อภาษาไทย",
+      enterTitleThaiLbl: "กรอกชื่อภาษาไทย",
+      contentThaiLbl: "เนื้อหาภาษาไทย",
+      enterContentThaiLbl: "กรอกเนื้อหาภาษาไทย",
+      imageLbl: "รูปภาพ (640x510)",
+      previewImageLbl: "แสดงตัวอย่างภาพ (640x510)",
+      updateLbl: "อัปเดต",
+      updatingLbl: "กำลังอัปเดต...",
+      errorUpdatingPostLbl: "ไม่สามารถอัปเดตโพสต์ได้ กรุณาลองใหม่อีกครั้ง",
     },
   };
 
@@ -166,13 +175,17 @@ const BlogEditScreen = () => {
       setContent(blog.content);
       setTitleThai(blog.titleThai);
       setContentThai(blog.contentThai);
-      setImage(blog.image); 
+      setImage(blog.image);
     }
   }, [blog]);
 
   return (
     <>
-      <Link to='/admin/bloglist' className='btn btn-light my-3' style={{ color: '#303d4a' }}>
+      <Link
+        to="/admin/bloglist"
+        className="btn btn-light my-3"
+        style={{ color: "#303d4a" }}
+      >
         {t.goBackLbl}
       </Link>
       <FormContainer>
@@ -203,7 +216,7 @@ const BlogEditScreen = () => {
             <Form.Control
               type="text"
               value={titleThai}
-              onChange={(e) => setTitleThai(e.target.value)} 
+              onChange={(e) => setTitleThai(e.target.value)}
               required
             />
           </Form.Group>
@@ -219,15 +232,17 @@ const BlogEditScreen = () => {
 
           <Form.Group controlId="image" className="my-3">
             <Form.Label>{t.previewImageLbl}</Form.Label>
-            <Form.Control
-              type="file"
-              onChange={uploadBlogImageHandler}
-            />
-            {isImageUploading && <Loader />} 
+            <Form.Control type="file" onChange={uploadBlogImageHandler} />
+            {isImageUploading && <Loader />}
           </Form.Group>
 
-          <Button type="submit" disabled={loading || isUpdatingPost || isBlogLoading }>
-            {loading || isUpdatingPost || isBlogLoading ? t.updatingLbl : t.updateLbl}
+          <Button
+            type="submit"
+            disabled={loading || isUpdatingPost || isBlogLoading}
+          >
+            {loading || isUpdatingPost || isBlogLoading
+              ? t.updatingLbl
+              : t.updateLbl}
           </Button>
         </Form>
       </FormContainer>

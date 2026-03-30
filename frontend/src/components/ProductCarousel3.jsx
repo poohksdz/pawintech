@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import { FaChevronLeft, FaChevronRight } from 'react-icons/fa';
-import Message from './Message';
-import { useGetShowcasesQuery } from '../slices/showcasesApiSlice';
+import React, { useState, useEffect } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
+import Message from "./Message";
+import { useGetShowcasesQuery } from "../slices/showcasesApiSlice";
 
 const ProductCarousel3 = () => {
   const { pageNumber } = useParams();
@@ -18,32 +18,45 @@ const ProductCarousel3 = () => {
   useEffect(() => {
     if (!data) return;
 
-    const showcasesToShow = data.filter(showcase => showcase.present === 'presentThree');
+    const showcasesToShow = data.filter(
+      (showcase) => showcase.present === "presentThree",
+    );
     if (showcasesToShow.length <= 1) return;
 
     const interval = setInterval(() => {
-      setActiveIndex((current) => (current === showcasesToShow.length - 1 ? 0 : current + 1));
+      setActiveIndex((current) =>
+        current === showcasesToShow.length - 1 ? 0 : current + 1,
+      );
     }, 4000); // 4 seconds interval
 
     return () => clearInterval(interval);
   }, [data]);
 
-  if (isLoading) return <div className="animate-pulse w-full h-full bg-slate-200"></div>;
-  if (error) return <Message variant="danger">{error?.data?.message || error.error}</Message>;
+  if (isLoading)
+    return <div className="animate-pulse w-full h-full bg-slate-200"></div>;
+  if (error)
+    return (
+      <Message variant="danger">{error?.data?.message || error.error}</Message>
+    );
 
   const showcasesToShow = data
-    ? data.filter(showcase => showcase.present === 'presentThree')
-      .sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0))
+    ? data
+        .filter((showcase) => showcase.present === "presentThree")
+        .sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0))
     : [];
 
   if (showcasesToShow.length === 0) return null;
 
   const nextSlide = () => {
-    setActiveIndex((current) => (current === showcasesToShow.length - 1 ? 0 : current + 1));
+    setActiveIndex((current) =>
+      current === showcasesToShow.length - 1 ? 0 : current + 1,
+    );
   };
 
   const prevSlide = () => {
-    setActiveIndex((current) => (current === 0 ? showcasesToShow.length - 1 : current - 1));
+    setActiveIndex((current) =>
+      current === 0 ? showcasesToShow.length - 1 : current - 1,
+    );
   };
 
   return (
@@ -60,7 +73,7 @@ const ProductCarousel3 = () => {
           >
             <img
               src={showcase.image}
-              alt={showcase.name || 'Showcase'}
+              alt={showcase.name || "Showcase"}
               className="w-full h-full block object-cover"
             />
           </div>
@@ -71,14 +84,20 @@ const ProductCarousel3 = () => {
       {showcasesToShow.length > 1 && (
         <>
           <button
-            onClick={(e) => { e.stopPropagation(); prevSlide(); }}
+            onClick={(e) => {
+              e.stopPropagation();
+              prevSlide();
+            }}
             className="absolute left-4 top-1/2 -translate-y-1/2 w-8 h-8 md:w-10 md:h-10 rounded-full bg-white/80 hover:bg-white text-slate-800 flex items-center justify-center shadow-md opacity-0 group-hover:opacity-100 transition-all focus:outline-none"
           >
             <FaChevronLeft className="pr-1 text-sm md:text-base" />
           </button>
 
           <button
-            onClick={(e) => { e.stopPropagation(); nextSlide(); }}
+            onClick={(e) => {
+              e.stopPropagation();
+              nextSlide();
+            }}
             className="absolute right-4 top-1/2 -translate-y-1/2 w-8 h-8 md:w-10 md:h-10 rounded-full bg-white/80 hover:bg-white text-slate-800 flex items-center justify-center shadow-md opacity-0 group-hover:opacity-100 transition-all focus:outline-none"
           >
             <FaChevronRight className="pl-1 text-sm md:text-base" />
@@ -89,9 +108,15 @@ const ProductCarousel3 = () => {
             {showcasesToShow.map((_, idx) => (
               <button
                 key={idx}
-                onClick={(e) => { e.stopPropagation(); setActiveIndex(idx); }}
-                className={`w-2 h-2 rounded-full transition-all shadow-sm ${activeIndex === idx ? 'bg-white w-6' : 'bg-white/50 hover:bg-white/80'
-                  }`}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setActiveIndex(idx);
+                }}
+                className={`w-2 h-2 rounded-full transition-all shadow-sm ${
+                  activeIndex === idx
+                    ? "bg-white w-6"
+                    : "bg-white/50 hover:bg-white/80"
+                }`}
                 aria-label={`Go to slide ${idx + 1}`}
               />
             ))}

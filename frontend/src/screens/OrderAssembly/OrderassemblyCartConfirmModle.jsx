@@ -1,21 +1,27 @@
-import { useState } from 'react';
-import { useSelector } from 'react-redux';
-import { Button, Modal, Form } from 'react-bootstrap';
-import { toast } from 'react-toastify';
-import { useUpdateAssemblycartComfirmStatusMutation,  } from '../../slices/assemblypcbCartApiSlice';
+import { useState } from "react";
+import { useSelector } from "react-redux";
+import { Button, Modal, Form } from "react-bootstrap";
+import { toast } from "react-toastify";
+import { useUpdateAssemblycartComfirmStatusMutation } from "../../slices/assemblypcbCartApiSlice";
 
-const OrderassemblyCartConfirmModle = ({ show, handleClose, pcborderId, onConfirm }) => {
-  const [updateassemblycartComfirmStatus] = useUpdateAssemblycartComfirmStatusMutation();
+const OrderassemblyCartConfirmModle = ({
+  show,
+  handleClose,
+  pcborderId,
+  onConfirm,
+}) => {
+  const [updateassemblycartComfirmStatus] =
+    useUpdateAssemblycartComfirmStatusMutation();
   const { language } = useSelector((state) => state.language);
 
-  const [status, setStatus] = useState('accepted');
-  const [confirmedPrice, setConfirmedPrice] = useState('');
-  const [confirmedReason, setConfirmedReason] = useState('');
+  const [status, setStatus] = useState("accepted");
+  const [confirmedPrice, setConfirmedPrice] = useState("");
+  const [confirmedReason, setConfirmedReason] = useState("");
 
   const handleConfirm = async () => {
     const updatedData = {
       status,
-      confirmed_price: status === 'accepted' ? confirmedPrice : '-',
+      confirmed_price: status === "accepted" ? confirmedPrice : "-",
       confirmed_reason: confirmedReason,
     };
 
@@ -23,41 +29,41 @@ const OrderassemblyCartConfirmModle = ({ show, handleClose, pcborderId, onConfir
       await updateassemblycartComfirmStatus({
         id: String(pcborderId),
         updatedData,
-      }).unwrap(); 
+      }).unwrap();
       toast.success(`Order PCB marked as ${status}`);
       onConfirm();
       handleModalClose();
     } catch (error) {
-      toast.error(error?.data?.message || 'Failed to update order PCB status');
+      toast.error(error?.data?.message || "Failed to update order PCB status");
     }
   };
 
   const handleModalClose = () => {
-    setConfirmedPrice('');
-    setConfirmedReason('');
+    setConfirmedPrice("");
+    setConfirmedReason("");
     handleClose();
   };
 
   const translations = {
     en: {
-      ConfirmOrdersLbl: 'Confirm Order',
-      CloseLbl: 'Close',
-      StatusLbl: 'Select Status',
-      AcceptLbl: 'Accepted',
-      RejectLbl: 'Rejected',
-      ConfirmBtn: 'Confirm',
-      ConfirmedPriceLbl: 'Confirmed Price (฿)',
-      ConfirmedreasonLbl: 'Confirmed Reason',
+      ConfirmOrdersLbl: "Confirm Order",
+      CloseLbl: "Close",
+      StatusLbl: "Select Status",
+      AcceptLbl: "Accepted",
+      RejectLbl: "Rejected",
+      ConfirmBtn: "Confirm",
+      ConfirmedPriceLbl: "Confirmed Price (฿)",
+      ConfirmedreasonLbl: "Confirmed Reason",
     },
     thai: {
-      ConfirmOrdersLbl: 'ยืนยันคำสั่งซื้อ',
-      CloseLbl: 'ปิด',
-      StatusLbl: 'เลือกสถานะ',
-      AcceptLbl: 'ยอมรับ',
-      RejectLbl: 'ปฏิเสธ',
-      ConfirmBtn: 'ยืนยัน',
-      ConfirmedPriceLbl: 'ราคายืนยัน (฿)',
-      ConfirmedreasonLbl: 'เหตุผลที่ยืนยัน',
+      ConfirmOrdersLbl: "ยืนยันคำสั่งซื้อ",
+      CloseLbl: "ปิด",
+      StatusLbl: "เลือกสถานะ",
+      AcceptLbl: "ยอมรับ",
+      RejectLbl: "ปฏิเสธ",
+      ConfirmBtn: "ยืนยัน",
+      ConfirmedPriceLbl: "ราคายืนยัน (฿)",
+      ConfirmedreasonLbl: "เหตุผลที่ยืนยัน",
     },
   };
 
@@ -72,13 +78,16 @@ const OrderassemblyCartConfirmModle = ({ show, handleClose, pcborderId, onConfir
         <Form>
           <Form.Group className="mb-3" controlId="statusSelect">
             <Form.Label>{t.StatusLbl}</Form.Label>
-            <Form.Select value={status} onChange={(e) => setStatus(e.target.value)}>
+            <Form.Select
+              value={status}
+              onChange={(e) => setStatus(e.target.value)}
+            >
               <option value="accepted">{t.AcceptLbl}</option>
               <option value="rejected">{t.RejectLbl}</option>
             </Form.Select>
           </Form.Group>
 
-          {status === 'accepted' && (
+          {status === "accepted" && (
             <Form.Group className="mb-3" controlId="confirmedPriceInput">
               <Form.Label>{t.ConfirmedPriceLbl}</Form.Label>
               <Form.Control
@@ -111,7 +120,7 @@ const OrderassemblyCartConfirmModle = ({ show, handleClose, pcborderId, onConfir
         <Button
           variant="primary"
           onClick={handleConfirm}
-          disabled={status === 'accepted' && !confirmedPrice}
+          disabled={status === "accepted" && !confirmedPrice}
         >
           {t.ConfirmBtn}
         </Button>

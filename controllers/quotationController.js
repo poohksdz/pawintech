@@ -1,82 +1,82 @@
-const asyncHandler = require('../middleware/asyncHandler.js')
-const db = require('../config/db.js') // ✅ Used 'db' here
-const PDFDocument = require('pdfkit')
+const asyncHandler = require("../middleware/asyncHandler.js");
+const db = require("../config/db.js"); //  Used 'db' here
+const PDFDocument = require("pdfkit");
 
 // @desc    Fetch all quotations
 // @route   GET /api/quotations
 // @access  Public
 const getQuotations = asyncHandler(async (req, res) => {
   try {
-    // ✅ Fixed: changed connection -> db
+    //  Fixed: changed connection -> db
     const [rows] = await db.pool.query(
-      'SELECT * FROM tbl_quotations ORDER BY id DESC'
-    )
-    res.status(200).json({ quotations: rows })
+      "SELECT * FROM tbl_quotations ORDER BY id DESC",
+    );
+    res.status(200).json({ quotations: rows });
   } catch (error) {
-    console.error(`Error fetching quotations: ${error.message}`)
-    res.status(500).json({ message: 'Error fetching quotations' })
+    console.error(`Error fetching quotations: ${error.message}`);
+    res.status(500).json({ message: "Error fetching quotations" });
   }
-})
+});
 
 // @desc    Fetch single quotation by ID
 // @route   GET /api/quotations/:id
 // @access  Public
 const getQuotationById = asyncHandler(async (req, res) => {
-  const id = req.params.id
+  const id = req.params.id;
   try {
-    // ✅ Fixed: changed connection -> db
+    //  Fixed: changed connection -> db
     const [rows] = await db.pool.query(
-      'SELECT * FROM tbl_quotations WHERE id = ?',
-      [id]
-    )
+      "SELECT * FROM tbl_quotations WHERE id = ?",
+      [id],
+    );
     if (rows.length === 0) {
-      return res.status(404).json({ message: 'Quotation not found' })
+      return res.status(404).json({ message: "Quotation not found" });
     }
-    res.status(200).json({ quotation: rows[0] })
+    res.status(200).json({ quotation: rows[0] });
   } catch (error) {
-    console.error(`Error fetching quotation: ${error.message}`)
-    res.status(500).json({ message: 'Error fetching quotation' })
+    console.error(`Error fetching quotation: ${error.message}`);
+    res.status(500).json({ message: "Error fetching quotation" });
   }
-})
+});
 
 // @desc    Fetch single quotation by getQuotationByQuotationNo
 // @route   GET /api/quotations/quotation_no/:id
 // @access  Public
 const getQuotationByQuotationNo = asyncHandler(async (req, res) => {
-  const quotation_no = req.params.id
+  const quotation_no = req.params.id;
   try {
-    // ✅ Fixed: changed connection -> db
+    //  Fixed: changed connection -> db
     const [rows] = await db.pool.query(
-      'SELECT * FROM tbl_quotations WHERE quotation_no = ?',
-      [quotation_no]
-    )
+      "SELECT * FROM tbl_quotations WHERE quotation_no = ?",
+      [quotation_no],
+    );
     if (rows.length === 0) {
-      return res.status(404).json({ message: 'Quotation not found' })
+      return res.status(404).json({ message: "Quotation not found" });
     }
     res.status(200).json({
       quotation: [rows],
-    })
+    });
   } catch (error) {
-    console.error(`Error fetching quotation: ${error.message}`)
-    res.status(500).json({ message: 'Error fetching quotation' })
+    console.error(`Error fetching quotation: ${error.message}`);
+    res.status(500).json({ message: "Error fetching quotation" });
   }
-})
+});
 
 // @desc    Fetch quotations that are marked as "used"
 // @route   GET /api/quotations/used
 // @access  Public
 const getQuotationUsed = asyncHandler(async (req, res) => {
   try {
-    // ✅ Fixed: changed connection -> db
+    //  Fixed: changed connection -> db
     const [rows] = await db.pool.query(
-      'SELECT * FROM tbl_quotations WHERE is_used = 1 ORDER BY id DESC'
-    )
-    res.status(200).json({ quotations: rows })
+      "SELECT * FROM tbl_quotations WHERE is_used = 1 ORDER BY id DESC",
+    );
+    res.status(200).json({ quotations: rows });
   } catch (error) {
-    console.error(`Error fetching used quotations: ${error.message}`)
-    res.status(500).json({ message: 'Error fetching used quotations' })
+    console.error(`Error fetching used quotations: ${error.message}`);
+    res.status(500).json({ message: "Error fetching used quotations" });
   }
-})
+});
 
 // @desc    Create a new quotation
 // @route   POST /api/quotations
@@ -93,26 +93,26 @@ const createQuotation = asyncHandler(async (req, res) => {
       number_of_credit_days,
       date,
       quotation_pdf,
-    } = req.body
+    } = req.body;
 
     // Convert Thai date string "DD / MM / YYYY" to MySQL date "YYYY-MM-DD"
     function thaiDateToMySQL(thaiDateStr) {
-      const [day, month, year] = thaiDateStr.split('/').map((s) => s.trim())
-      const gregorianYear = parseInt(year, 10) // subtract 543 to get Gregorian year
-      return `${gregorianYear}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`
+      const [day, month, year] = thaiDateStr.split("/").map((s) => s.trim());
+      const gregorianYear = parseInt(year, 10); // subtract 543 to get Gregorian year
+      return `${gregorianYear}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
     }
 
     // Inside your try block, before inserting:
     const mysqlDate = date
       ? thaiDateToMySQL(date)
-      : new Date().toISOString().slice(0, 10)
+      : new Date().toISOString().slice(0, 10);
 
     // Generate Thai year quotation_no with row lock
-    const now = new Date()
-    const thaiYear = now.getFullYear() + 543
-    const shortThaiYear = String(thaiYear).slice(-2)
+    const now = new Date();
+    const thaiYear = now.getFullYear() + 543;
+    const shortThaiYear = String(thaiYear).slice(-2);
 
-    // ✅ Fixed: changed connection -> db
+    //  Fixed: changed connection -> db
     const [lastQuotation] = await db.pool.query(
       `SELECT quotation_no 
        FROM tbl_quotations 
@@ -120,22 +120,22 @@ const createQuotation = asyncHandler(async (req, res) => {
        ORDER BY id DESC 
        LIMIT 1 
        FOR UPDATE`,
-      [`QU${shortThaiYear}-%`]
-    )
+      [`QU${shortThaiYear}-%`],
+    );
 
-    let nextNumber = '0001'
+    let nextNumber = "0001";
     if (lastQuotation.length > 0) {
-      const lastNo = lastQuotation[0].quotation_no.split('-')[1]
-      nextNumber = String(parseInt(lastNo) + 1).padStart(4, '0')
+      const lastNo = lastQuotation[0].quotation_no.split("-")[1];
+      nextNumber = String(parseInt(lastNo) + 1).padStart(4, "0");
     }
-    const quotation_no = `QU${shortThaiYear}-${nextNumber}`
+    const quotation_no = `QU${shortThaiYear}-${nextNumber}`;
 
-    const createdAt = new Date()
-    const updatedAt = new Date()
+    const createdAt = new Date();
+    const updatedAt = new Date();
 
     // Insert each item with the same quotation_no
     for (let item of items) {
-      // ✅ Fixed: changed connection -> db
+      //  Fixed: changed connection -> db
       await db.pool.query(
         `INSERT INTO tbl_quotations (
           customer_name, customer_present_name, customer_address, customer_vat,
@@ -172,31 +172,31 @@ const createQuotation = asyncHandler(async (req, res) => {
           summary.bank_account_name,
           summary.bank_account_number,
           signatures.buyer,
-          '',
+          "",
           signatures.sales_person,
           createdAt,
           signatures.sales_manager,
           createdAt,
-          'Head Office',
+          "Head Office",
           quotation_pdf,
           createdAt,
           updatedAt,
-        ]
-      )
+        ],
+      );
     }
 
-    res.status(201).json({ message: 'Quotation created', quotation_no })
+    res.status(201).json({ message: "Quotation created", quotation_no });
   } catch (error) {
-    console.error(`Error creating quotation: ${error.message}`)
-    res.status(500).json({ message: 'Error creating quotation' })
+    console.error(`Error creating quotation: ${error.message}`);
+    res.status(500).json({ message: "Error creating quotation" });
   }
-})
+});
 
 // @desc    Update a quotation
 // @route   PUT /api/quotations/quotation_no/:id
 // @access  Public
 const updateQuotationByQuotationNo = asyncHandler(async (req, res) => {
-  const quotation_no = req.params.id
+  const quotation_no = req.params.id;
   const {
     due_date,
     submit_price_within,
@@ -207,42 +207,42 @@ const updateQuotationByQuotationNo = asyncHandler(async (req, res) => {
     customer,
     signatures,
     quotation_pdf,
-  } = req.body
+  } = req.body;
 
-  console.log(req.body)
+  console.log(req.body);
 
   try {
     // 1. Check if quotation exists
-    // ✅ Fixed: changed connection -> db
+    //  Fixed: changed connection -> db
     const [existing] = await db.pool.query(
-      'SELECT * FROM tbl_quotations WHERE quotation_no = ?',
-      [quotation_no]
-    )
+      "SELECT * FROM tbl_quotations WHERE quotation_no = ?",
+      [quotation_no],
+    );
     if (existing.length === 0) {
-      return res.status(404).json({ message: 'Quotation not found' })
+      return res.status(404).json({ message: "Quotation not found" });
     }
 
     // Convert Thai date string "DD / MM / YYYY" to MySQL date "YYYY-MM-DD"
     function thaiDateToMySQL(thaiDateStr) {
-      if (!thaiDateStr) return new Date().toISOString().slice(0, 10)
-      const [day, month, year] = thaiDateStr.split('/').map((s) => s.trim())
-      const gregorianYear = parseInt(year, 10) // convert Thai Buddhist year to Gregorian
+      if (!thaiDateStr) return new Date().toISOString().slice(0, 10);
+      const [day, month, year] = thaiDateStr.split("/").map((s) => s.trim());
+      const gregorianYear = parseInt(year, 10); // convert Thai Buddhist year to Gregorian
       // const gregorianYear = parseInt(year, 10) - 543 // convert Thai Buddhist year to Gregorian
-      return `${gregorianYear}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`
+      return `${gregorianYear}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
     }
 
     // Inside your try block, before inserting:
-    const mysqlDate = thaiDateToMySQL(date)
+    const mysqlDate = thaiDateToMySQL(date);
 
     // 2. Delete old quotation rows
-    // ✅ Fixed: changed connection -> db
-    await db.pool.query('DELETE FROM tbl_quotations WHERE quotation_no = ?', [
+    //  Fixed: changed connection -> db
+    await db.pool.query("DELETE FROM tbl_quotations WHERE quotation_no = ?", [
       quotation_no,
-    ])
+    ]);
 
     // 3. Insert new items with customer, summary, and signatures
     const insertPromises = items.map((item) =>
-      // ✅ Fixed: changed connection -> db
+      //  Fixed: changed connection -> db
       db.pool.query(
         `INSERT INTO tbl_quotations (
           quotation_no,
@@ -297,35 +297,35 @@ const updateQuotationByQuotationNo = asyncHandler(async (req, res) => {
           signatures?.sales_person_signature || null,
           signatures?.sales_manager_signature || null,
           quotation_pdf || null,
-        ]
-      )
-    )
+        ],
+      ),
+    );
 
-    await Promise.all(insertPromises)
+    await Promise.all(insertPromises);
 
-    res.json({ message: 'Quotation updated successfully' })
+    res.json({ message: "Quotation updated successfully" });
   } catch (error) {
-    console.error(`Error updating quotation: ${error.message}`)
-    res.status(500).json({ message: 'Error updating quotation' })
+    console.error(`Error updating quotation: ${error.message}`);
+    res.status(500).json({ message: "Error updating quotation" });
   }
-})
+});
 
 // @desc    Update a quotation
 // @route   PUT /api/quotations/:id
 // @access  Public
 const updateQuotation = asyncHandler(async (req, res) => {
-  const id = req.params.id
+  const id = req.params.id;
   try {
-    // ✅ Fixed: changed connection -> db
+    //  Fixed: changed connection -> db
     const [existing] = await db.pool.query(
-      'SELECT * FROM tbl_quotations WHERE id = ?',
-      [id]
-    )
+      "SELECT * FROM tbl_quotations WHERE id = ?",
+      [id],
+    );
     if (existing.length === 0) {
-      return res.status(404).json({ message: 'Quotation not found' })
+      return res.status(404).json({ message: "Quotation not found" });
     }
 
-    // ✅ Fixed: changed connection -> db
+    //  Fixed: changed connection -> db
     await db.pool.query(
       `UPDATE tbl_quotations SET
         customer_name = ?, customer_present_name = ?, customer_address = ?, customer_vat = ?,
@@ -369,52 +369,52 @@ const updateQuotation = asyncHandler(async (req, res) => {
         req.body.sales_manager_signature_date,
         req.body.branch_name,
         id,
-      ]
-    )
+      ],
+    );
 
-    // ✅ Fixed: changed connection -> db
+    //  Fixed: changed connection -> db
     const [updatedRow] = await db.pool.query(
-      'SELECT * FROM tbl_quotations WHERE id = ?',
-      [id]
-    )
-    res.status(200).json({ quotation: updatedRow[0] })
+      "SELECT * FROM tbl_quotations WHERE id = ?",
+      [id],
+    );
+    res.status(200).json({ quotation: updatedRow[0] });
   } catch (error) {
-    console.error(`Error updating quotation: ${error.message}`)
-    res.status(500).json({ message: 'Error updating quotation' })
+    console.error(`Error updating quotation: ${error.message}`);
+    res.status(500).json({ message: "Error updating quotation" });
   }
-})
+});
 
 // @desc    Delete a quotation
 // @route   DELETE /api/quotations/:id
 // @access  Public
 const deleteQuotation = asyncHandler(async (req, res) => {
-  const id = req.params.id
+  const id = req.params.id;
   try {
-    // ✅ Fixed: changed connection -> db
-    await db.pool.query('DELETE FROM tbl_quotations WHERE id = ?', [id])
-    res.status(200).json({ message: 'Quotation deleted successfully' })
+    //  Fixed: changed connection -> db
+    await db.pool.query("DELETE FROM tbl_quotations WHERE id = ?", [id]);
+    res.status(200).json({ message: "Quotation deleted successfully" });
   } catch (error) {
-    console.error(`Error deleting quotation: ${error.message}`)
-    res.status(500).json({ message: 'Error deleting quotation' })
+    console.error(`Error deleting quotation: ${error.message}`);
+    res.status(500).json({ message: "Error deleting quotation" });
   }
-})
+});
 
 // @desc    Delete a quotation deleteQuotationByQuotationNo
 // @route   DELETE /api/quotations/:id
 // @access  Public
 const deleteQuotationByQuotationNo = asyncHandler(async (req, res) => {
-  const quotation_no = req.params.id
+  const quotation_no = req.params.id;
   try {
-    // ✅ Fixed: changed connection -> db
-    await db.pool.query('DELETE FROM tbl_quotations WHERE quotation_no = ?', [
+    //  Fixed: changed connection -> db
+    await db.pool.query("DELETE FROM tbl_quotations WHERE quotation_no = ?", [
       quotation_no,
-    ])
-    res.status(200).json({ message: 'Quotation deleted successfully' })
+    ]);
+    res.status(200).json({ message: "Quotation deleted successfully" });
   } catch (error) {
-    console.error(`Error deleting quotation: ${error.message}`)
-    res.status(500).json({ message: 'Error deleting quotation' })
+    console.error(`Error deleting quotation: ${error.message}`);
+    res.status(500).json({ message: "Error deleting quotation" });
   }
-})
+});
 
 module.exports = {
   getQuotations,
@@ -426,4 +426,4 @@ module.exports = {
   updateQuotationByQuotationNo,
   deleteQuotation,
   deleteQuotationByQuotationNo,
-}
+};

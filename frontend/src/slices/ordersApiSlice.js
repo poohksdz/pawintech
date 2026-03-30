@@ -1,12 +1,12 @@
-import { apiSlice } from './apiSlice'
-import { ORDERS_URL } from '../constants'
+import { apiSlice } from "./apiSlice";
+import { ORDERS_URL } from "../constants";
 
 export const orderApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
     createOrder: builder.mutation({
       query: (order) => ({
         url: ORDERS_URL,
-        method: 'POST',
+        method: "POST",
         body: order,
       }),
     }),
@@ -23,17 +23,17 @@ export const orderApiSlice = apiSlice.injectEndpoints({
     updateOrderToReceivePlace: builder.mutation({
       query: ({ orderId, details }) => ({
         url: `${ORDERS_URL}/${orderId}/receiveplace`,
-        method: 'PUT',
+        method: "PUT",
         body: details,
       }),
     }),
 
-    // ✅✅✅ จุดที่แก้ไข (FIXED) ✅✅✅
+    //  จุดที่แก้ไข (FIXED) 
     // เปลี่ยนให้รับค่าเป็น Object { orderId, details } ให้ตรงกับที่ Modal ส่งมา
     payOrder: builder.mutation({
       query: ({ orderId, details }) => ({
         url: `${ORDERS_URL}/${orderId}/pay`,
-        method: 'PUT',
+        method: "PUT",
         body: details, // ตอนนี้ส่ง body ได้แล้ว
       }),
     }),
@@ -42,7 +42,7 @@ export const orderApiSlice = apiSlice.injectEndpoints({
     transferPayOrder: builder.mutation({
       query: ({ orderId, details }) => ({
         url: `${ORDERS_URL}/${orderId}/pay`,
-        method: 'PUT',
+        method: "PUT",
         body: details,
       }),
     }),
@@ -61,7 +61,7 @@ export const orderApiSlice = apiSlice.injectEndpoints({
     deliverOrder: builder.mutation({
       query: ({ orderId, transferedNumber }) => ({
         url: `${ORDERS_URL}/${orderId}/deliver`,
-        method: 'PUT',
+        method: "PUT",
         body: { transferedNumber },
       }),
     }),
@@ -74,19 +74,19 @@ export const orderApiSlice = apiSlice.injectEndpoints({
     updateTransportationPrice: builder.mutation({
       query: ({ transportationPriceId, transportationPrice }) => ({
         url: `${ORDERS_URL}/${transportationPriceId}/updatetransportationprice`,
-        method: 'PUT',
+        method: "PUT",
         body: { transportationPrice },
       }),
     }),
     uploadPaymentSlipImage: builder.mutation({
       query: (data) => ({
         url: `/api/paymentSlipImages`,
-        method: 'POST',
+        method: "POST",
         body: data,
       }),
     }),
   }),
-})
+});
 
 export const {
   useCreateOrderMutation,
@@ -101,4 +101,4 @@ export const {
   useUploadPaymentSlipImageMutation,
   useGetTransportationPriceQuery,
   useUpdateTransportationPriceMutation,
-} = orderApiSlice
+} = orderApiSlice;

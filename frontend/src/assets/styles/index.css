@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Prompt:wght@300;400;500;600;700&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Prompt:wght@300;400;500;600;700&display=swap");
 
 @tailwind base;
 @tailwind components;
@@ -11,8 +11,11 @@
   }
 
   body {
-    @apply font-sans bg-slate-50 text-slate-800 m-0 p-0 overflow-x-hidden;
-    font-style: normal !important;
+    @apply font-sans bg-slate-50 dark:bg-black text-slate-800 dark:text-white m-0 p-0 overflow-x-hidden antialiased transition-colors duration-500;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    /* letter-spacing เล็กน้อยเพื่อให้เหมือน Apple SF Pro */
+    letter-spacing: -0.015em;
   }
 
   /* Force no italic globally as requested */
@@ -29,7 +32,9 @@
     @apply fixed inset-0 pointer-events-none -z-50;
     background-image:
       radial-gradient(at 0% 0%, rgba(37, 99, 235, 0.03) 0px, transparent 50%),
-      radial-gradient(at 100% 100%, rgba(37, 99, 235, 0.03) 0px, transparent 50%);
+      radial-gradient(at 100% 100%,
+        rgba(37, 99, 235, 0.03) 0px,
+        transparent 50%);
   }
 
   main {
@@ -60,7 +65,7 @@
 
 @layer components {
 
-  /* 🔥 แอนิเมชัน Dropdown: เด้งดึ๋ง ทันสมัย */
+  /*  แอนิเมชัน Dropdown: เด้งดึ๋ง ทันสมัย */
   @keyframes slideDownPop {
     from {
       opacity: 0;
@@ -118,7 +123,7 @@
     will-change: opacity, transform;
   }
 
-  /* 🛠️ Utility: Hide scrollbar but keep functionality */
+  /* ️ Utility: Hide scrollbar but keep functionality */
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
   }
@@ -129,7 +134,7 @@
   }
 }
 
-/* 📱 Optimized Toast for Mobile (Global) */
+/*  Optimized Toast for Mobile (Global) */
 @media (max-width: 640px) {
   .Toastify__toast-container {
     width: calc(100% - 24px) !important;
@@ -161,4 +166,105 @@
     margin-right: 10px !important;
     flex-shrink: 0 !important;
   }
+}
+
+/* 
+===================================================
+TRUE BLACK AESTHETICS OVERRIDE
+Forces the strict "Everything dark, text white" rule 
+requested by user, guaranteeing absolute contrast.
+===================================================
+*/
+html.dark body,
+html.dark main,
+html.dark section {
+  background-color: #000000 !important;
+  color: #ffffff !important;
+}
+
+/* Force intermediate white backgrounds into true black */
+html.dark .bg-white,
+html.dark .bg-slate-50,
+html.dark .bg-slate-100,
+html.dark .bg-slate-800,
+html.dark .bg-slate-900,
+html.dark .bg-slate-950,
+html.dark .bg-gray-50,
+html.dark .bg-gray-100 {
+  background-color: #000000 !important;
+}
+
+/* Force EVERYTHING text-related to be pure white */
+html.dark h1,
+html.dark h2,
+html.dark h3,
+html.dark h4,
+html.dark h5,
+html.dark h6,
+html.dark p,
+html.dark span,
+html.dark div,
+html.dark a,
+html.dark button,
+html.dark label,
+html.dark input,
+html.dark textarea,
+html.dark li,
+html.dark ul {
+  color: #ffffff !important;
+}
+
+/* 
+===================================================
+VIBRANT EXCEPTIONS
+Allows critical UI elements (Stars, Status) to 
+retain their colors amidst the black-out.
+===================================================
+*/
+html.dark .text-yellow-400,
+html.dark .text-yellow-500 {
+  color: #facc15 !important;
+}
+
+html.dark .text-rose-400,
+html.dark .text-rose-500,
+html.dark .text-rose-600 {
+  color: #fb7185 !important;
+}
+
+html.dark .text-emerald-400,
+html.dark .text-emerald-500,
+html.dark .text-emerald-600 {
+  color: #34d399 !important;
+}
+
+html.dark .text-blue-400,
+html.dark .text-blue-500 {
+  color: #60a5fa !important;
+}
+
+/* Star Rating Specifics */
+html.dark .star-filled {
+  color: #facc15 !important;
+}
+
+html.dark .star-empty {
+  color: #3f3f46 !important;
+  /* zinc-700 for a subtle empty look */
+}
+
+/* Ensure placeholders are visible but subdued in dark mode */
+html.dark input::placeholder,
+html.dark textarea::placeholder {
+  color: #a1a1aa !important;
+  /* Zinc-400 */
+}
+
+/* Subtly dim borders for a seamless black look */
+html.dark .border-slate-100,
+html.dark .border-slate-200,
+html.dark .border-gray-100,
+html.dark .border-gray-200 {
+  border-color: #18181b !important;
+  /* Zinc-900 */
 }

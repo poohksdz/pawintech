@@ -1,26 +1,21 @@
-import React, { useState } from 'react';
-import { useSelector } from 'react-redux';
-import Loader from '../../components/Loader';
-import Message from '../../components/Message';
-import { Table, Button, Row, Col, Modal } from 'react-bootstrap';
-import { FaEdit, FaTrash } from 'react-icons/fa';
-import { PiCircuitryFill } from 'react-icons/pi';
-import { Link } from 'react-router-dom';
+import React, { useState } from "react";
+import { useSelector } from "react-redux";
+import Loader from "../../components/Loader";
+import Message from "../../components/Message";
+import { Table, Button, Row, Col, Modal } from "react-bootstrap";
+import { FaEdit, FaTrash } from "react-icons/fa";
+import { PiCircuitryFill } from "react-icons/pi";
+import { Link } from "react-router-dom";
 import {
   useGetAllAssemblyPCBsQuery,
   useDeleteAssemblyPCBMutation,
-} from '../../slices/assemblypcbApiSlice';
+} from "../../slices/assemblypcbApiSlice";
 
 const OrderassemblyOrderEditListScreen = () => {
   const { userInfo } = useSelector((state) => state.auth);
   const { language } = useSelector((state) => state.language);
 
-  const {
-    data,
-    isLoading,
-    error,
-    refetch,
-  } = useGetAllAssemblyPCBsQuery();
+  const { data, isLoading, error, refetch } = useGetAllAssemblyPCBsQuery();
 
   const [deleteAssemblyPCB, { isLoading: loadingDelete }] =
     useDeleteAssemblyPCBMutation();
@@ -49,57 +44,57 @@ const OrderassemblyOrderEditListScreen = () => {
 
   const translations = {
     en: {
-      AssemblyEditListsLbl: 'Assembly Edit Lists',
-      ErrorMessageLbl: 'No custom PCB orders found.',
-      projectIDLbl: 'Project ID',
-      projectnameLbl: 'Project Name',
-      QtyLbl: 'Quantity',
-      TotalPriceLbl: 'Total Price (฿)',
-      DATELbl: 'Date',
-      EDITLbl: 'Edit',
-      DeliveryLbl: 'Delivery',
-      ConfirmLbl: 'Confirm',
-      CancelLbl: 'Cancel',
-      DetailLbl: 'Details',
-      Areyousure: 'Are you sure?',
-      Actioncannotbendone: 'This action cannot be undone.',
-      CloseLbl: 'Close',
-      DefaultAssemblyPrice: 'Default Assembly Price',
+      AssemblyEditListsLbl: "Assembly Edit Lists",
+      ErrorMessageLbl: "No custom PCB orders found.",
+      projectIDLbl: "Project ID",
+      projectnameLbl: "Project Name",
+      QtyLbl: "Quantity",
+      TotalPriceLbl: "Total Price (฿)",
+      DATELbl: "Date",
+      EDITLbl: "Edit",
+      DeliveryLbl: "Delivery",
+      ConfirmLbl: "Confirm",
+      CancelLbl: "Cancel",
+      DetailLbl: "Details",
+      Areyousure: "Are you sure?",
+      Actioncannotbendone: "This action cannot be undone.",
+      CloseLbl: "Close",
+      DefaultAssemblyPrice: "Default Assembly Price",
     },
     thai: {
-      AssemblyEditListsLbl: 'รายการแก้ไข PCB แบบกำหนดเอง',
-      ErrorMessageLbl: 'ไม่พบคำสั่งซื้อ PCB แบบกำหนดเอง',
-      projectIDLbl: 'รหัสโปรเจกต์',
-      projectnameLbl: 'ชื่อโปรเจกต์',
-      QtyLbl: 'จำนวน',
-      TotalPriceLbl: 'ราคารวม (฿)',
-      DATELbl: 'วันที่',
-      EDITLbl: 'แก้ไข',
-      DeliveryLbl: 'การจัดส่ง',
-      ConfirmLbl: 'ยืนยัน',
-      CancelLbl: 'ยกเลิก',
-      DetailLbl: 'รายละเอียด',
-      Areyousure: 'คุณแน่ใจหรือไม่?',
-      Actioncannotbendone: 'การกระทำนี้ไม่สามารถย้อนกลับได้',
-      CloseLbl: 'ปิด',
-      DefaultAssemblyPrice: 'ราคาการประกอบมาตรฐาน',
+      AssemblyEditListsLbl: "รายการแก้ไข PCB แบบกำหนดเอง",
+      ErrorMessageLbl: "ไม่พบคำสั่งซื้อ PCB แบบกำหนดเอง",
+      projectIDLbl: "รหัสโปรเจกต์",
+      projectnameLbl: "ชื่อโปรเจกต์",
+      QtyLbl: "จำนวน",
+      TotalPriceLbl: "ราคารวม (฿)",
+      DATELbl: "วันที่",
+      EDITLbl: "แก้ไข",
+      DeliveryLbl: "การจัดส่ง",
+      ConfirmLbl: "ยืนยัน",
+      CancelLbl: "ยกเลิก",
+      DetailLbl: "รายละเอียด",
+      Areyousure: "คุณแน่ใจหรือไม่?",
+      Actioncannotbendone: "การกระทำนี้ไม่สามารถย้อนกลับได้",
+      CloseLbl: "ปิด",
+      DefaultAssemblyPrice: "ราคาการประกอบมาตรฐาน",
     },
   };
 
   const t = translations[language] || translations.en;
 
   return (
-    <> 
-            <Row className="align-items-center">
-              <Col>
+    <>
+      <Row className="align-items-center">
+        <Col>
           <h1>{t.AssemblyEditListsLbl}</h1>
-              </Col>
-              <Col className="text-end">
-                <Button className="my-3" as={Link} to='/admin/assemblyboardeditd'>
-                  <PiCircuitryFill size={20} /> {t.DefaultAssemblyPrice}
-                </Button>
-              </Col>
-            </Row>
+        </Col>
+        <Col className="text-end">
+          <Button className="my-3" as={Link} to="/admin/assemblyboardeditd">
+            <PiCircuitryFill size={20} /> {t.DefaultAssemblyPrice}
+          </Button>
+        </Col>
+      </Row>
 
       {isLoading ? (
         <Loader />
@@ -132,12 +127,12 @@ const OrderassemblyOrderEditListScreen = () => {
                 <td>
                   {order.confirmed_price
                     ? parseFloat(order.confirmed_price).toFixed(2)
-                    : '-'}
+                    : "-"}
                 </td>
                 <td>{new Date(order.created_at).toLocaleDateString()}</td>
                 <td>
                   <Button
-                    as={Link} 
+                    as={Link}
                     to={`/admin/assemblyboardeditlist/${order.id}/edit`}
                     variant="light"
                     className="btn-sm mx-2"
@@ -150,7 +145,7 @@ const OrderassemblyOrderEditListScreen = () => {
                     onClick={() => deleteHandler(order.id)}
                     disabled={loadingDelete}
                   >
-                    <FaTrash style={{ color: 'white' }} />
+                    <FaTrash style={{ color: "white" }} />
                   </Button>
                 </td>
               </tr>
@@ -177,7 +172,7 @@ const OrderassemblyOrderEditListScreen = () => {
           </Button>
           <Button
             variant="danger"
-            style={{ color: 'white' }}
+            style={{ color: "white" }}
             onClick={handleConfirmDelete}
           >
             {t.ConfirmLbl}

@@ -1,7 +1,7 @@
-const express = require('express')
-const router = express.Router()
+const express = require("express");
+const router = express.Router();
 
-// ✅ Import Controller
+//  Import Controller
 const {
   getcopyCartPCBs,
   getcopyCartPCBById,
@@ -13,31 +13,37 @@ const {
   updateStatuscopyCartPCBById,
   updateShippingcopyCartPCBById,
   uploadMultipleImages,
-  uploadFile
-} = require('../controllers/copypcbCartController.js')
+  uploadFile,
+} = require("../controllers/copypcbCartController.js");
 
-const { protect, admin } = require('../middleware/authMiddleware.js')
-const upload = require('../middleware/uploadMiddleware.js')
+const { protect, admin } = require("../middleware/authMiddleware.js");
+const upload = require("../middleware/uploadMiddleware.js");
 
-// ✅ Route สำหรับ Upload
-router.post('/upload/multipleimages', upload.array('images', 10), uploadMultipleImages)
+//  Route สำหรับ Upload
+router.post(
+  "/upload/multipleimages",
+  upload.array("images", 10),
+  uploadMultipleImages,
+);
 
-// ✅✅✅ แก้ตรงนี้ครับ! ใช้ชื่อ 'copypcbZip' ให้ตรงกับที่เห็นในรูป
-router.post('/upload/upload-zip', upload.single('copypcbZip'), uploadFile)
+//  แก้ตรงนี้ครับ! ใช้ชื่อ 'copypcbZip' ให้ตรงกับที่เห็นในรูป
+router.post("/upload/upload-zip", upload.single("copypcbZip"), uploadFile);
 
 // Routes ปกติ
-router.route('/')
+router
+  .route("/")
   .post(protect, createcopyCartPCB)
-  .get(protect, admin, getcopyCartPCBs)
+  .get(protect, admin, getcopyCartPCBs);
 
-router.get('/user/:userId', protect, getcopyCartPCBByUserId)
-router.put('/amount/:id', protect, updateAmountcopyCartPCBById)
-router.put('/status/:id', protect, admin, updateStatuscopyCartPCBById)
-router.put('/shippingrates/:id', protect, updateShippingcopyCartPCBById)
+router.get("/user/:userId", protect, getcopyCartPCBByUserId);
+router.put("/amount/:id", protect, updateAmountcopyCartPCBById);
+router.put("/status/:id", protect, admin, updateStatuscopyCartPCBById);
+router.put("/shippingrates/:id", protect, updateShippingcopyCartPCBById);
 
-router.route('/:id')
+router
+  .route("/:id")
   .get(protect, getcopyCartPCBById)
   .put(protect, admin, updatecopyCartPCB)
-  .delete(protect, admin, deletecopyCartPCB)
+  .delete(protect, admin, deletecopyCartPCB);
 
-module.exports = router
+module.exports = router;

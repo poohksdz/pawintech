@@ -1,9 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import Button from "../../components/ui/Button";
 import { useGetDefaultQuotationUsedQuery } from "../../slices/quotationDefaultApiSlice";
-import {
-  useGetQuotationByQuotationNoQuery,
-} from "../../slices/quotationApiSlice";
+import { useGetQuotationByQuotationNoQuery } from "../../slices/quotationApiSlice";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 import Loader from "../../components/Loader";
@@ -61,15 +59,16 @@ const QuotationDetailScreen = () => {
     setQuotationNumber(firstQuotation.quotation_no || "");
 
     const initialRows = quotationData?.quotation?.[0] || [];
-    setRows(initialRows.map(item => ({
-      product_id: item.product_id || "",
-      description: item.product_detail || "",
-      qty: parseFloat(item.quantity) || 0,
-      unit: item.unit || "",
-      unit_price: parseFloat(item.unit_price) || 0,
-    })));
+    setRows(
+      initialRows.map((item) => ({
+        product_id: item.product_id || "",
+        description: item.product_detail || "",
+        qty: parseFloat(item.quantity) || 0,
+        unit: item.unit || "",
+        unit_price: parseFloat(item.unit_price) || 0,
+      })),
+    );
   }, [quotationData]);
-
 
   useEffect(() => {
     if (defaultSelected) {
@@ -93,13 +92,20 @@ const QuotationDetailScreen = () => {
   const handleChange = (index, field, value) => {
     const updatedRows = [...rows];
     updatedRows[index][field] =
-      field === "qty" || field === "unit_price" ? (value === "" ? 0 : Number(value)) : value;
+      field === "qty" || field === "unit_price"
+        ? value === ""
+          ? 0
+          : Number(value)
+        : value;
     setRows(updatedRows);
 
     const lastRow = updatedRows[updatedRows.length - 1];
     const hasData = Object.values(lastRow).some((v) => v !== "" && v !== 0);
     if (hasData) {
-      setRows((prev) => [...prev, { product_id: "", description: "", qty: 0, unit: "", unit_price: 0 }]);
+      setRows((prev) => [
+        ...prev,
+        { product_id: "", description: "", qty: 0, unit: "", unit_price: 0 },
+      ]);
     }
   };
 
@@ -109,14 +115,16 @@ const QuotationDetailScreen = () => {
   };
 
   const subTotal = rows.reduce((acc, r) => acc + r.qty * r.unit_price, 0);
-  const totalDiscount = subTotal * (parseFloat(defaultSummary.discount || 0) / 100);
+  const totalDiscount =
+    subTotal * (parseFloat(defaultSummary.discount || 0) / 100);
   const totalAfterDiscount = subTotal - totalDiscount;
-  const totalVat = totalAfterDiscount * (parseFloat(defaultSummary.vat || 0) / 100);
+  const totalVat =
+    totalAfterDiscount * (parseFloat(defaultSummary.vat || 0) / 100);
   const grandTotal = totalAfterDiscount + totalVat;
 
   const now = new Date();
   const today = `${String(now.getDate()).padStart(2, "0")} / ${String(
-    now.getMonth() + 1
+    now.getMonth() + 1,
   ).padStart(2, "0")} / ${now.getFullYear() + 543}`;
 
   const handlePreviewPDF = async () => {
@@ -147,7 +155,12 @@ const QuotationDetailScreen = () => {
     window.open(pdfURL, "_blank");
   };
 
-  if (!quotationData || !defaultData) return <div className="min-h-screen flex items-center justify-center"><Loader /></div>;
+  if (!quotationData || !defaultData)
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader />
+      </div>
+    );
 
   return (
     <>
@@ -161,23 +174,32 @@ const QuotationDetailScreen = () => {
             padding: "8mm 20mm 15mm",
             boxSizing: "border-box",
             fontSize: "12px",
-            fontFamily: "sans-serif"
+            fontFamily: "sans-serif",
           }}
         >
           {/* Header */}
           <div className="text-center relative">
             <div className="absolute top-2 left-0">
-              <img src={defaultSelected?.logo} alt="Logo" className="max-h-[40px] object-contain" />
+              <img
+                src={defaultSelected?.logo}
+                alt="Logo"
+                className="max-h-[40px] object-contain"
+              />
             </div>
             <div className="inline-block mt-3">
               <h3 className="font-bold text-lg leading-tight">
-                {defaultSummary.company_name_thai}<br />{defaultSummary.company_name}
+                {defaultSummary.company_name_thai}
+                <br />
+                {defaultSummary.company_name}
               </h3>
               <p className="mt-1 text-xs">
                 <strong>
-                  สำนักงานใหญ่: {defaultSummary.head_office_thai}<br />
-                  Head Office: {defaultSummary.head_office}<br />
-                  โทร: {defaultSummary.tel} | Email: {defaultSummary.email}<br />
+                  สำนักงานใหญ่: {defaultSummary.head_office_thai}
+                  <br />
+                  Head Office: {defaultSummary.head_office}
+                  <br />
+                  โทร: {defaultSummary.tel} | Email: {defaultSummary.email}
+                  <br />
                   เลขประจำตัวผู้เสียภาษี: {defaultSummary.tax_id}
                 </strong>
               </p>
@@ -200,61 +222,97 @@ const QuotationDetailScreen = () => {
                 <input
                   type="text"
                   value={customerInfo.customer_name}
-                  onChange={(e) => handleCustomerChange("customer_name", e.target.value)}
+                  onChange={(e) =>
+                    handleCustomerChange("customer_name", e.target.value)
+                  }
                   className="border-none ml-2 w-[350px] outline-none bg-transparent"
-                /><br />
+                />
+                <br />
 
                 <strong>ผู้มาติดต่อ:</strong>
                 <input
                   type="text"
                   value={customerInfo.customer_present_name}
-                  onChange={(e) => handleCustomerChange("customer_present_name", e.target.value)}
+                  onChange={(e) =>
+                    handleCustomerChange(
+                      "customer_present_name",
+                      e.target.value,
+                    )
+                  }
                   className="border-none ml-2 w-[350px] outline-none bg-transparent"
-                /><br />
+                />
+                <br />
 
                 <strong>ที่อยู่:</strong>
                 <input
                   type="text"
                   value={customerInfo.customer_address}
-                  onChange={(e) => handleCustomerChange("customer_address", e.target.value)}
+                  onChange={(e) =>
+                    handleCustomerChange("customer_address", e.target.value)
+                  }
                   className="border-none ml-2 w-[380px] outline-none bg-transparent"
-                /><br />
+                />
+                <br />
 
                 <strong>เลขประจำตัวผู้เสียภาษี:</strong>
                 <input
                   type="text"
                   value={customerInfo.customer_vat}
-                  onChange={(e) => handleCustomerChange("customer_vat", e.target.value)}
+                  onChange={(e) =>
+                    handleCustomerChange("customer_vat", e.target.value)
+                  }
                   className="border-none ml-2 w-[280px] outline-none bg-transparent"
-                /><br />
+                />
+                <br />
 
                 <label className="inline-flex items-center mt-1 cursor-pointer">
-                  <input type="checkbox" className="form-checkbox h-3.5 w-3.5 text-blue-600 rounded-sm border-slate-400" />
+                  <input
+                    type="checkbox"
+                    className="form-checkbox h-3.5 w-3.5 text-blue-600 rounded-sm border-slate-400"
+                  />
                   <strong className="ml-1.5 font-medium">สำนักงานใหญ่</strong>
                 </label>
                 <label className="inline-flex items-center mt-1 ml-4 cursor-pointer">
-                  <input type="checkbox" className="form-checkbox h-3.5 w-3.5 text-blue-600 rounded-sm border-slate-400" />
+                  <input
+                    type="checkbox"
+                    className="form-checkbox h-3.5 w-3.5 text-blue-600 rounded-sm border-slate-400"
+                  />
                   <strong className="ml-1.5 font-medium">สาขา</strong>
                 </label>
 
                 <div className="mt-1">
-                  <label><strong>Number of rows: </strong></label>
+                  <label>
+                    <strong>Number of rows: </strong>
+                  </label>
                   <select
                     value={numRows}
                     className="border-none bg-transparent outline-none cursor-pointer"
                     onChange={(e) => {
                       const newCount = parseInt(e.target.value);
                       setNumRows(newCount);
-                      setRows(Array.from({ length: newCount }, (_, i) => rows[i] || { product_id: "", description: "", qty: 0, unit: "", unit_price: 0 }));
+                      setRows(
+                        Array.from(
+                          { length: newCount },
+                          (_, i) =>
+                            rows[i] || {
+                              product_id: "",
+                              description: "",
+                              qty: 0,
+                              unit: "",
+                              unit_price: 0,
+                            },
+                        ),
+                      );
                     }}
                   >
-                    {Array.from({ length: 200 }, (_, i) => i + 1).map(n => (
-                      <option key={n} value={n}>{n}</option>
+                    {Array.from({ length: 200 }, (_, i) => i + 1).map((n) => (
+                      <option key={n} value={n}>
+                        {n}
+                      </option>
                     ))}
                   </select>
                 </div>
               </div>
-
             </div>
             <div className="flex flex-col justify-start items-end min-w-[200px] leading-loose text-xs">
               <div>
@@ -269,28 +327,34 @@ const QuotationDetailScreen = () => {
                   value={today}
                   readOnly
                   className="w-[80px] border-none outline-none ml-5 bg-transparent font-bold text-center"
-                /><br />
+                />
+                <br />
                 <strong>วันที่กำหนดส่ง:</strong>
                 <input
                   type="number"
                   value={due_date}
                   onChange={(e) => setdue_date(e.target.value)}
                   className="w-[30px] border-none outline-none ml-1 bg-transparent text-center font-bold"
-                /> วัน<br />
+                />{" "}
+                วัน
+                <br />
                 <strong>ยืนราคาภายใน:</strong>
                 <input
                   type="number"
                   value={submit_price_within}
                   onChange={(e) => setsubmit_price_within(e.target.value)}
                   className="w-[30px] border-none outline-none ml-1 bg-transparent text-center font-bold"
-                /> วัน<br />
+                />{" "}
+                วัน
+                <br />
                 <strong>จำนวนวันเคดิต:</strong>
                 <input
                   type="number"
                   value={number_of_credit_days}
                   onChange={(e) => setnumber_of_credit_days(e.target.value)}
                   className="w-[30px] border-none outline-none ml-1 bg-transparent text-center font-bold"
-                /> วัน
+                />{" "}
+                วัน
               </div>
             </div>
           </div>
@@ -299,19 +363,39 @@ const QuotationDetailScreen = () => {
 
           {/* Products Table */}
           <div className="flex-grow mt-2">
-            <div className="grid border border-slate-300 w-full max-w-[180mm]" style={{ gridTemplateColumns: "0.5fr 1fr 2.8fr 0.7fr 0.7fr 1fr 1.2fr" }}>
-              {["ลำดับ", "รหัสสินค้า", "รายละเอียด", "จำนวน", "หน่วย", "ราคา/หน่วย", "จำนวนเงิน"].map((header, i) => (
-                <div key={i} className={`text-center py-1.5 px-1 font-bold bg-slate-50 ${i === 6 ? "" : "border-r border-slate-300"} text-xs`}>
+            <div
+              className="grid border border-slate-300 w-full max-w-[180mm]"
+              style={{
+                gridTemplateColumns: "0.5fr 1fr 2.8fr 0.7fr 0.7fr 1fr 1.2fr",
+              }}
+            >
+              {[
+                "ลำดับ",
+                "รหัสสินค้า",
+                "รายละเอียด",
+                "จำนวน",
+                "หน่วย",
+                "ราคา/หน่วย",
+                "จำนวนเงิน",
+              ].map((header, i) => (
+                <div
+                  key={i}
+                  className={`text-center py-1.5 px-1 font-bold bg-slate-50 ${i === 6 ? "" : "border-r border-slate-300"} text-xs`}
+                >
                   {header}
                 </div>
               ))}
               {rows.map((row, index) => (
                 <React.Fragment key={index}>
-                  <div className="text-center content-start border-t border-r border-slate-300 py-1 px-1 text-xs">{index + 1}</div>
+                  <div className="text-center content-start border-t border-r border-slate-300 py-1 px-1 text-xs">
+                    {index + 1}
+                  </div>
                   <div className="border-t border-r border-slate-300 px-1 content-start">
                     <input
                       value={row.product_id}
-                      onChange={(e) => handleChange(index, "product_id", e.target.value)}
+                      onChange={(e) =>
+                        handleChange(index, "product_id", e.target.value)
+                      }
                       className="w-full text-xs h-[24px] border-none outline-none leading-none p-0 bg-transparent text-center"
                     />
                   </div>
@@ -319,7 +403,9 @@ const QuotationDetailScreen = () => {
                   <div className="border-t border-r border-slate-300 px-1.5 py-1 content-start">
                     <textarea
                       value={row.description}
-                      onChange={(e) => handleChange(index, "description", e.target.value)}
+                      onChange={(e) =>
+                        handleChange(index, "description", e.target.value)
+                      }
                       onInput={autoGrow}
                       className="w-full text-xs min-h-[22px] border-none outline-none resize-none overflow-hidden leading-snug p-0 bg-transparent"
                       rows={1}
@@ -331,7 +417,9 @@ const QuotationDetailScreen = () => {
                       type="number"
                       min="0"
                       value={row.qty || ""}
-                      onChange={(e) => handleChange(index, "qty", e.target.value)}
+                      onChange={(e) =>
+                        handleChange(index, "qty", e.target.value)
+                      }
                       className="w-full text-xs text-center h-[24px] border-none outline-none leading-none p-0 bg-transparent"
                     />
                   </div>
@@ -339,7 +427,9 @@ const QuotationDetailScreen = () => {
                   <div className="text-center border-t border-r border-slate-300 px-1 content-start">
                     <input
                       value={row.unit}
-                      onChange={(e) => handleChange(index, "unit", e.target.value)}
+                      onChange={(e) =>
+                        handleChange(index, "unit", e.target.value)
+                      }
                       className="w-full text-xs text-center h-[24px] border-none outline-none leading-none p-0 bg-transparent"
                     />
                   </div>
@@ -349,28 +439,65 @@ const QuotationDetailScreen = () => {
                       type="number"
                       min="0"
                       value={row.unit_price || ""}
-                      onChange={(e) => handleChange(index, "unit_price", e.target.value)}
+                      onChange={(e) =>
+                        handleChange(index, "unit_price", e.target.value)
+                      }
                       className="w-full text-xs text-right h-[24px] border-none outline-none leading-none px-1 bg-transparent"
                     />
                   </div>
 
                   <div className="text-right content-start border-t border-slate-300 py-1.5 px-1.5 text-xs tabular-nums">
-                    {row.qty && row.unit_price ? (parseFloat(row.qty) * parseFloat(row.unit_price)).toLocaleString(undefined, { minimumFractionDigits: 2 }) : ""}
+                    {row.qty && row.unit_price
+                      ? (
+                          parseFloat(row.qty) * parseFloat(row.unit_price)
+                        ).toLocaleString(undefined, {
+                          minimumFractionDigits: 2,
+                        })
+                      : ""}
                   </div>
                 </React.Fragment>
               ))}
 
               {/* Summary Rows */}
               {[
-                [`*** มัดจำ ${defaultSummary.deposit} % ***`, `ส่วนลด ${defaultSummary.discount || "0"} %`, totalDiscount],
-                [`${defaultSummary.bank_account_name || ""}\n${defaultSummary.bank_account_number || ""}`, "มูลค่าสินค้าหลังหักส่วนลด", totalAfterDiscount],
-                ["", `ภาษีมูลค่าเพิ่ม ${defaultSummary.vat || "0"} %`, totalVat],
+                [
+                  `*** มัดจำ ${defaultSummary.deposit} % ***`,
+                  `ส่วนลด ${defaultSummary.discount || "0"} %`,
+                  totalDiscount,
+                ],
+                [
+                  `${defaultSummary.bank_account_name || ""}\n${defaultSummary.bank_account_number || ""}`,
+                  "มูลค่าสินค้าหลังหักส่วนลด",
+                  totalAfterDiscount,
+                ],
+                [
+                  "",
+                  `ภาษีมูลค่าเพิ่ม ${defaultSummary.vat || "0"} %`,
+                  totalVat,
+                ],
                 ["", "ยอดรวมสุทธิ", grandTotal],
               ].map(([note, label, value], i) => (
                 <React.Fragment key={i}>
-                  <div className={`text-center py-1.5 px-1 whitespace-pre-line ${i === 0 ? "border-t border-slate-300" : ""} border-r border-slate-300 font-normal text-xs`} style={{ gridColumn: "1 / span 4" }}>{note}</div>
-                  <div className="text-left py-1.5 px-2 border-t border-r border-slate-300 font-bold text-xs bg-slate-50/50" style={{ gridColumn: "5 / span 2" }}>{label}</div>
-                  <div className="text-right py-1.5 px-1.5 border-t border-slate-300 font-bold text-xs bg-slate-50/50 tabular-nums" style={{ gridColumn: "7" }}>{parseFloat(value).toLocaleString(undefined, { minimumFractionDigits: 2 })}</div>
+                  <div
+                    className={`text-center py-1.5 px-1 whitespace-pre-line ${i === 0 ? "border-t border-slate-300" : ""} border-r border-slate-300 font-normal text-xs`}
+                    style={{ gridColumn: "1 / span 4" }}
+                  >
+                    {note}
+                  </div>
+                  <div
+                    className="text-left py-1.5 px-2 border-t border-r border-slate-300 font-bold text-xs bg-slate-50/50"
+                    style={{ gridColumn: "5 / span 2" }}
+                  >
+                    {label}
+                  </div>
+                  <div
+                    className="text-right py-1.5 px-1.5 border-t border-slate-300 font-bold text-xs bg-slate-50/50 tabular-nums"
+                    style={{ gridColumn: "7" }}
+                  >
+                    {parseFloat(value).toLocaleString(undefined, {
+                      minimumFractionDigits: 2,
+                    })}
+                  </div>
                 </React.Fragment>
               ))}
             </div>
@@ -380,45 +507,57 @@ const QuotationDetailScreen = () => {
 
           {/* Footer / Signatures */}
           <div className="flex justify-between w-full mt-2 mb-0 gap-4">
-            {["buyer_approves", "sales_person", "sales_manager"].map((role, idx) => (
-              <div key={idx} className="flex-1 min-w-0 border border-slate-300 px-4 pb-2 pt-2 flex flex-col items-center h-[95px] justify-between text-xs">
-                <div className="flex items-center w-full mb-1">
-                  <span className="flex-[0_0_50%] text-left self-end font-medium text-slate-700">
-                    {role === "buyer_approves"
-                      ? "ผู้ขอซื้อ"
-                      : role === "sales_person"
-                        ? "ผู้เสนอราคา"
-                        : "ผู้จัดการขาย"}
-                  </span>
+            {["buyer_approves", "sales_person", "sales_manager"].map(
+              (role, idx) => (
+                <div
+                  key={idx}
+                  className="flex-1 min-w-0 border border-slate-300 px-4 pb-2 pt-2 flex flex-col items-center h-[95px] justify-between text-xs"
+                >
+                  <div className="flex items-center w-full mb-1">
+                    <span className="flex-[0_0_50%] text-left self-end font-medium text-slate-700">
+                      {role === "buyer_approves"
+                        ? "ผู้ขอซื้อ"
+                        : role === "sales_person"
+                          ? "ผู้เสนอราคา"
+                          : "ผู้จัดการขาย"}
+                    </span>
 
-                  <div className={`flex-[0_0_90px] border-b border-slate-400 h-[45px] flex items-end justify-center ${role === "buyer_approves" ? "-ml-2.5" : ""}`}>
-                    {role !== "buyer_approves" && (
-                      <img
-                        src={defaultSelected?.[role]}
-                        alt={`${role} Signature`}
-                        className="max-h-[35px] object-contain mb-1"
-                      />
-                    )}
+                    <div
+                      className={`flex-[0_0_90px] border-b border-slate-400 h-[45px] flex items-end justify-center ${role === "buyer_approves" ? "-ml-2.5" : ""}`}
+                    >
+                      {role !== "buyer_approves" && (
+                        <img
+                          src={defaultSelected?.[role]}
+                          alt={`${role} Signature`}
+                          className="max-h-[35px] object-contain mb-1"
+                        />
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="flex items-center w-full mt-1">
+                    <span className="flex-[0_0_25%] text-left font-medium text-slate-700">
+                      ลงวันที่
+                    </span>
+                    <div className="flex-1 border-b border-slate-400 h-[22px] flex items-center justify-center font-semibold text-slate-800">
+                      {today}
+                    </div>
                   </div>
                 </div>
-
-                <div className="flex items-center w-full mt-1">
-                  <span className="flex-[0_0_25%] text-left font-medium text-slate-700">ลงวันที่</span>
-                  <div className="flex-1 border-b border-slate-400 h-[22px] flex items-center justify-center font-semibold text-slate-800">
-                    {today}
-                  </div>
-                </div>
-              </div>
-            ))}
+              ),
+            )}
           </div>
-
         </div>
       </div>
 
       <div className="flex justify-center w-full py-8 mt-4 bg-white border-t border-slate-200">
-        <Button onClick={handlePreviewPDF} className="min-w-[200px] shadow-sm font-semibold">Preview PDF</Button>
+        <Button
+          onClick={handlePreviewPDF}
+          className="min-w-[200px] shadow-sm font-semibold"
+        >
+          Preview PDF
+        </Button>
       </div>
-
     </>
   );
 };

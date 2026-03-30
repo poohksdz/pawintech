@@ -1,13 +1,13 @@
-import React from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import Message from './Message';
-import { useGetShowcasesQuery } from '../slices/showcasesApiSlice';
-import { Swiper, SwiperSlide } from 'swiper/react';
-import { Autoplay, Pagination, Navigation } from 'swiper/modules';
-import 'swiper/css';
-import 'swiper/css/pagination';
-import 'swiper/css/navigation';
-import './swiper-custom.css';
+import React from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import Message from "./Message";
+import { useGetShowcasesQuery } from "../slices/showcasesApiSlice";
+import { Swiper, SwiperSlide } from "swiper/react";
+import { Autoplay, Pagination, Navigation } from "swiper/modules";
+import "swiper/css";
+import "swiper/css/pagination";
+import "swiper/css/navigation";
+import "./swiper-custom.css";
 
 const ProductCarousel2 = () => {
   const { pageNumber } = useParams();
@@ -19,17 +19,21 @@ const ProductCarousel2 = () => {
   };
 
   if (isLoading) return null;
-  if (error) return <Message variant="danger">{error?.data?.message || error.error}</Message>;
+  if (error)
+    return (
+      <Message variant="danger">{error?.data?.message || error.error}</Message>
+    );
 
   const showcasesToShow = data
-    ? data.filter(showcase => showcase.present === 'presentTwo')
-      .sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0))
+    ? data
+        .filter((showcase) => showcase.present === "presentTwo")
+        .sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0))
     : [];
 
   if (showcasesToShow.length === 0) return null;
 
   return (
-    // ✅ ใช้ w-full h-full เพื่อให้ยืดเต็มพื้นที่ของ Parent
+    //  ใช้ w-full h-full เพื่อให้ยืดเต็มพื้นที่ของ Parent
     <div className="w-full h-full">
       <Swiper
         modules={[Autoplay, Pagination, Navigation]}
@@ -47,8 +51,8 @@ const ProductCarousel2 = () => {
             className="relative w-full h-full cursor-pointer"
             onClick={() => handleNavigateLinkChange(showcase.navigateLink)}
           >
-            {/* ✅ object-cover: ขยายรูปให้เต็มพื้นที่โดยไม่เสียสัดส่วน (อาจมีการตัดขอบบนล่างบ้าง)
-                ✅ w-full: กว้าง 100% ของจอ */}
+            {/*  object-cover: ขยายรูปให้เต็มพื้นที่โดยไม่เสียสัดส่วน (อาจมีการตัดขอบบนล่างบ้าง)
+                 w-full: กว้าง 100% ของจอ */}
             <img
               src={showcase.image}
               alt={showcase.name}

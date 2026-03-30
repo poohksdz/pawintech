@@ -1,47 +1,44 @@
-
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import {
-  Container,
   Row,
   Col,
   Form,
-  Button,
-  Card,
-  ListGroup,
-  Image,
-  ButtonGroup,
-  ToggleButton
-} from 'react-bootstrap';
-import { toast } from 'react-toastify';
-import { useSelector } from 'react-redux';
-import { useNavigate, useParams } from 'react-router-dom';
-import Loader from '../../components/Loader';
-import Message from '../../components/Message';
-import { BASE_URL } from '../../constants';
+  Button as BootstrapButton,
+} from "react-bootstrap";
+import { toast } from "react-toastify";
+import { useSelector } from "react-redux";
+import { useNavigate, useParams } from "react-router-dom";
+import Loader from "../../components/Loader";
+import Message from "../../components/Message";
+import { BASE_URL } from "../../constants";
 import {
   useUploadGerberAssemblyZipMutation,
   useUploadAssemblyMultipleImagesMutation,
   useGetAssemblycartDefaultQuery,
-} from '../../slices/assemblypcbCartApiSlice';
+} from "../../slices/assemblypcbCartApiSlice";
+import { useGetAssemblyPCBByOrderIdQuery } from "../../slices/assemblypcbApiSlice";
+
 import {
-  useGetAssemblyPCBByOrderIdQuery,
-} from '../../slices/assemblypcbApiSlice';
+  FaRocket, FaBox, FaRulerCombined, FaMicrochip, FaCogs,
+  FaCamera, FaPaperclip, FaFileAlt, FaInfoCircle, FaCheckCircle,
+  FaArrowLeft, FaTimesCircle, FaCloudUploadAlt, FaHistory
+} from "react-icons/fa";
+import { PiCircuitryFill, PiTextColumnsFill, PiRowsFill } from "react-icons/pi";
 
 const ReorderPCBAdminCreateAssemblyPCBScreen = () => {
   const navigate = useNavigate();
   const { id: orderID } = useParams();
-
   const { userInfo } = useSelector((state) => state.auth);
+  const { language } = useSelector((state) => state.language);
 
   const [uploadGerberZip] = useUploadGerberAssemblyZipMutation();
   const [uploadAssemblyMultipleImages] = useUploadAssemblyMultipleImagesMutation();
-  const { data, isLoading: isFetchingDefault } = useGetAssemblycartDefaultQuery();
-  const { data: configData, isLoading, isFetchingConfig } = useGetAssemblyPCBByOrderIdQuery(orderID);
+  const { data: defaultResponse, isLoading: isFetchingDefault } = useGetAssemblycartDefaultQuery();
+  const { data: configData, isLoading: isLoadingConfig, isFetching: isFetchingConfig } = useGetAssemblyPCBByOrderIdQuery(orderID);
 
-  const defaultData = data?.data;
+  const defaultData = defaultResponse?.data;
 
-  // const old_data = configData?.data[0];
-
+  // --- States ---
   const [showSMDFields, setShowSMDFields] = useState(false);
   const [showTHTFields, setShowTHTFields] = useState(false);
   const [stencilPrice, setStencilPrice] = useState(2500);
@@ -49,60 +46,72 @@ const ReorderPCBAdminCreateAssemblyPCBScreen = () => {
   const [bottomImages, setBottomImages] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [confirmed_price, setConfirmedPrice] = useState(null);
-  const [confirmed_reason, setConfirmedReason] = useState(null);
 
+  const [formData, setFormData] = useState({
+    projectname: "",
+    pcb_qty: 1,
+    width_mm: "",
+    high_mm: "",
+    count_smd: "",
+    total_point_smd: "",
+    count_tht: "",
+    total_point_tht: "",
+    board_types: "Single",
+    total_columns: "",
+    total_rows: "",
+    smd_side: "Top",
+    tht_side: "Bottom",
+    gerber_zip: null,
+    notes: "",
+    zipFile: null,
+    smd_price: "",
+    tht_price: "",
+    setup_price: "",
+    delievery_price: "",
+    user_id: "",
+    userName: "",
+    userEmail: "",
+    confirmed_price: "",
+    confirmed_reason: "",
+    stencil_price: 2500,
+    shippingName: "",
+    shippingPhone: "",
+    shippingAddress: "",
+    shippingCity: "",
+    shippingPostalCode: "",
+    shippingCountry: "",
+    billingName: "",
+    billingPhone: "",
+    billinggAddress: "",
+    billingCity: "",
+    billingPostalCode: "",
+    billingCountry: "",
+    billingTax: ""
+  });
+
+  // --- Logic Helpers ---
   const getFullUrl = (path) => {
     if (!path) return null;
-    if (path.startsWith('http')) return path;
-    let normalizedPath = path.replace(/\\/g, '/');
-    if (!normalizedPath.startsWith('/')) {
-      normalizedPath = '/' + normalizedPath;
-    }
-    const baseUrl = process.env.NODE_ENV === 'development' ? 'http://localhost:5000' : (BASE_URL || '');
+    if (path.startsWith("http")) return path;
+    let normalizedPath = path.replace(/\\/g, "/");
+    if (!normalizedPath.startsWith("/")) normalizedPath = "/" + normalizedPath;
+    const baseUrl = process.env.NODE_ENV === "development" ? "http://localhost:5000" : BASE_URL || "";
     return `${baseUrl}${normalizedPath}`;
   };
 
-  const [formData, setFormData] = useState({
-    projectname: '',
-    pcb_qty: 1,
-    width_mm: '',
-    high_mm: '',
-    count_smd: '',
-    total_point_smd: '',
-    count_tht: '',
-    total_point_tht: '',
-    board_types: '',
-    total_columns: '',
-    total_rows: '',
-    smd_side: '',
-    tht_side: '',
-    gerber_zip: null,
-    notes: '',
-    zipFile: null,
-    smd_price: '',
-    tht_price: '',
-    setup_price: '',
-    delievery_price: '',
-    user_id: '',
-    userName: '',
-    userEmail: '',
-    confirmed_price: '',
-    confirmed_reason: '',
-  });
-
-  const qty = parseFloat(formData.pcb_qty);
+  const qty = parseFloat(formData.pcb_qty) || 0;
   const smdPins = showSMDFields ? parseFloat(formData.total_point_smd) || 0 : 0;
   const thtPins = showTHTFields ? parseFloat(formData.total_point_tht) || 0 : 0;
-  const smd_price = parseFloat(formData.smd_price);
-  const tht_price = parseFloat(formData.tht_price);
-  const setupPrice = parseFloat(formData.setup_price);
-  const delieveryPrice = parseFloat(formData.delievery_price);
+  const smd_price = parseFloat(formData.smd_price) || 0;
+  const tht_price = parseFloat(formData.tht_price) || 0;
+  const setupPrice = parseFloat(formData.setup_price) || 0;
+  const delieveryPrice = parseFloat(formData.delievery_price) || 0;
 
   const smdCost = smdPins * smd_price;
   const thtCost = thtPins * tht_price;
   const totalCost = qty * (smdCost + thtCost) + stencilPrice + setupPrice + delieveryPrice;
 
+  // --- Effects ---
   useEffect(() => {
     if (defaultData) {
       setFormData((prev) => ({
@@ -117,10 +126,10 @@ const ReorderPCBAdminCreateAssemblyPCBScreen = () => {
   }, [defaultData]);
 
   useEffect(() => {
-    const stencilBase = parseFloat(formData.stencil_price);
+    const stencilBase = parseFloat(formData.stencil_price) || 2500;
     if (!showSMDFields) {
       setStencilPrice(stencilBase);
-    } else if (formData.smd_side === 'Both') {
+    } else if (formData.smd_side === "Both") {
       setStencilPrice(stencilBase * 2);
     } else {
       setStencilPrice(stencilBase);
@@ -130,192 +139,138 @@ const ReorderPCBAdminCreateAssemblyPCBScreen = () => {
   useEffect(() => {
     if (configData?.success && configData.data) {
       const d = configData?.data[0];
-
-
       setFormData((prev) => ({
         ...prev,
-        projectname: d.projectname || '',
-        pcb_qty: d.pcb_qty || 1,
-        width_mm: d.width_mm || '',
-        high_mm: d.high_mm || '',
-        board_types: d.board_types || 'Single',
-        total_columns: d.total_columns || '',
-        total_rows: d.total_rows || '',
-        count_smd: d.count_smd || '',
-        total_point_smd: d.total_point_smd || '',
-        smd_side: d.smd_side || 'Top',
-        count_tht: d.count_tht || '',
-        total_point_tht: d.total_point_tht || '',
-        tht_side: d.tht_side || 'Bottom',
-        notes: d.notes || '',
-        gerber_zip: d.gerber_zip || null,
-        user_id: d.user_id,
-        billingName: d.billingName || '',
-        billingPhone: d.billingPhone || '',
-        billinggAddress: d.billinggAddress || '',
-        billingCity: d.billingCity || '',
-        billingPostalCode: d.billingPostalCode || '',
-        billingCountry: d.billingCountry || '',
-        billingTax: d.billingTax || '',
-        shippingName: d.shippingName || '',
-        shippingPhone: d.shippingPhone || '',
-        shippingAddress: d.shippingAddress || '',
-        shippingCity: d.shippingCity || '',
-        shippingPostalCode: d.shippingPostalCode || '',
-        shippingCountry: d.shippingCountry || '',
-        userName: d.userName || '',
-        userEmail: d.userEmail || '',
-        confirmed_price: d.confirmed_price || '',
-        confirmed_reason: d.confirmed_reason || '',
+        ...d,
+        zipFile: null,
       }));
 
-      if (parseInt(d.count_smd) > 0 || parseInt(d.total_point_smd) > 0) {
-        setShowSMDFields(true);
-      }
-
-      if (parseInt(d.count_tht) > 0 || parseInt(d.total_point_tht) > 0) {
-        setShowTHTFields(true);
-      }
+      if (parseInt(d.count_smd) > 0 || parseInt(d.total_point_smd) > 0) setShowSMDFields(true);
+      if (parseInt(d.count_tht) > 0 || parseInt(d.total_point_tht) > 0) setShowTHTFields(true);
 
       const topImgs = [];
       for (let i = 1; i <= 10; i++) {
         const key = `image_top_${i}`;
-        if (d[key]) {
-          topImgs.push({
-            url: getFullUrl(d[key]),
-            raw: d[key],
-            file: null,
-          });
-        }
+        if (d[key]) topImgs.push({ url: getFullUrl(d[key]), raw: d[key], file: null });
       }
-
       setTopImages(topImgs);
 
       const bottomImgs = [];
       for (let i = 1; i <= 10; i++) {
         const key = `image_bottom_${i}`;
-        if (d[key]) {
-          bottomImgs.push({
-            url: getFullUrl(d[key]),
-            raw: d[key],
-            file: null,
-          });
-        }
+        if (d[key]) bottomImgs.push({ url: getFullUrl(d[key]), raw: d[key], file: null });
       }
       setBottomImages(bottomImgs);
     }
   }, [configData]);
 
+  // --- Helpers for Uploads (Restored from original) ---
   const uploadTopImages = async () => {
     const form = new FormData();
-    const newFiles = topImages.filter(img => img.file);
-    if (newFiles.length === 0) return topImages.filter(img => !img.file).map(img => img.raw || img.url);
-    newFiles.forEach(img => form.append('images', img.file));
+    const newFiles = topImages.filter((img) => img.file);
+    if (newFiles.length === 0)
+      return topImages
+        .filter((img) => !img.file)
+        .map((img) => img.raw || img.url);
+    newFiles.forEach((img) => form.append("images", img.file));
     const res = await uploadAssemblyMultipleImages(form).unwrap();
-    const oldPaths = topImages.filter(img => !img.file).map(img => img.raw || img.url);
-    const newPaths = (res?.images || []).map(img => typeof img === 'string' ? img : img.path);
+    const oldPaths = topImages
+      .filter((img) => !img.file)
+      .map((img) => img.raw || img.url);
+    const newPaths = (res?.images || []).map((img) =>
+      typeof img === "string" ? img : img.path,
+    );
     return [...oldPaths, ...newPaths];
   };
 
   const uploadBottomImages = async () => {
     const form = new FormData();
-    const newFiles = bottomImages.filter(img => img.file);
-    if (newFiles.length === 0) return bottomImages.filter(img => !img.file).map(img => img.raw || img.url);
-    newFiles.forEach(img => form.append('images', img.file));
+    const newFiles = bottomImages.filter((img) => img.file);
+    if (newFiles.length === 0)
+      return bottomImages
+        .filter((img) => !img.file)
+        .map((img) => img.raw || img.url);
+    newFiles.forEach((img) => form.append("images", img.file));
     const res = await uploadAssemblyMultipleImages(form).unwrap();
-    const oldPaths = bottomImages.filter(img => !img.file).map(img => img.raw || img.url);
-    const newPaths = (res?.images || []).map(img => typeof img === 'string' ? img : img.path);
+    const oldPaths = bottomImages
+      .filter((img) => !img.file)
+      .map((img) => img.raw || img.url);
+    const newPaths = (res?.images || []).map((img) =>
+      typeof img === "string" ? img : img.path,
+    );
     return [...oldPaths, ...newPaths];
   };
 
   const uploadgerberZipHandler = async () => {
     if (!formData.zipFile) return formData.gerber_zip;
     const form = new FormData();
-    form.append('gerberZip', formData.zipFile);
+    form.append("gerberZip", formData.zipFile);
     const res = await uploadGerberZip(form).unwrap();
     return res.path;
   };
 
-
+  // --- Handlers ---
   const handleImageUpload = (e, side) => {
     const files = Array.from(e.target.files);
-    const images = files.map((file) => ({
-      file,
-      url: URL.createObjectURL(file),
-    }));
-    if (side === 'top') setTopImages((prev) => [...prev, ...images]);
-    else if (side === 'bottom') setBottomImages((prev) => [...prev, ...images]);
+    const images = files.map((file) => ({ file, url: URL.createObjectURL(file) }));
+    if (side === "top") setTopImages((prev) => [...prev, ...images]);
+    else if (side === "bottom") setBottomImages((prev) => [...prev, ...images]);
   };
 
   const removeImage = (idx, side) => {
-    if (side === 'top') setTopImages((prev) => prev.filter((_, i) => i !== idx));
-    else if (side === 'bottom') setBottomImages((prev) => prev.filter((_, i) => i !== idx));
+    if (side === "top") setTopImages((prev) => prev.filter((_, i) => i !== idx));
+    else if (side === "bottom") setBottomImages((prev) => prev.filter((_, i) => i !== idx));
   };
 
   const handleChange = (e) => {
     const { name, files, type, value } = e.target;
-    if (type === 'file') {
-      setFormData((prev) => ({
-        ...prev,
-        zipFile: files[0] || null,
-      }));
+    if (type === "file") {
+      setFormData((prev) => ({ ...prev, zipFile: files[0] || null }));
     } else {
-      setFormData((prev) => ({
-        ...prev,
-        [name]: name === 'confirmed_price' ? value : value,
-      }));
+      setFormData((prev) => ({ ...prev, [name]: value }));
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setError(null);
-
     try {
-      if (!userInfo) {
-        navigate('/login');
-        return;
-      }
-
-      if (!formData.projectname.trim()) {
-        toast.error('Please enter a project name.');
-        return;
-      }
+      if (!userInfo) { navigate("/login"); return; }
+      if (!formData.projectname.trim()) { toast.error("Please enter a project name."); return; }
 
       if (!formData.width_mm || parseFloat(formData.width_mm) <= 0) {
-        toast.error('Please enter a valid PCB width.');
+        toast.error("Please enter a valid PCB width.");
         return;
       }
 
       if (!formData.high_mm || parseFloat(formData.high_mm) <= 0) {
-        toast.error('Please enter a valid PCB height.');
+        toast.error("Please enter a valid PCB height.");
         return;
       }
 
       if (!showSMDFields && !showTHTFields) {
-        toast.error('Please select either SMD or THT option.');
+        toast.error("Please select either SMD or THT option.");
         return;
       }
 
       if (topImages.length < 1) {
-        toast.error('Please upload at least 1 top PCB images.');
+        toast.error("Please upload at least 1 top PCB images.");
         return;
       }
 
       if (bottomImages.length < 1) {
-        toast.error('Please upload at least 1 bottom PCB images.');
+        toast.error("Please upload at least 1 bottom PCB images.");
         return;
       }
 
       if (showSMDFields) {
         const smdPinsNum = parseFloat(formData.total_point_smd);
         if (!formData.smd_side) {
-          toast.error('Please select SMD side.');
+          toast.error("Please select SMD side.");
           return;
         }
         if (isNaN(smdPinsNum) || smdPinsNum <= 0) {
-          toast.error('SMD pin count must be greater than zero.');
+          toast.error("SMD pin count must be greater than zero.");
           return;
         }
       }
@@ -323,847 +278,538 @@ const ReorderPCBAdminCreateAssemblyPCBScreen = () => {
       if (showTHTFields) {
         const thtPinsNum = parseFloat(formData.total_point_tht);
         if (!formData.tht_side) {
-          toast.error('Please select THT side.');
+          toast.error("Please select THT side.");
           return;
         }
 
         if (isNaN(thtPinsNum) || thtPinsNum <= 0) {
-          toast.error('THT pin count must be greater than zero.');
+          toast.error("THT pin count must be greater than zero.");
           return;
         }
       }
 
       const confirmPriceNumber = parseFloat(formData.confirmed_price);
       if (isNaN(confirmPriceNumber) || confirmPriceNumber <= 0) {
-        toast.error('confirm price must be greater than zero.');
+        toast.error("Confirm price must be greater than zero.");
         return;
       }
 
+      // Execute uploads
       const uploadedZipPath = await uploadgerberZipHandler();
       const uploadedTop = await uploadTopImages();
       const uploadedBottom = await uploadBottomImages();
 
-      //     await updateAssemblyPCB({
-      //   id: id,
-      //   updatedData: {
-      //     ...formData,
-      //           smd_side: showSMDFields ? formData.smd_side : '',
-      //           count_smd: showSMDFields ? formData.count_smd : '',
-      //           total_point_smd: showSMDFields ? formData.total_point_smd : '',
-      //           tht_side: showTHTFields ? formData.tht_side : '',
-      //           count_tht: showTHTFields ? formData.count_tht : '',
-      //           total_point_tht: showTHTFields ? formData.total_point_tht : '',
-      //           stencil_price: stencilPrice,
-      //           setup_price: setupPrice,
-      //           delievery_price: delieveryPrice,
-      //           gerber_zip: uploadedZipPath,
-      //           image_tops: uploadedTop,
-      //           image_bottoms: uploadedBottom,
-      //           estimatedCost: totalCost, 
-      //         confirmed_price: formData.confirmPriceNumber,  
-      //         confirmed_reason: formData.confirmed_reason,
+      // Note: Full API update call was commented out in original file.
+      // We keep it as intended by the user but restored the data preparation logic.
 
-      //     billingName: formData.billingName,
-      //     billingPhone: formData.billingPhone,
-      //     billinggAddress: formData.billinggAddress,
-      //     billingCity: formData.billingCity,
-      //     billingPostalCode: formData.billingPostalCode,
-      //     billingCountry: formData.billingCountry,
-      //     billingTax: formData.billingTax,
+      console.log("Submit Payload Prepared:", {
+        ...formData,
+        gerber_zip: uploadedZipPath,
+        image_tops: uploadedTop,
+        image_bottoms: uploadedBottom,
+        estimatedCost: totalCost
+      });
 
-      //     shippingName: formData.shippingName,
-      //     shippingPhone: formData.shippingPhone,
-      //     shippingAddress: formData.shippingAddress,
-      //     shippingCity: formData.shippingCity,
-      //     shippingPostalCode: formData.shippingPostalCode,
-      //     shippingCountry: formData.shippingCountry,
-
-      //     userName: formData.userName,
-      //     userEmail: formData.userEmail,
-      //   },
-      // }).unwrap();
-
-
-      toast.success('Order updated successfully!');
-      navigate('/admin/orderassemblypcbeditlist');
+      toast.success("Design Applied Successfully!");
+      navigate("/admin/orderassemblypcbeditlist");
     } catch (err) {
       console.error(err);
-      setError('Failed to submit order');
-      toast.error('Error submitting order');
+      toast.error("Error submitting order");
     } finally {
       setLoading(false);
     }
   };
 
-  const { language } = useSelector((state) => state.language);
-
   const translations = {
     en: {
-      pcbassemblyorderlbl: 'PCB Assembly Order (You Supply Parts)',
-      projectnamelbl: 'Project Name',
-      qtylbl: 'Quantity',
-      boardType: 'Board Type',
-      singlePiece: 'Single Piece',
-      panelized: 'Panelized',
-      totalColumns: 'Total Columns',
-      totalRows: 'Total Rows',
-      width: 'Width (mm)',
-      height: 'Height (mm)',
-      includeSMD: 'Include Surface Mount Device (SMD)',
-      smdSide: 'SMD Side',
-      smdCount: 'SMD Component Count',
-      smdPins: 'Total SMD Pins',
-      stencilPrice: 'Stencil Price (Baht)',
-      includeTHT: 'Include Through Hole (THT)',
-      thtSide: 'THT Side',
-      thtCount: 'Through Hole Component Count',
-      thtPins: 'Total Through Hole Pins',
-      topImages: 'Top Images (At least 1)',
-      bottomImages: 'Bottom Images ()',
-      zipFile: 'ZIP File or RAR File',
-      notes: 'Additional Notes',
-      submitOrder: 'Submit Order',
-      selectedSummary: 'Selected Summary',
-      calculatedSummary: 'Calculated Summary',
-      smdCost: 'Total SMD Cost',
-      thtCost: 'Total THT Cost',
-      setupFee: 'Setup Fee',
-      deliveryFee: 'Delivery Fee',
-      totalQty: 'Total Quantity',
-      totalCost: 'Total Estimated Cost',
-      confirmPriceLbl: 'Confirm Price',
-      confirmReasonLbl: 'Confirm Price Reason',
+      Title: "Reconfiguration Hub",
+      Subtitle: "Assembly Project Overhaul",
+      BasicInfo: "Core Project Details",
+      PCBDetails: "Board Parameters",
+      SMDSetup: "Surface Mount Device (SMD)",
+      THTSetup: "Through Hole Technology (THT)",
+      VisualAssests: "Visual Assets & Schematics",
+      Summary: "Control Summary",
+      Pricing: "Pricing Control",
+      Submit: "Confirm Reorder Configuration",
+      // ... more inherited ...
     },
     thai: {
-      pcbassemblyorderlbl: 'คำสั่งประกอบ PCB (คุณจัดหาชิ้นส่วน)',
-      projectnamelbl: 'ชื่อโปรเจกต์',
-      qtylbl: 'จำนวน',
-      boardType: 'ประเภทบอร์ด',
-      singlePiece: 'ชิ้นเดียว',
-      panelized: 'จัดวางแผง',
-      totalColumns: 'จำนวนคอลัมน์',
-      totalRows: 'จำนวนแถว',
-      width: 'ความกว้าง (มม.)',
-      height: 'ความสูง (มม.)',
-      includeSMD: 'รวมอุปกรณ์ SMD',
-      smdSide: 'ด้าน SMD',
-      smdCount: 'จำนวนอุปกรณ์ SMD',
-      smdPins: 'จำนวนขา SMD ทั้งหมด',
-      stencilPrice: 'ราคาสตันซิล (บาท)',
-      includeTHT: 'รวมอุปกรณ์แบบขา (THT)',
-      thtSide: 'ด้าน THT',
-      thtCount: 'จำนวนอุปกรณ์ THT',
-      thtPins: 'จำนวนขา THT ทั้งหมด',
-      topImages: 'ภาพด้านบน (อย่างน้อย 1 ภาพ)',
-      bottomImages: 'ภาพด้านล่าง (อย่างน้อย 1 ภาพ)',
-      zipFile: 'ไฟล์ ZIP หรือ RAR',
-      notes: 'หมายเหตุเพิ่มเติม',
-      submitOrder: 'ส่งคำสั่งซื้อ',
-      selectedSummary: 'สรุปรายการที่เลือก',
-      calculatedSummary: 'สรุปคำนวณ',
-      smdCost: 'รวมค่า SMD',
-      thtCost: 'รวมค่า THT',
-      setupFee: 'ค่าติดตั้ง',
-      deliveryFee: 'ค่าจัดส่ง',
-      totalQty: 'จำนวนทั้งหมด',
-      totalCost: 'ราคารวมโดยประมาณ',
-      confirmPriceLbl: 'ยืนยันราคา',
-      confirmReasonLbl: 'เหตุผลที่ยืนยันราคา',
-    },
+      Title: "ศูย์จัดการข้อมูลใหม่",
+      Subtitle: "ตั้งค่ารายการประกอบ PCB ใหม่",
+      BasicInfo: "ข้อมูลโปรเจกต์พื้นฐาน",
+      PCBDetails: "พารามิเตอร์แผงวงจร",
+      SMDSetup: "ตั้งค่าอุปกรณ์ SMD",
+      THTSetup: "ตั้งค่าอุปกรณ์ THT",
+      VisualAssests: "ภาพถ่ายและไฟล์ Gerbers",
+      Summary: "สรุปรายละเอียด",
+      Pricing: "ควบคุมราคา (Admin Only)",
+      Submit: "ยืนยันการตั้งค่าซ้ำ",
+    }
   };
 
   const t = translations[language] || translations.en;
 
+  if (isLoadingConfig || isFetchingConfig) return <div className="flex h-screen items-center justify-center dark:bg-black"><Loader /></div>;
+
   return (
-    <Container>
-      <h2 className="my-3">{t.pcbassemblyorderlbl}</h2>
-      {loading && <Loader />}
-      {error && <Message variant="danger">{error}</Message>}
-      <Form onSubmit={handleSubmit}>
-        <Row>
-          <Col xl={6}>
-            <Card className="mb-3 p-3">
-              <Form.Group controlId="projectname" className="mb-3">
-                <Form.Label>{t.projectnamelbl}</Form.Label>
-                <Form.Control
-                  type="text"
-                  name="projectname"
-                  value={formData.projectname}
-                  onChange={handleChange}
-                  required
-                  placeholder="Enter project name"
-                />
-              </Form.Group>
+    <div className="min-h-screen bg-[#f8f9fb] dark:bg-black p-4 font-sans transition-colors duration-500 md:p-10 lg:p-12">
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Outfit:wght@400;500;600;700;800;900&family=Prompt:wght@400;500;600;700;800;900&display=swap');
+        .font-display { font-family: 'Outfit', 'Prompt', sans-serif; }
+        .font-sans { font-family: 'Inter', 'Prompt', sans-serif; }
+        .glass-card {
+           background: white;
+           border: 1px solid rgba(0,0,0,0.08);
+           border-radius: 2.5rem;
+           padding: 2.5rem;
+           box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.05);
+           transition: all 0.3s ease;
+        }
+        .dark .glass-card {
+          background: rgba(15, 15, 17, 0.8);
+          border: 1px solid rgba(63, 63, 70, 0.5);
+          box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+        .form-label-premium {
+          font-size: 0.75rem;
+          font-weight: 800;
+          text-transform: uppercase;
+          letter-spacing: 0.1em;
+          color: #64748b;
+          margin-bottom: 0.75rem;
+        }
+        .form-input-premium {
+          height: 3.5rem;
+          border-radius: 1.25rem;
+          background: #f8fafc;
+          border: 1px solid #e2e8f0;
+          padding: 0 1.25rem;
+          font-weight: 600;
+          transition: all 0.2s;
+        }
+        .dark .form-input-premium {
+          background: #09090b;
+          border: 1px solid #27272a;
+          color: white;
+        }
+        .form-input-premium:focus {
+          border-color: #10b981;
+          box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1);
+          background: white;
+          outline: none;
+        }
+        .dark .form-input-premium:focus {
+           background: #18181b;
+           border-color: #10b981;
+        }
+        .sticky-summary {
+          position: sticky;
+          top: 2rem;
+        }
+      `}</style>
 
-              <Form.Group controlId="pcb_qty" className="mb-3">
-                <Form.Label>{t.qtylbl}</Form.Label>
-                <Form.Control
-                  type="number"
-                  name="pcb_qty"
-                  value={formData.pcb_qty}
-                  onChange={handleChange}
-                  min="0"
-                  required
-                />
-              </Form.Group>
+      <div className="mx-auto max-w-7xl">
+        {/* --- HEADER --- */}
+        <header className="mb-12 flex items-center justify-between">
+          <div className="flex items-center gap-6">
+            <button
+              onClick={() => navigate(-1)}
+              className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white dark:bg-zinc-900 shadow-sm ring-1 ring-slate-100 dark:ring-zinc-800 text-slate-400 hover:text-slate-950 dark:hover:text-white transition-all"
+            >
+              <FaArrowLeft />
+            </button>
+            <div>
+              <h1 className="font-display text-3xl font-black tracking-tight text-slate-950 dark:text-white">
+                {t.Title}
+              </h1>
+              <p className="text-xs font-bold uppercase tracking-widest text-emerald-500">
+                {t.Subtitle} • {orderID}
+              </p>
+            </div>
+          </div>
+          <div className="hidden md:block">
+            <div className="flex items-center gap-3 rounded-2xl bg-white dark:bg-zinc-900 border border-slate-100 dark:border-zinc-800 p-3 pr-6 shadow-sm">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500 text-white shadow-lg shadow-emerald-500/20">
+                <FaHistory size={18} />
+              </div>
+              <div className="flex flex-col">
+                <span className="text-[10px] font-black uppercase tracking-tighter text-slate-400">Restoration Mode</span>
+                <span className="text-sm font-bold text-slate-900 dark:text-white leading-none">Admin Override active</span>
+              </div>
+            </div>
+          </div>
+        </header>
 
-              {/* <Form.Group controlId="board_types" className="mb-3">
-              <Form.Label>{t.boardType}</Form.Label>
-              <Form.Control
-                as="select"
-                name="board_types"
-                value={formData.board_types}
-                onChange={handleChange}
-                required
-              >
-                <option value="Single">{t.singlePiece}</option>
-                <option value="Panelized">{t.panelized}</option> 
-              </Form.Control>
-            </Form.Group> */}
+        <Form onSubmit={handleSubmit}>
+          <Row className="g-8">
+            <Col xl={7} className="space-y-8">
 
-              <Form.Group controlId="board_types" className="mb-3">
-                <Form.Label>{t.boardType}</Form.Label> <br></br>
-                <ButtonGroup>
-                  {['Single', 'Panelized'].map((type, idx) => (
-                    <ToggleButton
-                      key={idx}
-                      id={`board_types-${type}`}
-                      type="radio"
-                      variant="outline-primary"
-                      name="board_types"
-                      value={type}
-                      checked={formData.board_types === type}
+              {/* SECTION: BASIC INFO */}
+              <section className="glass-card">
+                <div className="mb-10 flex items-center gap-4">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-50 dark:bg-zinc-800 text-slate-900 dark:text-emerald-400">
+                    <FaRocket size={20} />
+                  </div>
+                  <h2 className="font-display text-xl font-black text-slate-950 dark:text-white">{t.BasicInfo}</h2>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  <div className="flex flex-col">
+                    <label className="form-label-premium">Project Identifier</label>
+                    <input
+                      name="projectname"
+                      value={formData.projectname}
                       onChange={handleChange}
-                      required
-                    >
-                      {type === 'Single' ? t.singlePiece : t.panelized}
-                    </ToggleButton>
-                  ))}
-                </ButtonGroup>
-              </Form.Group>
-
-              {formData.board_types === 'Panelized' && (
-                <Row>
-                  <Col>
-                    <Form.Group controlId="total_columns" className="mb-3">
-                      <Form.Label>{t.totalColumns}</Form.Label>
-                      <Form.Control
+                      className="form-input-premium"
+                      placeholder="Project Alpha..."
+                    />
+                  </div>
+                  <div className="flex flex-col">
+                    <label className="form-label-premium">Quantity (Units)</label>
+                    <div className="relative">
+                      <input
+                        name="pcb_qty"
                         type="number"
-                        name="total_columns"
-                        value={formData.total_columns}
+                        value={formData.pcb_qty}
                         onChange={handleChange}
-                        placeholder="Number of columns"
-                        min="0"
+                        className="form-input-premium w-full pr-12"
+                        min="1"
                       />
-                    </Form.Group>
-                  </Col>
-
-                  <Col>
-                    <Form.Group controlId="total_rows" className="mb-3">
-                      <Form.Label>{t.totalRows}</Form.Label>
-                      <Form.Control
-                        type="number"
-                        name="total_rows"
-                        value={formData.total_rows}
-                        onChange={handleChange}
-                        placeholder="Number of rows"
-                        min="0"
-                      />
-                    </Form.Group>
-                  </Col>
-                </Row>
-              )}
-
-              <Row>
-                <Col>
-                  <Form.Group controlId="width_mm" className="mb-3">
-                    <Form.Label>{t.width}</Form.Label>
-                    <Form.Control
-                      type="number"
-                      name="width_mm"
-                      value={formData.width_mm}
-                      onChange={handleChange}
-                      placeholder="PCB width in mm"
-                      step="0.01"
-                    />
-                  </Form.Group>
-                </Col>
-                <Col>
-                  <Form.Group controlId="high_mm" className="mb-3">
-                    <Form.Label>{t.height}</Form.Label>
-                    <Form.Control
-                      type="number"
-                      name="high_mm"
-                      value={formData.high_mm}
-                      onChange={handleChange}
-                      placeholder="PCB height in mm"
-                      step="0.01"
-                    />
-                  </Form.Group>
-                </Col>
-              </Row>
-            </Card>
-
-            <Card className="mb-3 p-3">
-              <Form.Check
-                type="checkbox"
-                id="toggleSMD"
-                label={t.includeSMD}
-                checked={showSMDFields}
-                onChange={() => setShowSMDFields((prev) => !prev)}
-              />
-
-              {showSMDFields && (
-                <>
-                  {/* <Form.Group controlId="smd_side" className="mb-3">
-                  <Form.Label>{t.smdSide}</Form.Label> 
-                  <Form.Control
-                    as="select"
-                    name="smd_side"
-                    value={formData.smd_side}
-                    onChange={handleChange}
-                    required={showSMDFields}
-                  >
-                    <option value="Top">Top</option>
-                    <option value="Bottom">Bottom</option>
-                    <option value="Both">Both</option>
-                  </Form.Control>
-                </Form.Group> */}
-
-                  <Form.Group controlId="smd_side" className="mb-3">
-                    <Form.Label>{t.smdSide}</Form.Label> <br></br>
-                    <ButtonGroup>
-                      {['Top', 'Bottom', 'Both'].map((side, idx) => (
-                        <ToggleButton
-                          key={idx}
-                          id={`smd_side-${side}`}
-                          type="radio"
-                          variant="outline-primary"
-                          name="smd_side"
-                          value={side}
-                          checked={formData.smd_side === side}
-                          onChange={handleChange}
-                          required={showSMDFields}
-                        >
-                          {side}
-                        </ToggleButton>
-                      ))}
-                    </ButtonGroup>
-                  </Form.Group>
-
-                  <Form.Group controlId="count_smd" className="mb-3">
-                    <Form.Label>{t.smdCount}</Form.Label>
-                    <Form.Control
-                      type="number"
-                      name="count_smd"
-                      value={formData.count_smd}
-                      onChange={handleChange}
-                      placeholder="Number of SMD components"
-                      required={showSMDFields}
-                      min="0"
-                    />
-                  </Form.Group>
-
-                  <Form.Group controlId="total_point_smd" className="mb-3">
-                    <Form.Label>{t.smdPins}</Form.Label>
-                    <Form.Control
-                      type="number"
-                      name="total_point_smd"
-                      value={formData.total_point_smd}
-                      onChange={handleChange}
-                      placeholder="Total solder pins for SMD"
-                      required={showSMDFields}
-                      min="0"
-                    />
-                  </Form.Group>
-
-                  <Form.Group controlId="stencil_price" className="mb-3">
-                    <Form.Label>{t.stencilPrice}</Form.Label>
-                    <Form.Control
-                      type="number"
-                      name="stencil_price"
-                      value={stencilPrice}
-                      readOnly
-                      placeholder=""
-                      min="0"
-                    />
-                  </Form.Group>
-
-                </>
-              )}
-            </Card>
-
-            <Card className="mb-3 p-3">
-              <Form.Check
-                type="checkbox"
-                id="toggleTHT"
-                label={t.includeTHT}
-                checked={showTHTFields}
-                onChange={() => setShowTHTFields((prev) => !prev)}
-              />
-
-              {showTHTFields && (
-                <>
-
-                  <Form.Group controlId="tht_side" className="mb-3">
-                    <Form.Label>{t.thtSide}</Form.Label> <br></br>
-                    <ButtonGroup>
-                      {['Top', 'Bottom', 'Both'].map((side, idx) => (
-                        <ToggleButton
-                          key={idx}
-                          id={`tht_side-${side}`}
-                          type="radio"
-                          variant="outline-primary"
-                          name="tht_side"
-                          value={side}
-                          checked={formData.tht_side === side}
-                          onChange={handleChange}
-                          required={showTHTFields}
-                        >
-                          {side}
-                        </ToggleButton>
-                      ))}
-                    </ButtonGroup>
-                  </Form.Group>
-
-                  <Form.Group controlId="count_tht" className="mb-3">
-                    <Form.Label>{t.thtCount}</Form.Label>
-                    <Form.Control
-                      type="number"
-                      name="count_tht"
-                      value={formData.count_tht}
-                      onChange={handleChange}
-                      placeholder="Number of through hole components"
-                      required={showTHTFields}
-                      min="0"
-                    />
-                  </Form.Group>
-
-                  <Form.Group controlId="total_point_tht" className="mb-3">
-                    <Form.Label>{t.thtPins}</Form.Label>
-                    <Form.Control
-                      type="number"
-                      name="total_point_tht"
-                      value={formData.total_point_tht}
-                      onChange={handleChange}
-                      placeholder="Total solder pins for through hole"
-                      required={showTHTFields}
-                      min="0"
-                    />
-                  </Form.Group>
-                </>
-              )}
-            </Card>
-
-            <Card className="mb-3 p-3">
-              <Form.Group controlId="top_images" className="mb-3">
-                <Form.Label>{t.topImages}</Form.Label>
-                <Form.Control
-                  type="file"
-                  accept="image/*"
-                  multiple
-                  onChange={(e) => handleImageUpload(e, 'top')}
-                />
-                <div className="d-flex flex-wrap mt-3 gap-2">
-                  {topImages.map((img, idx) => (
-                    <div key={idx} style={{ position: 'relative' }}>
-                      <Image
-                        src={img.url}
-                        alt={`Top ${idx + 1}`}
-                        thumbnail
-                        style={{ width: '100px', height: '100px', objectFit: 'cover' }}
-                      />
-                      <Button
-                        variant="danger"
-                        size="sm"
-                        style={{
-                          position: 'absolute',
-                          top: '2px',
-                          right: '2px',
-                          padding: '0 2px',
-                          borderRadius: '50%',
-                          lineHeight: '1',
-                        }}
-                        onClick={() => removeImage(idx, 'top')}
-                      >
-                        ×
-                      </Button>
+                      <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-black text-slate-300">PCS</span>
                     </div>
-                  ))}
-                </div>
-              </Form.Group>
-            </Card>
-
-            <Card className="mb-3 p-3">
-              <Form.Group controlId="bottom_images" className="mb-3">
-                <Form.Label>{t.bottomImages}</Form.Label>
-                <Form.Control
-                  type="file"
-                  accept="image/*"
-                  multiple
-                  onChange={(e) => handleImageUpload(e, 'bottom')}
-                />
-                <div className="d-flex flex-wrap mt-3 gap-2">
-                  {bottomImages.map((img, idx) => (
-                    <div key={idx} style={{ position: 'relative' }}>
-                      <Image
-                        src={img.url}
-                        alt={`Bottom ${idx + 1}`}
-                        thumbnail
-                        style={{ width: '100px', height: '100px', objectFit: 'cover' }}
-                      />
-                      <Button
-                        variant="danger"
-                        size="sm"
-                        style={{
-                          position: 'absolute',
-                          top: '2px',
-                          right: '2px',
-                          padding: '0 2px',
-                          borderRadius: '50%',
-                          lineHeight: '1',
-                        }}
-                        onClick={() => removeImage(idx, 'bottom')}
-                      >
-                        ×
-                      </Button>
+                  </div>
+                  <div className="md:col-span-2">
+                    <label className="form-label-premium">Board Layout Type</label>
+                    <div className="flex gap-4">
+                      {["Single", "Panelized"].map((type) => (
+                        <button
+                          key={type}
+                          type="button"
+                          onClick={() => setFormData({ ...formData, board_types: type })}
+                          className={`flex-1 h-14 rounded-2xl font-bold flex items-center justify-center gap-3 transition-all ${formData.board_types === type ? 'bg-slate-950 text-white shadow-xl dark:bg-emerald-600' : 'bg-slate-50 text-slate-400 dark:bg-zinc-900/50 hover:bg-slate-100'}`}
+                        >
+                          {type === "Single" ? <FaBox size={14} /> : <PiCircuitryFill size={18} />}
+                          {type}
+                        </button>
+                      ))}
                     </div>
-                  ))}
-                </div>
-              </Form.Group>
-            </Card>
+                  </div>
 
-            <Card className="mb-3 p-3">
-              <Form.Group controlId="gerber_zip" className="mb-3">
-                <Form.Label>{t.zipFile}</Form.Label>
-                <Form.Control
-                  type="file"
-                  name="zipFile"
-                  onChange={handleChange}
-                  accept=".zip,.rar"
-                />
-                <div className="mt-2">
-                  <span>Existing File: </span>
-                  {formData.gerber_zip
-                    ? typeof formData.gerber_zip === 'string' ? (
-                      <a
-                        href={`/assemblypcbZipFiles${formData.gerber_zip}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        {formData.gerber_zip.split('/').pop()}
-                      </a>
-                    ) : formData.gerber_zip.name
-                    : '-'}
+                  {formData.board_types === "Panelized" && (
+                    <>
+                      <div className="flex flex-col">
+                        <label className="form-label-premium">Columns</label>
+                        <div className="relative group">
+                          <PiTextColumnsFill size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-emerald-500 transition-colors" />
+                          <input name="total_columns" value={formData.total_columns} onChange={handleChange} className="form-input-premium pl-12 w-full" placeholder="1" />
+                        </div>
+                      </div>
+                      <div className="flex flex-col">
+                        <label className="form-label-premium">Rows</label>
+                        <div className="relative group">
+                          <PiRowsFill size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-emerald-500 transition-colors" />
+                          <input name="total_rows" value={formData.total_rows} onChange={handleChange} className="form-input-premium pl-12 w-full" placeholder="1" />
+                        </div>
+                      </div>
+                    </>
+                  )}
                 </div>
-              </Form.Group>
-            </Card>
+              </section>
 
-            <Card className="mb-3 p-3">
-              <Form.Group controlId="notes" className="mb-3">
-                <Form.Label>{t.notes}</Form.Label>
-                <Form.Control
-                  as="textarea"
+              {/* SECTION: PCB DETAILS */}
+              <section className="glass-card">
+                <div className="mb-10 flex items-center gap-4">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-50 dark:bg-zinc-800 text-slate-900 dark:text-emerald-400">
+                    <FaRulerCombined size={20} />
+                  </div>
+                  <h2 className="font-display text-xl font-black text-slate-950 dark:text-white">{t.PCBDetails}</h2>
+                </div>
+                <div className="grid grid-cols-2 gap-8 text-slate-400">
+                  <div className="flex flex-col">
+                    <label className="form-label-premium">Width (mm)</label>
+                    <input name="width_mm" value={formData.width_mm} onChange={handleChange} className="form-input-premium" placeholder="100.00" />
+                  </div>
+                  <div className="flex flex-col">
+                    <label className="form-label-premium">Height (mm)</label>
+                    <input name="high_mm" value={formData.high_mm} onChange={handleChange} className="form-input-premium" placeholder="100.00" />
+                  </div>
+                </div>
+              </section>
+
+              {/* SECTION: SMD SETUP */}
+              <section className={`glass-card relative overflow-hidden transition-all ${!showSMDFields ? 'opacity-60 grayscale' : 'ring-2 ring-emerald-500/20 bg-white/50 dark:bg-emerald-500/[0.02]'}`}>
+                <div className="absolute right-8 top-8">
+                  <Form.Check
+                    type="switch"
+                    id="smd-toggle"
+                    checked={showSMDFields}
+                    onChange={() => setShowSMDFields(!showSMDFields)}
+                    className="scale-150"
+                  />
+                </div>
+                <div className="mb-10 flex items-center gap-4">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-50 dark:bg-zinc-800 text-slate-900 dark:text-emerald-400">
+                    <FaMicrochip size={20} />
+                  </div>
+                  <h2 className="font-display text-xl font-black text-slate-950 dark:text-white">{t.SMDSetup}</h2>
+                </div>
+                {showSMDFields && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div className="flex flex-col">
+                      <label className="form-label-premium">SMD Side</label>
+                      <div className="flex gap-2 p-1 bg-slate-50 dark:bg-zinc-900 rounded-2xl">
+                        {["Top", "Bottom", "Both"].map(side => (
+                          <button
+                            key={side} type="button"
+                            onClick={() => setFormData({ ...formData, smd_side: side })}
+                            className={`flex-1 py-3 rounded-xl font-bold text-xs transition-all ${formData.smd_side === side ? 'bg-white dark:bg-zinc-800 shadow-md text-emerald-500' : 'text-slate-400 hover:text-slate-600'}`}
+                          >
+                            {side}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="flex flex-col">
+                      <label className="form-label-premium">Component Count</label>
+                      <input name="count_smd" value={formData.count_smd} onChange={handleChange} className="form-input-premium" placeholder="0" />
+                    </div>
+                    <div className="flex flex-col">
+                      <label className="form-label-premium">Total Pins</label>
+                      <input name="total_point_smd" value={formData.total_point_smd} onChange={handleChange} className="form-input-premium" placeholder="0" />
+                    </div>
+                    <div className="flex flex-col">
+                      <label className="form-label-premium">Stencil (Automatic)</label>
+                      <div className="form-input-premium flex items-center justify-between opacity-70">
+                        <span className="text-slate-500">Stencil Cost</span>
+                        <span className="font-mono text-emerald-500">{stencilPrice.toLocaleString()} ฿</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </section>
+
+              {/* SECTION: THT SETUP */}
+              <section className={`glass-card relative overflow-hidden transition-all ${!showTHTFields ? 'opacity-60 grayscale' : 'ring-2 ring-emerald-500/20 bg-white/50 dark:bg-emerald-500/[0.02]'}`}>
+                <div className="absolute right-8 top-8">
+                  <Form.Check
+                    type="switch"
+                    id="tht-toggle"
+                    checked={showTHTFields}
+                    onChange={() => setShowTHTFields(!showTHTFields)}
+                    className="scale-150"
+                  />
+                </div>
+                <div className="mb-10 flex items-center gap-4">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-50 dark:bg-zinc-800 text-slate-900 dark:text-emerald-400">
+                    <FaCogs size={20} />
+                  </div>
+                  <h2 className="font-display text-xl font-black text-slate-950 dark:text-white">{t.THTSetup}</h2>
+                </div>
+                {showTHTFields && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div className="flex flex-col">
+                      <label className="form-label-premium">THT Side</label>
+                      <div className="flex gap-2 p-1 bg-slate-50 dark:bg-zinc-900 rounded-2xl">
+                        {["Top", "Bottom", "Both"].map(side => (
+                          <button
+                            key={side} type="button"
+                            onClick={() => setFormData({ ...formData, tht_side: side })}
+                            className={`flex-1 py-3 rounded-xl font-bold text-xs transition-all ${formData.tht_side === side ? 'bg-white dark:bg-zinc-800 shadow-md text-emerald-500' : 'text-slate-400 hover:text-slate-600'}`}
+                          >
+                            {side}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="flex flex-col">
+                      <label className="form-label-premium">Component Count</label>
+                      <input name="count_tht" value={formData.count_tht} onChange={handleChange} className="form-input-premium" placeholder="0" />
+                    </div>
+                    <div className="flex flex-col md:col-span-2">
+                      <label className="form-label-premium">Total Through-Hole Pins</label>
+                      <input name="total_point_tht" value={formData.total_point_tht} onChange={handleChange} className="form-input-premium" placeholder="0" />
+                    </div>
+                  </div>
+                )}
+              </section>
+
+              {/* SECTION: VISUAL ASSETS */}
+              <section className="glass-card">
+                <div className="mb-10 flex items-center gap-4">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-50 dark:bg-zinc-800 text-slate-900 dark:text-emerald-400">
+                    <FaCamera size={20} />
+                  </div>
+                  <h2 className="font-display text-xl font-black text-slate-950 dark:text-white">{t.VisualAssests}</h2>
+                </div>
+
+                <div className="space-y-12">
+                  <ImageUploadGroup
+                    title="Top Component Placement"
+                    onUpload={(e) => handleImageUpload(e, 'top')}
+                    images={topImages}
+                    onRemove={(i) => removeImage(i, 'top')}
+                  />
+                  <ImageUploadGroup
+                    title="Bottom Component Placement"
+                    onUpload={(e) => handleImageUpload(e, 'bottom')}
+                    images={bottomImages}
+                    onRemove={(i) => removeImage(i, 'bottom')}
+                  />
+
+                  <div className="flex flex-col p-8 rounded-[2rem] bg-slate-50 dark:bg-zinc-950/40 border border-dashed border-slate-200 dark:border-zinc-800">
+                    <div className="flex items-center gap-4 mb-6">
+                      <FaPaperclip className="text-emerald-500 rotate-45" />
+                      <h4 className="text-sm font-black uppercase tracking-widest text-slate-400">Gerber Archive</h4>
+                    </div>
+                    <input type="file" onChange={handleChange} className="mb-4 text-xs font-bold text-slate-400" accept=".zip,.rar" />
+                    {formData.gerber_zip && (
+                      <div className="flex items-center gap-3 p-4 rounded-xl bg-white dark:bg-zinc-900 shadow-sm border border-slate-100 dark:border-zinc-800">
+                        <FaFileAlt className="text-blue-500" />
+                        <span className="text-sm font-bold text-slate-700 dark:text-slate-300 truncate max-w-xs">{typeof formData.gerber_zip === 'string' ? formData.gerber_zip : formData.gerber_zip.name}</span>
+                        <FaCheckCircle className="text-emerald-500 ml-auto" />
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </section>
+
+              {/* SECTION: NOTES */}
+              <section className="glass-card">
+                <div className="mb-6 flex items-center gap-4">
+                  <FaInfoCircle className="text-emerald-500" />
+                  <h2 className="font-display text-xl font-black text-slate-950 dark:text-white">Admin Notes</h2>
+                </div>
+                <textarea
                   name="notes"
                   value={formData.notes}
                   onChange={handleChange}
-                  rows={5}
-                  placeholder="Enter any notes or special instructions"
+                  rows={4}
+                  className="form-input-premium w-full !h-auto py-4 resize-none"
+                  placeholder="Internal project notes..."
                 />
-              </Form.Group>
-            </Card>
+              </section>
 
-            <Card className="p-3 mb-4">
-              <Card.Title>User Info</Card.Title>
-              <Form.Group>
-                <Form.Label>Name</Form.Label>
-                <Form.Control type="text" value={formData.userName} onChange={(e) => handleChange('userName', e.target.value)} />
-                <Form.Label className="mt-2">Email</Form.Label>
-                <Form.Control type="email" value={formData.userEmail} onChange={(e) => handleChange('userEmail', e.target.value)} />
-              </Form.Group>
-            </Card>
+            </Col>
 
-            <Card className="p-3 mb-4">
-              <Card.Title>Shipping Info</Card.Title>
-              {['shippingName', 'shippingPhone', 'shippingAddress', 'shippingCity', 'shippingPostalCode', 'shippingCountry'].map((field) => (
-                <Form.Group className="mb-2" key={field}>
-                  <Form.Label>{field}</Form.Label>
-                  <Form.Control value={formData[field]} onChange={(e) => handleChange(field, e.target.value)} />
-                </Form.Group>
-              ))}
-            </Card>
+            <Col xl={5}>
+              <div className="sticky-summary space-y-8">
+                {/* PRICING PANEL */}
+                <div className="glass-card shadow-2xl !bg-slate-950 dark:!bg-zinc-900 border-none">
+                  <h2 className="font-display text-2xl font-black text-white mb-8">Financial Control</h2>
 
-            <Card className="p-3 mb-4">
-              <Card.Title>Billing Info</Card.Title>
-              {['billingName', 'billingPhone', 'billinggAddress', 'billingCity', 'billingPostalCode', 'billingCountry', 'billingTax'].map((field) => (
-                <Form.Group className="mb-2" key={field}>
-                  <Form.Label>{field}</Form.Label>
-                  <Form.Control value={formData[field]} onChange={(e) => handleChange(field, e.target.value)} />
-                </Form.Group>
-              ))}
-            </Card>
-          </Col>
-
-          <Col xl={6}>
-            <Card className="mb-3 p-3">
-              <h4>{t.selectedSummary}</h4>
-              <ListGroup variant="flush">
-                <ListGroup.Item className="d-flex justify-content-between">
-                  <strong>{t.projectnamelbl}:</strong>
-                  <span>{formData.projectname || '-'}</span>
-                </ListGroup.Item>
-
-                <ListGroup.Item className="d-flex justify-content-between">
-                  <strong>{t.qtylbl}:</strong>
-                  <span>{formData.pcb_qty}</span>
-                </ListGroup.Item>
-
-                <ListGroup.Item className="d-flex justify-content-between">
-                  <strong>{t.boardType}:</strong>
-                  <span>{formData.board_types}</span>
-                </ListGroup.Item>
-
-                {formData.board_types === 'Panelized' && (
-                  <>
-                    <ListGroup.Item className="d-flex justify-content-between">
-                      <strong>{t.totalColumns}:</strong>
-                      <span>{formData.total_columns || '-'}</span>
-                    </ListGroup.Item>
-
-                    <ListGroup.Item className="d-flex justify-content-between">
-                      <strong>{t.totalRows}:</strong>
-                      <span>{formData.total_rows || '-'}</span>
-                    </ListGroup.Item>
-                  </>
-                )}
-
-                {showSMDFields && (
-                  <>
-                    <ListGroup.Item variant="secondary"><strong>Surface Mount Device (SMD)</strong></ListGroup.Item>
-                    <ListGroup.Item className="d-flex justify-content-between">
-                      <strong>{t.smdSide}:</strong>
-                      <span>{formData.smd_side}</span>
-                    </ListGroup.Item>
-
-                    <ListGroup.Item className="d-flex justify-content-between">
-                      <strong>{t.smdCount}:</strong>
-                      <span>{formData.count_smd || '-'}</span>
-                    </ListGroup.Item>
-
-                    <ListGroup.Item className="d-flex justify-content-between">
-                      <strong>{t.smdPins}:</strong>
-                      <span>{formData.total_point_smd || '-'}</span>
-                    </ListGroup.Item>
-                  </>
-                )}
-
-                {showTHTFields && (
-                  <>
-                    <ListGroup.Item variant="secondary"><strong>Through Hole (THT)</strong></ListGroup.Item>
-                    <ListGroup.Item className="d-flex justify-content-between">
-                      <strong>{t.thtSide}:</strong>
-                      <span>{formData.tht_side}</span>
-                    </ListGroup.Item>
-
-                    <ListGroup.Item className="d-flex justify-content-between">
-                      <strong>{t.thtCount}:</strong>
-                      <span>{formData.count_tht || '-'}</span>
-                    </ListGroup.Item>
-
-                    <ListGroup.Item className="d-flex justify-content-between">
-                      <strong>{t.thtPins}:</strong>
-                      <span>{formData.total_point_tht || '-'}</span>
-                    </ListGroup.Item>
-                  </>
-                )}
-
-                <ListGroup.Item variant="secondary"><strong>Dimensions</strong></ListGroup.Item>
-
-                <ListGroup.Item className="d-flex justify-content-between">
-                  <strong>{t.width}:</strong>
-                  <span>{formData.width_mm || '-'}</span>
-                </ListGroup.Item>
-
-                <ListGroup.Item className="d-flex justify-content-between">
-                  <strong>{t.height}:</strong>
-                  <span>{formData.high_mm || '-'}</span>
-                </ListGroup.Item>
-
-                <ListGroup.Item className="d-flex justify-content-between align-items-start">
-                  <strong style={{ minWidth: '120px' }}>{t.topImages}:</strong>
-                  <div className="d-flex flex-wrap gap-2">
-                    {topImages.length > 0 ? (
-                      topImages.map((img, idx) => (
-                        <img
-                          key={idx}
-                          src={img.url}
-                          alt={`Top ${idx + 1}`}
-                          style={{
-                            width: '60px',
-                            height: '60px',
-                            objectFit: 'cover',
-                            borderRadius: '4px',
-                            border: '1px solid #ccc',
-                          }}
-                        />
-                      ))
-                    ) : (
-                      <span>-</span>
-                    )}
+                  <div className="space-y-4 mb-10">
+                    <PriceLine label="Stencil Total" value={stencilPrice} />
+                    <PriceLine label="Machine Setup Fee" value={setupPrice} />
+                    <PriceLine label={`SMD Assembly (Total ${qty} pcs)`} value={qty * smdCost} />
+                    <PriceLine label={`THT Assembly (Total ${qty} pcs)`} value={qty * thtCost} />
+                    <PriceLine label="Delivery Fee" value={delieveryPrice} />
+                    <div className="pt-4 mt-4 border-t border-white/10 flex justify-between items-center">
+                      <span className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">Calculated Total</span>
+                      <span className="text-emerald-400 font-display text-3xl font-black">{totalCost.toLocaleString()} ฿</span>
+                    </div>
                   </div>
-                </ListGroup.Item>
 
-                <ListGroup.Item className="d-flex justify-content-between align-items-start">
-                  <strong style={{ minWidth: '120px' }}>{t.bottomImages}:</strong>
-                  <div className="d-flex flex-wrap gap-2">
-                    {bottomImages.length > 0 ? (
-                      bottomImages.map((img, idx) => (
-                        <img
-                          key={idx}
-                          src={img.url}
-                          alt={`Bottom ${idx + 1}`}
-                          style={{
-                            width: '60px',
-                            height: '60px',
-                            objectFit: 'cover',
-                            borderRadius: '4px',
-                            border: '1px solid #ccc',
-                          }}
+                  <div className="bg-white/5 rounded-[2rem] p-8 border border-white/10 space-y-8">
+                    <div>
+                      <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-3 block">Final Negotiated Price</label>
+                      <div className="relative">
+                        <input
+                          name="confirmed_price"
+                          type="number"
+                          value={formData.confirmed_price}
+                          onChange={handleChange}
+                          className="w-full h-20 rounded-2xl bg-white text-slate-950 text-3xl font-display font-black px-10 focus:ring-4 focus:ring-emerald-500/50 outline-none transition-all"
+                          placeholder="0"
                         />
-                      ))
-                    ) : (
-                      <span>-</span>
-                    )}
-                  </div>
-                </ListGroup.Item>
+                        <span className="absolute right-8 top-1/2 -translate-y-1/2 text-2xl font-black text-slate-300">฿</span>
+                      </div>
+                    </div>
 
-                <ListGroup.Item className="d-flex justify-content-between">
-                  <strong>{t.zipFile}:</strong>
-                  <span>{formData.gerber_zip ? formData.gerber_zip.name : '-'}</span>
-                </ListGroup.Item>
-                {/* <ListGroup.Item className="d-flex justify-content-between">
-        <strong>{t.zipFile}:</strong>
-        <span>
-  {formData.gerber_zip
-    ? typeof formData.gerber_zip === 'string'
-      ? (
-          <a href={`/assemblypcbZipFiles${formData.gerber_zip}`} target="_blank" rel="noopener noreferrer">
-            {formData.gerber_zip.split('/').pop()}
-          </a>
-        )
-      : formData.gerber_zip.name
-    : '-'}
-</span>
-      </ListGroup.Item>  */}
-
-
-                <ListGroup.Item>
-                  <Row className="w-100">
-                    <Col><strong>{t.notes}</strong></Col>
-                    <Col className="text-end">{formData.notes || ''}</Col>
-                  </Row>
-                </ListGroup.Item>
-              </ListGroup>
-            </Card>
-
-            <Card className="mb-3 p-3">
-              <h4 className="mt-4">{t.calculatedSummary}</h4>
-              <ListGroup variant="flush">
-                <ListGroup.Item className="d-flex justify-content-between">
-                  <strong>{t.stencilPrice}</strong>
-                  <span>{stencilPrice.toLocaleString()} ฿</span>
-                </ListGroup.Item>
-
-                <ListGroup.Item className="d-flex justify-content-between">
-                  <strong>{t.smdCost}</strong>
-                  <span>{smdCost.toFixed(2)} ฿</span>
-                </ListGroup.Item>
-
-                <ListGroup.Item className="d-flex justify-content-between">
-                  <strong>{t.thtCost}</strong>
-                  <span>{thtCost.toFixed(2)} ฿</span>
-                </ListGroup.Item>
-
-                {/* <ListGroup.Item className="d-flex justify-content-between">
-    <strong>{t.setupFee}</strong>
-    <span>{setupPrice.toLocaleString()} ฿</span>
-  </ListGroup.Item> */}
-
-                <ListGroup.Item className="d-flex justify-content-between">
-                  <strong>{t.deliveryFee}</strong>
-                  <span>{delieveryPrice.toLocaleString()} ฿</span>
-                </ListGroup.Item>
-
-                <ListGroup.Item className="d-flex justify-content-between">
-                  <strong>{t.totalQty}</strong>
-                  <span>{qty}</span>
-                </ListGroup.Item>
-
-                {/* <ListGroup.Item className="d-flex justify-content-between bg-light">
-    <strong>{t.totalCost}</strong>
-    <span>{totalCost.toLocaleString()} ฿</span>
-  </ListGroup.Item> */}
-
-
-
-                <ListGroup.Item className="d-flex justify-content-between align-items-center">
-                  <strong>{t.confirmPriceLbl}</strong>
-                  <div className="d-flex align-items-center" style={{ gap: '5px' }}>
-                    <Form.Group controlId="confirmed_price" className="mb-0">
-                      <Form.Control
-                        type="number"
-                        name="confirmed_price"
-                        value={formData.confirmed_price}
+                    <div>
+                      <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-3 block">Price Justification</label>
+                      <textarea
+                        name="confirmed_reason"
+                        value={formData.confirmed_reason}
                         onChange={handleChange}
-                        min="0"
+                        className="w-full rounded-2xl bg-white/5 border border-white/10 p-6 text-white text-sm font-semibold placeholder:text-zinc-600 outline-none focus:border-emerald-500/50 transition-all"
+                        rows={4}
+                        placeholder="Provide reason for price override..."
                       />
-                    </Form.Group>
-                    <span>฿</span>
+                    </div>
                   </div>
-                </ListGroup.Item>
-                {/* <ListGroup.Item className="d-flex justify-content-between align-items-center bg-light">
-  <strong>Confirm Price</strong>
-  <div className="d-flex align-items-center" style={{ gap: '5px' }}>
-    <Form.Group controlId="confirm_price" className="mb-0">
-      <Form.Control
-  type="number"
-  name="confirm_price"
-  value={formData.confirm_price}
-  onChange={handleChange}
-/> 
-    </Form.Group>
-    <span>฿</span>
-  </div>
-</ListGroup.Item> */}
 
-                <ListGroup.Item className="d-flex flex-column">
-                  <Form.Group controlId="confirmed_reason" className="mb-0 w-100">
-                    <strong>{t.confirmReasonLbl}</strong>
-                    <Form.Control
-                      as="textarea"
-                      name="confirmed_reason"
-                      value={formData.confirmed_reason}
-                      onChange={handleChange}
-                      rows={5}
-                      placeholder="Enter admin notes or remarks"
-                      className="w-100 mt-1"
-                    />
-                  </Form.Group>
-                </ListGroup.Item>
+                  <button
+                    type="submit"
+                    disabled={loading || isFetchingConfig || isFetchingDefault}
+                    className="w-full h-20 mt-8 rounded-3xl bg-emerald-500 text-white font-display text-lg font-black uppercase tracking-widest shadow-xl shadow-emerald-500/30 hover:bg-emerald-400 hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50"
+                  >
+                    {loading ? 'Processing...' : t.Submit}
+                  </button>
+                </div>
 
-              </ListGroup>
+                {/* PROJECT INFO CARD */}
+                <div className="glass-card">
+                  <h3 className="font-display text-sm font-black uppercase tracking-widest text-slate-400 mb-6 underline decoration-emerald-500 decoration-2 underline-offset-8">Entity Details</h3>
+                  <div className="space-y-6 text-sm">
+                    <div className="flex justify-between border-b border-slate-50 dark:border-zinc-800 pb-4">
+                      <span className="text-slate-500 font-bold">Owner Name</span>
+                      <span className="text-slate-950 dark:text-white font-black">{formData.userName || "Guest"}</span>
+                    </div>
+                    <div className="flex justify-between border-b border-slate-50 dark:border-zinc-800 pb-4">
+                      <span className="text-slate-500 font-bold">System ID</span>
+                      <span className="font-mono text-xs font-bold bg-slate-100 dark:bg-zinc-800 px-2 py-1 rounded-md text-slate-500">{orderID}</span>
+                    </div>
+                  </div>
+                </div>
 
-              <div className="p-3">
-                <Button type="submit" disabled={isLoading || isFetchingConfig || isFetchingDefault} variant="primary" className="w-100">
-                  {t.submitOrder}
-                </Button>
               </div>
-            </Card>
-          </Col>
-        </Row>
-      </Form>
-    </Container>
+            </Col>
+          </Row>
+        </Form>
+      </div>
+    </div>
   );
 };
 
-export default ReorderPCBAdminCreateAssemblyPCBScreen
+// --- Sub-components (Internal) ---
+
+const PriceLine = ({ label, value }) => (
+  <div className="flex justify-between items-center text-sm">
+    <span className="text-zinc-500 font-semibold">{label}</span>
+    <span className="text-white font-mono font-bold">{value.toLocaleString()} ฿</span>
+  </div>
+);
+
+const ImageUploadGroup = ({ title, onUpload, images, onRemove }) => (
+  <div className="space-y-6">
+    <div className="flex items-center justify-between">
+      <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400">{title}</h4>
+      <label className="flex items-center gap-2 cursor-pointer text-emerald-500 hover:text-emerald-400 transition-colors">
+        <FaCloudUploadAlt size={20} />
+        <span className="text-xs font-black uppercase tracking-tight">Upload</span>
+        <input type="file" multiple accept="image/*" onChange={onUpload} className="hidden" />
+      </label>
+    </div>
+    <div className="flex flex-wrap gap-4">
+      {images.length > 0 ? images.map((img, idx) => (
+        <div key={idx} className="group relative h-28 w-28 overflow-hidden rounded-2xl bg-white shadow-md ring-1 ring-slate-100 dark:ring-zinc-800">
+          <img src={img.url} alt="upload" className="h-full w-full object-cover transition-transform group-hover:scale-110" />
+          <button
+            type="button"
+            onClick={() => onRemove(idx)}
+            className="absolute inset-0 flex items-center justify-center bg-black/60 opacity-0 transition-opacity group-hover:opacity-100"
+          >
+            <FaTimesCircle className="text-white" size={24} />
+          </button>
+        </div>
+      )) : (
+        <div className="h-28 w-full rounded-2xl border-2 border-dashed border-slate-100 dark:border-zinc-800 flex items-center justify-center">
+          <span className="text-[10px] font-black uppercase tracking-widest text-slate-300">No Images Selected</span>
+        </div>
+      )}
+    </div>
+  </div>
+);
+
+export default ReorderPCBAdminCreateAssemblyPCBScreen;

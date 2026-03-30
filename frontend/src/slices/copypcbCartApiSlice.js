@@ -1,19 +1,18 @@
-import { apiSlice } from './apiSlice';
+import { apiSlice } from "./apiSlice";
 
-// ✅ URL Hardcode (ต้องตรงกับ server.js)
-const COPYPCBCARTS_URL = '/api/copycartpcbs';
+//  URL Hardcode (ต้องตรงกับ server.js)
+const COPYPCBCARTS_URL = "/api/copycartpcbs";
 
 export const copypcbCartApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
-
     // ----------------------------------------------------------------
-    // 📦 Create & Read
+    //  Create & Read
     // ----------------------------------------------------------------
 
     createcopycart: builder.mutation({
       query: (orderData) => ({
         url: COPYPCBCARTS_URL,
-        method: 'POST',
+        method: "POST",
         body: orderData,
       }),
     }),
@@ -23,7 +22,7 @@ export const copypcbCartApiSlice = apiSlice.injectEndpoints({
         url: COPYPCBCARTS_URL,
       }),
       keepUnusedDataFor: 5,
-      providesTags: ['CopyPCBCart'],
+      providesTags: ["CopyPCBCart"],
     }),
 
     getcopycartById: builder.query({
@@ -41,22 +40,22 @@ export const copypcbCartApiSlice = apiSlice.injectEndpoints({
     }),
 
     // ----------------------------------------------------------------
-    // 🔧 Updates
+    //  Updates
     // ----------------------------------------------------------------
 
     updatecopycart: builder.mutation({
       query: ({ id, updatedData }) => ({
         url: `${COPYPCBCARTS_URL}/${id}`,
-        method: 'PUT',
+        method: "PUT",
         body: updatedData,
       }),
-      invalidatesTags: ['CopyPCBCart'],
+      invalidatesTags: ["CopyPCBCart"],
     }),
 
     updateAmountcopycart: builder.mutation({
       query: ({ id }) => ({
         url: `${COPYPCBCARTS_URL}/amount/${id}`,
-        method: 'PUT',
+        method: "PUT",
       }),
     }),
 
@@ -64,68 +63,68 @@ export const copypcbCartApiSlice = apiSlice.injectEndpoints({
     updatecopycartComfirmStatus: builder.mutation({
       query: ({ id, updatedData }) => ({
         url: `${COPYPCBCARTS_URL}/status/${id}`,
-        method: 'PUT',
+        method: "PUT",
         body: updatedData,
       }),
-      invalidatesTags: ['CopyPCBCart'],
+      invalidatesTags: ["CopyPCBCart"],
     }),
 
     updatecopyShippingRates: builder.mutation({
       query: ({ orderId, rateData }) => ({
         url: `${COPYPCBCARTS_URL}/shippingrates/${orderId}`,
-        method: 'PUT',
+        method: "PUT",
         body: rateData,
       }),
-      invalidatesTags: ['CopyPCBCart'],
+      invalidatesTags: ["CopyPCBCart"],
     }),
 
     updatePaymentRates: builder.mutation({
       query: ({ orderId, paymentData }) => ({
         url: `${COPYPCBCARTS_URL}/paymentrates/${orderId}`,
-        method: 'PUT',
+        method: "PUT",
         body: paymentData,
       }),
-      invalidatesTags: ['CopyPCBCart'],
+      invalidatesTags: ["CopyPCBCart"],
     }),
 
     updateDeliveryCopyCart: builder.mutation({
       query: ({ pcborderId, transferedNumber }) => ({
         url: `${COPYPCBCARTS_URL}/delivered/${pcborderId}`,
-        method: 'PUT',
+        method: "PUT",
         body: { transferedNumber },
       }),
-      invalidatesTags: ['CopyPCBCart'],
+      invalidatesTags: ["CopyPCBCart"],
     }),
 
     updatePCBCopyManufacture: builder.mutation({
       query: ({ pcborderId, manufactureOrderNumber }) => ({
         url: `${COPYPCBCARTS_URL}/${pcborderId}/pcbmanufacture`,
-        method: 'PUT',
+        method: "PUT",
         body: { manufactureOrderNumber },
       }),
-      invalidatesTags: ['CopyPCBCart'],
+      invalidatesTags: ["CopyPCBCart"],
     }),
 
     // ----------------------------------------------------------------
-    // 🗑️ Delete
+    // ️ Delete
     // ----------------------------------------------------------------
 
     deletecopycart: builder.mutation({
       query: (id) => ({
         url: `${COPYPCBCARTS_URL}/${id}`,
-        method: 'DELETE',
+        method: "DELETE",
       }),
-      invalidatesTags: ['CopyPCBCart'],
+      invalidatesTags: ["CopyPCBCart"],
     }),
 
     // ----------------------------------------------------------------
-    // 📤 Uploads
+    //  Uploads
     // ----------------------------------------------------------------
 
     uploadMultipleCopyPCBImages: builder.mutation({
       query: (formData) => ({
         url: `${COPYPCBCARTS_URL}/upload/multipleimages`,
-        method: 'POST',
+        method: "POST",
         body: formData,
       }),
     }),
@@ -133,11 +132,10 @@ export const copypcbCartApiSlice = apiSlice.injectEndpoints({
     uploadcopypcbZip: builder.mutation({
       query: (formData) => ({
         url: `${COPYPCBCARTS_URL}/upload/upload-zip`,
-        method: 'POST',
+        method: "POST",
         body: formData,
       }),
     }),
-
   }),
 });
 

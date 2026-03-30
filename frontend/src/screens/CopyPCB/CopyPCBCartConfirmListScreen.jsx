@@ -1,24 +1,18 @@
-import React, { useState } from 'react';
-import { useSelector } from 'react-redux';
-import Loader from '../../components/Loader';
-import Message from '../../components/Message';
-import { useGetAllcopycartsQuery } from '../../slices/copypcbCartApiSlice';
-import { Table, Button, Row, Col } from 'react-bootstrap';
-import { PiCircuitryFill } from 'react-icons/pi';
-import { FaCheck, FaTimes } from 'react-icons/fa';
-import { Link } from 'react-router-dom';
+import React, { useState } from "react";
+import { useSelector } from "react-redux";
+import Loader from "../../components/Loader";
+import Message from "../../components/Message";
+import { useGetAllcopycartsQuery } from "../../slices/copypcbCartApiSlice";
+import { Table, Button, Row, Col } from "react-bootstrap";
+import { FaCheck } from "react-icons/fa";
+import { Link } from "react-router-dom";
 
-import CopyPCBCartConfirmModle from './CopyPCBCartConfirmModle';
+import CopyPCBCartConfirmModle from "./CopyPCBCartConfirmModle";
 
 const CopyPCBCartConfirmListScreen = () => {
-  const { userInfo } = useSelector((state) => state.auth);
+  // userInfo not needed (public admin list)
 
-  const {
-    data,
-    isLoading,
-    error,
-    refetch,
-  } = useGetAllcopycartsQuery();
+  const { data, isLoading, error, refetch } = useGetAllcopycartsQuery();
 
   // State for modal visibility and selected order id
   const [showModal, setShowModal] = useState(false);
@@ -38,34 +32,34 @@ const CopyPCBCartConfirmListScreen = () => {
 
   const translations = {
     en: {
-      ConfirmCopyOrderListLbl: 'Confirm Copy PCB Order List',
-      ErrorMessageLbl: 'No copy PCB orders found.',
-      projectnameLbl: 'Project Name',
-      QtyLbl: 'Quantity',
-      TotalPriceLbl: 'Total Price (฿)',
-      DATELbl: 'Date',
-      DeliveryLbl: 'Delivery',
-      Status: 'Status',
-      ConfirmLbl: 'Confirm',
-      DetailLbl: 'Details',
-      AcceptLbl: 'Accepted',
-      RejectLbl: 'Rejected',
-      PendingLbl: 'Pending'
+      ConfirmCopyOrderListLbl: "Confirm Copy PCB Order List",
+      ErrorMessageLbl: "No copy PCB orders found.",
+      projectnameLbl: "Project Name",
+      QtyLbl: "Quantity",
+      TotalPriceLbl: "Total Price (฿)",
+      DATELbl: "Date",
+      DeliveryLbl: "Delivery",
+      Status: "Status",
+      ConfirmLbl: "Confirm",
+      DetailLbl: "Details",
+      AcceptLbl: "Accepted",
+      RejectLbl: "Rejected",
+      PendingLbl: "Pending",
     },
     thai: {
-      ConfirmCopyOrderListLbl: 'รายการยืนยันการสั่งซื้อ PCB แบบคัดลอก',
-      ErrorMessageLbl: 'ไม่พบคำสั่งซื้อ PCB แบบคัดลอก',
-      projectnameLbl: 'ชื่อโปรเจกต์',
-      QtyLbl: 'จำนวน',
-      TotalPriceLbl: 'ราคารวม (฿)',
-      DATELbl: 'วันที่',
-      DeliveryLbl: 'การจัดส่ง',
-      Status: 'สถานะ',
-      ConfirmLbl: 'ยืนยัน',
-      DetailLbl: 'รายละเอียด',
-      AcceptLbl: 'ยอมรับแล้ว',
-      RejectLbl: 'ปฏิเสธแล้ว',
-      PendingLbl: 'รอดำเนินการ',
+      ConfirmCopyOrderListLbl: "รายการยืนยันการสั่งซื้อ PCB แบบคัดลอก",
+      ErrorMessageLbl: "ไม่พบคำสั่งซื้อ PCB แบบคัดลอก",
+      projectnameLbl: "ชื่อโปรเจกต์",
+      QtyLbl: "จำนวน",
+      TotalPriceLbl: "ราคารวม (฿)",
+      DATELbl: "วันที่",
+      DeliveryLbl: "การจัดส่ง",
+      Status: "สถานะ",
+      ConfirmLbl: "ยืนยัน",
+      DetailLbl: "รายละเอียด",
+      AcceptLbl: "ยอมรับแล้ว",
+      RejectLbl: "ปฏิเสธแล้ว",
+      PendingLbl: "รอดำเนินการ",
     },
   };
 
@@ -114,32 +108,31 @@ const CopyPCBCartConfirmListScreen = () => {
                   <td>{order.projectname}</td>
                   <td>{order.pcb_qty}</td>
                   <td>
-                    {order.status === 'pending' && (
+                    {order.status === "pending" && (
                       <span className="text-warning">-</span>
                     )}
-                    {order.status === 'accepted' && (
-                      order.confirmed_price
+                    {order.status === "accepted" &&
+                      (order.confirmed_price
                         ? parseFloat(order.confirmed_price).toFixed(2)
-                        : 'N/A'
-                    )}
-                    {order.status === 'rejected' && (
+                        : "N/A")}
+                    {order.status === "rejected" && (
                       <span className="text-danger">-</span>
                     )}
                   </td>
                   <td>{new Date(order.created_at).toLocaleDateString()}</td>
                   <td>
-                    {order.status === 'pending' && (
+                    {order.status === "pending" && (
                       <span className="text-warning">{t.PendingLbl}</span>
                     )}
-                    {order.status === 'accepted' && (
+                    {order.status === "accepted" && (
                       <span className="text-success">{t.AcceptLbl}</span>
                     )}
-                    {order.status === 'rejected' && (
+                    {order.status === "rejected" && (
                       <span className="text-danger">{t.RejectLbl}</span>
                     )}
                   </td>
                   <td className="text-center">
-                    {order.status === 'pending' ? (
+                    {order.status === "pending" ? (
                       <Button
                         variant="light"
                         className="btn-sm btn-lime"
@@ -148,15 +141,15 @@ const CopyPCBCartConfirmListScreen = () => {
                         {t.ConfirmLbl}
                       </Button>
                     ) : (
-                      <FaCheck style={{ color: 'green' }} />
+                      <FaCheck style={{ color: "green" }} />
                     )}
                   </td>
                   <td className="text-center">
                     <Button
                       as={Link}
                       to={`/copycartpcb/${order.id}`}
-                      variant='light'
-                      className='btn-sm primary'
+                      variant="light"
+                      className="btn-sm primary"
                     >
                       {t.DetailLbl}
                     </Button>
@@ -181,4 +174,4 @@ const CopyPCBCartConfirmListScreen = () => {
   );
 };
 
-export default CopyPCBCartConfirmListScreen
+export default CopyPCBCartConfirmListScreen;

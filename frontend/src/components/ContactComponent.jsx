@@ -1,18 +1,18 @@
-import React, { useState } from 'react';
-import emailjs from 'emailjs-com';
-import { toast } from 'react-toastify';
+import React, { useState } from "react";
+import emailjs from "emailjs-com";
+import { toast } from "react-toastify";
 
-import { useSendEmailMutation } from '../slices/emailApiSlice'
-import Button from './ui/Button';
-import Input from './ui/Input';
+import { useSendEmailMutation } from "../slices/emailApiSlice";
+import Button from "./ui/Button";
+import Input from "./ui/Input";
 
 const ContactComponent = () => {
   const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    phone: '',
-    subject: '',
-    message: '',
+    name: "",
+    email: "",
+    phone: "",
+    subject: "",
+    message: "",
   });
 
   const [sendEmail, { isLoading }] = useSendEmailMutation();
@@ -55,33 +55,35 @@ const ContactComponent = () => {
           message: formData.message,
           reply_to: formData.email, // Ensure the reply goes to the user's email
         },
-        process.env.REACT_APP_EMAILJS_USER_ID
+        process.env.REACT_APP_EMAILJS_USER_ID,
       )
       .then(
         (response) => {
-          toast.success('Your message has been sent!');
+          toast.success("Your message has been sent!");
 
           // Reset form after successful submission
           setFormData({
-            name: '',
-            email: '',
-            phone: '',
-            subject: '',
-            message: '',
+            name: "",
+            email: "",
+            phone: "",
+            subject: "",
+            message: "",
           });
         },
         (error) => {
-          console.error('Error sending email:', error);
+          console.error("Error sending email:", error);
           toast.error(`Error: ${error.text}`);
-        }
+        },
       );
   };
 
   return (
     <div className="container mx-auto px-4 max-w-5xl">
-      <h2 className="text-3xl font-black text-slate-900 mb-8 tracking-tight">Contact Us</h2>
+      <h2 className="text-3xl font-black text-slate-900 dark:text-white mb-8 tracking-tight transition-colors duration-500">
+        Contact Us
+      </h2>
 
-      <div className="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-slate-200">
+      <div className="bg-white dark:bg-black rounded-3xl p-6 md:p-8 shadow-sm border border-slate-200 dark:border-zinc-800 transition-colors duration-500">
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {/* Name Field */}
@@ -142,7 +144,12 @@ const ContactComponent = () => {
           <div className="grid grid-cols-1 gap-6">
             {/* Message Field (Full Width) */}
             <div>
-              <label htmlFor="message" className="block text-sm font-semibold text-slate-700 mb-2">Message</label>
+              <label
+                htmlFor="message"
+                className="block text-sm font-semibold text-slate-700 dark:text-white mb-2 transition-colors duration-500"
+              >
+                Message
+              </label>
               <textarea
                 id="message"
                 name="message"
@@ -151,7 +158,7 @@ const ContactComponent = () => {
                 rows={5}
                 required
                 placeholder="Write your message here..."
-                className="block w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors text-slate-800 placeholder:text-slate-400"
+                className="block w-full px-4 py-3 bg-slate-50 dark:bg-black border border-slate-200 dark:border-zinc-800 rounded-xl focus:bg-white dark:focus:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors text-slate-800 dark:text-white placeholder:text-slate-400 dark:placeholder:text-gray-400"
               />
             </div>
           </div>
@@ -164,7 +171,7 @@ const ContactComponent = () => {
               className="w-full md:w-auto px-8"
               disabled={isLoading}
             >
-              {isLoading ? 'Sending...' : 'Send Message'}
+              {isLoading ? "Sending..." : "Send Message"}
             </Button>
           </div>
         </form>

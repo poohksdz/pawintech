@@ -1,9 +1,9 @@
 /* เปลี่ยนสีปุ่มลูกศร ซ้าย-ขวา ให้เป็นสีขาว */
 .swiper-button-next,
 .swiper-button-prev {
-  color: #ffffff !important; 
+  color: #ffffff !important;
   transform: scale(0.7); /* ย่อให้เล็กลง 30% จะได้ดูมินิมอล */
-  text-shadow: 0 1px 3px rgba(0,0,0,0.5); /* ใส่เงาให้มองเห็นชัด */
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5); /* ใส่เงาให้มองเห็นชัด */
 }
 
 /* เปลี่ยนสีจุดไข่ปลาด้านล่าง */
@@ -14,5 +14,5 @@
 
 .swiper-pagination-bullet-active {
   opacity: 1; /* จุดที่เลือกอยู่ ให้ชัดสุด */
-  background: #ffffff !important; 
+  background: #ffffff !important;
 }

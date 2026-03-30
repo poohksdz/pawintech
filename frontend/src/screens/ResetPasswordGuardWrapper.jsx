@@ -1,10 +1,10 @@
-import React from 'react';
-import { useLocation, Navigate } from 'react-router-dom';
-import ResetPasswordScreen from './ResetPasswordScreen';
+import React from "react";
+import { useLocation, Navigate } from "react-router-dom";
+import ResetPasswordScreen from "./ResetPasswordScreen";
 
 const ResetPasswordGuard = ({ children }) => {
   const location = useLocation();
-  const token = new URLSearchParams(location.search).get('token');
+  const token = new URLSearchParams(location.search).get("token");
 
   // Check if a token exists in the URL
   if (!token) {
@@ -16,5 +16,9 @@ const ResetPasswordGuard = ({ children }) => {
 };
 
 export default function ResetPasswordGuardWrapper() {
-  return <ResetPasswordGuard><ResetPasswordScreen /></ResetPasswordGuard>;
-}  
+  return (
+    <ResetPasswordGuard>
+      <ResetPasswordScreen />
+    </ResetPasswordGuard>
+  );
+}

@@ -1,6 +1,6 @@
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
-import { FaArrowLeft, FaTools } from 'react-icons/fa';
+import React from "react";
+import { useNavigate } from "react-router-dom";
+import { FaArrowLeft, FaTools } from "react-icons/fa";
 
 const AssemblyBoardScreen = () => {
   const navigate = useNavigate();
@@ -8,7 +8,7 @@ const AssemblyBoardScreen = () => {
   return (
     <div className="min-h-screen bg-white flex flex-col items-center justify-center px-4 font-sans selection:bg-black selection:text-white">
       <button
-        onClick={() => navigate('/')}
+        onClick={() => navigate("/")}
         className="fixed top-8 left-8 flex items-center gap-2 text-xs font-black text-slate-400 hover:text-black transition-colors uppercase tracking-[0.2em]"
       >
         <FaArrowLeft /> Back
@@ -24,11 +24,12 @@ const AssemblyBoardScreen = () => {
         </h1>
 
         <p className="text-slate-500 font-medium mb-10 leading-relaxed">
-          We're building something premium for your assembly needs. Stay tuned for a world-class board management experience.
+          We're building something premium for your assembly needs. Stay tuned
+          for a world-class board management experience.
         </p>
 
         <button
-          onClick={() => navigate('/')}
+          onClick={() => navigate("/")}
           className="px-10 py-4 bg-black text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-slate-900 transition-all shadow-xl active:scale-95"
         >
           Return Home

@@ -1,5 +1,5 @@
-const express = require('express')
-const router = express.Router()
+const express = require("express");
+const router = express.Router();
 
 const {
   getDefaultInvoices,
@@ -9,17 +9,17 @@ const {
   updateDefaultInvoice,
   useDefaultInvoice,
   deleteDefaultInvoice,
-} = require('../controllers/vatDefaultController.js')
+} = require("../controllers/vatDefaultController.js");
 
-const { protect, admin } = require('../middleware/authMiddleware.js')
+const { protect, admin } = require("../middleware/authMiddleware.js");
 
-router.route('/used').get(getDefaultInvoiceUsed)
-router.route('/').get(getDefaultInvoices).post(createDefaultInvoice)
-router.route('/:id/use').put(useDefaultInvoice)
+router.route("/used").get(getDefaultInvoiceUsed);
+router.route("/").get(getDefaultInvoices).post(createDefaultInvoice);
+router.route("/:id/use").put(useDefaultInvoice);
 router
-  .route('/:id')
+  .route("/:id")
   .get(getDefaultInvoiceById)
   .put(updateDefaultInvoice)
-  .delete(deleteDefaultInvoice)
+  .delete(deleteDefaultInvoice);
 
-module.exports = router
+module.exports = router;

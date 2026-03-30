@@ -1,32 +1,36 @@
-import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { useGetStockCategoryDetailsQuery, useUpdateStockCategoryMutation } from '../../../slices/stockCategoryApiSlice';
-import Loader from '../../../components/Loader';
-import Message from '../../../components/Message';
+import React, { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import {
+  useGetStockCategoryDetailsQuery,
+  useUpdateStockCategoryMutation,
+} from "../../../slices/stockCategoryApiSlice";
+import Loader from "../../../components/Loader";
+import Message from "../../../components/Message";
 
 // Custom Tailwind Components
-import Button from '../../../components/ui/Button';
-import Input from '../../../components/ui/Input';
-import { Card, CardHeader, CardBody } from '../../../components/ui/Card';
-import { RefreshCw } from 'lucide-react';
+import Button from "../../../components/ui/Button";
+import Input from "../../../components/ui/Input";
+import { Card, CardHeader, CardBody } from "../../../components/ui/Card";
+import { RefreshCw } from "lucide-react";
 
 const StockEditCategoryScreen = () => {
   const { id } = useParams();
   const navigate = useNavigate();
 
   const { data, isLoading, error } = useGetStockCategoryDetailsQuery(id);
-  const [updateStockCategory, { isLoading: isUpdating, error: updateError }] = useUpdateStockCategoryMutation();
+  const [updateStockCategory, { isLoading: isUpdating, error: updateError }] =
+    useUpdateStockCategoryMutation();
 
   const [formData, setFormData] = useState({
-    category: '',
-    createuser: ''
+    category: "",
+    createuser: "",
   });
 
   useEffect(() => {
     if (data) {
       setFormData({
         category: data.category,
-        createuser: data.createuser
+        createuser: data.createuser,
       });
     }
   }, [data]);
@@ -40,8 +44,20 @@ const StockEditCategoryScreen = () => {
     await updateStockCategory({ id, ...formData });
   };
 
-  if (isLoading) return <div className="mt-8 flex justify-center"><Loader /></div>;
-  if (error) return <div className="mt-8"><Message variant="danger">{error?.data?.message || error.error}</Message></div>;
+  if (isLoading)
+    return (
+      <div className="mt-8 flex justify-center">
+        <Loader />
+      </div>
+    );
+  if (error)
+    return (
+      <div className="mt-8">
+        <Message variant="danger">
+          {error?.data?.message || error.error}
+        </Message>
+      </div>
+    );
 
   return (
     <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-pageFade">
@@ -70,7 +86,14 @@ const StockEditCategoryScreen = () => {
                 disabled={isUpdating}
                 className="w-full sm:w-auto"
               >
-                {isUpdating ? <><RefreshCw className="animate-spin mr-2" size={18} /> Updating...</> : 'Update Category'}
+                {isUpdating ? (
+                  <>
+                    <RefreshCw className="animate-spin mr-2" size={18} />{" "}
+                    Updating...
+                  </>
+                ) : (
+                  "Update Category"
+                )}
               </Button>
               <Button
                 type="button"
@@ -84,7 +107,9 @@ const StockEditCategoryScreen = () => {
 
             {updateError && (
               <div className="pt-4">
-                <Message variant="danger">{updateError?.data?.message || updateError.error}</Message>
+                <Message variant="danger">
+                  {updateError?.data?.message || updateError.error}
+                </Message>
               </div>
             )}
           </form>

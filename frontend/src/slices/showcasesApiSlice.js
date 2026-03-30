@@ -1,5 +1,5 @@
-import { SHOWCASE_URL } from '../constants'
-import { apiSlice } from './apiSlice'
+import { SHOWCASE_URL } from "../constants";
+import { apiSlice } from "./apiSlice";
 
 export const showcasesApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
@@ -9,7 +9,7 @@ export const showcasesApiSlice = apiSlice.injectEndpoints({
         params: { keyword, pageNumber },
       }),
       keepUnusedDataFor: 5,
-      providesTags: ['Showcases'],
+      providesTags: ["Showcases"],
     }),
     getShowcaseDetails: builder.query({
       query: (showcaseId) => ({
@@ -20,43 +20,43 @@ export const showcasesApiSlice = apiSlice.injectEndpoints({
     createShowcase: builder.mutation({
       query: (data) => ({
         url: `${SHOWCASE_URL}`,
-        method: 'POST',
+        method: "POST",
         body: data,
       }),
-      invalidatesTags: ['Showcase'],
+      invalidatesTags: ["Showcase"],
     }),
     updateShowcase: builder.mutation({
       query: (data) => ({
         url: `${SHOWCASE_URL}/${data.showcaseId}`,
-        method: 'PUT',
+        method: "PUT",
         body: data,
       }),
-      invalidatesTags: ['Showcases'],
+      invalidatesTags: ["Showcases"],
     }),
     updateOrderPresentShowcase: builder.mutation({
       query: (data) => ({
         url: `${SHOWCASE_URL}/orderpresent/${data.showcaseId}`,
-        method: 'PUT',
+        method: "PUT",
         body: data,
       }),
-      invalidatesTags: ['Showcases'],
+      invalidatesTags: ["Showcases"],
     }),
     deleteShowcase: builder.mutation({
       query: (showcaseId) => ({
         url: `${SHOWCASE_URL}/${showcaseId}`,
-        method: 'DELETE',
+        method: "DELETE",
       }),
-      providesTags: ['Showcase'],
+      providesTags: ["Showcase"],
     }),
     uploadShowcaseImage: builder.mutation({
       query: (data) => ({
         url: `/api/showcaseImages`,
-        method: 'POST',
+        method: "POST",
         body: data,
       }),
     }),
   }),
-})
+});
 
 export const {
   useGetShowcasesQuery,
@@ -66,4 +66,4 @@ export const {
   useDeleteShowcaseMutation,
   useUploadShowcaseImageMutation,
   useUpdateOrderPresentShowcaseMutation,
-} = showcasesApiSlice
+} = showcasesApiSlice;

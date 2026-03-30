@@ -1,5 +1,5 @@
-const express = require('express')
-const router = express.Router()
+const express = require("express");
+const router = express.Router();
 const {
   getInvoices,
   getInvoiceDetails,
@@ -9,8 +9,8 @@ const {
   updateInvoice,
   deleteInvoice,
   deleteInvoiceByInvoiceId,
-} = require('../controllers/invoiceProductController.js')
-const multer = require('multer')
+} = require("../controllers/invoiceProductController.js");
+const multer = require("multer");
 
 // Configure multer for image uploads
 // const storage = multer.diskStorage({
@@ -24,13 +24,13 @@ const multer = require('multer')
 // const upload = multer({ limits: { fileSize: 20 * 1024 * 1024 }, /* 20MB Security Limit */ storage })
 
 // Routes
-router.get('/', getInvoices)
-router.get('/invoice/:invoiceId', getInvoicesByInvoiceId)
-router.get('/user/:userId', getInvoicesByUserId)
-router.get('/:id', getInvoiceDetails)
-router.post('/', createInvoice)
-router.put('/:id', updateInvoice)
-router.delete('/invoice_id/:id', deleteInvoiceByInvoiceId)
-router.delete('/:id', deleteInvoice)
+router.get("/", getInvoices);
+router.get("/invoice/:invoiceId", getInvoicesByInvoiceId);
+router.get("/user/:userId", getInvoicesByUserId);
+router.get("/:id", getInvoiceDetails);
+router.post("/", createInvoice);
+router.put("/:id", updateInvoice);
+router.delete("/invoice_id/:id", deleteInvoiceByInvoiceId);
+router.delete("/:id", deleteInvoice);
 
-module.exports = router
+module.exports = router;

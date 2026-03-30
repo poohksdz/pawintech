@@ -1,9 +1,7 @@
-import React from 'react'
+import React from "react";
 
 const StockCreateSubcategoryScreen = () => {
-  return (
-    <div>StockCreateSubcategoryScreen</div>
-  )
-}
+  return <div>StockCreateSubcategoryScreen</div>;
+};
 
-export default StockCreateSubcategoryScreen
+export default StockCreateSubcategoryScreen;

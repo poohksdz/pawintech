@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import {
   Container,
   Row,
@@ -7,18 +7,18 @@ import {
   Button,
   Card,
   ListGroup,
-} from 'react-bootstrap';
-import { toast } from 'react-toastify';
-import { FaCheck } from 'react-icons/fa';
-import { useSelector } from 'react-redux';
-import { useNavigate, useParams } from 'react-router-dom';
+} from "react-bootstrap";
+import { toast } from "react-toastify";
+import { FaCheck } from "react-icons/fa";
+import { useSelector } from "react-redux";
+import { useNavigate, useParams } from "react-router-dom";
 import {
   useGetOrderPCBByIdQuery,
   useGetOwnShippingRatesQuery,
   useUpdateOrderPCBMutation,
-} from '../../slices/orderpcbSlice';
-import Loader from '../../components/Loader';
-import Message from '../../components/Message';
+} from "../../slices/orderpcbSlice";
+import Loader from "../../components/Loader";
+import Message from "../../components/Message";
 
 const OrderPCBEditsScreen = () => {
   const { id } = useParams();
@@ -39,42 +39,43 @@ const OrderPCBEditsScreen = () => {
     error: configError,
   } = useGetOwnShippingRatesQuery();
 
-  const [updateOrderPCB, { isLoading: isUpdating }] = useUpdateOrderPCBMutation();
+  const [updateOrderPCB, { isLoading: isUpdating }] =
+    useUpdateOrderPCBMutation();
 
   // Form state
   const [formData, setFormData] = useState({
-    projectname: '',
+    projectname: "",
     pcbQty: 1,
-    dimensions: { x: 10, y: 10, unit: 'cm' },
-    baseMaterial: 'FR-4',
+    dimensions: { x: 10, y: 10, unit: "cm" },
+    baseMaterial: "FR-4",
     layers: 2,
-    thickness: '1.6mm',
-    pcbColor: 'Green',
-    silkscreen: 'White',
-    surfaceFinish: 'HASL(With lead)',
-    copperWeight: '1 oz',
-    userName: '',
-    userEmail: '',
-    shippingName: '',
-    shippingPhone: '',
-    shippingAddress: '',
-    shippingCity: '',
-    shippingPostalCode: '',
-    shippingCountry: '',
-    billingName: '',
-    billingPhone: '',
-    billinggAddress: '',
-    billingCity: '',
-    billingPostalCode: '',
-    billingCountry: '',
-    billingTax: '',
-    custom_price: ''
+    thickness: "1.6mm",
+    pcbColor: "Green",
+    silkscreen: "White",
+    surfaceFinish: "HASL(With lead)",
+    copperWeight: "1 oz",
+    userName: "",
+    userEmail: "",
+    shippingName: "",
+    shippingPhone: "",
+    shippingAddress: "",
+    shippingCity: "",
+    shippingPostalCode: "",
+    shippingCountry: "",
+    billingName: "",
+    billingPhone: "",
+    billinggAddress: "",
+    billingCity: "",
+    billingPostalCode: "",
+    billingCountry: "",
+    billingTax: "",
+    custom_price: "",
   });
 
   // Gerber ZIP upload state
-  const [zipFileName, setZipFileName] = useState('');
+  const [zipFileName, setZipFileName] = useState("");
   const [gerberFiles, setGerberFiles] = useState([]);
-  const [uploadMessage, setUploadMessage] = useState('');
+  const [uploadMessage, setUploadMessage] = useState("");
   // Removed unused 'uploadSuccess' variable, kept setter
   const [, setUploadSuccess] = useState(false);
 
@@ -89,55 +90,66 @@ const OrderPCBEditsScreen = () => {
   // Removed unused 'buildTime'
   const basePrice = Number(configData?.defaultPricing?.base_price ?? 0);
   const pricePerCm = Number(configData?.defaultPricing?.price_per_cm2 ?? 0);
-  const extraServiceFee = Number(configData?.defaultPricing?.extra_service_fee ?? 0);
+  const extraServiceFee = Number(
+    configData?.defaultPricing?.extra_service_fee ?? 0,
+  );
   const profitMargin = Number(configData?.defaultPricing?.profit_margin ?? 0);
   const vat = Number(configData?.defaultPricing?.vat_percent ?? 0);
-  const dhlServiceFixed = Number(configData?.defaultPricing?.dhl_service_fixed ?? 0);
+  const dhlServiceFixed = Number(
+    configData?.defaultPricing?.dhl_service_fixed ?? 0,
+  );
 
   // Load order data into form on fetch
   useEffect(() => {
     if (orderPCB) {
       // Get the original stored price from DB
-      const storedPrice = Number(orderPCB.quoted_price_to_customer) || Number(orderPCB.total_amount_cost) || 0;
+      const storedPrice =
+        Number(orderPCB.quoted_price_to_customer) ||
+        Number(orderPCB.total_amount_cost) ||
+        0;
 
       setFormData((prev) => ({
         ...prev,
-        projectname: orderPCB.projectname || '',
+        projectname: orderPCB.projectname || "",
         pcbQty: orderPCB.pcb_quantity || 1,
         dimensions: {
           x: Number(orderPCB.length_cm) || 10,
           y: Number(orderPCB.width_cm) || 10,
-          unit: 'cm',
+          unit: "cm",
         },
-        baseMaterial: orderPCB.base_material || 'FR-4',
+        baseMaterial: orderPCB.base_material || "FR-4",
         layers: orderPCB.layers || 2,
-        thickness: orderPCB.thickness_mm ? orderPCB.thickness_mm + 'mm' : '1.6mm',
-        pcbColor: orderPCB.color || 'Green',
-        silkscreen: orderPCB.silkscreen_color || 'White',
-        surfaceFinish: orderPCB.surface_finish || 'HASL(With lead)',
-        copperWeight: orderPCB.copper_weight_oz ? orderPCB.copper_weight_oz + ' oz' : '1 oz',
-        userName: orderPCB.userName || '',
-        userEmail: orderPCB.userEmail || '',
-        shippingName: orderPCB.shippingName || '',
-        shippingPhone: orderPCB.shippingPhone || '',
-        shippingAddress: orderPCB.shippingAddress || '',
-        shippingCity: orderPCB.shippingCity || '',
-        shippingPostalCode: orderPCB.shippingPostalCode || '',
-        shippingCountry: orderPCB.shippingCountry || '',
-        billingName: orderPCB.billingName || '',
-        billingPhone: orderPCB.billingPhone || '',
-        billinggAddress: orderPCB.billinggAddress || '',
-        billingCity: orderPCB.billingCity || '',
-        billingPostalCode: orderPCB.billingPostalCode || '',
-        billingCountry: orderPCB.billingCountry || '',
-        billingTax: orderPCB.billingTax || '',
+        thickness: orderPCB.thickness_mm
+          ? orderPCB.thickness_mm + "mm"
+          : "1.6mm",
+        pcbColor: orderPCB.color || "Green",
+        silkscreen: orderPCB.silkscreen_color || "White",
+        surfaceFinish: orderPCB.surface_finish || "HASL(With lead)",
+        copperWeight: orderPCB.copper_weight_oz
+          ? orderPCB.copper_weight_oz + " oz"
+          : "1 oz",
+        userName: orderPCB.userName || "",
+        userEmail: orderPCB.userEmail || "",
+        shippingName: orderPCB.shippingName || "",
+        shippingPhone: orderPCB.shippingPhone || "",
+        shippingAddress: orderPCB.shippingAddress || "",
+        shippingCity: orderPCB.shippingCity || "",
+        shippingPostalCode: orderPCB.shippingPostalCode || "",
+        shippingCountry: orderPCB.shippingCountry || "",
+        billingName: orderPCB.billingName || "",
+        billingPhone: orderPCB.billingPhone || "",
+        billinggAddress: orderPCB.billinggAddress || "",
+        billingCity: orderPCB.billingCity || "",
+        billingPostalCode: orderPCB.billingPostalCode || "",
+        billingCountry: orderPCB.billingCountry || "",
+        billingTax: orderPCB.billingTax || "",
         // Initialize custom_price with the stored price from DB
-        custom_price: storedPrice > 0 ? storedPrice : '',
+        custom_price: storedPrice > 0 ? storedPrice : "",
       }));
 
       if (orderPCB.gerberZip) {
         setGerberFiles([orderPCB.gerberZip]);
-        const zipName = orderPCB.gerberZip.split('/').pop();
+        const zipName = orderPCB.gerberZip.split("/").pop();
         setZipFileName(zipName);
       }
     }
@@ -165,7 +177,7 @@ const OrderPCBEditsScreen = () => {
   // Calculate weight (kg) for shipping pricing
   const calculateWeightKg = () => {
     const areaCm2 = formData.dimensions.x * formData.dimensions.y;
-    const thicknessNum = formData.thickness === '0.8mm' ? 0.8 : 1.6;
+    const thicknessNum = formData.thickness === "0.8mm" ? 0.8 : 1.6;
     const qty = Number(formData.pcbQty) || 1;
 
     // Rough weight calculation factor (you can adjust)
@@ -197,26 +209,39 @@ const OrderPCBEditsScreen = () => {
     return found ? Number(found.price) : 0;
   };
 
-  const baseMaterialPrice = getOptionPrice(baseMaterials, 'name', formData.baseMaterial);
-  const surfaceFinishPrice = getOptionPrice(surfaceFinishes, 'name', formData.surfaceFinish);
-  const copperWeightPrice = getOptionPrice(copperWeights, 'name', formData.copperWeight);
-  const colorPrice = getOptionPrice(pcbColors, 'name', formData.pcbColor);
+  const baseMaterialPrice = getOptionPrice(
+    baseMaterials,
+    "name",
+    formData.baseMaterial,
+  );
+  const surfaceFinishPrice = getOptionPrice(
+    surfaceFinishes,
+    "name",
+    formData.surfaceFinish,
+  );
+  const copperWeightPrice = getOptionPrice(
+    copperWeights,
+    "name",
+    formData.copperWeight,
+  );
+  const colorPrice = getOptionPrice(pcbColors, "name", formData.pcbColor);
 
   // Calculate total price
   const calculateTotalPrice = () => {
     const area = formData.dimensions.x * formData.dimensions.y;
     const qty = Number(formData.pcbQty);
-    if (area === 0 || qty === 0) return '0.00';
+    if (area === 0 || qty === 0) return "0.00";
 
     const materialCost = basePrice + area * qty * pricePerCm + extraServiceFee;
-    const deliveryEms = getDeliveryPrice('EMS');
-    const deliveryDhl = getDeliveryPrice('DHL');
+    const deliveryEms = getDeliveryPrice("EMS");
+    const deliveryDhl = getDeliveryPrice("DHL");
 
     let total = materialCost + deliveryEms + deliveryDhl + dhlServiceFixed;
 
     total *= 1 + profitMargin / 100; // add profit margin
     total += total * (vat / 100); // add VAT
-    total += baseMaterialPrice + surfaceFinishPrice + copperWeightPrice + colorPrice;
+    total +=
+      baseMaterialPrice + surfaceFinishPrice + copperWeightPrice + colorPrice;
 
     return total.toFixed(2);
   };
@@ -226,19 +251,19 @@ const OrderPCBEditsScreen = () => {
   // Handle Gerber ZIP upload
   const handleZipUpload = async (e) => {
     const file = e.target.files[0];
-    if (!file || !file.name.endsWith('.zip')) {
-      alert('Please upload a valid .zip file.');
+    if (!file || !file.name.endsWith(".zip")) {
+      alert("Please upload a valid .zip file.");
       return;
     }
 
     setZipFileName(file.name);
 
     const formDataUpload = new FormData();
-    formDataUpload.append('gerberZip', file);
+    formDataUpload.append("gerberZip", file);
 
     try {
-      const response = await fetch('/api/gerber/upload-zip', {
-        method: 'POST',
+      const response = await fetch("/api/gerber/upload-zip", {
+        method: "POST",
         body: formDataUpload,
       });
 
@@ -246,7 +271,7 @@ const OrderPCBEditsScreen = () => {
 
       if (response.ok) {
         setUploadSuccess(true);
-        setUploadMessage('✅ ZIP uploaded successfully and saved.');
+        setUploadMessage("✅ ZIP uploaded successfully and saved.");
         setGerberFiles([result.path]);
       } else {
         setUploadSuccess(false);
@@ -254,7 +279,7 @@ const OrderPCBEditsScreen = () => {
       }
     } catch (error) {
       setUploadSuccess(false);
-      setUploadMessage('❌ Failed to upload ZIP');
+      setUploadMessage("❌ Failed to upload ZIP");
     }
   };
 
@@ -264,44 +289,59 @@ const OrderPCBEditsScreen = () => {
     if (orderError || configError)
       return (
         <Message variant="danger">
-          {orderError?.data?.message || orderError?.error || configError?.data?.message || configError?.error}
+          {orderError?.data?.message ||
+            orderError?.error ||
+            configError?.data?.message ||
+            configError?.error}
         </Message>
       );
 
     return (
       <div className="mb-3 d-flex flex-wrap justify-content-start">
         {options.map((option, idx) => {
-          const optionName = typeof option === 'object' ? option.name : option;
+          const optionName = typeof option === "object" ? option.name : option;
           const isSelected = formData[field] === optionName;
-          const isColor = /^(Green|Red|Blue|Yellow|Black|White|Purple)$/i.test(optionName);
-          const backgroundColor = isColor ? optionName.toLowerCase() : undefined;
-          const textColor = ['white', 'yellow', '#ffffff'].includes(backgroundColor) ? 'black' : 'white';
+          const isColor = /^(Green|Red|Blue|Yellow|Black|White|Purple)$/i.test(
+            optionName,
+          );
+          const backgroundColor = isColor
+            ? optionName.toLowerCase()
+            : undefined;
+          const textColor = ["white", "yellow", "#ffffff"].includes(
+            backgroundColor,
+          )
+            ? "black"
+            : "white";
 
           // Disable conditions for specific options
           let isDisabled = false;
-          if (field === 'baseMaterial' && optionName === 'Aluminum') {
+          if (field === "baseMaterial" && optionName === "Aluminum") {
             isDisabled = true;
           }
-          if (field === 'surfaceFinish' && (optionName === 'LeadFree HASL' || optionName === 'ENIG')) {
+          if (
+            field === "surfaceFinish" &&
+            (optionName === "LeadFree HASL" || optionName === "ENIG")
+          ) {
             isDisabled = true;
           }
-          if (field === 'copperWeight' && optionName === '2 oz') {
+          if (field === "copperWeight" && optionName === "2 oz") {
             isDisabled = true;
           }
 
           return (
             <Button
               key={idx}
-              variant={isColor ? undefined : 'outline-secondary'}
-              className={`me-2 mb-2 px-3 py-2 border position-relative ${isSelected ? 'border-primary' : ''
-                }`}
+              variant={isColor ? undefined : "outline-secondary"}
+              className={`me-2 mb-2 px-3 py-2 border position-relative ${
+                isSelected ? "border-primary" : ""
+              }`}
               style={{
-                borderWidth: '2px',
+                borderWidth: "2px",
                 backgroundColor: isColor ? backgroundColor : undefined,
                 color: isColor ? textColor : undefined,
-                minWidth: '80px',
-                minHeight: '40px',
-                cursor: isDisabled ? 'not-allowed' : 'pointer',
+                minWidth: "80px",
+                minHeight: "40px",
+                cursor: isDisabled ? "not-allowed" : "pointer",
                 opacity: isDisabled ? 0.5 : 1,
               }}
               onClick={() => !isDisabled && handleChange(field, optionName)}
@@ -312,7 +352,7 @@ const OrderPCBEditsScreen = () => {
                 <FaCheck
                   size={12}
                   className="position-absolute"
-                  style={{ bottom: '4px', right: '4px', color: 'lime' }}
+                  style={{ bottom: "4px", right: "4px", color: "lime" }}
                 />
               )}
             </Button>
@@ -326,17 +366,17 @@ const OrderPCBEditsScreen = () => {
     e.preventDefault();
 
     if (!userInfo) {
-      navigate('/login');
+      navigate("/login");
       return;
     }
 
     if (!zipFileName && gerberFiles.length === 0) {
-      toast.error('Please upload a Gerber ZIP file before submitting.');
+      toast.error("Please upload a Gerber ZIP file before submitting.");
       return;
     }
 
     if (!formData.custom_price || formData.custom_price === 0) {
-      toast.error('Please enter a custom price before submitting.');
+      toast.error("Please enter a custom price before submitting.");
       return;
     }
 
@@ -372,15 +412,15 @@ const OrderPCBEditsScreen = () => {
         billingCountry: formData.billingCountry,
         billingTax: formData.billingTax,
         custom_price: formData.custom_price,
-      }
+      },
     };
 
     try {
       await updateOrderPCB(payload).unwrap();
 
-      toast.success('Order updated successfully!');
+      toast.success("Order updated successfully!");
     } catch (err) {
-      toast.error('Failed to update order.');
+      toast.error("Failed to update order.");
     }
   };
 
@@ -389,13 +429,20 @@ const OrderPCBEditsScreen = () => {
   if (orderError || configError)
     return (
       <Message variant="danger">
-        {orderError?.data?.message || orderError?.error || configError?.data?.message || configError?.error}
+        {orderError?.data?.message ||
+          orderError?.error ||
+          configError?.data?.message ||
+          configError?.error}
       </Message>
     );
 
   // Disable button conditions:
   // disable if loading, updating, or no gerber zip uploaded
-  const isButtonDisabled = isOrderLoading || isConfigLoading || isUpdating || (!zipFileName && gerberFiles.length === 0);
+  const isButtonDisabled =
+    isOrderLoading ||
+    isConfigLoading ||
+    isUpdating ||
+    (!zipFileName && gerberFiles.length === 0);
 
   return (
     <Container className="my-4">
@@ -424,7 +471,9 @@ const OrderPCBEditsScreen = () => {
               <Card.Title>Files in ZIP</Card.Title>
               <ListGroup variant="flush">
                 {gerberFiles.map((file, idx) => (
-                  <ListGroup.Item key={idx}>{file.replace(/^gerbers\//, '')}</ListGroup.Item>
+                  <ListGroup.Item key={idx}>
+                    {file.replace(/^gerbers\//, "")}
+                  </ListGroup.Item>
                 ))}
               </ListGroup>
             </Card.Body>
@@ -439,19 +488,19 @@ const OrderPCBEditsScreen = () => {
                 <Form.Control
                   type="text"
                   value={formData.projectname}
-                  onChange={(e) => handleChange('projectname', e.target.value)}
+                  onChange={(e) => handleChange("projectname", e.target.value)}
                   required
                 />
               </Form.Group>
 
               <Form.Group className="mb-3">
                 <Form.Label>Base Material</Form.Label>
-                {renderColorButtons('baseMaterial', baseMaterials)}
+                {renderColorButtons("baseMaterial", baseMaterials)}
               </Form.Group>
 
               <Form.Group className="mb-3">
                 <Form.Label>Layers</Form.Label>
-                {renderColorButtons('layers', [1, 2])}
+                {renderColorButtons("layers", [1, 2])}
               </Form.Group>
 
               <Form.Group className="mb-3">
@@ -461,14 +510,24 @@ const OrderPCBEditsScreen = () => {
                     type="number"
                     min="0"
                     value={formData.dimensions.x}
-                    onChange={(e) => handleDimensionChange('x', Math.max(Number(e.target.value)))}
+                    onChange={(e) =>
+                      handleDimensionChange(
+                        "x",
+                        Math.max(Number(e.target.value)),
+                      )
+                    }
                     required
                   />
                   <Form.Control
                     type="number"
                     min="0"
                     value={formData.dimensions.y}
-                    onChange={(e) => handleDimensionChange('y', Math.max(Number(e.target.value)))}
+                    onChange={(e) =>
+                      handleDimensionChange(
+                        "y",
+                        Math.max(Number(e.target.value)),
+                      )
+                    }
                     required
                   />
                 </div>
@@ -476,27 +535,27 @@ const OrderPCBEditsScreen = () => {
 
               <Form.Group className="mb-3">
                 <Form.Label>Thickness</Form.Label>
-                {renderColorButtons('thickness', ['0.8mm', '1.6mm'])}
+                {renderColorButtons("thickness", ["0.8mm", "1.6mm"])}
               </Form.Group>
 
               <Form.Group className="mb-3">
                 <Form.Label>PCB Color</Form.Label>
-                {renderColorButtons('pcbColor', pcbColors)}
+                {renderColorButtons("pcbColor", pcbColors)}
               </Form.Group>
 
               <Form.Group className="mb-3">
                 <Form.Label>Silkscreen Color</Form.Label>
-                {renderColorButtons('silkscreen', ['White', 'Black'])}
+                {renderColorButtons("silkscreen", ["White", "Black"])}
               </Form.Group>
 
               <Form.Group className="mb-3">
                 <Form.Label>Surface Finish</Form.Label>
-                {renderColorButtons('surfaceFinish', surfaceFinishes)}
+                {renderColorButtons("surfaceFinish", surfaceFinishes)}
               </Form.Group>
 
               <Form.Group className="mb-3">
                 <Form.Label>Copper Weight</Form.Label>
-                {renderColorButtons('copperWeight', copperWeights)}
+                {renderColorButtons("copperWeight", copperWeights)}
               </Form.Group>
 
               <Form.Group className="mb-3">
@@ -505,18 +564,30 @@ const OrderPCBEditsScreen = () => {
                   type="number"
                   min="0"
                   value={formData.pcbQty}
-                  onChange={(e) => handleChange('pcbQty', Math.max(Number(e.target.value)))}
+                  onChange={(e) =>
+                    handleChange("pcbQty", Math.max(Number(e.target.value)))
+                  }
                 />
               </Form.Group>
 
               <Card.Title>User Info</Card.Title>
               <Form.Group>
                 <Form.Label>Name</Form.Label>
-                <Form.Control type="text" value={formData.userName} onChange={(e) => handleChange('userName', e.target.value)} required />
+                <Form.Control
+                  type="text"
+                  value={formData.userName}
+                  onChange={(e) => handleChange("userName", e.target.value)}
+                  required
+                />
               </Form.Group>
               <Form.Group>
                 <Form.Label>Email</Form.Label>
-                <Form.Control type="email" value={formData.userEmail} onChange={(e) => handleChange('userEmail', e.target.value)} required />
+                <Form.Control
+                  type="email"
+                  value={formData.userEmail}
+                  onChange={(e) => handleChange("userEmail", e.target.value)}
+                  required
+                />
               </Form.Group>
             </Card>
 
@@ -527,7 +598,7 @@ const OrderPCBEditsScreen = () => {
                 <Form.Control
                   type="text"
                   value={formData.shippingName}
-                  onChange={(e) => handleChange('shippingName', e.target.value)}
+                  onChange={(e) => handleChange("shippingName", e.target.value)}
                   required
                 />
               </Form.Group>
@@ -536,7 +607,9 @@ const OrderPCBEditsScreen = () => {
                 <Form.Control
                   type="text"
                   value={formData.shippingPhone}
-                  onChange={(e) => handleChange('shippingPhone', e.target.value)}
+                  onChange={(e) =>
+                    handleChange("shippingPhone", e.target.value)
+                  }
                   required
                 />
               </Form.Group>
@@ -545,7 +618,9 @@ const OrderPCBEditsScreen = () => {
                 <Form.Control
                   type="text"
                   value={formData.shippingAddress}
-                  onChange={(e) => handleChange('shippingAddress', e.target.value)}
+                  onChange={(e) =>
+                    handleChange("shippingAddress", e.target.value)
+                  }
                   required
                 />
               </Form.Group>
@@ -554,7 +629,7 @@ const OrderPCBEditsScreen = () => {
                 <Form.Control
                   type="text"
                   value={formData.shippingCity}
-                  onChange={(e) => handleChange('shippingCity', e.target.value)}
+                  onChange={(e) => handleChange("shippingCity", e.target.value)}
                   required
                 />
               </Form.Group>
@@ -563,7 +638,9 @@ const OrderPCBEditsScreen = () => {
                 <Form.Control
                   type="text"
                   value={formData.shippingPostalCode}
-                  onChange={(e) => handleChange('shippingPostalCode', e.target.value)}
+                  onChange={(e) =>
+                    handleChange("shippingPostalCode", e.target.value)
+                  }
                   required
                 />
               </Form.Group>
@@ -572,7 +649,9 @@ const OrderPCBEditsScreen = () => {
                 <Form.Control
                   type="text"
                   value={formData.shippingCountry}
-                  onChange={(e) => handleChange('shippingCountry', e.target.value)}
+                  onChange={(e) =>
+                    handleChange("shippingCountry", e.target.value)
+                  }
                   required
                 />
               </Form.Group>
@@ -585,7 +664,7 @@ const OrderPCBEditsScreen = () => {
                 <Form.Control
                   type="text"
                   value={formData.billingName}
-                  onChange={(e) => handleChange('billingName', e.target.value)}
+                  onChange={(e) => handleChange("billingName", e.target.value)}
                   required
                 />
               </Form.Group>
@@ -594,7 +673,7 @@ const OrderPCBEditsScreen = () => {
                 <Form.Control
                   type="text"
                   value={formData.billingPhone}
-                  onChange={(e) => handleChange('billingPhone', e.target.value)}
+                  onChange={(e) => handleChange("billingPhone", e.target.value)}
                   required
                 />
               </Form.Group>
@@ -603,7 +682,9 @@ const OrderPCBEditsScreen = () => {
                 <Form.Control
                   type="text"
                   value={formData.billinggAddress}
-                  onChange={(e) => handleChange('billinggAddress', e.target.value)}
+                  onChange={(e) =>
+                    handleChange("billinggAddress", e.target.value)
+                  }
                   required
                 />
               </Form.Group>
@@ -612,7 +693,7 @@ const OrderPCBEditsScreen = () => {
                 <Form.Control
                   type="text"
                   value={formData.billingCity}
-                  onChange={(e) => handleChange('billingCity', e.target.value)}
+                  onChange={(e) => handleChange("billingCity", e.target.value)}
                   required
                 />
               </Form.Group>
@@ -621,7 +702,9 @@ const OrderPCBEditsScreen = () => {
                 <Form.Control
                   type="text"
                   value={formData.billingPostalCode}
-                  onChange={(e) => handleChange('billingPostalCode', e.target.value)}
+                  onChange={(e) =>
+                    handleChange("billingPostalCode", e.target.value)
+                  }
                   required
                 />
               </Form.Group>
@@ -630,7 +713,9 @@ const OrderPCBEditsScreen = () => {
                 <Form.Control
                   type="text"
                   value={formData.billingCountry}
-                  onChange={(e) => handleChange('billingCountry', e.target.value)}
+                  onChange={(e) =>
+                    handleChange("billingCountry", e.target.value)
+                  }
                   required
                 />
               </Form.Group>
@@ -639,7 +724,7 @@ const OrderPCBEditsScreen = () => {
                 <Form.Control
                   type="text"
                   value={formData.billingTax}
-                  onChange={(e) => handleChange('billingTax', e.target.value)}
+                  onChange={(e) => handleChange("billingTax", e.target.value)}
                 />
               </Form.Group>
             </Card>
@@ -647,12 +732,12 @@ const OrderPCBEditsScreen = () => {
 
           {/* Summary Card */}
           <Col xl={4}>
-            <Card className="p-3 sticky-top" style={{ top: '1rem' }}>
+            <Card className="p-3 sticky-top" style={{ top: "1rem" }}>
               <Card.Title>Order Summary</Card.Title>
               <ListGroup variant="flush">
                 <ListGroup.Item className="d-flex justify-content-between">
                   <strong>Project Name:</strong>
-                  <span>{formData.projectname || '-'}</span>
+                  <span>{formData.projectname || "-"}</span>
                 </ListGroup.Item>
 
                 <ListGroup.Item className="d-flex justify-content-between">
@@ -662,7 +747,10 @@ const OrderPCBEditsScreen = () => {
 
                 <ListGroup.Item className="d-flex justify-content-between">
                   <strong>Dimensions:</strong>
-                  <span>{formData.dimensions.x} x {formData.dimensions.y} {formData.dimensions.unit}</span>
+                  <span>
+                    {formData.dimensions.x} x {formData.dimensions.y}{" "}
+                    {formData.dimensions.unit}
+                  </span>
                 </ListGroup.Item>
 
                 <ListGroup.Item className="d-flex justify-content-between">
@@ -692,13 +780,18 @@ const OrderPCBEditsScreen = () => {
 
                 <ListGroup.Item className="d-flex justify-content-between">
                   <strong>Gerber Archive File:</strong>
-                  <span>{zipFileName || 'No file uploaded'}</span>
+                  <span>{zipFileName || "No file uploaded"}</span>
                 </ListGroup.Item>
 
                 <ListGroup.Item className="d-flex justify-content-between">
                   <strong>Original DB Price:</strong>
                   <span className="text-primary fw-bold">
-                    ฿{(Number(orderPCB?.quoted_price_to_customer) || Number(orderPCB?.total_amount_cost) || 0).toFixed(2)}
+                    ฿
+                    {(
+                      Number(orderPCB?.quoted_price_to_customer) ||
+                      Number(orderPCB?.total_amount_cost) ||
+                      0
+                    ).toFixed(2)}
                   </span>
                 </ListGroup.Item>
 
@@ -709,7 +802,10 @@ const OrderPCBEditsScreen = () => {
 
                 <ListGroup.Item className="d-flex justify-content-between align-items-center bg-light">
                   <strong>Custom Price</strong>
-                  <div className="d-flex align-items-center" style={{ gap: '5px' }}>
+                  <div
+                    className="d-flex align-items-center"
+                    style={{ gap: "5px" }}
+                  >
                     <Form.Group controlId="custom_price" className="mb-0">
                       <Form.Control
                         type="number"
@@ -718,15 +814,13 @@ const OrderPCBEditsScreen = () => {
                         value={formData.custom_price}
                         onChange={(e) => {
                           const val = parseFloat(e.target.value);
-                          handleChange('custom_price', isNaN(val) ? 0 : val);
+                          handleChange("custom_price", isNaN(val) ? 0 : val);
                         }}
                       />
                     </Form.Group>
                     <span>฿</span>
                   </div>
                 </ListGroup.Item>
-
-
               </ListGroup>
 
               {/* Submit button */}
@@ -735,7 +829,7 @@ const OrderPCBEditsScreen = () => {
                 disabled={isButtonDisabled}
                 className="mt-3"
               >
-                {isUpdating ? 'Updating...' : 'Update Order'}
+                {isUpdating ? "Updating..." : "Update Order"}
               </Button>
             </Card>
           </Col>

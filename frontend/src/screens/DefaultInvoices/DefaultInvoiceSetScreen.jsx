@@ -1,79 +1,84 @@
-import { useState } from 'react';
-import { Row, Col, Form, Button, Card, Spinner, Image } from 'react-bootstrap';
-import { Link, useNavigate } from 'react-router-dom';
-import { useCreateDefaultInvoiceMutation, useUploadDefaultInvoiceImageMutation } from '../../slices/defaultInvoicesApiSlice';
-import { toast } from 'react-toastify';
-import Message from '../../components/Message';
+import { useState } from "react";
+import { Row, Col, Form, Button, Card, Spinner, Image } from "react-bootstrap";
+import { Link, useNavigate } from "react-router-dom";
+import {
+  useCreateDefaultInvoiceMutation,
+  useUploadDefaultInvoiceImageMutation,
+} from "../../slices/defaultInvoicesApiSlice";
+import { toast } from "react-toastify";
+import Message from "../../components/Message";
 
 const DefaultInvoiceCreateScreen = () => {
   const navigate = useNavigate();
-  const [createDefaultInvoice, { isLoading, error }] = useCreateDefaultInvoiceMutation();
+  const [createDefaultInvoice, { isLoading, error }] =
+    useCreateDefaultInvoiceMutation();
   const [uploadDefaultInvoiceImage] = useUploadDefaultInvoiceImageMutation();
 
-  const [companyName, setCompanyName] = useState('');
-  const [companyNameThai, setCompanyNameThai] = useState('');
-  const [headOffice, setHeadOffice] = useState('');
-  const [headOfficeThai, setHeadOfficeThai] = useState('');
-  const [branchName, setBranchName] = useState('');
-  const [tel, setTel] = useState('');
-  const [email, setEmail] = useState('');
-  const [taxId, setTaxId] = useState('');
-  const [discount, setDiscount] = useState('');
-  const [vat, setVat] = useState('');
+  const [companyName, setCompanyName] = useState("");
+  const [companyNameThai, setCompanyNameThai] = useState("");
+  const [headOffice, setHeadOffice] = useState("");
+  const [headOfficeThai, setHeadOfficeThai] = useState("");
+  const [branchName, setBranchName] = useState("");
+  const [tel, setTel] = useState("");
+  const [email, setEmail] = useState("");
+  const [taxId, setTaxId] = useState("");
+  const [discount, setDiscount] = useState("");
+  const [vat, setVat] = useState("");
   const [isHeadOffice, setIsHeadOffice] = useState(true);
   const [isBranch, setIsBranch] = useState(false);
   const [uploading, setUploading] = useState(false);
 
-  const [selectedFile, setSelectedFile] = useState(null);
-  const [logo, setLogo] = useState(''); // uploaded logo URL
+  const [logo, setLogo] = useState(""); // uploaded logo URL
 
-//   // File upload handler
-//   const handleFileChange = async (e) => {
-//   const file = e.target.files[0];
-//   if (!file) return;
+  //   // File upload handler
+  //   const handleFileChange = async (e) => {
+  //   const file = e.target.files[0];
+  //   if (!file) return;
 
-//   setUploading(true);
-//   const formData = new FormData();
-//   formData.append('image', file);
+  //   setUploading(true);
+  //   const formData = new FormData();
+  //   formData.append('image', file);
 
-//   try {
-//     const res = await uploadDefaultInvoiceImage(formData).unwrap();
-//     setLogo(res.image || res.url); // <- set logo state here
-//     toast.success(res.message || 'Logo uploaded successfully!');
-//   } catch (err) {
-//     toast.error(err?.data?.message || 'Failed to upload logo');
-//   } finally {
-//     setUploading(false);
-//   }
-// };
+  //   try {
+  //     const res = await uploadDefaultInvoiceImage(formData).unwrap();
+  //     setLogo(res.image || res.url); // <- set logo state here
+  //     toast.success(res.message || 'Logo uploaded successfully!');
+  //   } catch (err) {
+  //     toast.error(err?.data?.message || 'Failed to upload logo');
+  //   } finally {
+  //     setUploading(false);
+  //   }
+  // };
 
-const handleFileChange = async (e) => {
-  const file = e.target.files[0];
-  if (!file) return;
+  const handleFileChange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
 
-  setUploading(true);
-  const formData = new FormData();
-  formData.append('image', file);
+    setUploading(true);
+    const formData = new FormData();
+    formData.append("image", file);
 
-  try {
-    const res = await uploadDefaultInvoiceImage(formData).unwrap();
-    // Prepend 'images/' if your backend saves files there
-    const uploadedLogo = res.image.startsWith('http') ? res.image : `/images/${res.image}`;
-    setLogo(uploadedLogo);
-    toast.success(res.message || 'Logo uploaded successfully!');
-  } catch (err) {
-    toast.error(err?.data?.message || 'Failed to upload logo');
-  } finally {
-    setUploading(false);
-  }
-};
+    try {
+      const res = await uploadDefaultInvoiceImage(formData).unwrap();
+      // Prepend 'images/' if your backend saves files there
+      const uploadedLogo = res.image.startsWith("http")
+        ? res.image
+        : `/images/${res.image}`;
+      setLogo(uploadedLogo);
+      toast.success(res.message || "Logo uploaded successfully!");
+    } catch (err) {
+      toast.error(err?.data?.message || "Failed to upload logo");
+    } finally {
+      setUploading(false);
+    }
+  };
 
   // Form submit handler
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!logo) {
-      toast.error('Please upload a logo first');
+      toast.error("Please upload a logo first");
       return;
     }
 
@@ -94,11 +99,11 @@ const handleFileChange = async (e) => {
         is_branch: isBranch ? 1 : 0,
       }).unwrap();
 
-      toast.success('Default invoice created successfully!');
-      navigate('/admin/defaultinvoicelist');
+      toast.success("Default invoice created successfully!");
+      navigate("/admin/defaultinvoicelist");
     } catch (err) {
       console.error(err);
-      toast.error(err?.data?.message || 'Failed to create invoice');
+      toast.error(err?.data?.message || "Failed to create invoice");
     }
   };
 
@@ -115,15 +120,31 @@ const handleFileChange = async (e) => {
               <h4 className="pt-3">Create New Default Invoice</h4>
             </Card.Header>
             <Card.Body>
-              {isLoading && <Spinner animation="border" className="d-block mx-auto mb-3" />}
-              {error && <Message variant="danger">{error.data?.message || error.message}</Message>}
+              {isLoading && (
+                <Spinner animation="border" className="d-block mx-auto mb-3" />
+              )}
+              {error && (
+                <Message variant="danger">
+                  {error.data?.message || error.message}
+                </Message>
+              )}
 
               <Form onSubmit={handleSubmit}>
                 <Form.Group controlId="logo" className="mb-2">
                   <Form.Label>Company Logo</Form.Label>
                   <Form.Control type="file" onChange={handleFileChange} />
-                  {uploading && <Spinner animation="border" size="sm" className="mt-2" />}
-                  {logo && <Image src={logo} alt="Logo Preview" fluid style={{ maxHeight: '100px' }} className="mt-2" />}
+                  {uploading && (
+                    <Spinner animation="border" size="sm" className="mt-2" />
+                  )}
+                  {logo && (
+                    <Image
+                      src={logo}
+                      alt="Logo Preview"
+                      fluid
+                      style={{ maxHeight: "100px" }}
+                      className="mt-2"
+                    />
+                  )}
                 </Form.Group>
 
                 <Form.Group controlId="companyName" className="mb-2">

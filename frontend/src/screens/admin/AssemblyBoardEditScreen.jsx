@@ -1,13 +1,13 @@
-import React from 'react'
-import { Container } from 'react-bootstrap';
+import React from "react";
+import { Container } from "react-bootstrap";
 
 const AssemblyBoardEditScreen = () => {
-    <Container
-      className="d-flex justify-content-center align-items-center"
-      style={{ height: '80vh' }}
-    >
-      <h2 className="text-primary">🛠️ Feature Under Development 😊</h2>
-    </Container>
-}
+  <Container
+    className="d-flex justify-content-center align-items-center"
+    style={{ height: "80vh" }}
+  >
+    <h2 className="text-primary">🛠️ Feature Under Development 😊</h2>
+  </Container>;
+};
 
-export default AssemblyBoardEditScreen
+export default AssemblyBoardEditScreen;
