@@ -443,7 +443,7 @@ const StockReceiveDashboardScreen = () => {
                       >
                         {p.img ? (
                           <img
-                            src={`/componentImages${p.img}`}
+                            src={p.img}
                             alt="p"
                             style={{
                               maxWidth: "100%",
@@ -634,7 +634,7 @@ const StockReceiveDashboardScreen = () => {
                 >
                   {p.img ? (
                     <img
-                      src={`/componentImages${p.img}`}
+                      src={p.img}
                       alt="p"
                       style={{
                         maxWidth: "100%",

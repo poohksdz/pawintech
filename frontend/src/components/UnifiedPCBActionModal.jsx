@@ -179,9 +179,8 @@ const UnifiedPCBActionModal = ({ show, handleClose, item, type, onConfirm }) => 
                             type="number"
                             placeholder="0.00"
                             value={confirmedPrice}
-                            readOnly
-                            disabled
-                            className="bg-slate-50 border-slate-200 text-slate-500 cursor-not-allowed font-mono font-bold"
+                            onChange={(e) => setConfirmedPrice(e.target.value)}
+                            className="bg-white border-slate-200 text-slate-900 font-mono font-bold"
                         />
                     ) : (
                         <Input

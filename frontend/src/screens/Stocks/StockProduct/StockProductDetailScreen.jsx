@@ -137,7 +137,7 @@ const StockProductDetailScreen = () => {
               <div className="image-container text-center">
                 {product.img ? (
                   <Image
-                    src={`/componentImages${product.img}`}
+                    src={product.img}
                     alt="Product"
                     fluid
                     style={{ maxHeight: "200px" }}

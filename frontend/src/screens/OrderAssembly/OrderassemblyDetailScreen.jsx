@@ -1,12 +1,7 @@
 import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import { useSelector } from "react-redux";
-import { useGetAssemblyPCBByIdQuery } from "../../slices/assemblypcbApiSlice";
-import Loader from "../../components/Loader";
-import Message from "../../components/Message";
-import { format } from "date-fns";
-import JSZip from "jszip";
-import { saveAs } from "file-saver";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   FaDownload,
   FaBox,
@@ -17,8 +12,20 @@ import {
   FaCheckCircle,
   FaTimesCircle,
   FaImage,
+  FaReceipt,
+  FaMicrochip,
+  FaSearchPlus,
+  FaClock,
 } from "react-icons/fa";
-import { motion, AnimatePresence } from "framer-motion";
+import { useGetAssemblyPCBByIdQuery } from "../../slices/assemblypcbApiSlice";
+import { useGetDefaultInvoiceUsedQuery } from "../../slices/defaultInvoicesApiSlice";
+import Loader from "../../components/Loader";
+import Message from "../../components/Message";
+import FullTaxInvoiceA4 from "../../components/FullTaxInvoiceA4";
+import AbbreviatedTaxInvoice from "../../components/AbbreviatedTaxInvoice";
+import { format } from "date-fns";
+import JSZip from "jszip";
+import { saveAs } from "file-saver";
 import { BASE_URL as APP_BASE_URL } from "../../constants";
 
 const OrderassemblyDetailScreen = () => {
@@ -26,12 +33,28 @@ const OrderassemblyDetailScreen = () => {
   const { id } = useParams();
   const { language } = useSelector((state) => state.language);
   const { data: order, isLoading, error } = useGetAssemblyPCBByIdQuery(id);
+  const { data: companyInfo } = useGetDefaultInvoiceUsedQuery();
 
   const orderData = order?.data;
 
   const [zoomedImage, setZoomedImage] = useState(null);
+  const [printMode, setPrintMode] = useState(null);
   const [topImages, setTopImages] = useState([]);
   const [bottomImages, setBottomImages] = useState([]);
+
+  const handlePrint = (mode) => {
+    setPrintMode(mode);
+    setTimeout(() => {
+      const originalTitle = document.title;
+      const invoiceNo = orderData?.paymentComfirmID || orderData?.orderID || orderData?.id;
+      document.title = `${mode === "full" ? "Tax_Invoice" : "Short_Receipt"}_${invoiceNo}`;
+      window.print();
+      setTimeout(() => {
+        setPrintMode(null);
+        document.title = originalTitle;
+      }, 1000);
+    }, 100);
+  };
 
   const getFullUrl = (pathInput) => {
     if (!pathInput) return null;
@@ -131,220 +154,156 @@ const OrderassemblyDetailScreen = () => {
   if (!orderData) return <Message variant="info">Data not found</Message>;
 
   return (
-    <div className="bg-slate-50 min-h-screen py-8 md:py-12 font-sans selection:bg-blue-100">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header Section */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
-          <div>
-            <h1 className="text-3xl font-black text-slate-900 tracking-tight">
-              #{orderData.orderID}
-            </h1>
-            <p className="text-slate-500 font-medium">
-              {t.title} - {orderData.projectname}
-            </p>
-          </div>
+    <div className="bg-slate-50 min-h-screen font-sans text-slate-900 antialiased font-prompt selection:bg-blue-100 uppercase">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 md:py-12 no-print">
+        {/* Header & Actions */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+          <Link
+            to={language === "thai" ? "/pcbassemblycart" : "/pcbassemblycart"}
+            className="inline-flex items-center gap-3 text-slate-500 hover:text-blue-600 font-bold transition-all group active:scale-95"
+          >
+            <div className="w-10 h-10 bg-white rounded-full shadow-sm border border-slate-200 flex items-center justify-center group-hover:border-blue-200 group-hover:shadow-md transition-all">
+              <FaArrowLeft className="group-hover:-translate-x-1 transition-transform" />
+            </div>
+            <span className="hidden sm:inline-block tracking-wide uppercase text-sm">
+              {language === "thai" ? "ย้อนกลับ" : "Back"}
+            </span>
+          </Link>
+
           <div className="flex flex-wrap gap-3">
-            <button
-              onClick={() => navigate("/pcbassemblycart")}
-              className="flex items-center gap-2 bg-white border border-slate-200 px-4 py-2 rounded-xl text-slate-600 font-bold hover:bg-slate-50 transition-all"
-            >
-              <FaArrowLeft />{" "}
-              {language === "thai" ? "กลับไปยังหน้าตะกร้า" : "Back to Cart"}
-            </button>
+            {orderData.status === "paid" && orderData.billingTax && orderData.billingTax !== "N/A" && (
+              <div className="flex gap-2">
+                <button
+                  onClick={() => handlePrint("full")}
+                  className="inline-flex items-center gap-2 px-6 py-2.5 bg-black text-white rounded-full font-bold shadow-lg hover:bg-slate-900 transition-all active:scale-95 text-xs uppercase tracking-widest"
+                >
+                  <FaFileInvoice /> Full Invoice (PDF)
+                </button>
+                <button
+                  onClick={() => handlePrint("short")}
+                  className="inline-flex items-center gap-2 px-6 py-2.5 bg-white border border-slate-200 text-slate-700 rounded-full font-bold shadow-sm hover:shadow-md hover:border-slate-300 transition-all active:scale-95 text-xs uppercase tracking-widest"
+                >
+                  <FaReceipt /> Short Receipt
+                </button>
+              </div>
+            )}
             <button
               onClick={() => handleDownloadZip("images")}
-              className="flex items-center gap-2 bg-blue-600 px-5 py-2 rounded-xl text-white font-bold hover:bg-blue-700 shadow-lg shadow-blue-200 transition-all"
+              className="inline-flex items-center gap-2 px-6 py-2.5 bg-blue-600 text-white rounded-full font-bold shadow-lg hover:bg-blue-700 transition-all active:scale-95 text-xs uppercase tracking-widest"
             >
               <FaDownload /> {t.downloadProj}
             </button>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-          {/* Left Column: Client Info */}
-          <div className="lg:col-span-7 space-y-8">
-            {/* Project Details Card */}
-            <div className="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
-              <div className="bg-slate-900 px-6 py-4 flex items-center justify-between">
-                <h3 className="text-white font-bold flex items-center gap-2">
-                  <FaBox className="text-blue-400" /> Project Info
-                </h3>
-                <span className="bg-blue-500/20 text-blue-300 text-xs font-black px-3 py-1 rounded-full uppercase tracking-widest">
-                  {orderData.board_types}
-                </span>
-              </div>
-              <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-1">
-                  <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">
-                    {t.projectName}
-                  </p>
-                  <p className="text-slate-900 font-bold">
-                    {orderData.projectname}
-                  </p>
-                </div>
-                <div className="space-y-1">
-                  <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">
-                    {t.qty}
-                  </p>
-                  <p className="text-slate-900 font-bold">
-                    {orderData.pcb_qty} Pcs
-                  </p>
-                </div>
-                <div className="md:col-span-2 space-y-1 border-t border-slate-50 pt-4">
-                  <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">
-                    {t.notes}
-                  </p>
-                  <p className="text-slate-600 text-sm leading-relaxed">
-                    {orderData.notes || "No additional notes"}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Shipping & Billing Info */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              {/* Shipping */}
-              <div className="bg-white rounded-3xl shadow-sm border border-slate-100 p-6">
-                <h4 className="font-bold text-slate-900 mb-4 flex items-center gap-2">
-                  <FaMapMarkerAlt className="text-red-500" /> {t.shipping}
-                </h4>
-                {orderData.receivePlace === "bysending" ? (
-                  <div className="space-y-3 text-sm">
-                    <p>
-                      <strong>{orderData.shippingName}</strong>
-                    </p>
-                    <p className="text-slate-500">{orderData.shippingPhone}</p>
-                    <p className="text-slate-500 leading-relaxed">
-                      {orderData.shippingAddress}, {orderData.shippingCity},{" "}
-                      {orderData.shippingPostalCode}
-                    </p>
-                  </div>
-                ) : (
-                  <div className="bg-emerald-50 text-emerald-700 p-4 rounded-2xl text-xs font-bold border border-emerald-100">
-                    * Customer will pickup at company
-                  </div>
-                )}
-              </div>
-              {/* Billing */}
-              <div className="bg-white rounded-3xl shadow-sm border border-slate-100 p-6">
-                <h4 className="font-bold text-slate-900 mb-4 flex items-center gap-2">
-                  <FaFileInvoice className="text-blue-500" /> {t.billing}
-                </h4>
-                <div className="space-y-3 text-sm">
-                  <p>
-                    <strong>{orderData.billingName}</strong>
-                  </p>
-                  <p className="text-slate-500">
-                    Tax ID: {orderData.billingTax}
-                  </p>
-                  <p className="text-slate-500 leading-relaxed">
-                    {orderData.billingAddress}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Delivery Status */}
-            <div className="bg-white rounded-3xl shadow-sm border border-slate-100 p-6">
-              <h4 className="font-bold text-slate-900 mb-4 flex items-center gap-2">
-                <FaCheckCircle className="text-emerald-500" /> {t.delivery}
+        {/* Order Info Card */}
+        <div className="bg-white rounded-[2.5rem] shadow-sm border border-slate-200 overflow-hidden mb-8">
+          <div className="p-6 md:p-8 text-white flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-black">
+            <div>
+              <h4 className="text-2xl font-black mb-1 flex items-center gap-3 tracking-tight uppercase">
+                {orderData.orderID}
               </h4>
+              <span className="text-white/60 text-sm font-medium tracking-wide">
+                {orderData.created_at || orderData.createdAt ? format(new Date(orderData.created_at || orderData.createdAt), "PPP p") : "-"}
+              </span>
+            </div>
+            <div>
               {orderData.isDelivered ? (
-                <div className="bg-emerald-50 border border-emerald-100 p-4 rounded-2xl flex items-center gap-4">
-                  <div className="bg-white w-12 h-12 rounded-full flex items-center justify-center text-emerald-500 shadow-sm">
-                    <FaCheckCircle size={24} />
-                  </div>
-                  <div>
-                    <p className="text-emerald-900 font-bold">
-                      {t.deliveredOn}
-                    </p>
-                    <p className="text-emerald-600 text-sm">
-                      {format(new Date(orderData.deliveryAt), "PPpp")} • Track:{" "}
-                      {orderData.transferedNumber}
-                    </p>
-                  </div>
-                </div>
+                <span className="inline-flex items-center gap-2 bg-emerald-500/20 backdrop-blur-md text-emerald-400 px-4 py-2 rounded-full text-xs font-black uppercase tracking-widest border border-emerald-500/30">
+                  <FaCheckCircle /> {language === "thai" ? "จัดส่งสำเร็จ" : "Delivered"}
+                </span>
               ) : (
-                <div className="bg-rose-50 border border-rose-100 p-4 rounded-2xl flex items-center gap-4">
-                  <div className="bg-white w-12 h-12 rounded-full flex items-center justify-center text-rose-500 shadow-sm">
-                    <FaTimesCircle size={24} />
-                  </div>
-                  <p className="text-rose-900 font-bold">{t.notDelivered}</p>
-                </div>
+                <span className="inline-flex items-center gap-2 bg-amber-500/20 backdrop-blur-md text-amber-400 px-4 py-2 rounded-full text-xs font-black uppercase tracking-widest border border-amber-500/30">
+                  <FaClock className="animate-pulse" /> {language === "thai" ? "รอจัดส่ง" : "Processing"}
+                </span>
               )}
             </div>
           </div>
 
-          {/* Right Column: Spec & Calculation */}
-          <div className="lg:col-span-5 space-y-8">
-            {/* Spec Summary Card */}
-            <div className="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
-              <div className="bg-slate-50 border-b border-slate-100 px-6 py-4 font-bold text-slate-800">
-                Component Specifications
+          <div className="p-8 md:p-12">
+            <h2 className="text-3xl font-black text-slate-900 mb-8 uppercase tracking-tight">
+              {orderData.projectname}
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+              <div className="space-y-1">
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Quantity</p>
+                <p className="text-xl font-black text-slate-900">{orderData.pcb_qty} PCS</p>
               </div>
-              <div className="p-6 space-y-6">
-                {/* SMD Section */}
-                <div className="bg-blue-50/50 p-4 rounded-2xl border border-blue-100">
-                  <h5 className="text-blue-700 font-black text-xs uppercase tracking-widest mb-3">
-                    Surface Mount (SMD)
-                  </h5>
-                  <div className="grid grid-cols-2 gap-4 text-sm">
-                    <div>
-                      <span className="text-slate-500">Side:</span>{" "}
-                      <span className="font-bold">{orderData.smd_side}</span>
-                    </div>
-                    <div>
-                      <span className="text-slate-500">Count:</span>{" "}
-                      <span className="font-bold">{orderData.count_smd}</span>
-                    </div>
-                    <div className="col-span-2">
-                      <span className="text-slate-500">Total Points:</span>{" "}
-                      <span className="font-bold">
-                        {orderData.total_point_smd}
-                      </span>
-                    </div>
+              <div className="space-y-1">
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Board Type</p>
+                <p className="text-xl font-black text-slate-900 uppercase">{orderData.board_types || "Assembly"}</p>
+              </div>
+              <div className="space-y-1">
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Confirmed Price</p>
+                <p className="text-xl font-black text-blue-600 tracking-tighter">฿{Number(orderData.confirmed_price || 0).toLocaleString()}</p>
+              </div>
+              <div className="space-y-1">
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Unit Price</p>
+                <p className="text-xl font-black text-slate-900 tracking-tighter">฿{(Number(orderData.confirmed_price || 0) / (orderData.pcb_qty || 1)).toLocaleString()}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          {/* Left Column: Details & Specs */}
+          <div className="lg:col-span-8 space-y-8">
+            <div className="bg-white rounded-[2rem] shadow-sm border border-slate-200 p-8">
+              <div className="flex items-center gap-3 mb-8 pb-4 border-b border-slate-100">
+                <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center border border-blue-100">
+                  <FaMicrochip size={18} />
+                </div>
+                <h3 className="font-black text-slate-800 uppercase tracking-widest m-0">Assembly Specifications</h3>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                <div className="p-4 bg-blue-50/30 rounded-2xl border border-blue-100">
+                  <h6 className="text-[10px] font-black text-blue-600 uppercase tracking-widest mb-3 flex items-center gap-2">
+                    <div className="w-2 h-2 rounded-full bg-blue-500"></div> Surface Mount (SMD)
+                  </h6>
+                  <div className="space-y-2">
+                    <p className="text-xs flex justify-between"><span className="text-slate-500">Side:</span> <span className="font-bold">{orderData.smd_side}</span></p>
+                    <p className="text-xs flex justify-between"><span className="text-slate-500">Components:</span> <span className="font-bold">{orderData.count_smd}</span></p>
+                    <p className="text-xs flex justify-between border-t border-blue-100 pt-2 mt-2"><span className="text-slate-500">Total Points:</span> <span className="font-bold">{orderData.total_point_smd}</span></p>
                   </div>
                 </div>
-                {/* THT Section */}
-                <div className="bg-amber-50/50 p-4 rounded-2xl border border-amber-100">
-                  <h5 className="text-amber-700 font-black text-xs uppercase tracking-widest mb-3">
-                    Through-Hole (THT)
-                  </h5>
-                  <div className="grid grid-cols-2 gap-4 text-sm">
-                    <div>
-                      <span className="text-slate-500">Side:</span>{" "}
-                      <span className="font-bold">{orderData.tht_side}</span>
-                    </div>
-                    <div>
-                      <span className="text-slate-500">Count:</span>{" "}
-                      <span className="font-bold">{orderData.count_tht}</span>
-                    </div>
-                    <div className="col-span-2">
-                      <span className="text-slate-500">Total Points:</span>{" "}
-                      <span className="font-bold">
-                        {orderData.total_point_tht}
-                      </span>
-                    </div>
+                <div className="p-4 bg-amber-50/30 rounded-2xl border border-amber-100">
+                  <h6 className="text-[10px] font-black text-amber-600 uppercase tracking-widest mb-3 flex items-center gap-2">
+                    <div className="w-2 h-2 rounded-full bg-amber-500"></div> Through-Hole (THT)
+                  </h6>
+                  <div className="space-y-2">
+                    <p className="text-xs flex justify-between"><span className="text-slate-500">Side:</span> <span className="font-bold">{orderData.tht_side}</span></p>
+                    <p className="text-xs flex justify-between"><span className="text-slate-500">Components:</span> <span className="font-bold">{orderData.count_tht}</span></p>
+                    <p className="text-xs flex justify-between border-t border-amber-100 pt-2 mt-2"><span className="text-slate-500">Total Points:</span> <span className="font-bold">{orderData.total_point_tht}</span></p>
                   </div>
                 </div>
-                {/* Visuals */}
-                <div className="space-y-4">
-                  <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">
-                    Top & Bottom Previews
-                  </p>
-                  <div className="flex flex-wrap gap-2">
+              </div>
+
+              <div className="space-y-6">
+                <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Project Notes</p>
+                  <p className="text-slate-600 text-sm leading-relaxed">{orderData.notes || "No additional notes provided."}</p>
+                </div>
+
+                <div className="pt-4">
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Design Previews</p>
+                  <div className="flex flex-wrap gap-3">
                     {[...topImages, ...bottomImages].map((img, i) => (
                       <motion.div
                         whileHover={{ scale: 1.05 }}
+                        whileActive={{ scale: 0.95 }}
                         key={i}
-                        className="relative w-16 h-16 rounded-lg overflow-hidden border border-slate-200 cursor-pointer shadow-sm shadow-slate-100"
                         onClick={() => setZoomedImage(img.url)}
+                        className="relative w-24 h-24 rounded-2xl overflow-hidden border border-slate-200 cursor-pointer shadow-sm group"
                       >
                         <img
                           src={img.url}
                           alt="pcb"
-                          className="w-full h-full object-cover"
+                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                         />
+                        <div className="absolute inset-0 bg-slate-900/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-sm">
+                          <FaSearchPlus size={16} className="text-white" />
+                        </div>
                       </motion.div>
                     ))}
                   </div>
@@ -352,72 +311,108 @@ const OrderassemblyDetailScreen = () => {
               </div>
             </div>
 
-            {/* Cost Summary Card */}
-            <div className="bg-slate-900 rounded-[2.5rem] text-white shadow-2xl shadow-blue-900/20 overflow-hidden ring-1 ring-white/10">
-              <div className="p-8">
-                <h3 className="text-xl font-black mb-8 flex items-center gap-3">
-                  <FaCalculator className="text-blue-500" /> {t.cost}
-                </h3>
-
-                <div className="space-y-4 border-b border-white/10 pb-6 mb-6 text-sm font-medium">
-                  <div className="flex justify-between">
-                    <span className="text-slate-400">Assembly Cost (SMD)</span>
-                    <span className="font-bold">{orderData.smdCost} ฿</span>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:col-span-8">
+              <div className="bg-white rounded-[2rem] shadow-sm border border-slate-200 p-8 relative overflow-hidden group">
+                <FaMapMarkerAlt className="absolute -right-4 -bottom-4 text-slate-50 opacity-10 group-hover:opacity-20 transition-opacity" size={120} />
+                <h6 className="font-black text-slate-800 flex items-center gap-3 uppercase tracking-widest mb-6 relative z-10">
+                  <span className="w-8 h-8 rounded-full bg-slate-100 text-black flex items-center justify-center">
+                    <FaMapMarkerAlt />
+                  </span>
+                  {t.shipping}
+                </h6>
+                {orderData.receivePlace === "bysending" ? (
+                  <div className="relative z-10 text-slate-600 font-medium leading-relaxed">
+                    <p className="font-black text-slate-900 text-lg mb-1">{orderData.shippingName}</p>
+                    <p className="mb-2 text-black font-bold">{orderData.shippingPhone}</p>
+                    <p className="m-0 text-sm">
+                      {orderData.shippingAddress}, {orderData.shippingCity} {orderData.shippingPostalCode}
+                    </p>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-slate-400">Assembly Cost (THT)</span>
-                    <span className="font-bold">{orderData.thtCost} ฿</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-slate-400">Stencil & Setup</span>
-                    <span className="font-bold">
-                      {orderData.stencil_price} ฿
+                ) : (
+                  <div className="text-center py-6 bg-slate-50 rounded-2xl border border-slate-100 relative z-10">
+                    <span className="font-black text-black uppercase tracking-widest">
+                      {t.pickup}
                     </span>
                   </div>
-                  <div className="flex justify-between text-blue-400">
-                    <span>VAT (7%)</span>
-                    <span>{orderData.vatPrice} ฿</span>
+                )}
+              </div>
+
+              <div className="bg-white rounded-[2rem] shadow-sm border border-slate-200 p-8 relative overflow-hidden group">
+                <FaFileInvoice className="absolute -right-4 -bottom-4 text-slate-50 opacity-10 group-hover:opacity-20 transition-opacity" size={120} />
+                <h6 className="font-black text-slate-800 flex items-center gap-3 uppercase tracking-widest mb-6 relative z-10">
+                  <span className="w-8 h-8 rounded-full bg-slate-100 text-black flex items-center justify-center">
+                    <FaFileInvoice />
+                  </span>
+                  {t.billing}
+                </h6>
+                <div className="relative z-10 text-slate-600 font-medium leading-relaxed">
+                  <p className="font-black text-slate-900 text-lg mb-1">{orderData.billingName}</p>
+                  <p className="mb-4 text-sm text-slate-500">
+                    {orderData.billingAddress}
+                  </p>
+                  {orderData.billingTax && (
+                    <span className="inline-block px-3 py-1 bg-slate-100 text-slate-600 rounded-md text-xs font-black uppercase tracking-widest border border-slate-200">
+                      TAX ID: {orderData.billingTax}
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Right Column: Financial & Proof */}
+          <div className="lg:col-span-4 space-y-8">
+            <div className="bg-white rounded-[2rem] shadow-sm border border-slate-200 overflow-hidden sticky top-8">
+              <div className="p-8">
+                <h5 className="font-black text-slate-800 text-xl tracking-tight mb-8 uppercase">Summary</h5>
+                <div className="space-y-4 mb-8 pt-2">
+                  <div className="flex justify-between items-center text-sm font-medium text-slate-500">
+                    <span className="uppercase tracking-widest">Assembly SMD</span>
+                    <span className="font-bold text-slate-700">฿{(Number(orderData.smdCost || 0)).toLocaleString()}</span>
+                  </div>
+                  <div className="flex justify-between items-center text-sm font-medium text-slate-500">
+                    <span className="uppercase tracking-widest">Assembly THT</span>
+                    <span className="font-bold text-slate-700">฿{(Number(orderData.thtCost || 0)).toLocaleString()}</span>
+                  </div>
+                  <div className="flex justify-between items-center text-sm font-medium text-slate-500">
+                    <span className="uppercase tracking-widest">Stencil & Setup</span>
+                    <span className="font-bold text-slate-700">฿{(Number(orderData.stencil_price || 0)).toLocaleString()}</span>
+                  </div>
+                  <div className="flex justify-between items-center text-sm font-medium text-blue-500 pt-4 border-t border-slate-100">
+                    <span className="uppercase tracking-widest font-black">VAT (7%)</span>
+                    <span className="font-black">฿{(Number(orderData.vatPrice || 0)).toLocaleString()}</span>
                   </div>
                 </div>
-
-                <div className="flex justify-between items-end mb-8">
-                  <div>
-                    <p className="text-xs font-black text-blue-500 uppercase tracking-widest">
-                      Total Confirmed Price
-                    </p>
-                    <p className="text-4xl font-black text-white">
-                      {orderData.confirmed_price || "Pending"}
-                    </p>
-                  </div>
-                  <span className="text-slate-400 font-bold text-sm">THB</span>
+                <div className="border-t border-slate-200 border-dashed pt-6 flex justify-between items-end mb-8">
+                  <span className="font-black text-slate-400 uppercase tracking-widest text-xs mb-1">Total Amount</span>
+                  <span className="font-black text-black text-4xl tracking-tighter leading-none">฿{Number(orderData.confirmed_price || 0).toLocaleString()}</span>
                 </div>
 
-                {/* Payment Slip Display */}
-                <div className="bg-white/5 p-4 rounded-2xl border border-white/10 flex items-center justify-between gap-4">
-                  <div className="overflow-hidden">
-                    <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">
-                      Payment Reference
-                    </p>
-                    <p className="text-xs truncate text-slate-300">
-                      {format(new Date(orderData.transferedDate), "PPpp")}
-                    </p>
-                  </div>
-                  <motion.div
-                    whileHover={{ scale: 1.05 }}
-                    className="relative shrink-0 w-20 h-24 rounded-lg overflow-hidden border border-white/20 cursor-pointer shadow-lg"
-                    onClick={() =>
-                      setZoomedImage(getFullUrl(orderData.paymentSlip))
-                    }
-                  >
-                    <img
-                      src={getFullUrl(orderData.paymentSlip)}
-                      alt="slip"
-                      className="w-full h-full object-cover"
-                    />
-                    <div className="absolute inset-0 bg-black/20 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
-                      <FaImage className="text-white" />
+                <div className="bg-slate-50/50 p-6 border-b border-slate-100 flex flex-col items-center gap-3 rounded-3xl">
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest text-center mb-0">Payment Proof</p>
+                  {orderData.paymentSlip ? (
+                    <button
+                      type="button"
+                      className="w-full h-48 rounded-2xl border border-slate-200 relative overflow-hidden group cursor-zoom-in block bg-white"
+                      onClick={() => setZoomedImage(getFullUrl(orderData.paymentSlip))}
+                    >
+                      <img
+                        src={getFullUrl(orderData.paymentSlip)}
+                        alt="Payment Slip"
+                        className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500"
+                      />
+                      <div className="absolute inset-0 bg-slate-900/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-sm">
+                        <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center text-white border border-white/30 backdrop-blur-md">
+                          <FaSearchPlus size={20} />
+                        </div>
+                      </div>
+                    </button>
+                  ) : (
+                    <div className="bg-slate-50 rounded-2xl py-8 w-full flex flex-col items-center justify-center border-2 border-slate-100 border-dashed text-slate-400">
+                      <FaClock size={32} className="mb-3 opacity-30 animate-pulse" />
+                      <span className="text-[10px] font-bold uppercase tracking-widest">Pending Slip Upload</span>
                     </div>
-                  </motion.div>
+                  )}
                 </div>
               </div>
             </div>
@@ -425,30 +420,111 @@ const OrderassemblyDetailScreen = () => {
         </div>
       </div>
 
-      {/* Fullscreen Zoom Overlay */}
       <AnimatePresence>
         {zoomedImage && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={() => setZoomedImage(null)}
-            className="fixed inset-0 bg-slate-900/95 z-[100] backdrop-blur-md flex items-center justify-center p-4 cursor-zoom-out"
-          >
-            <motion.img
+          <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="absolute inset-0 bg-slate-900/90 backdrop-blur-md"
+              onClick={() => setZoomedImage(null)}
+            />
+            <motion.div
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
-              src={zoomedImage}
-              alt="Fullscreen View"
-              className="max-w-full max-h-full rounded-2xl shadow-2xl ring-4 ring-white/10"
-            />
-            <button className="fixed top-6 right-6 w-12 h-12 bg-white/10 hover:bg-white/20 text-white rounded-full flex items-center justify-center text-2xl transition-all">
-              &times;
-            </button>
-          </motion.div>
+              transition={{ type: "spring", damping: 25, stiffness: 300 }}
+              className="relative max-w-4xl w-full max-h-[90vh] flex justify-center pointer-events-none"
+            >
+              <button
+                onClick={() => setZoomedImage(null)}
+                className="absolute -top-4 -right-4 w-10 h-10 bg-white text-slate-800 rounded-full flex items-center justify-center shadow-2xl hover:scale-110 active:scale-95 transition-all pointer-events-auto z-10"
+              >
+                &times;
+              </button>
+              <img
+                src={zoomedImage}
+                alt="Zoomed View"
+                className="rounded-2xl shadow-2xl max-h-[85vh] object-contain pointer-events-auto border-2 border-white/10"
+              />
+            </motion.div>
+          </div>
         )}
       </AnimatePresence>
+
+      <FullTaxInvoiceA4
+        order={orderData ? {
+          id: orderData.id || orderData._id,
+          createdAt: orderData.created_at || orderData.createdAt,
+          paymentMethod: "Bank Transfer",
+          billingAddress: {
+            billingName: orderData.billingName,
+            billinggAddress: orderData.billinggAddress,
+            billingCity: orderData.billingCity,
+            billingPostalCode: orderData.billingPostalCode,
+            tax: orderData.billingTax,
+          },
+          shippingAddress: {
+            shippingname: orderData.shippingName,
+            phone: orderData.shippingPhone,
+          },
+          items: [
+            {
+              name: `Assembly PCB: ${orderData.projectname}`,
+              qty: orderData.pcb_qty,
+              price: (Number(orderData.confirmed_price || 0) / 1.07) / orderData.pcb_qty,
+            }
+          ],
+          itemsPrice: Number(orderData.confirmed_price || 0) / 1.07,
+          vatPrice: Number(orderData.confirmed_price || 0) * 0.07 / 1.07,
+          shippingPrice: 0,
+          totalPrice: Number(orderData.confirmed_price || 0),
+          paymentComfirmID: orderData.paymentComfirmID || orderData.orderID,
+        } : null}
+        companyInfo={companyInfo}
+        printMode={printMode}
+      />
+      <AbbreviatedTaxInvoice
+        order={orderData ? {
+          id: orderData.id || orderData._id,
+          createdAt: orderData.created_at || orderData.createdAt,
+          paymentMethod: "Bank Transfer",
+          billingAddress: {
+            billingName: orderData.billingName,
+            billinggAddress: orderData.billinggAddress,
+            billingCity: orderData.billingCity,
+            billingPostalCode: orderData.billingPostalCode,
+            tax: orderData.billingTax,
+          },
+          shippingAddress: {
+            shippingname: orderData.shippingName,
+            phone: orderData.shippingPhone,
+          },
+          items: [
+            {
+              name: `Assembly PCB: ${orderData.projectname}`,
+              qty: orderData.pcb_qty,
+              price: (Number(orderData.confirmed_price || 0) / 1.07) / orderData.pcb_qty,
+            }
+          ],
+          itemsPrice: Number(orderData.confirmed_price || 0) / 1.07,
+          vatPrice: Number(orderData.confirmed_price || 0) * 0.07 / 1.07,
+          shippingPrice: 0,
+          totalPrice: Number(orderData.confirmed_price || 0),
+          paymentComfirmID: orderData.paymentComfirmID || orderData.orderID,
+        } : null}
+        companyInfo={companyInfo}
+        printMode={printMode}
+      />
+
+      <style dangerouslySetInnerHTML={{ __html: `
+        @media print {
+          .no-print { display: none !important; }
+          .print-only { display: block !important; }
+          body { background: white !important; padding: 0 !important; }
+        }
+      ` }} />
     </div>
   );
 };

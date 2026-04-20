@@ -209,11 +209,11 @@ const CustomPCBEditListScreen = () => {
         </Modal.Body>
       </Modal>
 
-      <style>{`
+      <style dangerouslySetInnerHTML={{ __html: `
         .table thead th { font-weight: 600; font-size: 0.75rem; border-top: none; background-color: #f1f5f9; }
         .table tbody tr:hover { background-color: #f8fafc; transition: background 0.2s; }
         .badge { font-weight: 500; font-size: 0.75rem; }
-      `}</style>
+      ` }} />
     </Container>
   );
 };

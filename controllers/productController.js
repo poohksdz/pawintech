@@ -10,7 +10,7 @@ const getProducts = asyncHandler(async (req, res) => {
     res.status(200).json({ products: rows });
   } catch (error) {
     console.error(`Error fetching products: ${error.message}`);
-    res.status(500).json({ message: "Error fetching products", debug: error.message, code: error.code, host: process.env.DB_HOST || "default:127.0.0.1", user: process.env.DB_USER || "default:root", db: process.env.DB_NAME || "default:pawin_tech" });
+    res.status(500).json({ message: "Error fetching products" });
   }
 });
 
@@ -221,7 +221,7 @@ const deleteProduct = asyncHandler(async (req, res) => {
   } catch (error) {
     res
       .status(500)
-      .json({ message: "Error deleting product", error: error.message });
+      .json({ message: "เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์" });
   }
 });
 
@@ -315,7 +315,7 @@ const createProductReview = asyncHandler(async (req, res) => {
     console.error(`Error adding review: ${error.message}`);
     res
       .status(error.status || 500)
-      .json({ message: error.message || "Error adding review" });
+      .json({ message: "เกิดข้อผิดพลาดในการเพิ่มรีวิว" });
   }
 });
 

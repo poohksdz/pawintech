@@ -30,7 +30,7 @@ const AssemblyBoardScreen = () => {
 
         <button
           onClick={() => navigate("/")}
-          className="px-10 py-4 bg-black text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-slate-900 transition-all shadow-xl active:scale-95"
+          className="px-4 md:px-10 py-4 bg-black text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-slate-900 transition-all shadow-xl active:scale-95"
         >
           Return Home
         </button>

@@ -38,3 +38,4 @@ export const STOCK_REQUESTS_URL = `/api/stockrequests`
 export const STOCK_ISSUES_URL = `/api/stockissues`
 export const PAYMENTS_URL = '/api/payments';
 export const STOCK_RECEIVES_URL = `/api/stockreceives`
+export const SIGNATURES_URL = '/api/signatures'

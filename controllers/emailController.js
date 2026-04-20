@@ -70,7 +70,7 @@ const sendEmail = asyncHandler(async (req, res) => {
     if (!res.headersSent) {
       res
         .status(500)
-        .json({ message: "Error sending email", error: error.message });
+        .json({ message: "เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์" });
     }
   }
 });

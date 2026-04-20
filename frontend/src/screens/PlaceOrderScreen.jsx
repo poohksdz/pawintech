@@ -99,39 +99,43 @@ const PlaceOrderScreen = () => {
 
   // Address Display Component
   const AddressCard = ({ title, icon, data, isPickup = false }) => (
-    <div className="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm flex flex-col h-full hover:shadow-md transition-shadow duration-300">
-      <div className="flex items-center gap-3 mb-4">
+    <div className="bg-white rounded-[2rem] p-6 md:p-8 border border-slate-100 shadow-sm flex flex-col h-full hover:shadow-xl hover:border-black transition-all duration-500 group">
+      <div className="flex items-center gap-4 mb-6">
         <div
-          className={`p-2 rounded-lg ${title === t.shipping ? "bg-slate-100 text-black" : "bg-slate-100 text-black"}`}
+          className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all duration-500 ${title === t.shipping ? "bg-slate-50 text-slate-400 group-hover:bg-black group-hover:text-white shadow-inner" : "bg-slate-50 text-slate-400 group-hover:bg-black group-hover:text-white shadow-inner"
+            }`}
         >
           {icon}
         </div>
-        <h4 className="text-sm font-black text-slate-800 uppercase tracking-wider">
+        <h4 className="text-xs font-black text-slate-800 uppercase tracking-[0.2em] group-hover:text-black transition-colors">
           {title}
         </h4>
       </div>
 
       {isPickup ? (
-        <div className="flex-grow flex items-center justify-center bg-slate-50 rounded-2xl border border-dashed border-slate-200 p-4">
-          <p className="text-slate-400 text-sm font-bold">{t.customerPickUp}</p>
+        <div className="flex-grow flex items-center justify-center bg-slate-50/50 rounded-2xl border border-dashed border-slate-200 p-6 group-hover:bg-slate-50 transition-colors">
+          <p className="text-slate-400 text-sm font-black uppercase tracking-widest leading-none">{t.customerPickUp}</p>
         </div>
       ) : (
-        <div className="space-y-2">
-          <p className="text-slate-900 font-bold">
+        <div className="space-y-3 relative">
+          <p className="text-slate-900 font-black text-lg tracking-tight leading-none group-hover:translate-x-1 transition-transform">
             {data.shippingname || data.billingName}
           </p>
-          <p className="text-slate-500 text-sm leading-relaxed">
-            {data.address || data.billinggAddress}
-            <br />
-            {data.city || data.billingCity},{" "}
-            {data.postalCode || data.billingPostalCode}
-            <br />
-            {data.country || data.billingCountry}
-          </p>
-          <div className="flex items-center gap-2 text-xs font-bold text-slate-400 mt-3 pt-3 border-t border-slate-50">
-            <FaInfoCircle /> {data.phone || data.billingPhone}
+          <div className="space-y-1">
+            <p className="text-slate-500 text-sm leading-relaxed font-medium">
+              {data.address || data.billinggAddress}
+            </p>
+            <p className="text-slate-400 text-xs font-bold uppercase tracking-wider">
+              {data.city || data.billingCity}, {data.postalCode || data.billingPostalCode}
+            </p>
+            <p className="text-slate-400 text-xs font-bold uppercase tracking-wider">
+              {data.country || data.billingCountry}
+            </p>
+          </div>
+          <div className="flex items-center gap-2 text-[10px] font-black text-slate-300 mt-5 pt-5 border-t border-slate-50 group-hover:border-slate-100 transition-colors">
+            <FaInfoCircle className="group-hover:text-blue-500 transition-colors" /> {data.phone || data.billingPhone}
             {data.tax && data.tax !== "N/A" && (
-              <span className="ml-auto text-black">Tax: {data.tax}</span>
+              <span className="ml-auto text-black bg-slate-50 px-2 py-0.5 rounded-md border border-slate-200">TAX: {data.tax}</span>
             )}
           </div>
         </div>
@@ -140,7 +144,7 @@ const PlaceOrderScreen = () => {
   );
 
   return (
-    <div className="min-h-screen bg-slate-50 py-10 px-4 md:px-8 font-sans selection:bg-black selection:text-white">
+    <div className="min-h-screen bg-slate-50 py-4 md:py-6 md:py-10 px-4 md:px-8 font-sans selection:bg-black selection:text-white">
       <Meta title={t.stepTitle} />
       <div className="max-w-6xl mx-auto">
         <CheckoutSteps step1 step2 step3 step4 />
@@ -153,9 +157,9 @@ const PlaceOrderScreen = () => {
           {t.stepTitle}
         </motion.h1>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 md:gap-8 items-start">
           <div className="lg:col-span-8 space-y-8">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
               <AddressCard
                 title={t.shipping}
                 icon={<FaMapMarkerAlt />}
@@ -170,7 +174,7 @@ const PlaceOrderScreen = () => {
             </div>
 
             <div className="bg-white rounded-[2.5rem] shadow-sm border border-slate-100 overflow-hidden">
-              <div className="bg-slate-50/50 px-8 py-5 border-b border-slate-100 flex items-center justify-between">
+              <div className="bg-slate-50/50 px-4 md:px-8 py-5 border-b border-slate-100 flex items-center justify-between">
                 <h3 className="font-bold text-slate-800 flex items-center gap-3">
                   <FaBoxOpen className="text-slate-400" /> {t.items}
                 </h3>
@@ -189,7 +193,7 @@ const PlaceOrderScreen = () => {
                     {cart.cartItems.map((item, index) => (
                       <div
                         key={index}
-                        className="p-6 flex items-center gap-6 hover:bg-slate-50/50 transition-colors group"
+                        className="p-4 md:p-6 flex items-center gap-4 md:gap-6 hover:bg-slate-50/50 transition-colors group"
                       >
                         <div className="w-20 h-20 shrink-0 rounded-2xl overflow-hidden border border-slate-100 bg-white p-1">
                           <img
@@ -200,7 +204,7 @@ const PlaceOrderScreen = () => {
                         </div>
                         <div className="flex-grow min-w-0">
                           <Link
-                            to={`/product/${item.product}`}
+                            to={`/${item.product}`}
                             className="block text-slate-900 font-bold hover:text-black transition-colors truncate"
                           >
                             {item.name}
@@ -227,7 +231,7 @@ const PlaceOrderScreen = () => {
 
           <div className="lg:col-span-4 lg:sticky lg:top-10">
             <div className="bg-slate-900 rounded-[2.5rem] text-white shadow-2xl overflow-hidden border border-white/10 ring-1 ring-white/5">
-              <div className="p-8">
+              <div className="p-4 md:p-8">
                 <div className="flex items-center gap-3 mb-8">
                   <div className="p-2 bg-black rounded-xl shadow-lg shadow-black/30">
                     <FaMoneyBillWave size={18} />

@@ -100,7 +100,7 @@ const StockListCategoryScreen = () => {
     );
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-pageFade">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 md:py-8 animate-pageFade">
       <Card>
         <CardHeader
           title="Category List"
@@ -127,7 +127,7 @@ const StockListCategoryScreen = () => {
                 <Table.Row>
                   <Table.Cell
                     colSpan="5"
-                    className="text-center py-6 text-slate-500"
+                    className="text-center py-4 md:py-6 text-slate-500"
                   >
                     No categories found.
                   </Table.Cell>

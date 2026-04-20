@@ -233,7 +233,7 @@ const StockAdditionCartScreen = () => {
                               <div className="w-16 h-16 md:w-24 md:h-24 bg-[#f3f4f6] shrink-0 flex items-center justify-center overflow-hidden rounded-xl border border-gray-100 p-2 shadow-sm group-hover:shadow-md transition-shadow">
                                 {p.img ? (
                                   <img
-                                    src={`/componentImages${p.img}`}
+                                    src={p.img}
                                     alt={p.electotronixPN}
                                     className="w-full h-full object-contain mix-blend-multiply"
                                   />
@@ -330,7 +330,7 @@ const StockAdditionCartScreen = () => {
                           </div>
 
                           {/* --- DESKTOP ONLY COLUMNS --- */}
-                          <div className="hidden md:flex col-span-4 justify-end items-center gap-6 pr-2">
+                          <div className="hidden md:flex col-span-4 justify-end items-center gap-4 md:gap-6 pr-2">
                             <div className="flex w-[120px] h-[40px] border border-gray-300 rounded-sm overflow-hidden bg-white">
                               <button
                                 onClick={() =>
@@ -375,7 +375,7 @@ const StockAdditionCartScreen = () => {
             </AnimatePresence>
           </div>
 
-          <div className="mt-8 pt-4 flex gap-6">
+          <div className="mt-8 pt-4 flex gap-4 md:gap-6">
             <Link
               to="/cart"
               className="text-[11px] font-bold text-gray-400 hover:text-black transition-colors uppercase tracking-[0.2em] flex items-center gap-2"
@@ -392,7 +392,7 @@ const StockAdditionCartScreen = () => {
         </div>
 
         {/*  Right Column: Summary */}
-        <div className="w-full lg:w-[350px] bg-white p-6 lg:p-8 shrink-0 flex flex-col text-start border-l border-slate-100">
+        <div className="w-full lg:w-[350px] bg-white p-4 md:p-6 lg:p-8 shrink-0 flex flex-col text-start border-l border-slate-100">
           <h2 className="text-[14px] font-bold text-gray-900 uppercase tracking-wide mb-8">
             Inbound Summary
           </h2>
@@ -410,7 +410,7 @@ const StockAdditionCartScreen = () => {
                 <FaCheckDouble size={14} /> Confirm Inbound
               </button>
 
-              <div className="bg-gray-50 border border-dashed border-gray-200 rounded p-6 mb-8">
+              <div className="bg-gray-50 border border-dashed border-gray-200 rounded p-4 md:p-6 mb-8">
                 <p className="text-[11px] text-gray-500 font-medium leading-relaxed mb-4">
                   <strong className="text-gray-900 uppercase tracking-widest block mb-1 text-[10px]">
                     Inbound Confirmation
@@ -463,7 +463,7 @@ const StockAdditionCartScreen = () => {
                 initial={{ scale: 0.95, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 exit={{ scale: 0.95, opacity: 0 }}
-                className="relative bg-white rounded shadow-2xl w-full max-w-sm p-8 text-center border-t-4 border-black font-sans z-10"
+                className="relative bg-white rounded shadow-2xl w-full max-w-sm p-4 md:p-8 text-center border-t-4 border-black font-sans z-10"
               >
                 <h3 className="text-[16px] font-bold text-gray-900 mb-2 uppercase tracking-tight">
                   Remove Component?
@@ -511,7 +511,7 @@ const StockAdditionCartScreen = () => {
                 initial={{ scale: 0.95, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 exit={{ scale: 0.95, opacity: 0 }}
-                className="relative bg-white rounded-xl w-full max-w-md p-10 shadow-3xl text-center border-b-4 border-black font-sans z-10"
+                className="relative bg-white rounded-xl w-full max-w-md p-4 md:p-6 lg:p-10 shadow-3xl text-center border-b-4 border-black font-sans z-10"
               >
                 <div className="w-20 h-20 bg-gray-50 text-black rounded-full flex items-center justify-center mx-auto mb-6 border border-gray-100 shadow-inner">
                   <FaExclamationTriangle size={32} />
@@ -552,16 +552,16 @@ const StockAdditionCartScreen = () => {
             document.body,
           )}
 
-        <style>{`
-            .hide-scrollbar::-webkit-inner-spin-button, 
-            .hide-scrollbar::-webkit-outer-spin-button { 
-               -webkit-appearance: none; 
-               margin: 0; 
+        <style dangerouslySetInnerHTML={{ __html: `
+            .hide-scrollbar::-webkit-inner-spin-button,
+            .hide-scrollbar::-webkit-outer-spin-button {
+               -webkit-appearance: none;
+               margin: 0;
             }
             .hide-scrollbar {
                -moz-appearance: textfield;
             }
-         `}</style>
+         ` }} />
       </div>
     </div>
   );

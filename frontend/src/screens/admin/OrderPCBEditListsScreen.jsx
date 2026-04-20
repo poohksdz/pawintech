@@ -529,7 +529,7 @@ const OrderPCBEditListsScreen = () => {
       </Modal>
 
       {/* Inline Styles */}
-      <style>{`
+      <style dangerouslySetInnerHTML={{ __html: `
         .font-prompt { font-family: 'Prompt', sans-serif; }
         .hover-scale:hover { transform: translateY(-2px); transition: all 0.2s ease; }
         .card-stat { transition: all 0.3s ease; }
@@ -539,7 +539,7 @@ const OrderPCBEditListsScreen = () => {
         .row-hover:hover { background-color: #f8f9fa; }
         .btn-icon { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
         .btn-icon:hover { transform: scale(1.1); filter: brightness(0.9); }
-      `}</style>
+      ` }} />
     </div>
   );
 };

@@ -480,7 +480,7 @@ const OrderassemblyCartEditScreen = () => {
                     {["Single", "Panelized"].map((type, idx) => (
                       <ToggleButton
                         key={idx}
-                        id={`bt-${idx}`}
+                        id={`-${idx}`}
                         type="radio"
                         variant="outline-primary"
                         name="board_types"
@@ -584,7 +584,7 @@ const OrderassemblyCartEditScreen = () => {
                         {["Top", "Bottom", "Both"].map((v, i) => (
                           <ToggleButton
                             key={i}
-                            id={`smds-${i}`}
+                            id={`-${i}`}
                             type="radio"
                             variant="outline-secondary"
                             name="smd_side"
@@ -651,7 +651,7 @@ const OrderassemblyCartEditScreen = () => {
                         {["Top", "Bottom", "Both"].map((v, i) => (
                           <ToggleButton
                             key={i}
-                            id={`thts-${i}`}
+                            id={`-${i}`}
                             type="radio"
                             variant="outline-secondary"
                             name="tht_side"

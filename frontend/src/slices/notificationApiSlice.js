@@ -9,9 +9,10 @@ export const notificationApiSlice = apiSlice.injectEndpoints({
       providesTags: ["Notification"],
     }),
     markAsRead: builder.mutation({
-      query: (id) => ({
+      query: ({ id, scope }) => ({
         url: `/api/notifications/${id}/read`,
         method: "PUT",
+        body: { scope },
       }),
       invalidatesTags: ["Notification"],
     }),
@@ -31,9 +32,10 @@ export const notificationApiSlice = apiSlice.injectEndpoints({
       invalidatesTags: ["Notification"],
     }),
     deleteNotification: builder.mutation({
-      query: (id) => ({
+      query: ({ id, scope }) => ({
         url: `/api/notifications/${id}`,
         method: "DELETE",
+        body: { scope },
       }),
       invalidatesTags: ["Notification"],
     }),

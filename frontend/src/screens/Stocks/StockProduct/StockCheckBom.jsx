@@ -647,7 +647,7 @@ const StockCheckBom = () => {
             )}
             <button
               onClick={() => navigate("/componentcartlist")}
-              className="relative flex items-center gap-2 px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest text-white bg-slate-900 hover:bg-black shadow-lg shadow-slate-200 transition-all active:scale-95"
+              className="relative flex items-center gap-2 px-4 md:px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest text-white bg-slate-900 hover:bg-black shadow-lg shadow-slate-200 transition-all active:scale-95"
             >
               <FaShoppingCart /> ตะกร้า
               <AnimatePresence>
@@ -697,7 +697,7 @@ const StockCheckBom = () => {
               />
               <button
                 onClick={() => document.getElementById("fileInp").click()}
-                className="bg-indigo-600 hover:bg-indigo-700 text-white px-10 py-4 rounded-2xl font-black uppercase tracking-widest text-sm shadow-xl shadow-indigo-200 transition-all active:scale-95 mb-4"
+                className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 md:px-10 py-4 rounded-2xl font-black uppercase tracking-widest text-sm shadow-xl shadow-indigo-200 transition-all active:scale-95 mb-4"
               >
                 เลือกไฟล์ CSV
               </button>
@@ -724,7 +724,7 @@ const StockCheckBom = () => {
                       whileHover={{ y: -4 }}
                       whileTap={{ scale: 0.98 }}
                       onClick={() => setActiveCategory(tab.key)}
-                      className={`cursor-pointer rounded-[2rem] p-6 transition-all duration-300 relative overflow-hidden bg-white border border-slate-200
+                      className={`cursor-pointer rounded-[2rem] p-4 md:p-6 transition-all duration-300 relative overflow-hidden bg-white border border-slate-200
                                                 ${isActive ? `${tab.bgBorder} shadow-xl ${tab.outline} outline-none ring-4 ring-offset-2 ring-offset-white` : "shadow-sm hover:border-indigo-200 hover:shadow-md"}
                                             `}
                     >
@@ -822,7 +822,7 @@ const StockCheckBom = () => {
                     <button
                       disabled={selectedItems.length === 0}
                       onClick={addSelectedToCart}
-                      className={`shrink-0 flex items-center gap-2 px-6 py-3 rounded-2xl text-xs font-black uppercase tracking-widest transition-all ${selectedItems.length > 0 ? "bg-emerald-600 text-white shadow-lg shadow-emerald-200 hover:bg-emerald-700 active:scale-95" : "bg-slate-100 text-slate-400 cursor-not-allowed"}`}
+                      className={`shrink-0 flex items-center gap-2 px-4 md:px-6 py-3 rounded-2xl text-xs font-black uppercase tracking-widest transition-all ${selectedItems.length > 0 ? "bg-emerald-600 text-white shadow-lg shadow-emerald-200 hover:bg-emerald-700 active:scale-95" : "bg-slate-100 text-slate-400 cursor-not-allowed"}`}
                     >
                       <FaCheckDouble /> เพิ่มเข้าตะกร้า ({selectedItems.length})
                     </button>
@@ -1072,7 +1072,7 @@ const StockCheckBom = () => {
                                       <div className="w-8 h-8 flex items-center justify-center shrink-0">
                                         {p.img ? (
                                           <img
-                                            src={`/componentImages${p.img}`}
+                                            src={p.img}
                                             alt="p"
                                             className="w-full h-full object-contain"
                                           />
@@ -1140,7 +1140,7 @@ const StockCheckBom = () => {
                 </div>
                 {/* Footer Summary */}
                 {displayResults.length > 0 && (
-                  <div className="bg-slate-50 border-t border-slate-100 px-6 py-4 flex flex-col sm:flex-row justify-between items-center gap-3">
+                  <div className="bg-slate-50 border-t border-slate-100 px-4 md:px-6 py-4 flex flex-col sm:flex-row justify-between items-center gap-3">
                     <span className="text-xs font-bold text-slate-500 tracking-wide">
                       แสดง{" "}
                       <span className="text-slate-800 font-black">
@@ -1211,7 +1211,7 @@ const StockCheckBom = () => {
                   exit={{ scale: 0.9, opacity: 0, y: 20 }}
                   className="relative bg-white rounded-[2rem] w-full max-w-4xl shadow-2xl overflow-hidden m-auto flex flex-col max-h-[85vh]"
                 >
-                  <div className="flex items-center justify-between px-8 py-6 border-b border-slate-100 bg-slate-50/50">
+                  <div className="flex items-center justify-between px-4 md:px-8 py-4 md:py-6 border-b border-slate-100 bg-slate-50/50">
                     <div className="flex items-center gap-4">
                       <div className="w-12 h-12 bg-indigo-50 text-indigo-500 rounded-[1rem] flex items-center justify-center shadow-inner">
                         <FaInfoCircle size={24} />
@@ -1238,7 +1238,7 @@ const StockCheckBom = () => {
                     </button>
                   </div>
 
-                  <div className="p-8 overflow-y-auto hide-scrollbar bg-white">
+                  <div className="p-4 md:p-8 overflow-y-auto hide-scrollbar bg-white">
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-6">
                       {(() => {
                         const { p, row } = showDetailModal;
@@ -1358,10 +1358,10 @@ const StockCheckBom = () => {
                     </div>
                   </div>
 
-                  <div className="px-8 py-5 border-t border-slate-100 bg-slate-50 flex justify-end">
+                  <div className="px-4 md:px-8 py-5 border-t border-slate-100 bg-slate-50 flex justify-end">
                     <button
                       onClick={() => setShowDetailModal(null)}
-                      className="px-8 py-3 rounded-xl bg-slate-900 text-white font-black uppercase tracking-widest text-xs hover:bg-black transition-all active:scale-95 shadow-lg shadow-slate-200"
+                      className="px-4 md:px-8 py-3 rounded-xl bg-slate-900 text-white font-black uppercase tracking-widest text-xs hover:bg-black transition-all active:scale-95 shadow-lg shadow-slate-200"
                     >
                       Close
                     </button>
@@ -1388,7 +1388,7 @@ const StockCheckBom = () => {
               initial={{ scale: 0.9, opacity: 0, y: 20 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.9, opacity: 0, y: 20 }}
-              className="relative bg-white rounded-[3rem] w-full max-w-2xl p-8 shadow-2xl overflow-hidden m-auto"
+              className="relative bg-white rounded-[3rem] w-full max-w-2xl p-4 md:p-8 shadow-2xl overflow-hidden m-auto"
             >
               <div className="flex items-center justify-center mb-6">
                 <div className="w-16 h-16 bg-indigo-50 text-indigo-500 rounded-[1.5rem] flex items-center justify-center shadow-inner">
@@ -1399,7 +1399,7 @@ const StockCheckBom = () => {
                 การเตรียมไฟล์ BOM CSV
               </h3>
 
-              <div className="bg-slate-50 rounded-[2rem] p-6 mb-8 border border-slate-100">
+              <div className="bg-slate-50 rounded-[2rem] p-4 md:p-6 mb-8 border border-slate-100">
                 <h6 className="text-sm font-black text-slate-800 uppercase tracking-widest mb-4">
                   คอลัมน์ที่จำเป็นเพื่อให้ระบบเช็คสต็อกได้ถูกต้อง:
                 </h6>
@@ -1490,7 +1490,7 @@ const StockCheckBom = () => {
         )}
       </AnimatePresence>
 
-      <style>{`
+      <style dangerouslySetInnerHTML={{ __html: `
                 /* Hide scrollbar for Chrome, Safari and Opera */
                 .hide-scrollbar::-webkit-scrollbar {
                     display: none;
@@ -1500,7 +1500,7 @@ const StockCheckBom = () => {
                     -ms-overflow-style: none;  /* IE and Edge */
                     scrollbar-width: none;  /* Firefox */
                 }
-            `}</style>
+            ` }} />
     </div>
   );
 };

@@ -443,12 +443,12 @@ const ServiceCreateScreen = () => {
         </Card.Body>
       </Card>
 
-      <style>{`
+      <style dangerouslySetInnerHTML={{ __html: `
         .font-prompt { font-family: 'Prompt', sans-serif; }
         .custom-tabs .nav-link { color: #6c757d; font-weight: 600; border: none; border-bottom: 3px solid transparent; }
         .custom-tabs .nav-link.active { color: #0d6efd; border-bottom-color: #0d6efd; background: transparent; }
         .custom-tabs .nav-link:hover { color: #0d6efd; }
-      `}</style>
+      ` }} />
     </Container>
   );
 };

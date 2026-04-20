@@ -1,5 +1,6 @@
 const asyncHandler = require("../middleware/asyncHandler.js");
 const db = require("../config/db.js"); //  เรียกใช้ Pool
+const { createBroadcastNotification } = require("./notificationController");
 
 // @desc    Get all requestgood
 // @route   GET /api/Stockrequestgood
@@ -150,6 +151,13 @@ const createStockRequestgood = asyncHandler(async (req, res) => {
       requestedUser,
       userId,
       itemsCount: items.length,
+    });
+
+    // 🔔 Send notification to Store users
+    await createBroadcastNotification({
+      message: `New stock request received: ${requestno} from ${requestedUser}`,
+      type: "stock_request",
+      targetRole: "isStore",
     });
   } catch (error) {
     console.error(`Error updating requestgood: ${error.message}`);

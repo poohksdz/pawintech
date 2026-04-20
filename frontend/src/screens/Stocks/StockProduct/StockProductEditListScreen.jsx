@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -22,17 +22,21 @@ import {
   useGetStockProductsQuery,
   useDeleteStockProductMutation,
 } from "../../../slices/stockProductApiSlice";
+import { useGetStockCategoriesQuery } from "../../../slices/stockCategoryApiSlice";
+import { useGetStockSubcategoriesQuery } from "../../../slices/stockSubcategoryApiSlice";
 import { useGetStockManufacturesQuery } from "../../../slices/stockManufactureApiSlice";
+import { useGetStockFootprintsQuery } from "../../../slices/stockFootprintApiSlice";
+import { useGetStockSuppliersQuery } from "../../../slices/stockSupplierApiSlice";
 import Loader from "../../../components/Loader";
 import Message from "../../../components/Message";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 
 // ============================================================================
-// INLINE DROPDOWN COMPONENT (For Top Bar)
+// COMPONENT: MINIMALIST DROPDOWN (Copied from Dashboard)
 // ============================================================================
-const InlineDropdown = ({
-  icon: Icon,
+const CustomDropdown = ({
+  label,
   name,
   value,
   options,
@@ -46,65 +50,132 @@ const InlineDropdown = ({
   );
 
   return (
-    <div className="relative">
-      <button
-        type="button"
-        disabled={disabled}
-        onClick={() => setIsOpen(!isOpen)}
-        className={`h-11 px-4 bg-white border ${isOpen ? "border-indigo-400 ring-4 ring-indigo-50" : "border-slate-200"} rounded-xl text-sm font-semibold text-slate-700 flex items-center justify-between min-w-[200px] transition-all hover:border-slate-300 outline-none ${disabled ? "opacity-50 cursor-not-allowed bg-slate-50" : "cursor-pointer shadow-sm"}`}
-      >
-        <div className="flex items-center gap-2.5 overflow-hidden">
-          <Icon
-            className={selectedOption ? "text-indigo-500" : "text-slate-400"}
-            size={14}
-          />
+    <div className="mb-2 relative">
+      <label className="text-[11px] font-semibold text-slate-500 mb-1 block tracking-wide">
+        {label}
+      </label>
+      <div className="relative">
+        <button
+          type="button"
+          disabled={disabled}
+          onClick={() => setIsOpen(!isOpen)}
+          className={`w-full bg-white border ${isOpen ? "border-slate-400" : "border-slate-200"} rounded-xl px-4 py-2 text-sm font-medium text-slate-800 flex items-center justify-between transition-colors hover:border-slate-300 outline-none ${disabled ? "opacity-40 cursor-not-allowed bg-slate-50" : "cursor-pointer"}`}
+        >
           <span
-            className={`truncate ${!selectedOption ? "text-slate-400 font-medium" : ""}`}
+            className={`truncate mr-2 ${!selectedOption ? "text-slate-400 font-normal" : ""}`}
           >
             {selectedOption ? selectedOption.label : placeholder}
           </span>
-        </div>
-        <motion.div
-          animate={{ rotate: isOpen ? 180 : 0 }}
-          transition={{ duration: 0.2 }}
-        >
-          <FaChevronDown className="text-slate-400 ml-2" size={10} />
-        </motion.div>
+          <motion.div
+            animate={{ rotate: isOpen ? 180 : 0 }}
+            transition={{ duration: 0.2 }}
+            className="flex-shrink-0"
+          >
+            <FaChevronDown className="text-slate-400" size={10} />
+          </motion.div>
+        </button>
+
+        <AnimatePresence>
+          {isOpen && !disabled && (
+            <React.Fragment key="dropdown-fragment">
+              <div
+                className="fixed inset-0 z-[110]"
+                onClick={() => setIsOpen(false)}
+              />
+              <motion.ul
+                initial={{ opacity: 0, y: 4, scale: 0.98 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: 4, scale: 0.98 }}
+                transition={{ duration: 0.15, ease: "easeOut" }}
+                className="absolute z-[120] w-full mt-1 bg-white border border-slate-100 rounded-xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.08)] py-1.5 overflow-hidden max-h-60 overflow-y-auto custom-scrollbar"
+              >
+                <li
+                  onClick={() => {
+                    onChange({ target: { name, value: "" } });
+                    setIsOpen(false);
+                  }}
+                  className="px-4 py-2.5 text-xs font-medium text-slate-400 hover:bg-slate-50 hover:text-slate-800 cursor-pointer transition-colors"
+                >
+                  All {label}
+                </li>
+                {options?.map((opt) => (
+                  <li
+                    key={String(opt.key)}
+                    onClick={() => {
+                      onChange({ target: { name, value: opt.value } });
+                      setIsOpen(false);
+                    }}
+                    className={`px-4 py-2.5 text-sm font-medium hover:bg-slate-50 cursor-pointer transition-colors ${String(value) === String(opt.value) ? "text-slate-900 bg-slate-50 font-semibold" : "text-slate-600"}`}
+                  >
+                    {opt.label}
+                  </li>
+                ))}
+              </motion.ul>
+            </React.Fragment>
+          )}
+        </AnimatePresence>
+      </div>
+    </div>
+  );
+};
+
+// ============================================================================
+// COMPONENT: INLINE DROPDOWN (Compact for Add Forms)
+// ============================================================================
+const InlineDropdown = ({
+  icon: Icon,
+  name,
+  value,
+  options,
+  onChange,
+  placeholder,
+}) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const selectedOption = options?.find(
+    (o) => String(o.value) === String(value),
+  );
+
+  return (
+    <div className="relative">
+      <button
+        type="button"
+        onClick={() => setIsOpen(!isOpen)}
+        className="min-w-[180px] bg-white border border-slate-200 rounded-xl px-3 py-2 text-sm font-medium text-slate-700 flex items-center gap-2 hover:border-slate-400 outline-none"
+      >
+        {Icon && <Icon className="text-slate-400 flex-shrink-0" size={14} />}
+        <span className={`truncate ${!selectedOption ? "text-slate-400 font-normal" : ""}`}>
+          {selectedOption ? selectedOption.label : placeholder}
+        </span>
+        <FaChevronDown className="text-slate-400 flex-shrink-0 ml-auto" size={10} />
       </button>
 
       <AnimatePresence>
-        {isOpen && !disabled && (
-          <React.Fragment key="dropdown-fragment">
+        {isOpen && (
+          <React.Fragment key={`inline-dropdown-${name}`}>
             <div
-              className="fixed inset-0 z-[110]"
+              className="fixed inset-0 z-40"
               onClick={() => setIsOpen(false)}
             />
             <motion.ul
-              initial={{ opacity: 0, y: 8, scale: 0.98 }}
+              initial={{ opacity: 0, y: 4, scale: 0.98 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 8, scale: 0.98 }}
-              transition={{ duration: 0.15, ease: "easeOut" }}
-              className="absolute right-0 z-[120] w-[240px] mt-2 bg-white border border-slate-100 rounded-2xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.1)] py-2 overflow-hidden max-h-64 overflow-y-auto custom-scrollbar"
+              exit={{ opacity: 0, y: 4, scale: 0.98 }}
+              transition={{ duration: 0.15 }}
+              className="absolute bottom-full left-0 mb-2 w-56 bg-white border border-slate-200 rounded-xl shadow-lg z-50 max-h-48 overflow-y-auto"
             >
-              <li
-                onClick={() => {
-                  onChange({ target: { name, value: "" } });
-                  setIsOpen(false);
-                }}
-                className="px-5 py-3 text-xs font-bold text-slate-400 hover:bg-slate-50 hover:text-slate-800 cursor-pointer transition-colors uppercase tracking-wider"
-              >
-                All {placeholder}
-              </li>
-              {options?.map((opt) => (
+              {options?.map((option) => (
                 <li
-                  key={String(opt.key)}
+                  key={option.key ?? option.value}
+                  className={`px-4 py-2 text-sm cursor-pointer hover:bg-slate-50 transition-colors ${String(option.value) === String(value)
+                    ? "bg-indigo-50 text-indigo-700 font-semibold"
+                    : "text-slate-700"
+                    }`}
                   onClick={() => {
-                    onChange({ target: { name, value: opt.value } });
+                    onChange({ target: { name, value: option.value } });
                     setIsOpen(false);
                   }}
-                  className={`px-5 py-3 text-sm font-medium hover:bg-indigo-50/50 hover:text-indigo-700 cursor-pointer transition-colors flex items-center gap-2 ${String(value) === String(opt.value) ? "text-indigo-700 bg-indigo-50/50 font-bold" : "text-slate-700"}`}
                 >
-                  {opt.label}
+                  {option.label}
                 </li>
               ))}
             </motion.ul>
@@ -136,7 +207,7 @@ const QuickLookModal = ({ isOpen, onClose, product }) => {
   return createPortal(
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+        <div key="quicklook-modal" className="fixed inset-0 z-[100] flex items-center justify-center p-4">
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -151,7 +222,7 @@ const QuickLookModal = ({ isOpen, onClose, product }) => {
             className="relative bg-white rounded-[2.5rem] w-full max-w-2xl overflow-hidden shadow-2xl z-10 border border-slate-100"
           >
             {/* Header */}
-            <div className="bg-slate-50 px-8 py-6 border-b border-slate-100 flex justify-between items-center">
+            <div className="bg-slate-50 px-4 md:px-8 py-4 md:py-6 border-b border-slate-100 flex justify-between items-center">
               <div>
                 <span className="text-[10px] font-black text-indigo-500 uppercase tracking-widest block mb-1">
                   Component Quick Look
@@ -168,14 +239,14 @@ const QuickLookModal = ({ isOpen, onClose, product }) => {
               </button>
             </div>
 
-            <div className="p-8 max-h-[70vh] overflow-y-auto custom-scrollbar">
-              <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
+            <div className="p-4 md:p-8 max-h-[70vh] overflow-y-auto custom-scrollbar">
+              <div className="grid grid-cols-1 md:grid-cols-12 gap-4 md:gap-8">
                 {/* Left: Image */}
                 <div className="md:col-span-4">
-                  <div className="aspect-square rounded-3xl bg-slate-50 border border-slate-100 flex items-center justify-center p-6 mb-4 overflow-hidden shadow-inner">
+                  <div className="aspect-square rounded-3xl bg-slate-50 border border-slate-100 flex items-center justify-center p-4 md:p-6 mb-4 overflow-hidden shadow-inner">
                     {product.img ? (
                       <img
-                        src={`/componentImages${product.img}`}
+                        src={product.img}
                         alt="Preview"
                         className="max-w-full max-h-full object-contain mix-blend-multiply"
                       />
@@ -265,10 +336,10 @@ const QuickLookModal = ({ isOpen, onClose, product }) => {
             </div>
 
             {/* Footer Actions */}
-            <div className="bg-slate-50 p-6 border-t border-slate-100 flex justify-end gap-3">
+            <div className="bg-slate-50 p-4 md:p-6 border-t border-slate-100 flex justify-end gap-3">
               <button
                 onClick={onClose}
-                className="px-6 py-3 bg-white text-slate-600 font-bold rounded-2xl border border-slate-200 hover:bg-slate-50 transition-all shadow-sm"
+                className="px-4 md:px-6 py-3 bg-white text-slate-600 font-bold rounded-2xl border border-slate-200 hover:bg-slate-50 transition-all shadow-sm"
               >
                 Close Preview
               </button>
@@ -291,7 +362,11 @@ const StockProductEditListScreen = () => {
     error,
     refetch,
   } = useGetStockProductsQuery();
+  const { data: categoryData = [] } = useGetStockCategoriesQuery();
+  const { data: subcategoryData = [] } = useGetStockSubcategoriesQuery();
   const { data: manufactureData = [] } = useGetStockManufacturesQuery();
+  const { data: footprintData = [] } = useGetStockFootprintsQuery();
+  const { data: supplierData = [] } = useGetStockSuppliersQuery();
   const [deleteStockProduct, { isLoading: loadingDelete }] =
     useDeleteStockProductMutation();
 
@@ -300,7 +375,14 @@ const StockProductEditListScreen = () => {
   // UI States
   const [searchInput, setSearchInput] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
-  const [formData, setFormData] = useState({ manufacturer: "" });
+  const [formData, setFormData] = useState({
+    category: "",
+    subcategory: "",
+    manufacturer: "",
+    footprint: "",
+    supplier: "",
+    sortBy: "",
+  });
 
   const [showMobileFilter, setShowMobileFilter] = useState(false);
   const [showQuickLook, setShowQuickLook] = useState(false);
@@ -309,7 +391,12 @@ const StockProductEditListScreen = () => {
   const [productToDelete, setProductToDelete] = useState(null);
 
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10;
+  const itemsPerPage = 99999; // Show all products without pagination
+
+  // Infinite scroll state
+  const ITEMS_PER_BATCH = 50;
+  const [visibleCount, setVisibleCount] = useState(ITEMS_PER_BATCH);
+  const sentinelRef = useRef(null);
 
   // Scroll Lock
   useEffect(() => {
@@ -323,32 +410,54 @@ const StockProductEditListScreen = () => {
     };
   }, [showMobileFilter, showDeleteModal]);
 
-  // Filtering Logic
   const filteredProducts = useMemo(() => {
     let filtered = products || [];
+    if (formData.category)
+      filtered = filtered.filter((p) => p.category === formData.category);
+    if (formData.subcategory)
+      filtered = filtered.filter((p) => p.subcategory === formData.subcategory);
     if (formData.manufacturer)
       filtered = filtered.filter(
         (p) => p.manufacture === formData.manufacturer,
       );
+    if (formData.footprint)
+      filtered = filtered.filter((p) => p.footprint === formData.footprint);
+    if (formData.supplier)
+      filtered = filtered.filter((p) => p.supplier === formData.supplier);
+
     if (searchQuery.trim() !== "") {
       const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(
-        (item) =>
-          (item.electotronixPN || "").toLowerCase().includes(query) ||
-          (item.manufacturePN || "").toLowerCase().includes(query) ||
-          (item.value || "").toLowerCase().includes(query) ||
-          (item.description || "").toLowerCase().includes(query) ||
-          (item.category || "").toLowerCase().includes(query) ||
-          (item.subcategory || "").toLowerCase().includes(query) ||
-          (item.manufacture || "").toLowerCase().includes(query) ||
-          (item.footprint || "").toLowerCase().includes(query) ||
-          (item.supplier || "").toLowerCase().includes(query) ||
-          (item.barcode || "").toLowerCase().includes(query) ||
-          (item.note || "").toLowerCase().includes(query),
-      );
+      filtered = filtered.filter((item) => {
+        const epn = (item.electotronixPN || "").toLowerCase();
+        const mpn = (item.manufacturePN || "").toLowerCase();
+        const bc = (item.barcode || "").toLowerCase();
+        const val = (item.value || "").toLowerCase();
+
+        return epn.includes(query) || mpn.includes(query) || bc.includes(query) || val.includes(query);
+      });
     }
+
+    // Sorting Logic
+    if (formData.sortBy === "star-asc") {
+      filtered = [...filtered].sort(
+        (a, b) => (a.starRating || 0) - (b.starRating || 0),
+      );
+    } else if (formData.sortBy === "star-desc") {
+      filtered = [...filtered].sort(
+        (a, b) => (b.starRating || 0) - (a.starRating || 0),
+      );
+    } else if (formData.sortBy === "id-desc") {
+      filtered = [...filtered].sort((a, b) => b.ID - a.ID);
+    }
+
     return filtered;
   }, [products, formData, searchQuery]);
+
+  // Pro-Level: Always reset to page 1 when filtering or searching to prevent empty state bugs
+  useEffect(() => {
+    setCurrentPage(1);
+    setVisibleCount(ITEMS_PER_BATCH);
+  }, [formData, searchQuery]);
 
   // Auto-open Quick Look if barcode matches exactly
   useEffect(() => {
@@ -361,13 +470,24 @@ const StockProductEditListScreen = () => {
     }
   }, [filteredProducts, searchQuery]);
 
-  const indexOfLastItem = currentPage * itemsPerPage;
-  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentItems = filteredProducts.slice(
-    indexOfFirstItem,
-    indexOfLastItem,
-  );
-  const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
+  const currentItems = filteredProducts.slice(0, visibleCount);
+  const hasMore = currentItems.length < filteredProducts.length;
+
+  // Infinite scroll: load more when sentinel enters viewport
+  useEffect(() => {
+    const el = sentinelRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          setVisibleCount((prev) => prev + ITEMS_PER_BATCH);
+        }
+      },
+      { rootMargin: "400px" }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [currentItems.length]);
 
   // Handlers
   const handleTriggerSearch = () => {
@@ -386,7 +506,14 @@ const StockProductEditListScreen = () => {
   const handleReset = () => {
     setSearchInput("");
     setSearchQuery("");
-    setFormData({ manufacturer: "" });
+    setFormData({
+      category: "",
+      subcategory: "",
+      manufacturer: "",
+      footprint: "",
+      supplier: "",
+      sortBy: "",
+    });
     setCurrentPage(1);
     setShowMobileFilter(false);
   };
@@ -433,13 +560,13 @@ const StockProductEditListScreen = () => {
 
   return (
     <React.Fragment>
-      <div className="bg-[#F8FAFC] min-h-screen font-sans pb-24 text-slate-800 antialiased selection:bg-indigo-100 relative overflow-hidden">
+      <div className="bg-[#F8FAFC] min-h-screen font-sans pb-24 text-slate-800 antialiased selection:bg-indigo-100 relative">
         {/* Ambient Background */}
         <div className="absolute top-0 inset-x-0 h-[400px] bg-gradient-to-b from-slate-100 to-transparent pointer-events-none -z-10" />
 
-        <div className="max-w-[1300px] mx-auto px-4 sm:px-6 lg:px-8 pt-10 sm:pt-16 relative z-10">
+        <div className="max-w-[1350px] mx-auto px-4 sm:px-6 lg:px-8 pt-10 sm:pt-16 relative z-10">
           {/* ================= PAGE HEADER ================= */}
-          <header className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8">
+          <header className="flex flex-col md:flex-row md:items-end justify-between gap-4 md:gap-6 mb-8">
             <div>
               <div className="flex items-center gap-3 mb-2">
                 <div className="w-12 h-12 bg-white border border-slate-200/60 rounded-2xl flex items-center justify-center text-slate-700 shadow-sm">
@@ -474,19 +601,7 @@ const StockProductEditListScreen = () => {
                 />
               </div>
 
-              {/* Dropdown Filter */}
-              <InlineDropdown
-                icon={FaIndustry}
-                name="manufacturer"
-                value={formData.manufacturer}
-                options={manufactureData?.map((m) => ({
-                  key: m.ID,
-                  value: m.namemanufacture,
-                  label: m.namemanufacture,
-                }))}
-                placeholder="Manufacturer"
-                onChange={handleChange}
-              />
+              {/* Removed Top Bar Dropdown, moved to sidebar */}
 
               {/* Clear Filter Button */}
               <AnimatePresence>
@@ -515,7 +630,7 @@ const StockProductEditListScreen = () => {
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={() => navigate("/componenteditlist/set")}
-                className="flex items-center justify-center gap-2 bg-slate-900 text-white px-6 h-11 rounded-xl text-sm font-bold hover:bg-slate-800 transition-colors shadow-md shadow-slate-200"
+                className="flex items-center justify-center gap-2 bg-slate-900 text-white px-4 md:px-6 h-11 rounded-xl text-sm font-bold hover:bg-slate-800 transition-colors shadow-md shadow-slate-200"
               >
                 <FaPlus size={12} />
                 <span>Create New</span>
@@ -553,318 +668,371 @@ const StockProductEditListScreen = () => {
             </div>
           </header>
 
-          {/* ================= MAIN CONTENT ================= */}
-          <main>
-            <AnimatePresence mode="wait">
-              {currentItems.length === 0 ? (
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0 }}
-                  className="py-24 flex flex-col items-center justify-center text-center bg-white rounded-[2rem] border border-slate-100 shadow-[0_2px_15px_rgba(0,0,0,0.02)]"
-                >
-                  <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mb-6">
-                    <FaSearch className="text-slate-300" size={32} />
-                  </div>
-                  <h3 className="text-xl font-bold text-slate-800">
-                    ไม่พบสินค้า
-                  </h3>
-                  <p className="text-slate-500 text-sm mt-2 max-w-md mx-auto leading-relaxed">
-                    ไม่พบข้อมูลสินค้าที่ตรงกับคำค้นหาหรือตัวกรองของคุณ
-                    กรุณาลองใหม่อีกครั้ง
-                  </p>
-                  {isFilterActive && (
-                    <button
-                      onClick={handleReset}
-                      className="mt-8 px-8 py-3 bg-slate-900 text-white rounded-xl text-sm font-bold shadow-md hover:bg-slate-800 transition-colors"
-                    >
-                      ล้างตัวกรองทั้งหมด
-                    </button>
-                  )}
-                </motion.div>
-              ) : (
-                <div>
-                  {/* DESKTOP VIEW (Modern Edge-to-Edge Table in Card) */}
-                  <div className="hidden lg:block bg-white border border-slate-200/80 shadow-[0_4px_24px_rgba(0,0,0,0.02)] rounded-[2rem] overflow-hidden">
-                    <table className="w-full text-left border-collapse">
-                      <thead>
-                        <tr className="border-b border-slate-100 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] bg-slate-50/50">
-                          <th className="py-5 pl-8 pr-4 w-28 text-center">
-                            Preview
-                          </th>
-                          <th className="py-5 px-4">Component Details</th>
-                          <th className="py-5 px-4 w-48">Brand / MFR</th>
-                          <th className="py-5 px-4 w-32 text-right">
-                            Inventory
-                          </th>
-                          <th className="py-5 px-4 w-32 text-right">
-                            Unit Price
-                          </th>
-                          <th className="py-5 pr-8 pl-4 w-36 text-center">
-                            Action
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-slate-100/80">
-                        {currentItems.map((p, index) => (
-                          <motion.tr
-                            key={p.ID}
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{
-                              duration: 0.3,
-                              delay: index * 0.02,
-                              ease: "easeOut",
-                            }}
-                            className="hover:bg-slate-50/50 transition-colors group"
-                          >
-                            <td className="py-4 pl-8 pr-4">
-                              <div className="w-14 h-14 rounded-2xl bg-[#f8fafc] border border-slate-100 flex items-center justify-center mx-auto overflow-hidden p-2 group-hover:bg-white group-hover:shadow-sm transition-all">
-                                {p.img ? (
-                                  <img
-                                    src={`/componentImages${p.img}`}
-                                    alt={p.electotronixPN}
-                                    className="w-full h-full object-contain mix-blend-multiply group-hover:scale-110 transition-transform duration-500"
-                                  />
-                                ) : (
-                                  <FaBoxOpen
-                                    className="text-slate-200"
-                                    size={24}
-                                  />
-                                )}
-                              </div>
-                            </td>
-                            <td className="py-4 px-4 max-w-[300px]">
-                              <div className="flex items-center gap-2 mb-1.5">
-                                <span className="text-[9px] font-black uppercase tracking-widest text-indigo-500 bg-indigo-50 px-2 py-0.5 rounded-md">
+          {/* ================= MAIN CONTENT & SIDEBAR ================= */}
+          <div className="flex flex-col lg:flex-row gap-4 md:gap-6 lg:gap-10">
+            {/* SIDEBAR FILTERS (DESKTOP) */}
+            <aside className="w-64 shrink-0 hidden lg:block sticky top-8 self-start max-h-[calc(100vh-4rem)] overflow-y-auto custom-scrollbar">
+              <div>
+                <div className="flex justify-between items-center mb-3">
+                  <h3 className="text-sm font-semibold text-slate-900">ตัวกรอง</h3>
+                  <button
+                    onClick={handleReset}
+                    className="text-[11px] font-medium text-slate-500 hover:text-slate-900 transition-colors"
+                  >
+                    ล้างทั้งหมด
+                  </button>
+                </div>
+
+                <div className="space-y-1">
+                  <CustomDropdown
+                    label="หมวดหมู่"
+                    name="category"
+                    value={formData.category}
+                    options={categoryData?.map((c) => ({
+                      key: c.ID,
+                      value: c.category,
+                      label: c.category,
+                    }))}
+                    placeholder="ทุกหมวดหมู่"
+                    onChange={handleChange}
+                  />
+                  <CustomDropdown
+                    label="หมวดหมู่ย่อย"
+                    name="subcategory"
+                    value={formData.subcategory}
+                    options={subcategoryData
+                      ?.filter(
+                        (s) =>
+                          formData.category && s.category === formData.category,
+                      )
+                      .map((s) => ({
+                        key: s.ID,
+                        value: s.subcategory,
+                        label: s.subcategory,
+                      }))}
+                    disabled={!formData.category}
+                    placeholder="ทุกหมวดหมู่ย่อย"
+                    onChange={handleChange}
+                  />
+                  <CustomDropdown
+                    label="ผู้ผลิต"
+                    name="manufacturer"
+                    value={formData.manufacturer}
+                    options={manufactureData?.map((m) => ({
+                      key: m.ID,
+                      value: m.namemanufacture,
+                      label: m.namemanufacture,
+                    }))}
+                    placeholder="ทุกผู้ผลิต"
+                    onChange={handleChange}
+                  />
+                  <CustomDropdown
+                    label="Footprint"
+                    name="footprint"
+                    value={formData.footprint}
+                    options={footprintData?.map((fp) => ({
+                      key: fp.ID,
+                      value: fp.namefootprint,
+                      label: fp.namefootprint,
+                    }))}
+                    placeholder="ทุก Footprint"
+                    onChange={handleChange}
+                  />
+                  <CustomDropdown
+                    label="ผู้ตัวแทนจำหน่าย"
+                    name="supplier"
+                    value={formData.supplier}
+                    options={supplierData?.map((s) => ({
+                      key: s.ID,
+                      value: s.namesupplier,
+                      label: s.namesupplier,
+                    }))}
+                    placeholder="ทุก Supplier"
+                    onChange={handleChange}
+                  />
+                  <CustomDropdown
+                    label="เรียงตาม"
+                    name="sortBy"
+                    value={formData.sortBy}
+                    options={[
+                      {
+                        key: "star-asc",
+                        value: "star-asc",
+                        label: "คะแนนดาว: น้อยไปมาก",
+                      },
+                      {
+                        key: "star-desc",
+                        value: "star-desc",
+                        label: "คะแนนดาว: มากไปน้อย",
+                      },
+                      { key: "id-desc", value: "id-desc", label: "ใหม่ล่าสุด" },
+                    ]}
+                    placeholder="ค่าเริ่มต้น"
+                    onChange={handleChange}
+                  />
+                </div>
+              </div>
+            </aside>
+
+            <main className="flex-1 min-w-0">
+              <AnimatePresence mode="wait">
+                {currentItems.length === 0 ? (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0 }}
+                    className="py-24 flex flex-col items-center justify-center text-center bg-white rounded-[2rem] border border-slate-100 shadow-[0_2px_15px_rgba(0,0,0,0.02)]"
+                  >
+                    <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mb-6">
+                      <FaSearch className="text-slate-300" size={32} />
+                    </div>
+                    <h3 className="text-xl font-bold text-slate-800">
+                      ไม่พบสินค้า
+                    </h3>
+                    <p className="text-slate-500 text-sm mt-2 max-w-md mx-auto leading-relaxed">
+                      ไม่พบข้อมูลสินค้าที่ตรงกับคำค้นหาหรือตัวกรองของคุณ
+                      กรุณาลองใหม่อีกครั้ง
+                    </p>
+                    {isFilterActive && (
+                      <button
+                        onClick={handleReset}
+                        className="mt-8 px-4 md:px-8 py-3 bg-slate-900 text-white rounded-xl text-sm font-bold shadow-md hover:bg-slate-800 transition-colors"
+                      >
+                        ล้างตัวกรองทั้งหมด
+                      </button>
+                    )}
+                  </motion.div>
+                ) : (
+                  <div>
+                    {/* DESKTOP VIEW (Modern Edge-to-Edge Table in Card) */}
+                    <div className="hidden lg:block bg-white border border-slate-200/80 shadow-[0_4px_24px_rgba(0,0,0,0.02)] rounded-[2rem] overflow-hidden">
+                      <table className="w-full text-left border-collapse table-fixed">
+                        <thead>
+                          <tr className="border-b border-slate-100 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] bg-slate-50/50">
+                            <th className="py-5 px-4 w-20 text-center">
+                              Preview
+                            </th>
+                            <th className="py-5 px-4">Component Details</th>
+                            <th className="py-5 px-4 w-40">Brand / MFR</th>
+                            <th className="py-5 px-4 w-28 text-center">
+                              Inventory
+                            </th>
+                            <th className="py-5 px-4 w-32 text-center">
+                              Unit Price
+                            </th>
+                            <th className="py-5 px-4 w-44 text-center">
+                              Action
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100/80">
+                          {currentItems.map((p, index) => (
+                            <tr
+                              key={`p.ID ?? row-${index}`}
+                              className="hover:bg-slate-50/50 transition-colors group"
+                            >
+                              <td className="py-3 px-4">
+                                <div className="w-12 h-12 rounded-xl bg-[#f8fafc] border border-slate-100 flex items-center justify-center mx-auto overflow-hidden p-1.5 group-hover:bg-white group-hover:shadow-sm transition-all">
+                                  {p.img ? (
+                                    <img
+                                      src={p.img}
+                                      alt={p.electotronixPN}
+                                      className="w-full h-full object-contain mix-blend-multiply group-hover:scale-110 transition-transform duration-500"
+                                    />
+                                  ) : (
+                                    <FaBoxOpen
+                                      className="text-slate-200"
+                                      size={24}
+                                    />
+                                  )}
+                                </div>
+                              </td>
+                              <td className="py-3 px-4">
+                                <div className="flex items-center gap-2 mb-1.5">
+                                  <span className="text-[9px] font-black uppercase tracking-widest text-indigo-500 bg-indigo-50 px-2 py-0.5 rounded-md">
+                                    {p.category}
+                                  </span>
+                                </div>
+                                <div
+                                  className="font-bold text-slate-900 truncate text-[15px]"
+                                  title={p.electotronixPN && p.electotronixPN !== "-" ? p.electotronixPN : (p.barcode || "-")}
+                                >
+                                  {p.electotronixPN && p.electotronixPN !== "-" ? p.electotronixPN : (p.barcode || "-")}
+                                </div>
+                                <div
+                                  className="text-[11px] font-black text-indigo-600 truncate mt-0.5"
+                                  title={p.value}
+                                >
+                                  {p.value}
+                                </div>
+                              </td>
+                              <td className="py-3 px-4">
+                                <span className="text-xs font-semibold text-slate-700 flex items-center gap-2 truncate">
+                                  {p.manufacture || "-"}
+                                </span>
+                              </td>
+                              <td className="py-3 px-4 text-center">
+                                <span
+                                  className={`inline-flex items-center justify-center px-2 py-1 rounded-md text-[11px] font-bold ${p.quantity > 0 ? "bg-emerald-50 text-emerald-700" : "bg-rose-50 text-rose-700"}`}
+                                >
+                                  {Number(p.quantity || 0).toLocaleString()}
+                                </span>
+                              </td>
+                              <td className="py-3 px-4 text-center font-bold text-slate-800 text-[13px]">
+                                {formatPrice(p.price)}
+                              </td>
+                              <td className="py-3 px-4">
+                                <div className="flex items-center justify-center gap-1.5">
+                                  <button
+                                    onClick={() => {
+                                      setSelectedProduct(p);
+                                      setShowQuickLook(true);
+                                    }}
+                                    className="w-10 h-10 rounded-xl bg-slate-50 border border-slate-100 text-slate-600 hover:bg-slate-900 hover:text-white hover:shadow-md flex items-center justify-center transition-all"
+                                    title="Quick Look"
+                                  >
+                                    <FaEye size={14} />
+                                  </button>
+                                  <button
+                                    onClick={() =>
+                                      navigate(`/componenteditlist/${p.ID}/edit`)
+                                    }
+                                    className="w-10 h-10 rounded-xl bg-indigo-50 border border-indigo-100 text-indigo-600 hover:bg-indigo-600 hover:text-white hover:shadow-md flex items-center justify-center transition-all"
+                                    title="Edit Configuration"
+                                  >
+                                    <FaEdit size={14} />
+                                  </button>
+                                  <button
+                                    onClick={() => {
+                                      setProductToDelete(p);
+                                      setShowDeleteModal(true);
+                                    }}
+                                    className="w-10 h-10 rounded-xl bg-rose-50 border border-rose-100 text-rose-600 hover:bg-rose-600 hover:text-white hover:shadow-md flex items-center justify-center transition-all"
+                                    title="Delete Product"
+                                  >
+                                    <FaTrash size={14} />
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+
+                    {/* MOBILE LIST VIEW */}
+                    <div className="lg:hidden grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      {currentItems.map((p, index) => (
+                        <div
+                          key={`p.ID ?? card-${index}`}
+                          className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex flex-col relative"
+                        >
+                          <div className="flex gap-4 mb-4">
+                            <div className="w-20 h-20 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center shrink-0 p-2">
+                              {p.img ? (
+                                <img
+                                  src={p.img}
+                                  alt={p.electotronixPN}
+                                  className="max-w-full max-h-full object-contain mix-blend-multiply"
+                                />
+                              ) : (
+                                <FaBoxOpen className="text-slate-200" size={28} />
+                              )}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 mb-1">
+                                <span className="text-[9px] font-black text-indigo-500 uppercase tracking-widest">
                                   {p.category}
                                 </span>
+                                <span className="text-[9px] font-bold text-slate-400">
+                                  #{p.ID}
+                                </span>
                               </div>
-                              <div
-                                className="font-bold text-slate-900 truncate text-[15px]"
+                              <h4
+                                className="font-bold text-slate-900 truncate text-[15px] mb-1"
                                 title={p.electotronixPN && p.electotronixPN !== "-" ? p.electotronixPN : (p.barcode || "-")}
                               >
                                 {p.electotronixPN && p.electotronixPN !== "-" ? p.electotronixPN : (p.barcode || "-")}
+                              </h4>
+                              <div className="flex justify-between items-center mt-2">
+                                <span className="text-[11px] font-bold text-slate-500 uppercase flex items-center gap-1">
+                                  {p.manufacture || "Unknown"}
+                                </span>
                               </div>
-                              <div
-                                className="text-[11px] font-black text-indigo-600 truncate mt-0.5"
-                                title={p.value}
-                              >
-                                {p.value}
-                              </div>
-                            </td>
-                            <td className="py-4 px-4">
-                              <span className="text-xs font-semibold text-slate-700 flex items-center gap-2">
-                                {p.manufacture || "-"}
-                              </span>
-                            </td>
-                            <td className="py-4 px-4 text-right">
+                            </div>
+                          </div>
+
+                          <div className="flex justify-between items-end mb-5 px-1">
+                            <div>
+                              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">
+                                Stock
+                              </p>
                               <span
-                                className={`inline-flex items-center justify-center px-3 py-1 rounded-lg text-xs font-bold ${p.quantity > 0 ? "bg-emerald-50 text-emerald-700" : "bg-rose-50 text-rose-700"}`}
+                                className={`text-sm font-black ${p.quantity > 0 ? "text-emerald-600" : "text-rose-600"}`}
                               >
                                 {Number(p.quantity || 0).toLocaleString()}
                               </span>
-                            </td>
-                            <td className="py-4 px-4 text-right font-bold text-slate-800 text-sm">
-                              {formatPrice(p.price)}
-                            </td>
-                            <td className="py-4 pr-8 pl-4">
-                              <div className="flex items-center justify-end gap-3">
-                                <button
-                                  onClick={() => {
-                                    setSelectedProduct(p);
-                                    setShowQuickLook(true);
-                                  }}
-                                  className="w-10 h-10 rounded-xl bg-slate-50 border border-slate-100 text-slate-600 hover:bg-slate-900 hover:text-white hover:shadow-md flex items-center justify-center transition-all"
-                                  title="Quick Look"
-                                >
-                                  <FaEye size={14} />
-                                </button>
-                                <button
-                                  onClick={() =>
-                                    navigate(`/componenteditlist/${p.ID}/edit`)
-                                  }
-                                  className="w-10 h-10 rounded-xl bg-indigo-50 border border-indigo-100 text-indigo-600 hover:bg-indigo-600 hover:text-white hover:shadow-md flex items-center justify-center transition-all"
-                                  title="Edit Configuration"
-                                >
-                                  <FaEdit size={14} />
-                                </button>
-                                <button
-                                  onClick={() => {
-                                    setProductToDelete(p);
-                                    setShowDeleteModal(true);
-                                  }}
-                                  className="w-10 h-10 rounded-xl bg-rose-50 border border-rose-100 text-rose-600 hover:bg-rose-600 hover:text-white hover:shadow-md flex items-center justify-center transition-all"
-                                  title="Delete Product"
-                                >
-                                  <FaTrash size={14} />
-                                </button>
-                              </div>
-                            </td>
-                          </motion.tr>
-                        ))}
-                      </tbody>
-                    </table>
+                            </div>
+                            <div className="text-right">
+                              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">
+                                Price
+                              </p>
+                              <span className="text-sm font-black text-slate-800">
+                                {formatPrice(p.price)}
+                              </span>
+                            </div>
+                          </div>
+
+                          <div className="flex gap-3 mt-auto border-t border-slate-100 pt-4">
+                            <button
+                              onClick={() => {
+                                setSelectedProduct(p);
+                                setShowQuickLook(true);
+                              }}
+                              className="w-10 h-10 rounded-xl bg-slate-50 border border-slate-100 text-slate-600 flex items-center justify-center transition-all"
+                              title="Quick Look"
+                            >
+                              <FaEye size={14} />
+                            </button>
+                            <button
+                              onClick={() =>
+                                navigate(`/componenteditlist/${p.ID}/edit`)
+                              }
+                              className="flex-1 h-10 rounded-xl bg-indigo-50 border border-indigo-100 text-indigo-600 text-[11px] font-bold uppercase tracking-wider hover:bg-indigo-600 hover:text-white flex items-center justify-center gap-2 transition-all shadow-sm"
+                            >
+                              <FaEdit size={14} /> Edit
+                            </button>
+                            <button
+                              onClick={() => {
+                                setProductToDelete(p);
+                                setShowDeleteModal(true);
+                              }}
+                              className="flex-1 h-10 rounded-xl bg-rose-50 border border-rose-100 text-rose-600 text-[11px] font-bold uppercase tracking-wider hover:bg-rose-600 hover:text-white flex items-center justify-center gap-2 transition-all shadow-sm"
+                            >
+                              <FaTrash size={14} /> Delete
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   </div>
+                )}
+              </AnimatePresence>
 
-                  {/* MOBILE LIST VIEW */}
-                  <div className="lg:hidden grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {currentItems.map((p, index) => (
-                      <motion.div
-                        key={p.ID}
-                        initial={{ opacity: 0, y: 15 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.3, delay: index * 0.05 }}
-                        className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex flex-col relative"
-                      >
-                        <div className="flex gap-4 mb-4">
-                          <div className="w-20 h-20 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center shrink-0 p-2">
-                            {p.img ? (
-                              <img
-                                src={`/componentImages${p.img}`}
-                                alt={p.electotronixPN}
-                                className="max-w-full max-h-full object-contain mix-blend-multiply"
-                              />
-                            ) : (
-                              <FaBoxOpen className="text-slate-200" size={28} />
-                            )}
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2 mb-1">
-                              <span className="text-[9px] font-black text-indigo-500 uppercase tracking-widest">
-                                {p.category}
-                              </span>
-                              <span className="text-[9px] font-bold text-slate-400">
-                                #{p.ID}
-                              </span>
-                            </div>
-                            <h4
-                              className="font-bold text-slate-900 truncate text-[15px] mb-1"
-                              title={p.electotronixPN && p.electotronixPN !== "-" ? p.electotronixPN : (p.barcode || "-")}
-                            >
-                              {p.electotronixPN && p.electotronixPN !== "-" ? p.electotronixPN : (p.barcode || "-")}
-                            </h4>
-                            <div className="flex justify-between items-center mt-2">
-                              <span className="text-[11px] font-bold text-slate-500 uppercase flex items-center gap-1">
-                                {p.manufacture || "Unknown"}
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="flex justify-between items-end mb-5 px-1">
-                          <div>
-                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">
-                              Stock
-                            </p>
-                            <span
-                              className={`text-sm font-black ${p.quantity > 0 ? "text-emerald-600" : "text-rose-600"}`}
-                            >
-                              {Number(p.quantity || 0).toLocaleString()}
-                            </span>
-                          </div>
-                          <div className="text-right">
-                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">
-                              Price
-                            </p>
-                            <span className="text-sm font-black text-slate-800">
-                              {formatPrice(p.price)}
-                            </span>
-                          </div>
-                        </div>
-
-                        <div className="flex gap-3 mt-auto border-t border-slate-100 pt-4">
-                          <button
-                            onClick={() => {
-                              setSelectedProduct(p);
-                              setShowQuickLook(true);
-                            }}
-                            className="w-10 h-10 rounded-xl bg-slate-50 border border-slate-100 text-slate-600 flex items-center justify-center transition-all"
-                            title="Quick Look"
-                          >
-                            <FaEye size={14} />
-                          </button>
-                          <button
-                            onClick={() =>
-                              navigate(`/componenteditlist/${p.ID}/edit`)
-                            }
-                            className="flex-1 h-10 rounded-xl bg-indigo-50 border border-indigo-100 text-indigo-600 text-[11px] font-bold uppercase tracking-wider hover:bg-indigo-600 hover:text-white flex items-center justify-center gap-2 transition-all shadow-sm"
-                          >
-                            <FaEdit size={14} /> Edit
-                          </button>
-                          <button
-                            onClick={() => {
-                              setProductToDelete(p);
-                              setShowDeleteModal(true);
-                            }}
-                            className="flex-1 h-10 rounded-xl bg-rose-50 border border-rose-100 text-rose-600 text-[11px] font-bold uppercase tracking-wider hover:bg-rose-600 hover:text-white flex items-center justify-center gap-2 transition-all shadow-sm"
-                          >
-                            <FaTrash size={14} /> Delete
-                          </button>
-                        </div>
-                      </motion.div>
-                    ))}
+              {/* Infinite Scroll Sentinel */}
+              {hasMore && (
+                <div
+                  ref={sentinelRef}
+                  className="flex items-center justify-center py-10"
+                >
+                  <div className="flex items-center gap-3 text-slate-400 text-sm">
+                    <div className="w-5 h-5 border-2 border-slate-300 border-t-slate-600 rounded-full animate-spin" />
+                    กำลังโหลดเพิ่มเติม...
                   </div>
                 </div>
               )}
-            </AnimatePresence>
-
-            {/* ================= PAGINATION ================= */}
-            {totalPages > 1 && (
-              <div className="mt-10 flex items-center justify-center gap-2">
-                <button
-                  disabled={currentPage === 1}
-                  onClick={() => setCurrentPage((c) => c - 1)}
-                  className="w-10 h-10 flex items-center justify-center rounded-full bg-white border border-slate-200 text-slate-500 hover:bg-slate-50 hover:text-slate-800 disabled:opacity-40 disabled:hover:bg-white transition-all shadow-sm"
-                >
-                  <FaChevronLeft size={10} />
-                </button>
-                <div className="flex items-center gap-1 bg-white border border-slate-200 rounded-full p-1 shadow-sm">
-                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(
-                    (pageNum) => {
-                      const isPageDots =
-                        totalPages > 5 &&
-                        (pageNum < currentPage - 1 ||
-                          pageNum > currentPage + 1) &&
-                        pageNum !== 1 &&
-                        pageNum !== totalPages;
-                      if (isPageDots) {
-                        if (
-                          pageNum === currentPage - 2 ||
-                          pageNum === currentPage + 2
-                        )
-                          return (
-                            <span
-                              key={pageNum}
-                              className="text-slate-400 px-2 text-xs font-bold"
-                            >
-                              ...
-                            </span>
-                          );
-                        return null;
-                      }
-                      return (
-                        <button
-                          key={pageNum}
-                          onClick={() => setCurrentPage(pageNum)}
-                          className={`min-w-[32px] h-8 px-2 rounded-full text-xs font-bold transition-all ${currentPage === pageNum ? "bg-slate-900 text-white shadow-md" : "bg-transparent text-slate-500 hover:bg-slate-100"}`}
-                        >
-                          {pageNum}
-                        </button>
-                      );
-                    },
-                  )}
-                </div>
-                <button
-                  disabled={currentPage === totalPages}
-                  onClick={() => setCurrentPage((c) => c + 1)}
-                  className="w-10 h-10 flex items-center justify-center rounded-full bg-white border border-slate-200 text-slate-500 hover:bg-slate-50 hover:text-slate-800 disabled:opacity-40 disabled:hover:bg-white transition-all shadow-sm"
-                >
-                  <FaChevronRight size={10} />
-                </button>
-              </div>
-            )}
-          </main>
+            </main>
+          </div>
         </div>
       </div>
 
@@ -891,7 +1059,7 @@ const StockProductEditListScreen = () => {
                   transition={{ type: "tween", duration: 0.3 }}
                   className="relative w-[85%] max-w-sm bg-[#f8fafc] h-full shadow-2xl flex flex-col z-10"
                 >
-                  <div className="flex justify-between items-center p-6 border-b border-slate-200 bg-white">
+                  <div className="flex justify-between items-center p-4 md:p-6 border-b border-slate-200 bg-white">
                     <h2 className="text-base font-bold text-slate-900">
                       Filters
                     </h2>
@@ -902,7 +1070,7 @@ const StockProductEditListScreen = () => {
                       <FaTimes size={14} />
                     </button>
                   </div>
-                  <div className="flex-1 overflow-y-auto p-6 custom-scrollbar">
+                  <div className="flex-1 overflow-y-auto p-4 md:p-6 custom-scrollbar">
                     <div className="mb-6">
                       <label className="text-[11px] font-bold text-slate-500 mb-2 block tracking-widest uppercase">
                         Search Product
@@ -934,7 +1102,7 @@ const StockProductEditListScreen = () => {
                       placeholder="Manufacturer"
                     />
                   </div>
-                  <div className="p-6 border-t border-slate-200 flex gap-3 bg-white">
+                  <div className="p-4 md:p-6 border-t border-slate-200 flex gap-3 bg-white">
                     <button
                       onClick={handleReset}
                       className="flex-1 py-3 text-slate-600 bg-slate-100 text-sm font-bold hover:bg-slate-200 rounded-xl transition-all"
@@ -968,7 +1136,7 @@ const StockProductEditListScreen = () => {
                   animate={{ scale: 1, opacity: 1, y: 0 }}
                   exit={{ scale: 0.95, opacity: 0, y: 15 }}
                   transition={{ duration: 0.2 }}
-                  className="relative bg-white rounded-3xl w-full max-w-sm p-8 shadow-2xl text-center z-10 border border-slate-100"
+                  className="relative bg-white rounded-3xl w-full max-w-sm p-4 md:p-8 shadow-2xl text-center z-10 border border-slate-100"
                 >
                   <div className="w-16 h-16 bg-rose-50 text-rose-500 rounded-full flex items-center justify-center mx-auto mb-6">
                     <FaTrash size={24} />
@@ -1021,12 +1189,13 @@ const StockProductEditListScreen = () => {
           document.body,
         )}
 
-      <style>{`
+      <style dangerouslySetInnerHTML={{
+        __html: `
                 .custom-scrollbar::-webkit-scrollbar { width: 5px; height: 5px; }
                 .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
                 .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
                 .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
-            `}</style>
+            ` }} />
     </React.Fragment>
   );
 };

@@ -157,7 +157,7 @@ const RegisterScreen = () => {
     //  แก้ไข 1: ใช้ flex-row และ min-h-screen ที่ body หลัก เพื่อให้ Scrollbar เป็นของ Browser ตัวเดียว
     <div className="flex flex-col lg:flex-row min-h-screen bg-white w-full">
       {/* --- LEFT SIDE: FORM --- */}
-      <div className="w-full lg:w-3/5 flex flex-col justify-center px-4 py-8 md:px-6 md:py-12 lg:px-16 xl:px-24 animate__animated animate__fadeIn">
+      <div className="w-full lg:w-3/5 flex flex-col justify-center px-4 py-4 md:py-8 md:px-6 md:py-12 lg:px-16 xl:px-24 animate__animated animate__fadeIn">
         <div className="w-full max-w-2xl mx-auto">
           {/* Header & Logo */}
           <div className="mb-10 flex flex-col items-start">
@@ -184,7 +184,7 @@ const RegisterScreen = () => {
                 <div className="h-px flex-1 bg-slate-100"></div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                 {/* Name */}
                 <div className="col-span-1 md:col-span-2">
                   <label htmlFor="name" className={labelClass}>
@@ -277,7 +277,7 @@ const RegisterScreen = () => {
                 <div className="h-px flex-1 bg-slate-100"></div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                 {/* Address */}
                 <div className="col-span-1 md:col-span-2">
                   <label htmlFor="address" className={labelClass}>

@@ -785,7 +785,7 @@ const QuotationSetSelectedCustomerScreen = () => {
         </Modal.Footer>
       </Modal>
 
-      <style>{`
+      <style dangerouslySetInnerHTML={{ __html: `
         .font-prompt { font-family: 'Prompt', sans-serif; }
         .paper-container {
             width: 210mm;
@@ -814,14 +814,14 @@ const QuotationSetSelectedCustomerScreen = () => {
         .paper-input-table:focus { background: #f0f8ff; }
         .paper-text { font-size: 12px; }
         .text-nowrap { white-space: nowrap; }
-        
+
         @media (max-width: 768px) { .paper-container { min-width: 210mm; } }
         @media print {
             body * { visibility: hidden; }
             .paper-container, .paper-container * { visibility: visible; }
             .paper-container { position: absolute; left: 0; top: 0; width: 100%; margin: 0; padding: 0; box-shadow: none; }
         }
-      `}</style>
+      ` }} />
     </Container>
   );
 };

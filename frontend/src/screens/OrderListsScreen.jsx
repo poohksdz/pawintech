@@ -142,7 +142,7 @@ const OrderListsScreen = () => {
 
   if (error)
     return (
-      <div className="max-w-4xl mx-auto py-10 px-4">
+      <div className="max-w-4xl mx-auto py-4 md:py-6 md:py-10 px-4">
         <Message variant="danger">Failed to load orders</Message>
       </div>
     );
@@ -163,7 +163,7 @@ const OrderListsScreen = () => {
     <div className="bg-slate-50 min-h-screen p-4 sm:p-6 lg:p-8 font-sans text-slate-900">
       <div className="max-w-screen-2xl mx-auto space-y-6">
         {/* Header Section */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-4 md:p-6 rounded-2xl shadow-sm border border-slate-200">
           <div>
             <h1 className="text-xl sm:text-3xl font-black text-slate-800 tracking-tight m-0 uppercase md:normal-case">
               Order Lists
@@ -182,7 +182,7 @@ const OrderListsScreen = () => {
         </div>
 
         {/* Filters Section */}
-        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+        <div className="bg-white p-4 md:p-6 rounded-2xl shadow-sm border border-slate-200">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-4 items-end">
             <div className="lg:col-span-2">
               <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">
@@ -265,17 +265,17 @@ const OrderListsScreen = () => {
             <table className="w-full text-left text-sm whitespace-nowrap">
               <thead className="bg-slate-800 text-white uppercase tracking-wider text-xs font-semibold">
                 <tr>
-                  <th className="px-6 py-4 rounded-tl-xl">#</th>
-                  <th className="px-6 py-4">Action</th>
-                  <th className="px-6 py-4">Order ID</th>
-                  <th className="px-6 py-4">Project</th>
-                  <th className="px-6 py-4">Type</th>
-                  <th className="px-6 py-4">Company</th>
-                  <th className="px-6 py-4">Customer</th>
-                  <th className="px-6 py-4">Phone</th>
-                  <th className="px-6 py-4 text-right">Price (฿)</th>
-                  <th className="px-6 py-4">Date</th>
-                  <th className="px-6 py-4 rounded-tr-xl">Status</th>
+                  <th className="px-4 md:px-6 py-4 rounded-tl-xl">#</th>
+                  <th className="px-4 md:px-6 py-4">Action</th>
+                  <th className="px-4 md:px-6 py-4">Order ID</th>
+                  <th className="px-4 md:px-6 py-4">Project</th>
+                  <th className="px-4 md:px-6 py-4">Type</th>
+                  <th className="px-4 md:px-6 py-4">Company</th>
+                  <th className="px-4 md:px-6 py-4">Customer</th>
+                  <th className="px-4 md:px-6 py-4">Phone</th>
+                  <th className="px-4 md:px-6 py-4 text-right">Price (฿)</th>
+                  <th className="px-4 md:px-6 py-4">Date</th>
+                  <th className="px-4 md:px-6 py-4 rounded-tr-xl">Status</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -285,10 +285,10 @@ const OrderListsScreen = () => {
                       key={`${o.type}-${o.id}`}
                       className="hover:bg-slate-50 transition-colors"
                     >
-                      <td className="px-6 py-4 font-medium text-slate-500">
+                      <td className="px-4 md:px-6 py-4 font-medium text-slate-500">
                         {i + 1}
                       </td>
-                      <td className="px-6 py-4">
+                      <td className="px-4 md:px-6 py-4">
                         <button
                           className="bg-emerald-100 text-emerald-700 hover:bg-emerald-200 px-3 py-1.5 rounded-md text-xs font-bold uppercase tracking-wider transition-colors"
                           onClick={() => handleSetOrder(o, o.orderID)}
@@ -296,35 +296,35 @@ const OrderListsScreen = () => {
                           Reorder
                         </button>
                       </td>
-                      <td className="px-6 py-4 font-mono text-slate-700">
+                      <td className="px-4 md:px-6 py-4 font-mono text-slate-700">
                         {o.orderID}
                       </td>
                       <td
-                        className="px-6 py-4 font-medium text-slate-800 truncate max-w-[200px]"
+                        className="px-4 md:px-6 py-4 font-medium text-slate-800 truncate max-w-[200px]"
                         title={o.projectname}
                       >
                         {o.projectname}
                       </td>
-                      <td className="px-6 py-4">{typeBadge(o.type)}</td>
-                      <td className="px-6 py-4 text-slate-600 truncate max-w-[150px]">
+                      <td className="px-4 md:px-6 py-4">{typeBadge(o.type)}</td>
+                      <td className="px-4 md:px-6 py-4 text-slate-600 truncate max-w-[150px]">
                         {o.company}
                       </td>
-                      <td className="px-6 py-4 text-slate-600">{o.customer}</td>
-                      <td className="px-6 py-4 text-slate-600">{o.phone}</td>
-                      <td className="px-6 py-4 font-bold text-slate-800 text-right">
+                      <td className="px-4 md:px-6 py-4 text-slate-600">{o.customer}</td>
+                      <td className="px-4 md:px-6 py-4 text-slate-600">{o.phone}</td>
+                      <td className="px-4 md:px-6 py-4 font-bold text-slate-800 text-right">
                         {Number(o.price || 0).toLocaleString()}
                       </td>
-                      <td className="px-6 py-4 text-slate-500">
+                      <td className="px-4 md:px-6 py-4 text-slate-500">
                         {formatDateDMY(o.createdAt)}
                       </td>
-                      <td className="px-6 py-4">{statusBadge(o.status)}</td>
+                      <td className="px-4 md:px-6 py-4">{statusBadge(o.status)}</td>
                     </tr>
                   ))
                 ) : (
                   <tr>
                     <td
                       colSpan="11"
-                      className="px-6 py-12 text-center text-slate-500"
+                      className="px-4 md:px-6 py-12 text-center text-slate-500"
                     >
                       <div className="flex flex-col items-center justify-center">
                         <FaSearch className="text-4xl text-slate-300 mb-3" />
@@ -342,7 +342,7 @@ const OrderListsScreen = () => {
             </table>
           </div>
 
-          <div className="bg-slate-50 border-t border-slate-100 py-3 px-6 text-sm text-slate-500 font-medium">
+          <div className="bg-slate-50 border-t border-slate-100 py-3 px-4 md:px-6 text-sm text-slate-500 font-medium">
             Showing{" "}
             <span className="font-bold text-slate-800">
               {filteredOrders.length}

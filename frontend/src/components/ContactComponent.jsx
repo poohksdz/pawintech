@@ -83,9 +83,9 @@ const ContactComponent = () => {
         Contact Us
       </h2>
 
-      <div className="bg-white dark:bg-black rounded-3xl p-6 md:p-8 shadow-sm border border-slate-200 dark:border-zinc-800 transition-colors duration-500">
+      <div className="bg-white dark:bg-black rounded-3xl p-4 md:p-6 md:p-8 shadow-sm border border-slate-200 dark:border-zinc-800 transition-colors duration-500">
         <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
             {/* Name Field */}
             <div>
               <Input
@@ -126,7 +126,7 @@ const ContactComponent = () => {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 gap-6">
+          <div className="grid grid-cols-1 gap-4 md:gap-6">
             {/* Subject Field */}
             <div>
               <Input
@@ -141,7 +141,7 @@ const ContactComponent = () => {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 gap-6">
+          <div className="grid grid-cols-1 gap-4 md:gap-6">
             {/* Message Field (Full Width) */}
             <div>
               <label
@@ -168,7 +168,7 @@ const ContactComponent = () => {
             <Button
               type="submit"
               variant="primary"
-              className="w-full md:w-auto px-8"
+              className="w-full md:w-auto px-4 md:px-8"
               disabled={isLoading}
             >
               {isLoading ? "Sending..." : "Send Message"}

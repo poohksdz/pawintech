@@ -145,9 +145,9 @@ const CopyPCBCartListScreen = () => {
 
   return (
     <div className="min-h-screen bg-slate-50/50 pb-12 font-prompt">
-      <Container className="py-8">
+      <Container className="py-4 md:py-8">
         {/* Header & Controls */}
-        <div className="bg-white rounded-[2.5rem] shadow-sm border border-slate-100 p-8 mb-8">
+        <div className="bg-white rounded-[2.5rem] shadow-sm border border-slate-100 p-4 md:p-8 mb-8">
           <Row className="align-items-center g-6">
             <Col lg={4}>
               <div className="flex items-center gap-4">
@@ -231,19 +231,19 @@ const CopyPCBCartListScreen = () => {
               <table className="w-full border-collapse">
                 <thead>
                   <tr className="bg-slate-50/50">
-                    <th className="px-8 py-5 text-left text-[10px] font-bold text-slate-400 uppercase tracking-widest border-b border-slate-50">
+                    <th className="px-4 md:px-8 py-5 text-left text-[10px] font-bold text-slate-400 uppercase tracking-widest border-b border-slate-50">
                       Project Information
                     </th>
-                    <th className="px-6 py-5 text-center text-[10px] font-bold text-slate-400 uppercase tracking-widest border-b border-slate-50">
+                    <th className="px-4 md:px-6 py-5 text-center text-[10px] font-bold text-slate-400 uppercase tracking-widest border-b border-slate-50">
                       {t.qty}
                     </th>
-                    <th className="px-6 py-5 text-end text-[10px] font-bold text-slate-400 uppercase tracking-widest border-b border-slate-50">
+                    <th className="px-4 md:px-6 py-5 text-end text-[10px] font-bold text-slate-400 uppercase tracking-widest border-b border-slate-50">
                       {t.price}
                     </th>
-                    <th className="px-6 py-5 text-center text-[10px] font-bold text-slate-400 uppercase tracking-widest border-b border-slate-50">
+                    <th className="px-4 md:px-6 py-5 text-center text-[10px] font-bold text-slate-400 uppercase tracking-widest border-b border-slate-50">
                       {t.status}
                     </th>
-                    <th className="px-8 py-5 text-end text-[10px] font-bold text-slate-400 uppercase tracking-widest border-b border-slate-50">
+                    <th className="px-4 md:px-8 py-5 text-end text-[10px] font-bold text-slate-400 uppercase tracking-widest border-b border-slate-50">
                       {t.actions}
                     </th>
                   </tr>
@@ -254,7 +254,7 @@ const CopyPCBCartListScreen = () => {
                       key={order.id}
                       className="group hover:bg-slate-50/30 transition-colors"
                     >
-                      <td className="px-8 py-6">
+                      <td className="px-4 md:px-8 py-4 md:py-6">
                         <div className="flex items-center gap-4">
                           <div className="w-10 h-10 rounded-2xl bg-slate-50 text-slate-400 group-hover:bg-blue-50 group-hover:text-blue-500 flex items-center justify-center transition-all">
                             <FaLayerGroup size={16} />
@@ -278,13 +278,13 @@ const CopyPCBCartListScreen = () => {
                           </div>
                         </div>
                       </td>
-                      <td className="px-6 py-6 text-center">
+                      <td className="px-4 md:px-6 py-4 md:py-6 text-center">
                         <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-slate-50 text-slate-600 text-xs font-bold">
                           <FaBox size={10} className="text-slate-400" />
                           {order.pcb_qty}
                         </span>
                       </td>
-                      <td className="px-6 py-6 text-end font-bold text-slate-900">
+                      <td className="px-4 md:px-6 py-4 md:py-6 text-end font-bold text-slate-900">
                         {order.confirmed_price ? (
                           <span className="text-blue-600">
                             ฿
@@ -296,10 +296,10 @@ const CopyPCBCartListScreen = () => {
                           </span>
                         )}
                       </td>
-                      <td className="px-6 py-6 text-center">
+                      <td className="px-4 md:px-6 py-4 md:py-6 text-center">
                         <StatusBadge status={order.status} />
                       </td>
-                      <td className="px-8 py-6">
+                      <td className="px-4 md:px-8 py-4 md:py-6">
                         <div className="flex justify-end gap-2">
                           {order.status === "pending" && (
                             <button
@@ -337,7 +337,7 @@ const CopyPCBCartListScreen = () => {
               {filteredData.map((order) => (
                 <div
                   key={order.id}
-                  className="bg-white rounded-[2.5rem] shadow-sm border border-slate-100 p-6 overflow-hidden relative"
+                  className="bg-white rounded-[2.5rem] shadow-sm border border-slate-100 p-4 md:p-6 overflow-hidden relative"
                 >
                   <div className="flex justify-between items-start mb-6">
                     <div className="flex items-center gap-3">
@@ -418,10 +418,10 @@ const CopyPCBCartListScreen = () => {
       />
 
       {/* Custom Scoped Styles */}
-      <style>{`
+      <style dangerouslySetInnerHTML={{ __html: `
         .font-prompt { font-family: 'Prompt', sans-serif !important; }
         .form-select { background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%2394a3b8' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e"); }
-      `}</style>
+      ` }} />
     </div>
   );
 };

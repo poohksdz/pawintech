@@ -173,7 +173,7 @@ const CopyPCBCartEditScreen = () => {
 
   return (
     <div className="min-h-screen bg-slate-50/50 pb-12 font-prompt">
-      <Container className="py-6">
+      <Container className="py-4 md:py-6">
         {/* Header & Navigation */}
         <div className="mb-8">
           <div className="flex items-center gap-4 mb-4">
@@ -211,7 +211,7 @@ const CopyPCBCartEditScreen = () => {
             <Col lg={8}>
               <div className="space-y-6">
                 {/* Basic Info */}
-                <div className="bg-white rounded-[2.5rem] shadow-sm border border-slate-100 p-8">
+                <div className="bg-white rounded-[2.5rem] shadow-sm border border-slate-100 p-4 md:p-8">
                   <div className="flex items-center gap-3 mb-6">
                     <div className="w-10 h-10 rounded-2xl bg-blue-50 text-blue-500 flex items-center justify-center">
                       <FaMicrochip size={18} />
@@ -237,7 +237,7 @@ const CopyPCBCartEditScreen = () => {
                 </div>
 
                 {/* Front Images Grid */}
-                <div className="bg-white rounded-[2.5rem] shadow-sm border border-slate-100 p-8">
+                <div className="bg-white rounded-[2.5rem] shadow-sm border border-slate-100 p-4 md:p-8">
                   <div className="flex items-center justify-between mb-6">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-2xl bg-emerald-50 text-emerald-500 flex items-center justify-center">
@@ -322,7 +322,7 @@ const CopyPCBCartEditScreen = () => {
                 </div>
 
                 {/* Back Images Grid */}
-                <div className="bg-white rounded-[2.5rem] shadow-sm border border-slate-100 p-8">
+                <div className="bg-white rounded-[2.5rem] shadow-sm border border-slate-100 p-4 md:p-8">
                   <div className="flex items-center justify-between mb-6">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-2xl bg-indigo-50 text-indigo-500 flex items-center justify-center">
@@ -406,7 +406,7 @@ const CopyPCBCartEditScreen = () => {
                 </div>
 
                 {/* Notes */}
-                <div className="bg-white rounded-[2.5rem] shadow-sm border border-slate-100 p-8">
+                <div className="bg-white rounded-[2.5rem] shadow-sm border border-slate-100 p-4 md:p-8">
                   <div className="flex items-center gap-3 mb-6">
                     <div className="w-10 h-10 rounded-2xl bg-amber-50 text-amber-500 flex items-center justify-center">
                       <FaFileArchive size={18} />
@@ -430,7 +430,7 @@ const CopyPCBCartEditScreen = () => {
             {/* Right Column */}
             <Col lg={4}>
               <div className="sticky top-6 space-y-6">
-                <div className="bg-white rounded-[2.5rem] shadow-sm border border-slate-100 p-8 text-center">
+                <div className="bg-white rounded-[2.5rem] shadow-sm border border-slate-100 p-4 md:p-8 text-center">
                   <h5 className="text-lg font-bold text-slate-900 mb-8">
                     Settings & Submit
                   </h5>
@@ -527,7 +527,7 @@ const CopyPCBCartEditScreen = () => {
           </Row>
         </Form>
       </Container>
-      <style>{` .font-prompt { font-family: 'Prompt', sans-serif !important; } `}</style>
+      <style dangerouslySetInnerHTML={{ __html: `.font-prompt { font-family: 'Prompt', sans-serif !important; }` }} />
     </div>
   );
 };

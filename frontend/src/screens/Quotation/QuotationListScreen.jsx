@@ -145,10 +145,10 @@ const QuotationListScreen = () => {
     );
 
   return (
-    <div className="py-8 px-4 sm:px-6 lg:px-8 bg-slate-50 min-h-screen font-sans">
+    <div className="py-4 md:py-8 px-4 sm:px-6 lg:px-8 bg-slate-50 min-h-screen font-sans">
       <div className="max-w-7xl mx-auto space-y-6">
         {/* 1. Header Section */}
-        <div className="bg-white shadow-sm border border-slate-200 rounded-3xl p-6 sm:p-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+        <div className="bg-white shadow-sm border border-slate-200 rounded-3xl p-4 md:p-6 sm:p-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 md:gap-6">
           <div className="flex items-center gap-4">
             <div className="bg-blue-50 p-4 rounded-2xl text-blue-600 shadow-inner">
               <FaFileInvoiceDollar size={28} />
@@ -172,7 +172,7 @@ const QuotationListScreen = () => {
             </button>
             <Link
               to="/admin/quotations/set"
-              className="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-bold transition-colors shadow-md shadow-blue-500/30 w-full sm:w-auto"
+              className="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 md:px-6 py-3 rounded-xl font-bold transition-colors shadow-md shadow-blue-500/30 w-full sm:w-auto"
             >
               <FaPlus /> New Quotation
             </Link>
@@ -180,7 +180,7 @@ const QuotationListScreen = () => {
         </div>
 
         {/* 2. Filter Bar */}
-        <div className="bg-white shadow-sm border border-slate-200 rounded-3xl p-6">
+        <div className="bg-white shadow-sm border border-slate-200 rounded-3xl p-4 md:p-6">
           <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-end">
             {/* Search */}
             <div className="md:col-span-12 lg:col-span-4">
@@ -271,12 +271,12 @@ const QuotationListScreen = () => {
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="bg-slate-50 border-b border-slate-200 text-xs font-black text-slate-500 uppercase tracking-widest">
-                  <th className="px-6 py-4">No.</th>
-                  <th className="px-6 py-4">Quotation ID</th>
-                  <th className="px-6 py-4">Customer Info</th>
-                  <th className="px-6 py-4 text-center">Date</th>
-                  <th className="px-6 py-4 text-right">Total Amount</th>
-                  <th className="px-6 py-4 text-center">Actions</th>
+                  <th className="px-4 md:px-6 py-4">No.</th>
+                  <th className="px-4 md:px-6 py-4">Quotation ID</th>
+                  <th className="px-4 md:px-6 py-4">Customer Info</th>
+                  <th className="px-4 md:px-6 py-4 text-center">Date</th>
+                  <th className="px-4 md:px-6 py-4 text-right">Total Amount</th>
+                  <th className="px-4 md:px-6 py-4 text-center">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -284,7 +284,7 @@ const QuotationListScreen = () => {
                   <tr>
                     <td
                       colSpan="6"
-                      className="px-6 py-12 text-center text-slate-500 font-medium"
+                      className="px-4 md:px-6 py-12 text-center text-slate-500 font-medium"
                     >
                       No quotations found.
                     </td>
@@ -295,12 +295,12 @@ const QuotationListScreen = () => {
                       key={q.id}
                       className="hover:bg-slate-50/50 transition-colors group"
                     >
-                      <td className="px-6 py-4 text-sm text-slate-500 font-medium">
+                      <td className="px-4 md:px-6 py-4 text-sm text-slate-500 font-medium">
                         {index + 1}
                       </td>
 
                       {/* Quotation No */}
-                      <td className="px-6 py-4">
+                      <td className="px-4 md:px-6 py-4">
                         <div className="flex items-center gap-3">
                           <span className="bg-blue-100 text-blue-800 font-bold uppercase tracking-wider rounded-md font-mono text-sm px-2.5 py-1">
                             {q.quotation_no}
@@ -318,7 +318,7 @@ const QuotationListScreen = () => {
                       </td>
 
                       {/* Customer */}
-                      <td className="px-6 py-4">
+                      <td className="px-4 md:px-6 py-4">
                         <div className="font-bold text-slate-900">
                           {q.customer_name}
                         </div>
@@ -329,7 +329,7 @@ const QuotationListScreen = () => {
                       </td>
 
                       {/* Date */}
-                      <td className="px-6 py-4 text-center text-sm font-medium text-slate-600">
+                      <td className="px-4 md:px-6 py-4 text-center text-sm font-medium text-slate-600">
                         {new Date(q.date).toLocaleDateString("th-TH", {
                           day: "2-digit",
                           month: "2-digit",
@@ -338,7 +338,7 @@ const QuotationListScreen = () => {
                       </td>
 
                       {/* Amount */}
-                      <td className="px-6 py-4 text-right font-black text-slate-900 text-lg tracking-tight">
+                      <td className="px-4 md:px-6 py-4 text-right font-black text-slate-900 text-lg tracking-tight">
                         {parseFloat(q.grand_total).toLocaleString(undefined, {
                           minimumFractionDigits: 2,
                         })}{" "}
@@ -346,7 +346,7 @@ const QuotationListScreen = () => {
                       </td>
 
                       {/* Actions */}
-                      <td className="px-6 py-4">
+                      <td className="px-4 md:px-6 py-4">
                         <div className="flex justify-center items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                           <Link
                             to={`/admin/customers/selectedcustomer/${q.id}/set`}
@@ -386,7 +386,7 @@ const QuotationListScreen = () => {
         {/* 4. MOBILE / TABLET VIEW (Cards) */}
         <div className="lg:hidden grid grid-cols-1 sm:grid-cols-2 gap-4">
           {displayedQuotations.length === 0 ? (
-            <div className="col-span-full bg-white p-8 rounded-3xl text-center text-slate-500 font-medium shadow-sm border border-slate-200">
+            <div className="col-span-full bg-white p-4 md:p-8 rounded-3xl text-center text-slate-500 font-medium shadow-sm border border-slate-200">
               No quotations found.
             </div>
           ) : (

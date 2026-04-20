@@ -176,7 +176,7 @@ const QuotationDefaultEditScreen = () => {
     );
 
   return (
-    <div className="py-8 px-4 sm:px-6 lg:px-8 bg-slate-50 min-h-screen font-sans">
+    <div className="py-4 md:py-8 px-4 sm:px-6 lg:px-8 bg-slate-50 min-h-screen font-sans">
       <div className="max-w-5xl mx-auto space-y-6">
         {/* Header */}
         <div className="flex items-center gap-4 mb-8">
@@ -196,11 +196,11 @@ const QuotationDefaultEditScreen = () => {
 
         <form onSubmit={handleSubmit} className="space-y-6 lg:space-y-8">
           {/* Images Section */}
-          <div className="bg-white shadow-sm border border-slate-200 rounded-3xl p-6 sm:p-8">
+          <div className="bg-white shadow-sm border border-slate-200 rounded-3xl p-4 md:p-6 sm:p-8">
             <h3 className="text-lg font-bold text-slate-800 mb-6 pb-2 border-b border-slate-100">
               Branding & Signatures
             </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
               <div>
                 <label className="block text-sm font-bold text-slate-700 mb-2">
                   Company Logo
@@ -265,11 +265,11 @@ const QuotationDefaultEditScreen = () => {
           </div>
 
           {/* Company Details Section */}
-          <div className="bg-white shadow-sm border border-slate-200 rounded-3xl p-6 sm:p-8">
+          <div className="bg-white shadow-sm border border-slate-200 rounded-3xl p-4 md:p-6 sm:p-8">
             <h3 className="text-lg font-bold text-slate-800 mb-6 pb-2 border-b border-slate-100">
               Company Information
             </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 mb-6">
               <Input
                 label="Company Name (English)"
                 value={companyName}
@@ -296,7 +296,7 @@ const QuotationDefaultEditScreen = () => {
               />
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mb-6">
               <Input
                 label="Tel"
                 value={tel}
@@ -317,11 +317,11 @@ const QuotationDefaultEditScreen = () => {
           </div>
 
           {/* Financial Details Section */}
-          <div className="bg-white shadow-sm border border-slate-200 rounded-3xl p-6 sm:p-8">
+          <div className="bg-white shadow-sm border border-slate-200 rounded-3xl p-4 md:p-6 sm:p-8">
             <h3 className="text-lg font-bold text-slate-800 mb-6 pb-2 border-b border-slate-100">
               Financial & Accounting Settings
             </h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mb-6">
               <Input
                 label="Bank Account Name"
                 value={bankAccountName}
@@ -348,7 +348,7 @@ const QuotationDefaultEditScreen = () => {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
               <Input
                 label="Discount (%)"
                 type="number"
@@ -376,7 +376,7 @@ const QuotationDefaultEditScreen = () => {
               type="submit"
               variant="primary"
               size="lg"
-              className="px-8 !rounded-xl shadow-lg shadow-blue-500/30 min-w-[200px]"
+              className="px-4 md:px-8 !rounded-xl shadow-lg shadow-blue-500/30 min-w-[200px]"
               disabled={updating}
             >
               {updating ? "Saving..." : "Save Default Quotation"}

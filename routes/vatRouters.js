@@ -11,7 +11,7 @@ const {
 
 const { protect, admin } = require("../middleware/authMiddleware.js");
 
-router.route("/").get(getVats).post(createVat);
-router.route("/:id").get(getVatById).put(updateVat).delete(deleteVat);
+router.route("/").get(getVats).post(protect, admin, createVat);
+router.route("/:id").get(getVatById).put(protect, admin, updateVat).delete(protect, admin, deleteVat);
 
 module.exports = router;

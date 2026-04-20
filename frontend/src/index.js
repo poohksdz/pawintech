@@ -105,6 +105,7 @@ import CustomPCBCartScreen from './screens/CustomPCB/CustomPCBCartScreen'
 import CustomPCBOrderListScreen from './screens/CustomPCB/CustomPCBOrderListScreen'
 import CustomPCBCartListScreen from './screens/CustomPCB/CustomPCBCartListScreen'
 import CustomPCBCartDetailScreen from './screens/CustomPCB/CustomPCBCartDetailScreen'
+import CustomPCBDetailScreen from './screens/CustomPCB/CustomPCBDetailScreen'
 import CustomPCBEditListScreen from './screens/CustomPCB/CustomPCBEditListScreen'
 import CustomPCBOrderEditScreen from './screens/CustomPCB/CustomPCBOrderEditScreen'
 import CustomPCBCartEditScreen from './screens/CustomPCB/CustomPCBCartEditScreen'
@@ -318,9 +319,11 @@ const router = createBrowserRouter(
             path='/customcartpcbs/:id'
             element={<CustomPCBCartDetailScreen />}
           />
+          <Route path='/custompcb/:id' element={<CustomPCBDetailScreen />} />
 
           <Route path='/placeorder' element={<PlaceOrderScreen />} />
           <Route path='/profile' element={<ProfileScreen />} />
+          <Route path='/quotation/:id' element={<QuotationDetailScreen />} />
           <Route path='/vatscreen' element={<VatPDFScreen />} />
           <Route path='/invoice' element={<InvoiceDetailScreen />} />
         </Route>
@@ -747,7 +750,12 @@ root.render(
   <React.StrictMode>
     <HelmetProvider>
       <Provider store={store} deferLoading={true}>
-        <RouterProvider router={router} />
+        <RouterProvider
+          router={router}
+          future={{
+            v7_startTransition: true,
+          }}
+        />
       </Provider>
     </HelmetProvider>
   </React.StrictMode>

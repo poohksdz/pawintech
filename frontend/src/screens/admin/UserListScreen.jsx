@@ -188,7 +188,7 @@ const UserListScreen = () => {
     if (badges.length === 0) {
       return (
         <span
-          className={`inline-flex items-center px-2 py-1 rounded-md text-sm font-medium border bg-slate-50 text-slate-600 border-slate-200`}
+          className="inline-flex items-center px-2 py-1 rounded-md text-sm font-medium border bg-slate-50 text-slate-600 border-slate-200"
         >
           <FaUser className="mr-1" /> {t.roles.user}
         </span>
@@ -210,10 +210,10 @@ const UserListScreen = () => {
   };
 
   return (
-    <div className="py-8 px-4 sm:px-6 lg:px-8 bg-slate-50 dark:bg-black min-h-screen font-sans transition-colors duration-500">
+    <div className="py-4 md:py-8 px-4 sm:px-6 lg:px-8 bg-slate-50 dark:bg-black min-h-screen font-sans transition-colors duration-500">
       <div className="max-w-7xl mx-auto">
         {/* Header & Toolbar */}
-        <div className="bg-white dark:bg-zinc-900/50 rounded-3xl p-6 shadow-sm border border-slate-200 dark:border-zinc-800 mb-8 transition-colors duration-500">
+        <div className="bg-white dark:bg-zinc-900/50 rounded-3xl p-4 md:p-6 shadow-sm border border-slate-200 dark:border-zinc-800 mb-8 transition-colors duration-500">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div className="flex items-center">
               <div className="bg-slate-50 dark:bg-zinc-950 p-4 rounded-full border border-slate-100 dark:border-zinc-800">
@@ -283,31 +283,31 @@ const UserListScreen = () => {
                     <tr>
                       <th
                         scope="col"
-                        className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider"
+                        className="px-4 md:px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider"
                       >
                         {t.headers.user}
                       </th>
                       <th
                         scope="col"
-                        className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider"
+                        className="px-4 md:px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider"
                       >
                         {t.headers.role}
                       </th>
                       <th
                         scope="col"
-                        className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider"
+                        className="px-4 md:px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider"
                       >
                         {t.headers.contact}
                       </th>
                       <th
                         scope="col"
-                        className="px-6 py-4 text-center text-xs font-bold text-slate-500 uppercase tracking-wider"
+                        className="px-4 md:px-6 py-4 text-center text-xs font-bold text-slate-500 uppercase tracking-wider"
                       >
                         {t.headers.date}
                       </th>
                       <th
                         scope="col"
-                        className="px-6 py-4 text-right text-xs font-bold text-slate-500 uppercase tracking-wider"
+                        className="px-4 md:px-6 py-4 text-right text-xs font-bold text-slate-500 uppercase tracking-wider"
                       >
                         {t.headers.actions}
                       </th>
@@ -319,7 +319,7 @@ const UserListScreen = () => {
                         key={user._id || user.id}
                         className="hover:bg-slate-50 dark:hover:bg-zinc-800/30 transition-colors duration-150"
                       >
-                        <td className="px-6 py-4 whitespace-nowrap">
+                        <td className="px-4 md:px-6 py-4 whitespace-nowrap">
                           <div className="flex items-center">
                             <UserAvatar name={user.name} />
                             <div className="ml-4">
@@ -333,10 +333,10 @@ const UserListScreen = () => {
                             </div>
                           </div>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
+                        <td className="px-4 md:px-6 py-4 whitespace-nowrap">
                           <RoleBadge user={user} />
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
+                        <td className="px-4 md:px-6 py-4 whitespace-nowrap">
                           <div className="flex flex-col text-sm text-slate-600 dark:text-slate-300">
                             <div className="flex items-center mb-1">
                               <FaEnvelope className="mr-2 text-slate-400 dark:text-slate-500" />{" "}
@@ -350,7 +350,7 @@ const UserListScreen = () => {
                             )}
                           </div>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-center text-sm text-slate-500 dark:text-slate-400">
+                        <td className="px-4 md:px-6 py-4 whitespace-nowrap text-center text-sm text-slate-500 dark:text-slate-400">
                           {user.createdAt
                             ? new Date(user.createdAt).toLocaleDateString(
                               "th-TH",
@@ -362,7 +362,7 @@ const UserListScreen = () => {
                             )
                             : "-"}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <td className="px-4 md:px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                           <div className="flex justify-end gap-2 text-center items-center">
                             <Link
                               to={`/admin/user/${user._id || user.id}/edit`}
@@ -442,7 +442,7 @@ const UserListScreen = () => {
             </div>
           }
         >
-          <div className="p-6 bg-white dark:bg-zinc-950 rounded-3xl transition-colors duration-500">
+          <div className="p-4 md:p-6 bg-white dark:bg-zinc-950 rounded-3xl transition-colors duration-500">
             <p className="text-slate-600 dark:text-slate-400 mb-5">{t.modal.body}</p>
             {userToDelete && (
               <div className="bg-slate-50 dark:bg-zinc-900 p-4 border border-slate-200 dark:border-zinc-800 rounded-xl flex items-center mb-6">

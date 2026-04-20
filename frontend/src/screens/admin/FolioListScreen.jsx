@@ -118,13 +118,13 @@ const FolioListScreen = () => {
   const t = translations[language] || translations.en;
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-black py-8 px-4 md:px-8 font-prompt transition-colors duration-500">
+    <div className="min-h-screen bg-slate-50 dark:bg-black py-4 md:py-8 px-4 md:px-8 font-prompt transition-colors duration-500">
       <Row className="align-items-center mb-6">
         <Col>
           <h1 className="text-2xl font-bold text-slate-900 dark:text-white">{t.foliosLbl}</h1>
         </Col>
         <Col className="text-end">
-          <Button className="bg-slate-900 dark:bg-white text-white dark:text-black border-0 px-4 py-2.5 rounded-lg shadow-sm hover:opacity-90 transition-all font-medium" as={Link} to={`/admin/folio/create`}>
+          <Button className="bg-slate-900 dark:bg-white text-white dark:text-black border-0 px-4 py-2.5 rounded-lg shadow-sm hover:opacity-90 transition-all font-medium" as={Link} to="/admin/folio/create">
             <FaPlus className="me-2" /> {t.createFolioLbl}
           </Button>
         </Col>
@@ -143,11 +143,11 @@ const FolioListScreen = () => {
             <Table hover responsive className="mb-0 align-middle">
               <thead className="bg-slate-50 dark:bg-zinc-950 text-slate-500 dark:text-slate-400 text-xs uppercase font-semibold border-b border-slate-100 dark:border-zinc-800">
                 <tr>
-                  <th className="py-4 px-6 w-20 text-center">#</th>
-                  <th className="py-4 px-6 w-32">{t.imageLbl}</th>
-                  <th className="py-4 px-6">{t.nameLbl}</th>
-                  <th className="py-4 px-6 text-center">{t.EDITLbl}</th>
-                  <th className="py-4 px-6 text-center">{t.SHOWCASELbl}</th>
+                  <th className="py-4 px-4 md:px-6 w-20 text-center">#</th>
+                  <th className="py-4 px-4 md:px-6 w-32">{t.imageLbl}</th>
+                  <th className="py-4 px-4 md:px-6">{t.nameLbl}</th>
+                  <th className="py-4 px-4 md:px-6 text-center">{t.EDITLbl}</th>
+                  <th className="py-4 px-4 md:px-6 text-center">{t.SHOWCASELbl}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-zinc-800 text-sm text-slate-700 dark:text-slate-300">
@@ -159,10 +159,10 @@ const FolioListScreen = () => {
                       : folio.headerTextOne;
                   return (
                     <tr key={folio.ID}>
-                      <td className="py-4 px-6 text-center text-slate-400 font-mono text-xs">
+                      <td className="py-4 px-4 md:px-6 text-center text-slate-400 font-mono text-xs">
                         {index + 1}
                       </td>
-                      <td className="py-4 px-6">
+                      <td className="py-4 px-4 md:px-6">
                         <div className="w-20 h-20 bg-white dark:bg-black border border-slate-100 dark:border-zinc-800 rounded-lg flex items-center justify-center overflow-hidden shadow-sm p-1">
                           <Image
                             src={
@@ -179,12 +179,12 @@ const FolioListScreen = () => {
                           />
                         </div>
                       </td>
-                      <td className="py-4 px-6">
+                      <td className="py-4 px-4 md:px-6">
                         <div className="font-semibold text-slate-900 dark:text-white">
                           {name || "Untitled Folio"}
                         </div>
                       </td>
-                      <td className="py-4 px-6 text-center">
+                      <td className="py-4 px-4 md:px-6 text-center">
                         <div className="flex items-center justify-center gap-2">
                           <Link
                             to={`/admin/folio/${folio.ID}/edit`}
@@ -202,7 +202,7 @@ const FolioListScreen = () => {
                           </button>
                         </div>
                       </td>
-                      <td className="py-4 px-6 text-center">
+                      <td className="py-4 px-4 md:px-6 text-center">
                         <input
                           type="checkbox"
                           className="w-4 h-4 rounded border-slate-300 dark:border-zinc-700 text-indigo-600 focus:ring-indigo-500 bg-white dark:bg-zinc-950 cursor-pointer"

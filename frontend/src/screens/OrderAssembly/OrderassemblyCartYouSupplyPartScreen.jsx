@@ -443,7 +443,7 @@ const OrderassemblyCartYouSupplyPartScreen = () => {
                   ].map(({ value, label }) => (
                     <ToggleButton
                       key={value}
-                      id={`board_types-${value}`}
+                      id={`-${value}`}
                       type="radio"
                       variant="outline-primary"
                       name="board_types"
@@ -536,7 +536,7 @@ const OrderassemblyCartYouSupplyPartScreen = () => {
                       {["Top", "Bottom", "Both"].map((val) => (
                         <ToggleButton
                           key={val}
-                          id={`smd_side-${val}`}
+                          id={`-${val}`}
                           type="radio"
                           variant="outline-primary"
                           name="smd_side"
@@ -631,7 +631,7 @@ const OrderassemblyCartYouSupplyPartScreen = () => {
                       {["Top", "Bottom", "Both"].map((val) => (
                         <ToggleButton
                           key={val}
-                          id={`tht_side-${val}`}
+                          id={`-${val}`}
                           type="radio"
                           variant="outline-primary"
                           name="tht_side"

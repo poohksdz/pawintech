@@ -73,7 +73,7 @@ const FolioDetailScreen = () => {
     .slice(0, 4);
 
   return (
-    <div className="bg-[#FAFAFB] dark:bg-black min-h-screen py-6 md:py-12 font-sans selection:bg-blue-500 selection:text-white transition-colors duration-500">
+    <div className="bg-[#FAFAFB] dark:bg-black min-h-screen py-4 md:py-6 md:py-12 font-sans selection:bg-blue-500 selection:text-white transition-colors duration-500">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* --- Top Navigation --- */}
         <div className="mb-6 lg:mb-12">
@@ -85,7 +85,7 @@ const FolioDetailScreen = () => {
           </Link>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-24 mb-16 items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 md:gap-8 lg:gap-24 mb-16 items-start">
           {/* Gallery ด้านซ้าย */}
           <div className="lg:col-span-7 space-y-6">
             {images.map((img, idx) => (
@@ -145,7 +145,7 @@ const FolioDetailScreen = () => {
               {relatedFolios.map((f) => (
                 <Link
                   key={f.ID}
-                  to={`/folio/${f.ID}`}
+                  to={`/${f.ID}`}
                   className="group bg-white dark:bg-zinc-900 rounded-lg overflow-hidden border border-slate-200 dark:border-zinc-800 shadow-sm transition-colors"
                 >
                   <img

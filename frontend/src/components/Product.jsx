@@ -37,7 +37,7 @@ const Product = ({ product }) => {
       {/* --- Body Section --- */}
       <div className="p-4 flex flex-col flex-1">
         {/* Product Title */}
-        <Link to={`/product/${product._id}`} className="block mb-2">
+        <Link to={`/${product._id}`} className="block mb-2">
           <h3 className="text-base md:text-lg font-semibold text-slate-700 leading-snug line-clamp-2 group-hover:text-blue-600 transition-colors">
             {t.productName}
           </h3>
@@ -70,26 +70,26 @@ const Product = ({ product }) => {
           {/* Optional: Add Button Icon (Visual only) */}
           <Link
             to={`/product/${product._id}`}
-            className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-600 hover:bg-blue-600 hover:text-white transition-colors duration-300"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth={2}
-              stroke="currentColor"
-              className="w-5 h-5"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M12 4.5v15m7.5-7.5h-15"
-              />
-            </svg>
-          </Link>
-        </div>
-      </div>
-    </div>
+      className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-600 hover:bg-blue-600 hover:text-white transition-colors duration-300"
+    >
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        fill="none"
+        viewBox="0 0 24 24"
+        strokeWidth={2}
+        stroke="currentColor"
+        className="w-5 h-5"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          d="M12 4.5v15m7.5-7.5h-15"
+        />
+      </svg>
+    </Link>
+  </div>
+      </div >
+    </div >
   );
 };
 

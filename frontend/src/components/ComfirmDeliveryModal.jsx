@@ -57,7 +57,7 @@ const ComfirmDeliveryModal = ({ show, handleClose, orderId, onConfirm }) => {
 
   return (
     <Modal isOpen={show} onClose={handleClose} title={t.ComfirmOrdersLbl}>
-      <div className="p-6">
+      <div className="p-4 md:p-6">
         <form className="mb-6 space-y-4">
           <Input
             label={t.transferedNumberLbl}

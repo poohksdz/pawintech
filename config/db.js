@@ -16,6 +16,11 @@ const pool = mysql.createPool({
   connectTimeout: 10000, // 10s connection timeout
 });
 
+// Global pool error handler to prevent unhandled crashes
+pool.on("error", (err) => {
+  console.error("Database pool error:", err.message);
+});
+
 const connectDB = async () => {
   try {
     const conn = await pool.getConnection();

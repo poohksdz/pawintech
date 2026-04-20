@@ -17,7 +17,7 @@ const MiddleShowCase = () => {
         </p>
 
         {/* Social Media Icons */}
-        <div className="flex gap-6 mb-5">
+        <div className="flex gap-4 md:gap-6 mb-5">
           <Link
             to="https://www.facebook.com"
             className="text-white hover:text-blue-400 transition-colors"

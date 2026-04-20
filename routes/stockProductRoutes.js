@@ -10,7 +10,7 @@ const {
   deleteStockProduct,
   updateStockProductQty,
   updateStockProductQtyByElectotronixPN,
-  toggleStarProduct,
+  rateProduct,
 } = require("../controllers/stockProductController.js");
 
 const { protect, admin, store } = require("../middleware/authMiddleware.js");
@@ -32,6 +32,6 @@ router
   .route("/updateProductQtyByElectotronixPN/:electotronixPN")
   .put(protect, updateStockProductQtyByElectotronixPN);
 
-router.route("/:id/star").put(protect, toggleStarProduct);
+router.route("/:id/rate").put(protect, rateProduct);
 
 module.exports = router;

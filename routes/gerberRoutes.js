@@ -2,12 +2,13 @@ const express = require("express");
 const fs = require("fs");
 const path = require("path");
 const multer = require("multer");
+const { protect } = require("../middleware/authMiddleware.js");
 
 const router = express.Router();
 const upload = multer({
   limits: { fileSize: 20 * 1024 * 1024 },
-  /* 20MB Security Limit */ dest: "uploads/",
-}); // temporary upload folder
+  dest: "uploads/",
+});
 
 // Helper: generate unique name like "gerber_20250701163233.zip"
 const generateUniqueFilename = () => {
@@ -24,13 +25,29 @@ const generateUniqueFilename = () => {
   return `gerber_${timestamp}.zip`;
 };
 
-router.get("/download/:filename", (req, res) => {
+// Whitelist of allowed characters in filename (alphanumeric, dash, underscore, dot, hyphen)
+const VALID_FILENAME = /^[a-zA-Z0-9._-]+\.zip$/;
+
+router.get("/download/:filename", protect, (req, res) => {
   let filename = req.params.filename;
 
-  // Robustness: Strip prefixes if they were accidentally passed in the URL
+  // Security: Reject dangerous patterns (path traversal, special chars)
+  if (!VALID_FILENAME.test(filename)) {
+    console.warn(`[Gerber] Invalid filename pattern: ${filename}`);
+    return res.status(400).json({ error: "Invalid filename" });
+  }
+
+  // Strip prefixes if they were accidentally passed in the URL
   filename = filename.replace(/^gerbers[\/\\]/, "");
 
-  const filePath = path.join(__dirname, "..", "gerbers", filename);
+  const gerbersDir = path.resolve(__dirname, "..", "gerbers");
+  const filePath = path.join(gerbersDir, filename);
+
+  // Security: Ensure resolved path is within gerbers directory
+  if (!filePath.startsWith(gerbersDir)) {
+    console.warn(`[Gerber] Path traversal attempt: ${req.params.filename}`);
+    return res.status(403).json({ error: "Access denied" });
+  }
 
   console.log(
     `[Gerber] Attempting download: ${filename} (Full path: ${filePath})`,
@@ -55,9 +72,16 @@ router.get("/download/:filename", (req, res) => {
   }
 });
 
-router.post("/upload-zip", upload.single("gerberZip"), async (req, res) => {
+router.post("/upload-zip", protect, upload.single("gerberZip"), async (req, res) => {
   try {
     if (!req.file) return res.status(400).json({ error: "No file uploaded" });
+
+    // Only accept .zip files
+    const originalExt = path.extname(req.file.originalname).toLowerCase();
+    if (originalExt !== ".zip") {
+      if (fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
+      return res.status(400).json({ error: "Only ZIP files are allowed" });
+    }
 
     const zipBuffer = fs.readFileSync(req.file.path);
 

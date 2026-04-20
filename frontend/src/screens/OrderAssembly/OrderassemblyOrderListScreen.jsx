@@ -164,7 +164,7 @@ const OrderassemblyOrderListScreen = () => {
 
   if (error) {
     return (
-      <div className="mx-auto max-w-2xl p-8">
+      <div className="mx-auto max-w-2xl p-4 md:p-8">
         <Message variant="danger">
           {error?.data?.message || error.message}
         </Message>
@@ -173,12 +173,12 @@ const OrderassemblyOrderListScreen = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[#f8f9fb] dark:bg-black p-6 font-sans selection:bg-blue-100 selection:text-blue-900 md:p-10 lg:p-12 transition-colors duration-500">
-      <style>{`
+    <div className="min-h-screen bg-[#f8f9fb] dark:bg-black p-4 md:p-6 font-sans selection:bg-blue-100 selection:text-blue-900 md:p-10 lg:p-12 transition-colors duration-500">
+      <style dangerouslySetInnerHTML={{ __html: `
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Outfit:wght@400;500;600;700;800;900&family=Prompt:wght@400;500;600;700;800;900&display=swap');
         .font-display { font-family: 'Outfit', 'Prompt', sans-serif; }
         .font-sans { font-family: 'Inter', 'Prompt', sans-serif; }
-        
+
         .glass-header {
           background: white;
           border: 1px solid rgba(0,0,0,0.05);
@@ -218,12 +218,12 @@ const OrderassemblyOrderListScreen = () => {
         .btn-action:active {
             transform: scale(0.95);
         }
-      `}</style>
+      ` }} />
 
       <div className="mx-auto max-w-7xl">
         {/* --- HEADER DASHBOARD --- */}
-        <header className="glass-header mb-12 flex flex-col items-center justify-between gap-8 rounded-[2.5rem] p-8 md:flex-row md:p-10 transition-all duration-500">
-          <div className="flex flex-col items-center gap-6 md:flex-row md:items-start">
+        <header className="glass-header mb-12 flex flex-col items-center justify-between gap-4 md:gap-8 rounded-[2.5rem] p-4 md:p-8 md:flex-row md:p-10 transition-all duration-500">
+          <div className="flex flex-col items-center gap-4 md:gap-6 md:flex-row md:items-start">
             <div className="flex h-16 w-16 items-center justify-center rounded-[1.5rem] bg-slate-950 dark:bg-emerald-600 text-emerald-400 dark:text-white transition-colors">
               <PiCircuitryFill size={32} />
             </div>
@@ -237,7 +237,7 @@ const OrderassemblyOrderListScreen = () => {
             </div>
           </div>
 
-          <div className="flex flex-wrap justify-center gap-10 md:justify-end">
+          <div className="flex flex-wrap justify-center gap-4 md:gap-6 md:gap-10 md:justify-end">
             <StatItem label={t.Stats.total} value={stats.total} />
             <StatItem
               label={t.Stats.pending}
@@ -253,7 +253,7 @@ const OrderassemblyOrderListScreen = () => {
         </header>
 
         {/* --- TOOLBAR --- */}
-        <div className="mb-8 flex flex-col items-center justify-between gap-6 md:flex-row md:px-4">
+        <div className="mb-8 flex flex-col items-center justify-between gap-4 md:gap-6 md:flex-row md:px-4">
           <div className="relative w-full max-w-md">
             <FaSearch className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300" />
             <input
@@ -267,7 +267,7 @@ const OrderassemblyOrderListScreen = () => {
 
           <button
             onClick={() => navigate("/admin/assemblyboardeditd")}
-            className="flex h-14 items-center gap-4 rounded-2xl bg-slate-950 dark:bg-zinc-800 px-8 font-display text-xs font-black uppercase ls-widest text-white shadow-xl shadow-slate-950/20 hover:bg-slate-900 transition-all"
+            className="flex h-14 items-center gap-4 rounded-2xl bg-slate-950 dark:bg-zinc-800 px-4 md:px-8 font-display text-xs font-black uppercase ls-widest text-white shadow-xl shadow-slate-950/20 hover:bg-slate-900 transition-all"
           >
             <PiCurrencyCircleDollarBold size={20} className="text-emerald-400" />
             {t.DefaultAssemblyPrice}
@@ -296,11 +296,11 @@ const OrderassemblyOrderListScreen = () => {
                 <tbody className="divide-y divide-slate-50 dark:divide-zinc-800">
                   {filteredOrders.map((order, index) => (
                     <tr key={order.id} className="group hover:bg-slate-50/50 dark:hover:bg-zinc-800/20 transition-colors">
-                      <td className="py-8 ps-10 font-display text-sm font-black text-slate-200 dark:text-zinc-800">
+                      <td className="py-4 md:py-8 ps-10 font-display text-sm font-black text-slate-200 dark:text-zinc-800">
                         {String(index + 1).padStart(2, "0")}
                       </td>
-                      <td className="py-8 ps-4">
-                        <div className="flex items-center gap-6">
+                      <td className="py-4 md:py-8 ps-4">
+                        <div className="flex items-center gap-4 md:gap-6">
                           <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-white dark:bg-black shadow-sm ring-1 ring-slate-100 dark:ring-zinc-800">
                             {order.pcb_image ? (
                               <img src={`${BASE_URL}${order.pcb_image}`} alt="Assembly" className="h-full w-full object-cover" />
@@ -318,7 +318,7 @@ const OrderassemblyOrderListScreen = () => {
                           </div>
                         </div>
                       </td>
-                      <td className="py-8">
+                      <td className="py-4 md:py-8">
                         <div className="flex flex-col">
                           <span className="font-mono text-sm font-bold text-emerald-600 dark:text-emerald-400">
                             {formatCurrency(order.confirmed_price || 0)}
@@ -328,7 +328,7 @@ const OrderassemblyOrderListScreen = () => {
                           </span>
                         </div>
                       </td>
-                      <td className="py-6 text-center">
+                      <td className="py-4 md:py-6 text-center">
                         <div className="flex items-center justify-center gap-2">
                           <span
                             className={`px-3 py-1.5 rounded-lg text-[9px] font-black uppercase ls-widest transition-all ${order.isDelivered ? "bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600 dark:text-emerald-400" : "bg-amber-50 dark:bg-amber-950/30 text-amber-600 dark:text-amber-400"}`}
@@ -337,7 +337,7 @@ const OrderassemblyOrderListScreen = () => {
                           </span>
                         </div>
                       </td>
-                      <td className="py-6 pe-10 text-right">
+                      <td className="py-4 md:py-6 pe-10 text-right">
                         <div className="flex justify-end gap-3">
                           {!order.isDelivered && (
                             <button
@@ -386,9 +386,9 @@ const OrderassemblyOrderListScreen = () => {
             </div>
 
             {/* MOBILE VIEW */}
-            <div className="grid grid-cols-1 gap-6 lg:hidden">
+            <div className="grid grid-cols-1 gap-4 md:gap-6 lg:hidden">
               {filteredOrders.map((order) => (
-                <div key={order.id} className="relative flex flex-col gap-6 rounded-[2.5rem] bg-white dark:bg-zinc-900/40 p-8 shadow-sm ring-1 ring-slate-100 dark:ring-zinc-800 transition-all duration-500">
+                <div key={order.id} className="relative flex flex-col gap-4 md:gap-6 rounded-[2.5rem] bg-white dark:bg-zinc-900/40 p-4 md:p-8 shadow-sm ring-1 ring-slate-100 dark:ring-zinc-800 transition-all duration-500">
                   <div className="flex items-start justify-between">
                     <div className="flex items-center gap-4 min-w-0">
                       <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-slate-50 dark:bg-black ring-1 ring-slate-100 dark:ring-zinc-800">
@@ -409,7 +409,7 @@ const OrderassemblyOrderListScreen = () => {
                     </div>
                   </div>
 
-                  <div className="flex items-center justify-between gap-4 py-4 rounded-3xl bg-slate-50/50 dark:bg-zinc-950/50 px-6">
+                  <div className="flex items-center justify-between gap-4 py-4 rounded-3xl bg-slate-50/50 dark:bg-zinc-950/50 px-4 md:px-6">
                     <span className="font-mono text-base font-bold text-emerald-600 dark:text-emerald-400">
                       {formatCurrency(order.confirmed_price || 0)}
                     </span>

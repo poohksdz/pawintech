@@ -757,7 +757,7 @@ const QuotationEditScreen = () => {
         </Modal.Footer>
       </Modal>
 
-      <style>{`
+      <style dangerouslySetInnerHTML={{ __html: `
         .font-prompt { font-family: 'Prompt', sans-serif; }
         .paper-container {
             width: 210mm;
@@ -771,7 +771,7 @@ const QuotationEditScreen = () => {
         }
         .paper-label { font-weight: bold; font-size: 12px; width: 70px; white-space: nowrap; }
         .paper-label-sm { font-weight: bold; font-size: 12px; width: 60px; white-space: nowrap; }
-        
+
         .paper-input {
             border: none;
             border-bottom: 1px dashed #ccc;
@@ -787,15 +787,15 @@ const QuotationEditScreen = () => {
             border-bottom: 1px solid #0d6efd;
         }
         .paper-text { font-size: 12px; }
-        
+
         @media (max-width: 768px) {
             /* Mobile tweaks */
             .paper-container {
                /* Allow horizontal scroll on parent, keep size fixed here */
-               min-width: 210mm; 
+               min-width: 210mm;
             }
         }
-      `}</style>
+      ` }} />
     </Container>
   );
 };

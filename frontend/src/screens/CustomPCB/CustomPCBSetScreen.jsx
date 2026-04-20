@@ -211,7 +211,7 @@ const CustomPCBSetScreen = () => {
       )}
 
       {/* --- Header Section --- */}
-      <div className="bg-white border-b border-slate-100 py-8 mb-12">
+      <div className="bg-white border-b border-slate-100 py-4 md:py-8 mb-12">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Back Button */}
           <button
@@ -221,7 +221,7 @@ const CustomPCBSetScreen = () => {
             <FaArrowLeft /> {t.back}
           </button>
 
-          <div className="flex items-center gap-6">
+          <div className="flex items-center gap-4 md:gap-6">
             <div className="w-16 h-16 rounded-2xl bg-black text-white flex items-center justify-center text-3xl shrink-0">
               <FaMicrochip />
             </div>
@@ -240,12 +240,12 @@ const CustomPCBSetScreen = () => {
       {/* --- Main Content --- */}
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <form onSubmit={orderNowHandler}>
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 md:gap-6 lg:gap-8 items-start">
             {/* Left Column: Inputs (8 cols) */}
             <div className="lg:col-span-8 space-y-6">
               {/* 1. Project Info Card */}
               <div className="bg-white rounded-3xl border border-slate-100 overflow-hidden shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
-                <div className="bg-slate-50/50 border-b border-slate-100 px-8 py-5 flex items-center justify-between">
+                <div className="bg-slate-50/50 border-b border-slate-100 px-4 md:px-8 py-5 flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <FaInfoCircle className="text-black" />
                     <h3 className="font-black text-black text-xs uppercase tracking-widest m-0">
@@ -253,7 +253,7 @@ const CustomPCBSetScreen = () => {
                     </h3>
                   </div>
                 </div>
-                <div className="p-8">
+                <div className="p-4 md:p-8">
                   <div className="mb-6">
                     <label className="block text-sm font-bold text-slate-700 mb-2">
                       {t.projectName} <span className="text-rose-500">*</span>
@@ -302,7 +302,7 @@ const CustomPCBSetScreen = () => {
 
               {/* 2. Attachments Card */}
               <div className="bg-white rounded-3xl border border-slate-100 overflow-hidden shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
-                <div className="bg-slate-50/50 border-b border-slate-100 px-8 py-5 flex items-center justify-between">
+                <div className="bg-slate-50/50 border-b border-slate-100 px-4 md:px-8 py-5 flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <FaCloudUploadAlt className="text-black" />
                     <h3 className="font-black text-black text-xs uppercase tracking-widest m-0">
@@ -310,7 +310,7 @@ const CustomPCBSetScreen = () => {
                     </h3>
                   </div>
                 </div>
-                <div className="p-8">
+                <div className="p-4 md:p-8">
                   {/* Image Dropzone */}
                   <div className="mb-6">
                     <div className="flex justify-between items-center mb-2">
@@ -415,7 +415,7 @@ const CustomPCBSetScreen = () => {
 
               {/* 3. Notes Card */}
               <div className="bg-white rounded-3xl border border-slate-100 overflow-hidden shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
-                <div className="p-8">
+                <div className="p-4 md:p-8">
                   <label className="block text-xs font-black text-black uppercase tracking-widest mb-4">
                     Requirements & Descriptions
                   </label>
@@ -434,13 +434,13 @@ const CustomPCBSetScreen = () => {
             <div className="lg:col-span-4">
               <div className="sticky top-24 bg-black rounded-3xl shadow-2xl overflow-hidden border border-white/10 ring-1 ring-white/5">
                 {/* Summary Header */}
-                <div className="bg-white/5 border-b border-white/10 p-8">
+                <div className="bg-white/5 border-b border-white/10 p-4 md:p-8">
                   <h3 className="text-white font-black text-xs uppercase tracking-widest m-0">
                     {t.summary}
                   </h3>
                 </div>
 
-                <div className="p-8 flex flex-col gap-6">
+                <div className="p-4 md:p-8 flex flex-col gap-4 md:gap-6">
                   {/* Details List */}
                   <div className="flex justify-between items-start gap-4">
                     <span className="text-slate-500 text-[10px] font-black uppercase tracking-widest">
@@ -466,7 +466,7 @@ const CustomPCBSetScreen = () => {
                   <hr className="border-white/10 my-2" />
 
                   {/* Price Box */}
-                  <div className="bg-white/5 rounded-2xl p-6 text-center border border-white/5">
+                  <div className="bg-white/5 rounded-2xl p-4 md:p-6 text-center border border-white/5">
                     <span className="text-slate-500 text-[9px] font-black uppercase tracking-[0.2em] block mb-2">
                       {t.estPrice}
                     </span>

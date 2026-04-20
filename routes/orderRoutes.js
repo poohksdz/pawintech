@@ -12,6 +12,7 @@ const {
   updateTransportationPrice,
   getTransportationPrice,
   getAllUnifiedOrders,
+  updateOrderStatusByQuotationNo,
 } = require("../controllers/orderController.js");
 
 const { protect, admin, store } = require("../middleware/authMiddleware.js");
@@ -32,11 +33,13 @@ router
 // 3. เส้นทางจัดการ Order ตาม ID
 router.route("/:id").get(protect, getOrderById);
 
-//  แก้ไข: เปิดใช้งาน Route นี้ (เอา // ออก) 
-router.route("/:id/pay").put(protect, updateOrderToPaid);
+//  แก้ไข: เปิดใช้งาน Route นี้ (เอา // ออก)
+// ต้องเป็น admin หรือ store เท่านั้น และจะตรวจสอบ ownership ใน controller
+router.route("/:id/pay").put(protect, store, updateOrderToPaid);
 // ----------------------------------------------------
 
 router.route("/:id/receiveplace").put(protect, updateOrderToReceivePlace);
 router.route("/:id/deliver").put(protect, store, updateOrderToDelivered);
+router.route("/quotation/:quotation_no/status").put(protect, updateOrderStatusByQuotationNo);
 
 module.exports = router;

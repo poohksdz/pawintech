@@ -11,7 +11,6 @@ import {
   FaUser,
   FaMicrochip,
   FaCalendarAlt,
-  FaShoppingCart,
   FaInbox,
   FaExclamationTriangle,
   FaArrowRight,
@@ -23,7 +22,7 @@ import {
   useUpdateStockRequestQtyMutation,
   useUpdateStockRequestCancelMutation,
 } from "../../../slices/stockRequestApiSlice";
-import { addToStockIssueCart } from "../../../slices/stockIssueCartApiSlice";
+import { useCreateStockIssueMutation } from "../../../slices/stockIssueApiSlice";
 import { useGetStockProductsQuery } from "../../../slices/stockProductApiSlice";
 import Loader from "../../../components/Loader";
 import Message from "../../../components/Message";
@@ -37,9 +36,11 @@ const StockRequestDashboardScreen = () => {
   const { userInfo } = useSelector((state) => state.auth);
 
   const { data, isLoading, error } = useGetStockRequestQuery();
-  const { data: existingQtyData } = useGetStockProductsQuery();
+  const { data: existingQtyData, refetch: refetchProducts } = useGetStockProductsQuery();
   const [updateStockRequestQty] = useUpdateStockRequestQtyMutation();
   const [updateStockRequestCancel] = useUpdateStockRequestCancelMutation();
+  const [createStockIssue, { isLoading: isIssuing }] = useCreateStockIssueMutation();
+  const { refetch: refetchRequests } = useGetStockRequestQuery();
 
   const products = useMemo(() => data?.requestgoods || [], [data]);
   const [searchQuery, setSearchQuery] = useState("");
@@ -47,6 +48,7 @@ const StockRequestDashboardScreen = () => {
 
   const [showQtyModal, setShowQtyModal] = useState(false);
   const [showCancelModal, setShowCancelModal] = useState(false);
+  const [showApproveModal, setShowApproveModal] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [newQty, setNewQty] = useState(0);
   const [cancelMessage, setCancelMessage] = useState("");
@@ -99,6 +101,9 @@ const StockRequestDashboardScreen = () => {
         rejected: "Request Rejected successfully",
         rejectFailed: "Failed to cancel request",
         provideReason: "Please provide a reason",
+        approveTitle: "Confirm Approval",
+        approveDesc: "This will immediately deduct stock and complete the request.",
+        approveConfirm: "Approve Now",
       },
     },
     thai: {
@@ -138,6 +143,9 @@ const StockRequestDashboardScreen = () => {
         reasonPlaceholder: "ระบุเหตุผล...",
         rejectNow: "ปฏิเสธทันที",
         cancel: "ยกเลิก",
+        approveTitle: "ยืนยันการอนุมัติ",
+        approveDesc: "การอนุมัติจะทำการตัดสต็อกและเสร็จสิ้นรายการทันที",
+        approveConfirm: "อนุมัติทันที",
       },
       toast: {
         addedToCart: "เพิ่มลงตะกร้าจ่ายพัสดุแล้ว",
@@ -146,6 +154,8 @@ const StockRequestDashboardScreen = () => {
         rejected: "ปฏิเสธรายการสำเร็จ",
         rejectFailed: "ปฏิเสธรายการไม่สำเร็จ",
         provideReason: "โปรดระบุเหตุผล",
+        approved: "อนุมัติรายการสำเร็จ",
+        approveFailed: "อนุมัติรายการไม่สำเร็จ",
       },
     },
   }[language || "en"];
@@ -193,9 +203,32 @@ const StockRequestDashboardScreen = () => {
     [products, existingQtyData],
   );
 
-  const addToStockIssueHandler = (product) => {
-    dispatch(addToStockIssueCart(product));
-    toast.success(t.toast.addedToCart, { position: "bottom-center" });
+  const handleApproveClick = (product) => {
+    setSelectedProduct(product);
+    setShowApproveModal(true);
+  };
+
+  const handleConfirmApprove = async () => {
+    try {
+      await createStockIssue({
+        items: [
+          {
+            ...selectedProduct,
+            issueqty: selectedProduct.requestqty,
+            note: selectedProduct.note || "",
+          },
+        ],
+        issueUser: userInfo.name,
+        userId: userInfo._id,
+      }).unwrap();
+
+      toast.success(t.toast.approved);
+      setShowApproveModal(false);
+      refetchRequests();
+      refetchProducts();
+    } catch (err) {
+      toast.error(err?.data?.message || t.toast.approveFailed);
+    }
   };
 
   const handleSaveQty = async () => {
@@ -249,7 +282,7 @@ const StockRequestDashboardScreen = () => {
 
       <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 pt-8 sm:pt-12 relative z-10">
         {/* ================= HEADER ================= */}
-        <header className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10 pb-6 border-b border-slate-200/60">
+        <header className="flex flex-col md:flex-row md:items-end justify-between gap-4 md:gap-6 mb-10 pb-6 border-b border-slate-200/60">
           <div>
             <div className="flex items-center gap-3 mb-2">
               <div className="w-12 h-12 bg-white border border-slate-200/60 rounded-2xl flex items-center justify-center text-slate-700 shadow-sm">
@@ -280,16 +313,7 @@ const StockRequestDashboardScreen = () => {
               />
             </div>
 
-            {/* Issue Cart Link */}
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={() => navigate("/componentissuecartlist")}
-              className="w-full sm:w-auto flex items-center justify-center gap-2 bg-slate-900 text-white px-6 h-11 rounded-xl text-sm font-bold hover:bg-slate-800 transition-colors shadow-md"
-            >
-              <FaShoppingCart size={14} />
-              <span>{t.issueCart}</span>
-            </motion.button>
+            {/* Issue Cart Link (REMOVED) */}
           </div>
         </header>
 
@@ -329,7 +353,7 @@ const StockRequestDashboardScreen = () => {
             </div>
           </div>
 
-          <div className="hidden lg:flex bg-slate-900 rounded-2xl p-6 shadow-md items-center justify-between relative overflow-hidden">
+          <div className="hidden lg:flex bg-slate-900 rounded-2xl p-4 md:p-6 shadow-md items-center justify-between relative overflow-hidden">
             <div className="absolute -right-4 -bottom-4 opacity-10 pointer-events-none">
               <FaBoxOpen size={100} />
             </div>
@@ -395,14 +419,14 @@ const StockRequestDashboardScreen = () => {
                   <table className="w-full text-left border-collapse">
                     <thead>
                       <tr className="bg-slate-50/50 border-b border-slate-100 text-[10px] font-black uppercase tracking-widest text-slate-400">
-                        <th className="px-6 py-5">{t.headers.reqInfo}</th>
-                        <th className="px-6 py-5">{t.headers.requester}</th>
-                        <th className="px-6 py-5">{t.headers.component}</th>
-                        <th className="px-6 py-5 text-center">
+                        <th className="px-4 md:px-6 py-5">{t.headers.reqInfo}</th>
+                        <th className="px-4 md:px-6 py-5">{t.headers.requester}</th>
+                        <th className="px-4 md:px-6 py-5">{t.headers.component}</th>
+                        <th className="px-4 md:px-6 py-5 text-center">
                           {t.headers.qtyStock}
                         </th>
-                        <th className="px-6 py-5">{t.headers.note}</th>
-                        <th className="px-6 py-5 text-center">
+                        <th className="px-4 md:px-6 py-5">{t.headers.note}</th>
+                        <th className="px-4 md:px-6 py-5 text-center">
                           {t.headers.actions}
                         </th>
                       </tr>
@@ -422,7 +446,7 @@ const StockRequestDashboardScreen = () => {
                             transition={{ delay: idx * 0.03 }}
                             className="group hover:bg-indigo-50/30 transition-colors"
                           >
-                            <td className="px-6 py-5">
+                            <td className="px-4 md:px-6 py-5">
                               <div className="font-bold text-slate-900 text-sm">
                                 {p.requestno}
                               </div>
@@ -431,7 +455,7 @@ const StockRequestDashboardScreen = () => {
                                 {moment(p.requestdate).format("DD MMM YYYY")}
                               </div>
                             </td>
-                            <td className="px-6 py-5">
+                            <td className="px-4 md:px-6 py-5">
                               <div className="flex items-center gap-3">
                                 <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 border border-slate-200">
                                   <FaUser size={12} />
@@ -441,12 +465,12 @@ const StockRequestDashboardScreen = () => {
                                 </span>
                               </div>
                             </td>
-                            <td className="px-6 py-5">
+                            <td className="px-4 md:px-6 py-5">
                               <div className="flex items-center gap-3">
                                 <div className="w-10 h-10 bg-white border border-slate-200 rounded-lg flex items-center justify-center p-1 shadow-sm">
                                   {p.img ? (
                                     <img
-                                      src={`/componentImages${p.img}`}
+                                      src={p.img}
                                       alt="pic"
                                       className="max-w-full max-h-full object-contain"
                                     />
@@ -459,7 +483,7 @@ const StockRequestDashboardScreen = () => {
                                 </span>
                               </div>
                             </td>
-                            <td className="px-6 py-5 text-center">
+                            <td className="px-4 md:px-6 py-5 text-center">
                               <div
                                 className={`inline-flex flex-col items-center px-3 py-1 rounded-xl text-[11px] font-bold ${isEnough ? "bg-emerald-50 text-emerald-600" : "bg-rose-50 text-rose-600"}`}
                               >
@@ -469,7 +493,7 @@ const StockRequestDashboardScreen = () => {
                                 </span>
                               </div>
                             </td>
-                            <td className="px-6 py-5">
+                            <td className="px-4 md:px-6 py-5">
                               <p
                                 className="text-xs text-slate-500 font-medium max-w-[150px] truncate"
                                 title={p.note}
@@ -477,11 +501,11 @@ const StockRequestDashboardScreen = () => {
                                 {p.note || "-"}
                               </p>
                             </td>
-                            <td className="px-6 py-5 text-center">
+                            <td className="px-4 md:px-6 py-5 text-center">
                               <div className="flex items-center justify-center gap-2">
                                 <button
-                                  onClick={() => addToStockIssueHandler(p)}
-                                  className="w-9 h-9 rounded-xl bg-slate-900 text-white flex items-center justify-center hover:bg-indigo-600 transition-all shadow-sm"
+                                  onClick={() => handleApproveClick(p)}
+                                  className="w-9 h-9 rounded-xl bg-slate-900 text-white flex items-center justify-center hover:bg-emerald-600 transition-all shadow-sm"
                                   title={t.actions.approve}
                                 >
                                   <FaCheck size={12} />
@@ -554,7 +578,7 @@ const StockRequestDashboardScreen = () => {
                           <div className="w-14 h-14 bg-white border border-slate-200 rounded-xl flex items-center justify-center p-2 shadow-sm shrink-0">
                             {p.img ? (
                               <img
-                                src={`/componentImages${p.img}`}
+                                src={p.img}
                                 alt="pic"
                                 className="max-w-full max-h-full object-contain"
                               />
@@ -581,8 +605,8 @@ const StockRequestDashboardScreen = () => {
 
                         <div className="flex items-center gap-2">
                           <button
-                            onClick={() => addToStockIssueHandler(p)}
-                            className="flex-1 h-11 bg-slate-900 text-white rounded-xl text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 shadow-md"
+                            onClick={() => handleApproveClick(p)}
+                            className="flex-1 h-11 bg-slate-900 text-white rounded-xl text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 shadow-md hover:bg-emerald-600 transition-colors"
                           >
                             <FaCheck size={12} /> {t.actions.approve}
                           </button>
@@ -634,7 +658,7 @@ const StockRequestDashboardScreen = () => {
                   initial={{ scale: 0.95, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
                   exit={{ scale: 0.95, opacity: 0 }}
-                  className="relative bg-white rounded-[2rem] shadow-2xl w-full max-w-sm p-8 text-center border border-slate-100"
+                  className="relative bg-white rounded-[2rem] shadow-2xl w-full max-w-sm p-4 md:p-8 text-center border border-slate-100"
                 >
                   <h3 className="text-xl font-black text-slate-900 mb-6 tracking-tight">
                     {t.modal.updateQty}
@@ -676,7 +700,7 @@ const StockRequestDashboardScreen = () => {
                   initial={{ scale: 0.95, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
                   exit={{ scale: 0.95, opacity: 0 }}
-                  className="relative bg-white rounded-[2rem] shadow-2xl w-full max-w-sm p-8 text-center border border-slate-100"
+                  className="relative bg-white rounded-[2rem] shadow-2xl w-full max-w-sm p-4 md:p-8 text-center border border-slate-100"
                 >
                   <div className="w-16 h-16 bg-rose-50 text-rose-500 rounded-full flex items-center justify-center mx-auto mb-6">
                     <FaTimes size={24} />
@@ -706,6 +730,48 @@ const StockRequestDashboardScreen = () => {
                       className="flex-1 py-4 bg-rose-600 text-white font-bold rounded-2xl hover:bg-rose-700 transition-colors uppercase text-[11px] tracking-widest shadow-lg shadow-rose-100"
                     >
                       {t.modal.rejectNow}
+                    </button>
+                  </div>
+                </motion.div>
+              </div>
+            )}
+            {showApproveModal && (
+              <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  onClick={() => setShowApproveModal(false)}
+                  className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"
+                />
+                <motion.div
+                  initial={{ scale: 0.95, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  exit={{ scale: 0.95, opacity: 0 }}
+                  className="relative bg-white rounded-[2rem] shadow-2xl w-full max-w-sm p-4 md:p-8 text-center border border-slate-100"
+                >
+                  <div className="w-16 h-16 bg-emerald-50 text-emerald-500 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <FaCheck size={24} />
+                  </div>
+                  <h3 className="text-xl font-black text-slate-900 mb-2 tracking-tight">
+                    {t.modal.approveTitle}
+                  </h3>
+                  <p className="text-sm text-slate-500 font-medium mb-8">
+                    {t.modal.approveDesc}
+                  </p>
+                  <div className="flex gap-3">
+                    <button
+                      onClick={() => setShowApproveModal(false)}
+                      className="flex-1 py-4 bg-slate-100 text-slate-600 font-bold rounded-2xl hover:bg-slate-200 transition-colors uppercase text-[11px] tracking-widest"
+                    >
+                      {t.modal.cancel}
+                    </button>
+                    <button
+                      onClick={handleConfirmApprove}
+                      disabled={isIssuing}
+                      className="flex-1 py-4 bg-emerald-600 text-white font-bold rounded-2xl hover:bg-emerald-700 transition-colors uppercase text-[11px] tracking-widest shadow-lg shadow-emerald-100 disabled:opacity-50"
+                    >
+                      {isIssuing ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mx-auto" /> : t.modal.approveConfirm}
                     </button>
                   </div>
                 </motion.div>

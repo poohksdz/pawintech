@@ -44,6 +44,6 @@ router
   .route("/:id")
   .get(protect, getcopyCartPCBById)
   .put(protect, admin, updatecopyCartPCB)
-  .delete(protect, admin, deletecopyCartPCB);
+  .delete(protect, deletecopyCartPCB);
 
 module.exports = router;

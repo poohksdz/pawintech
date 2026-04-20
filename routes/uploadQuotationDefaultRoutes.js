@@ -2,8 +2,10 @@ const express = require("express");
 const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
+const { protect } = require("../middleware/authMiddleware.js");
 
 const router = express.Router();
+router.use(protect);
 
 // Ensure folder exists
 const ensureFolder = (folderPath) => {

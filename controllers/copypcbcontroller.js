@@ -86,7 +86,7 @@ const getcopyPCBs = asyncHandler(async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Failed to fetch PCB copy orders",
-      error: error.message,
+      error: "Internal server error",
     });
   }
 });
@@ -112,7 +112,7 @@ const getcopyPCBById = asyncHandler(async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Failed to fetch order",
-      error: error.message,
+      error: "Internal server error",
     });
   }
 });
@@ -145,7 +145,7 @@ const getcopyPCBByUserId = asyncHandler(async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Failed to fetch copy  orders",
-      error: error.message,
+      error: "Internal server error",
     });
   }
 });
@@ -312,7 +312,7 @@ const createcopyPCB = asyncHandler(async (req, res) => {
             receivePlace, 
             billingName, billinggAddress, billingCity, billingPostalCode, billingCountry, billingPhone, billingTax,
             transferedAmount, transferedName, paymentSlip, transferedDate,
-            orderID, paymentComfirmID, cartId, isDelivered
+            orderID, paymentComfirmID, cartId, quotation_no, isDelivered
         ) VALUES (
             ?, ?, ?, ?, ?, 
             ?, ?, ?, ?, ?, 
@@ -325,7 +325,7 @@ const createcopyPCB = asyncHandler(async (req, res) => {
             ?, 
             ?, ?, ?, ?, ?, ?, ?, 
             ?, ?, ?, ?, 
-            ?, ?, ?, 0
+            ?, ?, ?, ?, 0
         )
     `;
 
@@ -379,6 +379,7 @@ const createcopyPCB = asyncHandler(async (req, res) => {
       orderID,
       paymentComfirmID,
       cartId,
+      cart.quotation_no || null,
     ];
 
     await db.execute(insertSql, insertValues);
@@ -398,7 +399,7 @@ const createcopyPCB = asyncHandler(async (req, res) => {
       .json({
         success: false,
         message: "เกิดข้อผิดพลาดในการบันทึกข้อมูล",
-        error: error.message,
+        error: "Internal server error",
       });
   }
 });
@@ -629,7 +630,7 @@ const createcopyPCBbyAdmin = asyncHandler(async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Failed to create PCB copy order",
-      error: error.message,
+      error: "Internal server error",
     });
   }
 });
@@ -849,7 +850,7 @@ const deletecopyPCB = asyncHandler(async (req, res) => {
       .status(200)
       .json({ success: true, message: "Order deleted successfully" });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(500).json({ success: false, message: "เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์" });
   }
 });
 

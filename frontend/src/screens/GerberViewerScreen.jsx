@@ -487,7 +487,7 @@ const GerberViewerScreen = () => {
       <Meta title={t.title} />
 
       {/* --- Header Section --- */}
-      <div className="bg-white border-b border-slate-100 py-8 mb-12">
+      <div className="bg-white border-b border-slate-100 py-4 md:py-8 mb-12">
         <div className="max-w-7xl mx-auto px-4">
           <button
             onClick={() => navigate("/")}
@@ -496,7 +496,7 @@ const GerberViewerScreen = () => {
             <FaArrowLeft /> BACK
           </button>
 
-          <div className="flex items-center gap-6">
+          <div className="flex items-center gap-4 md:gap-6">
             <div className="w-16 h-16 rounded-2xl bg-black text-white flex items-center justify-center text-3xl shrink-0">
               <FaLayerGroup />
             </div>
@@ -513,11 +513,11 @@ const GerberViewerScreen = () => {
       </div>
 
       <div className="max-w-7xl mx-auto px-4">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 md:gap-8">
           <div className="lg:col-span-8 space-y-8">
             {/* Gerber Files Card */}
             <section className="bg-white rounded-3xl border border-slate-100 overflow-hidden shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
-              <div className="px-8 py-5 border-b border-slate-100 flex items-center gap-4 bg-slate-50/50">
+              <div className="px-4 md:px-8 py-5 border-b border-slate-100 flex items-center gap-4 bg-slate-50/50">
                 <div className="text-black">
                   <FaCloudUploadAlt size={20} />
                 </div>
@@ -530,7 +530,7 @@ const GerberViewerScreen = () => {
                   </p>
                 </div>
               </div>
-              <div className="p-8">
+              <div className="p-4 md:p-8">
                 <div
                   className={`relative group border-2 border-dashed rounded-2xl p-12 text-center transition-all ${uploadSuccess
                     ? "border-black bg-slate-50"
@@ -571,7 +571,7 @@ const GerberViewerScreen = () => {
 
             {/* Specifications Card */}
             <section className="bg-white rounded-3xl border border-slate-100 overflow-hidden shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
-              <div className="px-8 py-5 border-b border-slate-100 flex items-center gap-4 bg-slate-50/50">
+              <div className="px-4 md:px-8 py-5 border-b border-slate-100 flex items-center gap-4 bg-slate-50/50">
                 <div className="text-black">
                   <FaMicrochip size={20} />
                 </div>
@@ -584,12 +584,12 @@ const GerberViewerScreen = () => {
                   </p>
                 </div>
               </div>
-              <div className="p-8 space-y-12">
-                <div className="p-8 bg-slate-50/50 border border-slate-100 rounded-3xl">
+              <div className="p-4 md:p-8 space-y-12">
+                <div className="p-4 md:p-8 bg-slate-50/50 border border-slate-100 rounded-3xl">
                   <h4 className="text-[10px] font-black text-black uppercase tracking-[0.2em] mb-6 flex items-center gap-3">
                     <FaRulerCombined className="text-xs" /> {t.dimQty}
                   </h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 md:gap-10">
                     <div>
                       <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 block">
                         {t.boardSize}
@@ -666,7 +666,7 @@ const GerberViewerScreen = () => {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 md:gap-10">
                   <div>
                     <label className="text-xs font-black text-slate-400 uppercase tracking-widest mb-2 block">
                       {t.layers}
@@ -713,7 +713,7 @@ const GerberViewerScreen = () => {
                         ],
                     )}
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 md:gap-10">
                     <div>
                       <label className="text-xs font-black text-slate-400 uppercase tracking-widest mb-2 block">
                         {t.silkscreen}
@@ -752,12 +752,12 @@ const GerberViewerScreen = () => {
             <div className="sticky top-24 space-y-6">
               {/* 1. Summary Selected Card */}
               <div className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden text-start">
-                <div className="px-6 py-4 border-b border-slate-100 bg-slate-50/50">
+                <div className="px-4 md:px-6 py-4 border-b border-slate-100 bg-slate-50/50">
                   <h2 className="text-[10px] font-black tracking-widest uppercase text-slate-400 mb-0">
                     Summary Selected
                   </h2>
                 </div>
-                <div className="p-6 space-y-4">
+                <div className="p-4 md:p-6 space-y-4">
                   {[
                     { label: "Base Material", value: formData.baseMaterial },
                     { label: "Layers", value: formData.layers },
@@ -789,12 +789,12 @@ const GerberViewerScreen = () => {
 
               {/* 2. Charge Details Card */}
               <div className="bg-white rounded-3xl border border-slate-200 shadow-xl overflow-hidden text-start ring-1 ring-black/5">
-                <div className="px-6 py-4 border-b border-slate-100 bg-black text-white">
+                <div className="px-4 md:px-6 py-4 border-b border-slate-100 bg-black text-white">
                   <h2 className="text-[10px] font-black tracking-widest uppercase mb-0">
                     Charge Details
                   </h2>
                 </div>
-                <div className="p-6 space-y-5">
+                <div className="p-4 md:p-6 space-y-5">
                   {[
                     { label: "Price", value: getSubPriceRaw().toFixed(2) },
                     {

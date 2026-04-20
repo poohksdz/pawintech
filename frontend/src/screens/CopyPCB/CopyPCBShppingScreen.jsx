@@ -36,6 +36,7 @@ const InputField = ({
   fullWidth = false,
   disabled = false,
   isError = false,
+  isTextArea = false,
 }) => (
   <div
     id={`field-${id}`}
@@ -46,43 +47,62 @@ const InputField = ({
     >
       {label} {isError && "*"}
     </label>
-    <motion.input
-      animate={isError ? { x: [-2, 2, -2, 2, 0] } : {}}
-      transition={{ duration: 0.4 }}
-      type={type}
-      value={value}
-      onChange={onChange}
-      placeholder={placeholder}
-      disabled={disabled}
-      className={`w-full border rounded-xl px-4 py-3 text-sm transition-all outline-none 
-                ${
-                  disabled
-                    ? "bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed"
-                    : isError
-                      ? "bg-red-50 border-red-500 ring-4 ring-red-500/10"
-                      : "bg-slate-50 border-slate-200 text-slate-900 focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500"
-                }`}
-    />
+    {isTextArea ? (
+      <textarea
+        value={value}
+        onChange={onChange}
+        placeholder={placeholder}
+        disabled={disabled}
+        rows={3}
+        className={`w-full border rounded-[1.25rem] px-5 py-4 text-sm transition-all duration-300 outline-none shadow-sm resize-none
+                ${disabled
+            ? "bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed"
+            : isError
+              ? "bg-red-50 border-red-500 ring-4 ring-red-500/10"
+              : "bg-white border-slate-200 text-slate-900 focus:ring-4 focus:ring-teal-500/10 focus:border-teal-500 focus:shadow-lg"
+          }`}
+      />
+    ) : (
+      <motion.input
+        animate={isError ? { x: [-2, 2, -2, 2, 0] } : {}}
+        transition={{ duration: 0.4 }}
+        type={type}
+        value={value}
+        onChange={onChange}
+        placeholder={placeholder}
+        disabled={disabled}
+        className={`w-full border rounded-[1.25rem] px-5 py-4 text-sm transition-all duration-300 outline-none shadow-sm
+                ${disabled
+            ? "bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed"
+            : isError
+              ? "bg-red-50 border-red-500 ring-4 ring-red-500/10"
+              : "bg-white border-slate-200 text-slate-900 focus:ring-4 focus:ring-teal-500/10 focus:border-teal-500 focus:shadow-lg"
+          }`}
+      />
+    )}
   </div>
 );
 
 const SelectionCard = ({ icon, title, active, onClick }) => (
   <div
     onClick={onClick}
-    className={`cursor-pointer p-4 rounded-2xl border-2 transition-all duration-300 flex items-center gap-4 ${active ? "border-blue-600 bg-blue-50 shadow-md scale-[1.02]" : "border-slate-100 bg-white hover:border-slate-200 hover:scale-[1.01]"}`}
+    className={`cursor-pointer p-5 rounded-[2rem] border-2 transition-all duration-500 flex items-center gap-5 group active:scale-[0.98] ${active
+      ? "border-teal-600 bg-gradient-to-br from-teal-900 via-teal-800 to-slate-900 text-white shadow-xl shadow-teal-900/20 scale-[1.02]"
+      : "border-slate-100 bg-white hover:border-slate-200 hover:shadow-md hover:scale-[1.01]"}`}
   >
     <div
-      className={`p-3 rounded-xl transition-colors duration-300 ${active ? "bg-blue-600 text-white" : "bg-slate-100 text-slate-400"}`}
+      className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all duration-500 ${active ? "bg-white text-teal-600 shadow-lg" : "bg-slate-50 text-slate-400 group-hover:bg-slate-100 group-hover:text-teal-600"
+        }`}
     >
       {icon}
     </div>
     <div className="flex flex-grow items-center justify-between">
       <span
-        className={`font-bold text-sm transition-colors duration-300 ${active ? "text-blue-900" : "text-slate-500"}`}
+        className={`font-black text-sm uppercase tracking-wider transition-colors duration-500 ${active ? "text-white" : "text-slate-500 group-hover:text-slate-900"}`}
       >
         {title}
       </span>
-      {active && <FaCheckCircle className="text-blue-600" />}
+      {active && <FaCheckCircle className="text-emerald-400 animate-bounce-slow" />}
     </div>
   </div>
 );
@@ -106,6 +126,10 @@ const CopyPCBShippingScreen = () => {
   const [city, setCity] = useState("");
   const [postalCode, setPostalCode] = useState("");
   const [country, setCountry] = useState("");
+  const [tax, setTax] = useState("N/A");
+  const [companyName, setCompanyName] = useState("");
+  const [branch, setBranch] = useState("");
+  const [isCompanyOrder, setIsCompanyOrder] = useState(false);
 
   const [billingName, setBillingName] = useState("");
   const [billinggAddress, setBillinggAddress] = useState("");
@@ -113,7 +137,6 @@ const CopyPCBShippingScreen = () => {
   const [billingPostalCode, setBillingPostalCode] = useState("");
   const [billingCountry, setBillingCountry] = useState("");
   const [billingPhone, setBillingPhone] = useState("");
-  const [tax, setTax] = useState("");
 
   const [isReceiveCompleteSelected, setIsReceiveCompleteSelected] =
     useState(false);
@@ -136,6 +159,18 @@ const CopyPCBShippingScreen = () => {
     }
   }, [userInfo, addressSource]);
 
+  // Sync Billing Data when user selects "Full Tax Invoice" or "Buy as Company"
+  useEffect(() => {
+    if (isBillingCompleteSelected && !isCompanyOrder) {
+      setBillingName((p) => p || shippingname || userInfo?.name || "");
+      setBillingPhone((p) => p || phone || userInfo?.phone || "");
+      setBillinggAddress((p) => p || address || "");
+      setBillingCity((p) => p || city || "");
+      setBillingPostalCode((p) => p || postalCode || "");
+      setBillingCountry((p) => p || country || "Thailand");
+    }
+  }, [isBillingCompleteSelected, isCompanyOrder, shippingname, phone, address, city, postalCode, country, userInfo]);
+
   const validateAndScroll = () => {
     const newErrors = {};
     if (!isReceiveCompleteSelected && addressSource === "manual") {
@@ -147,7 +182,8 @@ const CopyPCBShippingScreen = () => {
     }
     if (isBillingCompleteSelected) {
       if (!billingName) newErrors.billingName = true;
-      if (!tax) newErrors.tax = true;
+      // Only require Tax ID if it's a company order
+      if (isCompanyOrder && !tax) newErrors.tax = true;
       if (!billingPhone) newErrors.billingPhone = true;
       if (!billinggAddress) newErrors.billinggAddress = true;
       if (!billingCity) newErrors.billingCity = true;
@@ -177,36 +213,38 @@ const CopyPCBShippingScreen = () => {
     try {
       const finalShippingAddress = isReceiveCompleteSelected
         ? {
-            shippingname: userInfo?.name || "",
-            phone: userInfo?.phone || "",
-            address: "Pickup at Company",
-            city: "Thailand",
-            postalCode: "00000",
-            country: "TH",
-          }
+          shippingname: userInfo?.name || "",
+          phone: userInfo?.phone || "",
+          address: "Pickup at Company",
+          city: "Thailand",
+          postalCode: "00000",
+          country: "TH",
+        }
         : addressSource === "profile"
           ? { ...userInfo.shippingAddress }
           : { shippingname, phone, address, city, postalCode, country };
 
       const finalBillingAddress = isBillingCompleteSelected
         ? {
-            billingName,
-            billinggAddress,
-            billingCity,
-            billingPostalCode,
-            billingCountry,
-            billingPhone,
-            tax,
-          }
+          billingName: isCompanyOrder ? companyName : shippingname,
+          billinggAddress: isCompanyOrder ? billinggAddress : address,
+          billingCity: isCompanyOrder ? billingCity : city,
+          billingPostalCode: isCompanyOrder ? billingPostalCode : postalCode,
+          billingCountry: isCompanyOrder ? billingCountry : country,
+          billingPhone: isCompanyOrder ? billingPhone : phone,
+          tax: isCompanyOrder ? tax : "N/A",
+          branch: isCompanyOrder ? branch : "",
+        }
         : {
-            billingName: finalShippingAddress.shippingname,
-            billinggAddress: finalShippingAddress.address,
-            billingCity: finalShippingAddress.city,
-            billingPostalCode: finalShippingAddress.postalCode,
-            billingCountry: finalShippingAddress.country,
-            billingPhone: finalShippingAddress.phone,
-            tax: "N/A",
-          };
+          billingName: shippingname,
+          billinggAddress: address,
+          billingCity: city,
+          billingPostalCode: postalCode,
+          billingCountry: country,
+          billingPhone: phone,
+          tax: "N/A",
+          branch: "",
+        };
 
       dispatch(
         saveShippingAddress({
@@ -242,13 +280,13 @@ const CopyPCBShippingScreen = () => {
   };
 
   return (
-    <div className="bg-[#fcfdfe] min-h-screen py-10 px-4 font-prompt antialiased">
+    <div className="bg-[#fcfdfe] min-h-screen py-4 md:py-6 md:py-10 px-4 font-prompt antialiased">
       <div className="max-w-3xl mx-auto text-start">
         <CheckoutSteps
           step1
           step2
-          shippingPath={`/assemblypcbshipping/${orderId}`}
-          paymentPath={`/assemblypcbpayment/${orderId}`}
+          shippingPath={`/${orderId}`}
+          paymentPath={`/${orderId}`}
         />
         <h1 className="text-3xl md:text-4xl font-black text-slate-900 text-center mt-10 mb-8 tracking-tight uppercase">
           การจัดส่ง (Copy PCB)
@@ -259,13 +297,13 @@ const CopyPCBShippingScreen = () => {
             layout
             className="bg-white rounded-[2rem] shadow-sm border border-slate-100 overflow-hidden"
           >
-            <div className="bg-slate-50/50 px-8 py-5 border-b border-slate-100 flex items-center gap-3 text-start">
+            <div className="bg-slate-50/50 px-4 md:px-8 py-5 border-b border-slate-100 flex items-center gap-3 text-start">
               <FaTruck className="text-blue-600" />{" "}
               <h3 className="font-bold text-slate-800">
                 เลือกวิธีการรับสินค้า
               </h3>
             </div>
-            <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="p-4 md:p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
               <SelectionCard
                 icon={<FaTruck />}
                 title="จัดส่งตามที่อยู่"
@@ -292,7 +330,7 @@ const CopyPCBShippingScreen = () => {
                 className="space-y-6 text-start"
               >
                 <div className="bg-white rounded-[2rem] shadow-sm border border-slate-100 overflow-hidden">
-                  <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="p-4 md:p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
                     <SelectionCard
                       icon={<FaIdCard />}
                       title="ใช้ที่อยู่ในโปรไฟล์"
@@ -309,13 +347,13 @@ const CopyPCBShippingScreen = () => {
                 </div>
 
                 <div className="bg-white rounded-[2rem] shadow-sm border border-slate-100 overflow-hidden">
-                  <div className="bg-slate-50/50 px-8 py-5 border-b border-slate-100 flex items-center gap-3 text-start">
+                  <div className="bg-slate-50/50 px-4 md:px-8 py-5 border-b border-slate-100 flex items-center gap-3 text-start">
                     <FaMapMarkerAlt className="text-rose-500" />{" "}
                     <h3 className="font-bold text-slate-800">ที่อยู่จัดส่ง</h3>
                   </div>
-                  <div className="p-8 text-start">
+                  <div className="p-4 md:p-8 text-start">
                     {addressSource === "profile" ? (
-                      <div className="bg-blue-50/50 border border-blue-100 rounded-2xl p-6 relative overflow-hidden group text-start">
+                      <div className="bg-blue-50/50 border border-blue-100 rounded-2xl p-4 md:p-6 relative overflow-hidden group text-start">
                         <div className="relative z-10 space-y-3 font-medium text-start">
                           <p className="text-xs font-black text-blue-400 uppercase tracking-widest">
                             ที่อยู่ในโปรไฟล์
@@ -391,7 +429,7 @@ const CopyPCBShippingScreen = () => {
                 key="pickup"
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className="bg-white rounded-[2rem] shadow-sm border border-slate-100 p-8 space-y-6 text-start"
+                className="bg-white rounded-[2rem] shadow-sm border border-slate-100 p-4 md:p-8 space-y-6 text-start"
               >
                 <div className="flex items-center gap-3 p-4 bg-indigo-50 border border-indigo-100 text-indigo-700 rounded-2xl text-sm font-bold animate-pulse text-start">
                   <FaInfoCircle />{" "}
@@ -417,11 +455,66 @@ const CopyPCBShippingScreen = () => {
             layout
             className="bg-white rounded-[2rem] shadow-sm border border-slate-100 overflow-hidden"
           >
-            <div className="bg-slate-50/50 px-8 py-5 border-b border-slate-100 flex items-center gap-3 text-start">
+            <div className="bg-slate-50/50 px-4 md:px-8 py-5 border-b border-slate-100 flex items-center gap-3 text-start">
               <FaFileInvoice className="text-emerald-500" />{" "}
               <h3 className="font-bold text-slate-800">ใบกำกับภาษี</h3>
             </div>
-            <div className="p-8 space-y-6 text-start">
+            <div className="p-4 md:p-8 space-y-6 text-start">
+              {/* Buy as Company Toggle */}
+              <div
+                onClick={() => {
+                  const newState = !isCompanyOrder;
+                  setIsCompanyOrder(newState);
+                  if (newState) {
+                    setIsBillingCompleteSelected(true);
+                    if (userInfo?.billingAddress) {
+                      setBillingName(userInfo.billingAddress.companyName || "");
+                      setTax(userInfo.billingAddress.tax || "");
+                      setCompanyName(userInfo.billingAddress.companyName || "");
+                      setBranch(userInfo.billingAddress.branch || "");
+                      setBillinggAddress(userInfo.billingAddress.address || "");
+                      setBillingCity(userInfo.billingAddress.city || "");
+                      setBillingPostalCode(userInfo.billingAddress.postalCode || "");
+                      setBillingCountry(userInfo.billingAddress.country || "Thailand");
+                      setBillingPhone(userInfo.billingAddress.phone || "");
+                    }
+                  }
+                }}
+                className={`relative overflow-hidden flex items-center justify-between p-6 rounded-[2rem] border-2 transition-all duration-500 cursor-pointer group shadow-sm active:scale-[0.98] ${isCompanyOrder
+                  ? "border-teal-600 bg-gradient-to-br from-teal-900 via-teal-800 to-slate-900 text-white shadow-xl shadow-teal-900/20"
+                  : "border-slate-100 bg-white hover:border-slate-200 hover:shadow-md"
+                  }`}
+              >
+                {/* Subtle Glow Effect for Active State */}
+                {isCompanyOrder && (
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-teal-400/20 rounded-full blur-3xl -mr-16 -mt-16 animate-pulse" />
+                )}
+
+                <div className="flex items-center gap-5 relative z-10">
+                  <div className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all duration-500 transform group-hover:rotate-6 ${isCompanyOrder ? "bg-white text-teal-600 rotate-3 shadow-lg" : "bg-slate-50 text-slate-400 group-hover:bg-slate-100 group-hover:text-teal-600 shadow-inner"
+                    }`}>
+                    <FaBuilding size={24} />
+                  </div>
+                  <div>
+                    <p className={`font-black text-base uppercase tracking-wider mb-0.5 transition-colors duration-500 ${isCompanyOrder ? "text-white" : "text-slate-800"}`}>
+                      สั่งซื้อในนามนิติบุคคล / บริษัท
+                    </p>
+                    <p className={`text-[11px] font-medium leading-tight tracking-wide transition-colors duration-500 ${isCompanyOrder ? "text-teal-200" : "text-slate-400 font-bold"}`}>
+                      {isCompanyOrder
+                        ? "✓ Verified corporate billing data active"
+                        : "( Pull company info automatically from your profile )"}
+                    </p>
+                  </div>
+                </div>
+
+                <div className={`w-12 h-12 rounded-full flex items-center justify-center border-2 transition-all duration-500 relative z-10 ${isCompanyOrder
+                  ? "border-emerald-400 bg-emerald-400 text-slate-900 scale-110 shadow-lg shadow-emerald-500/30"
+                  : "border-slate-200 bg-transparent group-hover:border-slate-300 group-hover:scale-105"
+                  }`}>
+                  {isCompanyOrder ? <FaCheckCircle size={20} /> : <div className="w-2 h-2 rounded-full bg-slate-200" />}
+                </div>
+              </div>
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <SelectionCard
                   icon={<FaFileInvoice />}
@@ -457,11 +550,19 @@ const CopyPCBShippingScreen = () => {
                         fullWidth
                       />
                       <InputField
-                        id="tax"
                         label="เลขประจำตัวผู้เสียภาษี"
+                        id="tax"
                         value={tax}
                         onChange={(e) => setTax(e.target.value)}
+                        placeholder="Tax ID (13 หลัก)"
                         isError={errors.tax}
+                      />
+                      <InputField
+                        label="สาขา (ถ้ามี)"
+                        id="branch"
+                        value={branch}
+                        onChange={(e) => setBranch(e.target.value)}
+                        placeholder="สำนักงานใหญ่ / สาขาที่..."
                       />
                       <InputField
                         id="billingPhone"
@@ -469,6 +570,7 @@ const CopyPCBShippingScreen = () => {
                         value={billingPhone}
                         onChange={(e) => setBillingPhone(e.target.value)}
                         isError={errors.billingPhone}
+                        fullWidth
                       />
                       <InputField
                         id="billinggAddress"
@@ -477,6 +579,7 @@ const CopyPCBShippingScreen = () => {
                         onChange={(e) => setBillinggAddress(e.target.value)}
                         isError={errors.billinggAddress}
                         fullWidth
+                        isTextArea
                       />
                       <InputField
                         id="billingCity"
@@ -493,9 +596,11 @@ const CopyPCBShippingScreen = () => {
                         isError={errors.billingPostalCode}
                       />
                       <InputField
+                        id="billingCountry"
                         label="ประเทศ"
                         value={billingCountry}
                         onChange={(e) => setBillingCountry(e.target.value)}
+                        fullWidth
                       />
                     </div>
                   </motion.div>

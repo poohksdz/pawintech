@@ -70,7 +70,7 @@ const CopyPCBCartConfirmModle = ({
       centered
       contentClassName="rounded-[2.5rem] border-none shadow-2xl font-prompt"
     >
-      <Modal.Header closeButton className="border-b border-slate-50 px-8 py-6">
+      <Modal.Header closeButton className="border-b border-slate-50 px-4 md:px-8 py-4 md:py-6">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center">
             <FaShieldAlt size={18} />
@@ -85,7 +85,7 @@ const CopyPCBCartConfirmModle = ({
           </div>
         </div>
       </Modal.Header>
-      <Modal.Body className="p-8">
+      <Modal.Body className="p-4 md:p-8">
         <Form>
           <div className="space-y-6">
             <div>
@@ -142,7 +142,7 @@ const CopyPCBCartConfirmModle = ({
           </div>
         </Form>
       </Modal.Body>
-      <Modal.Footer className="border-t border-slate-50 p-8 flex gap-3">
+      <Modal.Footer className="border-t border-slate-50 p-4 md:p-8 flex gap-3">
         <button
           onClick={handleClose}
           className="flex-grow py-4 rounded-2xl bg-white border-2 border-slate-50 text-slate-400 font-bold text-sm hover:bg-slate-50 transition-all"
@@ -161,7 +161,7 @@ const CopyPCBCartConfirmModle = ({
           {t.ConfirmBtn}
         </button>
       </Modal.Footer>
-      <style>{`.font-prompt { font-family: 'Prompt', sans-serif !important; }`}</style>
+      <style dangerouslySetInnerHTML={{ __html: `.font-prompt { font-family: 'Prompt', sans-serif !important; }` }} />
     </Modal>
   );
 };

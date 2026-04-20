@@ -284,7 +284,7 @@ const CopyPCBSetScreen = () => {
       )}
 
       {/* --- Header Section --- */}
-      <div className="bg-white border-b border-slate-100 py-8 mb-12">
+      <div className="bg-white border-b border-slate-100 py-4 md:py-8 mb-12">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <button
             onClick={() => navigate("/")}
@@ -293,7 +293,7 @@ const CopyPCBSetScreen = () => {
             <FaArrowLeft /> {t.back}
           </button>
 
-          <div className="flex items-center gap-6">
+          <div className="flex items-center gap-4 md:gap-6">
             <div className="w-16 h-16 rounded-2xl bg-black text-white flex items-center justify-center text-3xl shrink-0">
               <FaClone />
             </div>
@@ -312,18 +312,18 @@ const CopyPCBSetScreen = () => {
       {/* --- Main Content --- */}
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <form onSubmit={orderNowHandler}>
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 md:gap-6 md:gap-10 items-start">
             {/* Left Column: Form Data (8 cols) */}
             <div className="lg:col-span-8 space-y-6">
               {/* 1. Project Info */}
               <div className="bg-white rounded-3xl border border-slate-100 overflow-hidden shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
-                <div className="bg-slate-50/50 border-b border-slate-100 px-8 py-5 flex items-center gap-3">
+                <div className="bg-slate-50/50 border-b border-slate-100 px-4 md:px-8 py-5 flex items-center gap-3">
                   <FaInfoCircle className="text-black" />
                   <h3 className="font-black text-black text-xs uppercase tracking-widest m-0">
                     {t.projectDetails}
                   </h3>
                 </div>
-                <div className="p-8">
+                <div className="p-4 md:p-8">
                   <label className="block text-[10px] font-black text-black uppercase tracking-widest mb-3">
                     {t.projectName}
                   </label>
@@ -334,16 +334,16 @@ const CopyPCBSetScreen = () => {
                     onChange={(e) =>
                       handleChange("projectname", e.target.value)
                     }
-                    className="w-full bg-slate-50 border border-slate-100 text-black text-sm rounded-2xl px-6 py-4 focus:outline-none focus:ring-1 focus:ring-black focus:border-black focus:bg-white transition-all placeholder:text-slate-300 font-medium"
+                    className="w-full bg-slate-50 border border-slate-100 text-black text-sm rounded-2xl px-4 md:px-6 py-4 focus:outline-none focus:ring-1 focus:ring-black focus:border-black focus:bg-white transition-all placeholder:text-slate-300 font-medium"
                   />
                 </div>
               </div>
 
               {/* 2. PCB Images (Front & Back) */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                 {/* Front Side */}
                 <div className="bg-white rounded-3xl border border-slate-100 overflow-hidden flex flex-col shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
-                  <div className="bg-slate-50 border-b border-slate-100 px-6 py-4 flex items-center justify-between">
+                  <div className="bg-slate-50 border-b border-slate-100 px-4 md:px-6 py-4 flex items-center justify-between">
                     <span className="font-black text-black text-[10px] uppercase tracking-widest flex items-center gap-2">
                       <BsMotherboard className="text-black text-sm" />{" "}
                       {t.frontSide}
@@ -352,9 +352,9 @@ const CopyPCBSetScreen = () => {
                       {t.required}
                     </span>
                   </div>
-                  <div className="p-8 flex-grow flex flex-col">
+                  <div className="p-4 md:p-8 flex-grow flex flex-col">
                     <div
-                      className={`relative flex-grow flex flex-col items-center justify-center p-8 rounded-2xl border-2 border-dashed transition-all mb-4 ${dragActiveFront ? "border-black bg-slate-50" : "border-slate-100 bg-slate-50/50 hover:bg-slate-50 hover:border-slate-200"}`}
+                      className={`relative flex-grow flex flex-col items-center justify-center p-4 md:p-8 rounded-2xl border-2 border-dashed transition-all mb-4 ${dragActiveFront ? "border-black bg-slate-50" : "border-slate-100 bg-slate-50/50 hover:bg-slate-50 hover:border-slate-200"}`}
                       onDragEnter={(e) => onDrag(e, "front", true)}
                       onDragLeave={(e) => onDrag(e, "front", false)}
                       onDragOver={(e) => onDrag(e, "front", true)}
@@ -410,7 +410,7 @@ const CopyPCBSetScreen = () => {
 
                 {/* Back Side */}
                 <div className="bg-white rounded-3xl border border-slate-100 overflow-hidden flex flex-col shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
-                  <div className="bg-slate-50 border-b border-slate-100 px-6 py-4 flex items-center justify-between">
+                  <div className="bg-slate-50 border-b border-slate-100 px-4 md:px-6 py-4 flex items-center justify-between">
                     <span className="font-black text-black text-[10px] uppercase tracking-widest flex items-center gap-2">
                       <BsCpu className="text-black text-sm" /> {t.backSide}
                     </span>
@@ -418,9 +418,9 @@ const CopyPCBSetScreen = () => {
                       {t.required}
                     </span>
                   </div>
-                  <div className="p-8 flex-grow flex flex-col">
+                  <div className="p-4 md:p-8 flex-grow flex flex-col">
                     <div
-                      className={`relative flex-grow flex flex-col items-center justify-center p-8 rounded-2xl border-2 border-dashed transition-all mb-4 ${dragActiveBack ? "border-black bg-slate-50" : "border-slate-100 bg-slate-50/50 hover:bg-slate-50 hover:border-slate-200"}`}
+                      className={`relative flex-grow flex flex-col items-center justify-center p-4 md:p-8 rounded-2xl border-2 border-dashed transition-all mb-4 ${dragActiveBack ? "border-black bg-slate-50" : "border-slate-100 bg-slate-50/50 hover:bg-slate-50 hover:border-slate-200"}`}
                       onDragEnter={(e) => onDrag(e, "back", true)}
                       onDragLeave={(e) => onDrag(e, "back", false)}
                       onDragOver={(e) => onDrag(e, "back", true)}
@@ -477,7 +477,7 @@ const CopyPCBSetScreen = () => {
 
               {/* 3. Additional Files & Notes */}
               <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-                <div className="p-6 space-y-6">
+                <div className="p-4 md:p-6 space-y-6">
                   {/* Zip Upload */}
                   <div>
                     <label className="block text-[10px] font-black text-black uppercase tracking-widest mb-3">
@@ -530,7 +530,7 @@ const CopyPCBSetScreen = () => {
                       placeholder={t.phModifications}
                       value={notes}
                       onChange={(e) => setNotes(e.target.value)}
-                      className="w-full bg-slate-50 border border-slate-100 text-black text-sm rounded-2xl px-6 py-4 focus:outline-none focus:ring-1 focus:ring-black focus:border-black focus:bg-white transition-all resize-none placeholder:text-slate-300 font-medium"
+                      className="w-full bg-slate-50 border border-slate-100 text-black text-sm rounded-2xl px-4 md:px-6 py-4 focus:outline-none focus:ring-1 focus:ring-black focus:border-black focus:bg-white transition-all resize-none placeholder:text-slate-300 font-medium"
                     />
                   </div>
                 </div>
@@ -540,13 +540,13 @@ const CopyPCBSetScreen = () => {
             {/* Right Column: Sticky Sidebar (4 cols) */}
             <div className="lg:col-span-4">
               <div className="sticky top-24 bg-black rounded-[2.5rem] shadow-2xl overflow-hidden border border-white/10 ring-1 ring-white/5">
-                <div className="bg-white/5 border-b border-white/10 p-8 text-center">
+                <div className="bg-white/5 border-b border-white/10 p-4 md:p-8 text-center">
                   <h3 className="text-white font-black text-xs uppercase tracking-[0.2em] m-0">
                     {t.orderSummary}
                   </h3>
                 </div>
 
-                <div className="p-8">
+                <div className="p-4 md:p-8">
                   {/* Quantity Selector */}
                   <div className="mb-8">
                     <div className="flex justify-between items-center mb-3">

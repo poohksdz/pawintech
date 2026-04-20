@@ -22,7 +22,7 @@ const protect = asyncHandler(async (req, res, next) => {
         decoded = jwt.verify(token, process.env.JWT_SECRET);
       } catch (jwtErr) {
         console.error("❌ JWT Verify Failed:", jwtErr.message);
-        res.cookie("jwt", "", { httpOnly: true, expires: new Date(0) });
+        res.cookie("jwt", "", { httpOnly: true, expires: new Date(0), sameSite: "strict" });
         res.status(401);
         throw new Error("Not authorized, token failed");
       }
@@ -55,7 +55,7 @@ const protect = asyncHandler(async (req, res, next) => {
         next();
       } else {
         console.error("❌ User not found in SQL Database for ID:", userId);
-        res.cookie("jwt", "", { httpOnly: true, expires: new Date(0) });
+        res.cookie("jwt", "", { httpOnly: true, expires: new Date(0), sameSite: "strict" });
         res.status(401);
         throw new Error("User not found");
       }

@@ -12,37 +12,38 @@ const {
   createCustomPCBbyAdmin,
   getCustomPCBByOrderId,
 } = require("../controllers/custompcbController.js");
+const { protect, admin } = require("../middleware/authMiddleware.js");
 
 // ==========================
 // Routes
 // ==========================
 
 // Create
-router.post("/", createCustomPCB);
-router.post("/createcustompcbbyadmin", createCustomPCBbyAdmin);
+router.post("/", protect, createCustomPCB);
+router.post("/createcustompcbbyadmin", protect, admin, createCustomPCBbyAdmin);
 
 // Get all
-router.get("/", getCustomPCBs);
+router.get("/", protect, getCustomPCBs);
 
 // Get by user
-router.get("/user/:userId", getCustomPCBByUserId);
+router.get("/user/:userId", protect, getCustomPCBByUserId);
 
 // Get by orderID
-router.get("/byorderid/:orderID", getCustomPCBByOrderId);
+router.get("/byorderid/:orderID", protect, getCustomPCBByOrderId);
 
 // Update order
-router.put("/:id", updateCustomPCBById);
+router.put("/:id", protect, updateCustomPCBById);
 
 // Update delivery
-router.put("/delivery/:id", updateDeliveryCustomPCBById);
+router.put("/delivery/:id", protect, updateDeliveryCustomPCBById);
 
 // Update payment status (Admin)
-router.put("/paymentrates/:id", updatePaymentCustomPCBById);
+router.put("/paymentrates/:id", protect, admin, updatePaymentCustomPCBById);
 
 // Get by ID (ต้องอยู่ล่างสุดของ GET dynamic)
-router.get("/:id", getCustomPCBById);
+router.get("/:id", protect, getCustomPCBById);
 
 // Delete
-router.delete("/:id", deleteCustomPCB);
+router.delete("/:id", protect, admin, deleteCustomPCB);
 
 module.exports = router;

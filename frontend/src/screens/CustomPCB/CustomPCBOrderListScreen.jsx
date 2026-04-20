@@ -222,7 +222,7 @@ const CustomPCBOrderListScreen = () => {
 
         {/* Dashboard Metrics */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-          <div className="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm relative overflow-hidden group flex items-center justify-between">
+          <div className="bg-white rounded-2xl p-4 md:p-6 border border-slate-100 shadow-sm relative overflow-hidden group flex items-center justify-between">
             <div>
               <p className="text-sm font-semibold text-slate-500 mb-1 relative z-10">
                 {t.TotalOrders}
@@ -238,7 +238,7 @@ const CustomPCBOrderListScreen = () => {
               <FaClipboardList size={140} />
             </div>
           </div>
-          <div className="bg-indigo-600 rounded-2xl p-6 border border-indigo-500 shadow-md relative overflow-hidden group flex items-center justify-between text-white">
+          <div className="bg-indigo-600 rounded-2xl p-4 md:p-6 border border-indigo-500 shadow-md relative overflow-hidden group flex items-center justify-between text-white">
             <div>
               <p className="text-sm font-medium text-indigo-100 mb-1 relative z-10">
                 {t.TotalRevenue}
@@ -297,7 +297,7 @@ const CustomPCBOrderListScreen = () => {
               <Loader />
             </div>
           ) : error ? (
-            <div className="p-6">
+            <div className="p-4 md:p-6">
               <Message variant="danger">
                 {error?.data?.message || error.message || "Error occurred"}
               </Message>
@@ -309,28 +309,28 @@ const CustomPCBOrderListScreen = () => {
                 <table className="w-full text-left text-sm whitespace-nowrap border-collapse border border-slate-200">
                   <thead className="bg-[#f8fafc] text-slate-600 font-bold border-b-2 border-slate-300">
                     <tr>
-                      <th className="px-6 py-4 w-12 text-center border-r border-slate-200">
+                      <th className="px-4 md:px-6 py-4 w-12 text-center border-r border-slate-200">
                         #
                       </th>
-                      <th className="px-6 py-4 border-r border-slate-200">
+                      <th className="px-4 md:px-6 py-4 border-r border-slate-200">
                         ID
                       </th>
-                      <th className="px-6 py-4 border-r border-slate-200">
+                      <th className="px-4 md:px-6 py-4 border-r border-slate-200">
                         โปรเจกต์
                       </th>
-                      <th className="px-6 py-4 border-r border-slate-200">
+                      <th className="px-4 md:px-6 py-4 border-r border-slate-200">
                         วันที่สั่งซื้อ
                       </th>
-                      <th className="px-6 py-4 text-center border-r border-slate-200">
+                      <th className="px-4 md:px-6 py-4 text-center border-r border-slate-200">
                         สถานะ
                       </th>
-                      <th className="px-6 py-4 text-center border-r border-slate-200">
+                      <th className="px-4 md:px-6 py-4 text-center border-r border-slate-200">
                         {t.Qty}
                       </th>
-                      <th className="px-6 py-4 text-right border-r border-slate-200">
+                      <th className="px-4 md:px-6 py-4 text-right border-r border-slate-200">
                         ยอดรวม
                       </th>
-                      <th className="px-6 py-4 text-center">{t.Action}</th>
+                      <th className="px-4 md:px-6 py-4 text-center">{t.Action}</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-200 relative">
@@ -350,15 +350,15 @@ const CustomPCBOrderListScreen = () => {
                             key={pcb.id}
                             className="hover:bg-indigo-50/30 transition-colors group"
                           >
-                            <td className="px-6 py-4 text-center text-slate-500 font-semibold border-r border-slate-200">
+                            <td className="px-4 md:px-6 py-4 text-center text-slate-500 font-semibold border-r border-slate-200">
                               {index + 1}
                             </td>
-                            <td className="px-6 py-4 border-r border-slate-200">
+                            <td className="px-4 md:px-6 py-4 border-r border-slate-200">
                               <span className="font-mono text-indigo-600 font-bold bg-indigo-50 px-2.5 py-1 rounded-md border border-indigo-200 shadow-sm">
                                 {pcb.orderID}
                               </span>
                             </td>
-                            <td className="px-6 py-4 border-r border-slate-200">
+                            <td className="px-4 md:px-6 py-4 border-r border-slate-200">
                               <div
                                 className="font-bold text-slate-800 max-w-[200px] truncate"
                                 title={pcb.projectname}
@@ -366,24 +366,24 @@ const CustomPCBOrderListScreen = () => {
                                 {pcb.projectname}
                               </div>
                             </td>
-                            <td className="px-6 py-4 text-slate-600 border-r border-slate-200">
+                            <td className="px-4 md:px-6 py-4 text-slate-600 border-r border-slate-200">
                               {formatDate(pcb.created_at, language)}
                             </td>
-                            <td className="px-6 py-4 text-center border-r border-slate-200 align-middle">
+                            <td className="px-4 md:px-6 py-4 text-center border-r border-slate-200 align-middle">
                               <StatusBadge
                                 status={pcb.status}
                                 lang={language}
                               />
                             </td>
-                            <td className="px-6 py-4 text-center border-r border-slate-200 align-middle">
+                            <td className="px-4 md:px-6 py-4 text-center border-r border-slate-200 align-middle">
                               <span className="font-bold text-slate-700 bg-slate-100 px-2 py-1 rounded inline-block min-w-[2rem] border border-slate-300 shadow-sm">
                                 {pcb.pcb_qty}
                               </span>
                             </td>
-                            <td className="px-6 py-4 text-right font-bold text-emerald-600 border-r border-slate-200 text-base">
+                            <td className="px-4 md:px-6 py-4 text-right font-bold text-emerald-600 border-r border-slate-200 text-base">
                               {formatCurrency(pcb.confirmed_price)}
                             </td>
-                            <td className="px-6 py-4 align-middle">
+                            <td className="px-4 md:px-6 py-4 align-middle">
                               <div className="flex items-center justify-center gap-2 opacity-80 group-hover:opacity-100 transition-opacity">
                                 <Link
                                   to={`/admin/ordercustompcbEditlist/${pcb.id}/edit`}
@@ -424,7 +424,7 @@ const CustomPCBOrderListScreen = () => {
                         >
                           <td
                             colSpan="8"
-                            className="px-6 py-16 text-center text-slate-400 absolute w-full left-0 border-b-0"
+                            className="px-4 md:px-6 py-16 text-center text-slate-400 absolute w-full left-0 border-b-0"
                           >
                             <FaBox
                               className="mx-auto mb-3 opacity-20"
@@ -555,7 +555,7 @@ const CustomPCBOrderListScreen = () => {
                 initial={{ opacity: 0, scale: 0.95, y: 20 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                className="bg-white rounded-2xl shadow-xl w-full max-w-sm relative z-10 overflow-hidden border border-slate-100 p-6 text-center text-slate-800"
+                className="bg-white rounded-2xl shadow-xl w-full max-w-sm relative z-10 overflow-hidden border border-slate-100 p-4 md:p-6 text-center text-slate-800"
               >
                 <div className="w-16 h-16 bg-rose-100 text-rose-600 rounded-full flex items-center justify-center mx-auto mb-4">
                   <FaTrash size={28} />

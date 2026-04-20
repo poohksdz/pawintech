@@ -31,7 +31,7 @@ const ServiceScreen = () => {
             designing and manufacturing custom electronics circuits tailored to
             the specific needs of our customers. Our main services include:
           </p>
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-6 mb-8">
             {data?.services?.map((service, index) => (
               <motion.div
                 key={service._id}
@@ -40,7 +40,7 @@ const ServiceScreen = () => {
                 transition={{ duration: 0.4, delay: index * 0.1 }}
                 className="h-full"
               >
-                <div className="bg-white rounded-2xl p-6 h-full shadow-sm hover:shadow-md transition-shadow border border-slate-100 flex flex-col">
+                <div className="bg-white rounded-2xl p-4 md:p-6 h-full shadow-sm hover:shadow-md transition-shadow border border-slate-100 flex flex-col">
                   <div className="flex justify-center mb-6 h-40 bg-slate-50 rounded-xl p-4">
                     <img
                       src={service.image}
@@ -81,7 +81,7 @@ const ServiceScreen = () => {
             เรามีความเชี่ยวชาญในการให้บริการออกแบบและผลิตวงจรอิเล็กทรอนิกส์ที่ปรับแต่งตามความต้องการเฉพาะของลูกค้า
             บริการหลักของเราประกอบด้วย:
           </p>
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-6 mb-8">
             {data?.services?.map((service, index) => (
               <motion.div
                 key={service._id}
@@ -90,7 +90,7 @@ const ServiceScreen = () => {
                 transition={{ duration: 0.4, delay: index * 0.1 }}
                 className="h-full"
               >
-                <div className="bg-white rounded-2xl p-6 h-full shadow-sm hover:shadow-md transition-shadow border border-slate-100 flex flex-col">
+                <div className="bg-white rounded-2xl p-4 md:p-6 h-full shadow-sm hover:shadow-md transition-shadow border border-slate-100 flex flex-col">
                   <div className="flex justify-center mb-6 h-40 bg-slate-50 rounded-xl p-4">
                     <img
                       src={service.image}
@@ -125,7 +125,7 @@ const ServiceScreen = () => {
   const t = translations[language] || translations.en;
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 font-prompt antialiased">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 md:py-6 md:py-10 font-prompt antialiased">
       <AnimatePresence mode="wait">
         <motion.div
           key={location.pathname}
@@ -134,7 +134,7 @@ const ServiceScreen = () => {
           exit={{ opacity: 0, y: -30 }}
           transition={{ duration: 0.3, ease: "easeInOut" }}
         >
-          <div className="py-6 text-lg text-justify text-slate-700">
+          <div className="py-4 md:py-6 text-lg text-justify text-slate-700">
             {t.TextService}
           </div>
         </motion.div>

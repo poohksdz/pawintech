@@ -7,12 +7,14 @@ const uploadLogoRoutes = () => {
 export default uploadLogoRoutes;
 
 const express = require("express");
+const { protect } = require("../middleware/authMiddleware.js");
 const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
 const { v4: uuidv4 } = require("uuid");
 
 const router = express.Router();
+router.use(protect);
 
 // Ensure directory exists
 const ensureFolder = (folderPath) => {

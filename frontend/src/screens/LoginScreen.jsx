@@ -78,7 +78,7 @@ const LoginScreen = () => {
   return (
     <div className="min-h-screen flex w-full bg-white">
       {/* --- LEFT SIDE: FORM --- */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center p-6 sm:p-12 lg:p-16 animate__animated animate__fadeInLeft">
+      <div className="w-full lg:w-1/2 flex items-center justify-center p-4 md:p-6 sm:p-12 lg:p-16 animate__animated animate__fadeInLeft">
         <div className="w-full max-w-[450px] space-y-8">
           {/* Logo & Header */}
           <div className="text-center lg:text-left">

@@ -9,6 +9,7 @@ import {
   FaChevronRight,
   FaExclamationTriangle,
   FaDownload,
+  FaReceipt,
 } from "react-icons/fa";
 import { Link, useNavigate } from "react-router-dom";
 import { createPortal } from "react-dom";
@@ -19,8 +20,11 @@ import {
   useGetcopyCartByUserIDQuery,
   useDeletecopycartMutation,
 } from "../../slices/copypcbCartApiSlice";
+import { useGetDefaultInvoiceUsedQuery } from "../../slices/defaultInvoicesApiSlice";
+import FullTaxInvoiceA4 from "../../components/FullTaxInvoiceA4";
 import { toast } from "react-toastify";
 import { BASE_URL as APP_BASE_URL } from "../../constants";
+import { FaPrint } from "react-icons/fa";
 
 const CopyPCBCartScreen = () => {
   const navigate = useNavigate();
@@ -84,12 +88,14 @@ const CopyPCBCartScreen = () => {
     }
   };
 
-  const handleCancel = async (id) => {
+  const handleCancel = async () => {
+    if (!cancelTargetId) return;
     try {
-      await deleteCartItem(id).unwrap();
-      setSelectedIds(selectedIds.filter((selectedId) => selectedId !== id));
+      await deleteCartItem(cancelTargetId).unwrap();
+      setSelectedIds(selectedIds.filter((selectedId) => selectedId !== cancelTargetId));
       refetch();
       setShowConfirmModal(false);
+      setCancelTargetId(null);
       toast.success(
         language === "thai"
           ? "ลบรายการเรียบร้อยแล้ว"
@@ -174,25 +180,32 @@ const CopyPCBCartScreen = () => {
       <div className="w-full flex flex-col lg:flex-row gap-0 overflow-hidden">
         {/*  Left Column: Project Items */}
         <div className="flex-1 p-0 md:p-6 bg-white text-start">
-          {/* DESKTOP HEADER (Original) */}
-          <div className="hidden md:grid grid-cols-12 py-5 mb-8 border-b border-slate-200 text-[11px] font-black uppercase tracking-[0.2em] text-slate-400">
+          {/* DESKTOP HEADER (Premium Black) */}
+          <div className="hidden md:grid grid-cols-12 py-5 mb-8 bg-black text-[11px] font-black uppercase tracking-[0.2em] text-white rounded-t-[2rem] shadow-lg border-b border-white/10">
             <div className="col-span-1 flex items-center justify-center">
-              {/* Checkbox removed for read-only view */}
+              <CustomCheckbox
+                checked={
+                  validOrders.length > 0 &&
+                  selectedIds.length === validOrders.length
+                }
+                onChange={toggleSelectAll}
+                variant="white"
+              />
             </div>
             <div className="col-span-11 grid grid-cols-11 pl-4 gap-3 md:gap-4">
-              <div className="col-span-1 md:col-span-4 font-bold text-slate-500 text-start uppercase tracking-wider">
+              <div className="col-span-1 md:col-span-4 flex items-center text-white/90 text-start uppercase tracking-wider whitespace-nowrap">
                 {language === "thai"
-                  ? "รายการสั่งทำ Copy PCB"
-                  : "Standard Copy PCB Order"}
+                  ? "รายการสั่งทำ Copy PCB / PROJECT"
+                  : "STANDARD COPY PCB ORDER"}
               </div>
-              <div className="col-span-1 md:col-span-1 text-right font-bold pr-4 text-slate-500 uppercase tracking-wider">
-                {language === "thai" ? "จำนวน" : "Qty"}
+              <div className="col-span-1 md:col-span-1 text-right font-black pr-4 text-white/90 uppercase tracking-wider whitespace-nowrap">
+                {language === "thai" ? "จำนวน / QTY" : "QTY"}
               </div>
-              <div className="col-span-1 md:col-span-3 text-center font-bold text-slate-500 uppercase tracking-wider">
-                {language === "thai" ? "สถานะ" : "Status"}
+              <div className="col-span-1 md:col-span-3 text-center font-black text-white/90 uppercase tracking-wider whitespace-nowrap">
+                {language === "thai" ? "สถานะ / STATUS" : "STATUS"}
               </div>
-              <div className="col-span-1 md:col-span-3 text-right font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap md:pr-10">
-                {language === "thai" ? "ราคา" : "Price"}
+              <div className="col-span-1 md:col-span-3 text-right font-black text-white uppercase tracking-wider whitespace-nowrap md:pr-10">
+                {language === "thai" ? "ราคาประเมิน / PRICE" : "PRICE"}
               </div>
             </div>
           </div>
@@ -250,67 +263,82 @@ const CopyPCBCartScreen = () => {
                       layout
                       className="border-b border-slate-100 pb-4 md:pb-6 relative group"
                     >
-                      {/* --- MOBILE VIEW: PREMIUM TRUE BLACK CARD --- */}
-                      <div className="md:hidden flex flex-col w-full bg-[#0a0a0a] border border-zinc-900 p-6 rounded-[2.5rem] shadow-2xl overflow-hidden mb-6 relative group active:scale-[0.98] transition-all duration-300">
-                        {/* Status Badge Top Right */}
-                        <div className="absolute top-6 right-6 z-20">
-                          {order.status === "accepted" ? (
-                            <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-50 text-emerald-600 border border-emerald-100 text-[9px] font-black uppercase tracking-widest shadow-sm">
-                              <FaShieldAlt size={8} /> {language === "thai" ? "อนุมัติแล้ว" : "Approved"}
-                            </div>
-                          ) : (
-                            <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-50 text-amber-500 border border-amber-100 text-[9px] font-black uppercase tracking-widest shadow-sm animate-pulse">
-                              <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
-                              {language === "thai" ? "รอตรวจสอบ" : "Pending"}
-                            </div>
-                          )}
-                        </div>
-
-                        {/* Image section */}
-                        <div className="w-full h-32 bg-[#111111] rounded-[2rem] flex items-center justify-center overflow-hidden mb-5 border border-zinc-800/50">
-                          {order.front_image_1 ? (
-                            <img src={getFullUrl(order.front_image_1)} alt="PCB" className="w-full h-full object-contain p-4 transition-transform duration-500 group-hover:scale-105" />
-                          ) : (
-                            <FaCopy size={48} className="text-zinc-800" />
-                          )}
-                        </div>
-
-                        {/* Product Info */}
-                        <div className="flex flex-col mb-6">
-                          <Link to={`/copycartpcb/${order.id}`} className="text-[18px] font-black text-white uppercase tracking-tight leading-tight mb-1">
-                            {order.projectname || "Untitled Project"}
-                          </Link>
-                          <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-[0.2em]">
-                            ID: {order.id} • COPY PCB
-                          </span>
-                        </div>
-
-                        {/* Details Grid */}
-                        <div className="grid grid-cols-2 gap-4 mb-6">
-                          <div className="flex flex-col bg-zinc-900/50 p-4 rounded-3xl border border-zinc-800/30">
-                            <span className="text-[8px] font-black text-zinc-500 uppercase tracking-widest mb-1">Quantity</span>
-                            <span className="text-[16px] font-black text-white">{order.pcb_qty} PCS</span>
+                      {/* --- MOBILE VIEW: REFINED COMPACT WHITE CARD --- */}
+                      <div className="md:hidden flex flex-col w-full bg-white border border-slate-200 p-4 rounded-3xl shadow-sm mb-4 relative group active:scale-[0.98] transition-all duration-300">
+                        {/* Status Badge Row */}
+                        <div className="flex justify-end items-start mb-3">
+                          <div className="flex gap-2 items-center">
+                            {order.status === "accepted" ? (
+                              <div className="inline-flex items-center gap-1.5 px-2 py-1 rounded-md bg-emerald-50 text-emerald-600 border border-emerald-100 text-[9px] font-black uppercase tracking-widest shadow-sm">
+                                <FaShieldAlt size={8} /> {language === "thai" ? "อนุมัติแล้ว" : "Approved"}
+                              </div>
+                            ) : (
+                              <div className="inline-flex items-center gap-1.5 px-2 py-1 rounded-md bg-amber-50 text-amber-500 border border-amber-100 text-[9px] font-black uppercase tracking-widest shadow-sm animate-pulse">
+                                <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+                                {language === "thai" ? "รอตรวจสอบ" : "Pending"}
+                              </div>
+                            )}
                           </div>
-                          <div className="flex flex-col bg-indigo-500/10 p-4 rounded-3xl border border-indigo-500/20 items-end text-right">
-                            <span className="text-[8px] font-black text-indigo-400 uppercase tracking-widest mb-1">Total Amount</span>
-                            <span className="text-[18px] font-black text-indigo-400 leading-none">
-                              {formatPrice(order.confirmed_price, order.status)}
+                        </div>
+
+                        <div className="flex gap-4 items-center">
+                          {/* Image section */}
+                          <div className="w-24 h-24 shrink-0 bg-slate-50 flex items-center justify-center overflow-hidden border border-slate-100 rounded-[1.25rem]">
+                            {order.front_image_1 ? (
+                              <img src={getFullUrl(order.front_image_1)} alt="PCB" className="w-full h-full object-contain p-2" />
+                            ) : (
+                              <FaCopy size={32} className="text-slate-300" />
+                            )}
+                          </div>
+
+                          {/* Details Section */}
+                          <div className="flex flex-col flex-1 min-w-0">
+                            <Link to={`/copycartpcb/${order.id}`} className="text-sm font-bold text-slate-800 uppercase tracking-tight leading-snug mb-0.5 line-clamp-2">
+                              {order.projectname || "Untitled Project"}
+                            </Link>
+                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">
+                              ID: {order.id} • COPY PCB
                             </span>
-                          </div>
-                        </div>
 
-                        {/* Action Bar */}
-                        <div className="flex items-center justify-end gap-3">
-                          {order.copypcb_zip && (
-                            <a
-                              href={getFullUrl(order.copypcb_zip)}
-                              download
-                              className="w-14 h-14 bg-blue-500/10 border border-blue-500/20 text-blue-500 flex items-center justify-center rounded-2xl hover:bg-blue-500 hover:text-white transition-all shadow-lg shadow-blue-900/10"
-                              title="Download Files"
-                            >
-                              <FaDownload size={18} />
-                            </a>
-                          )}
+                            {/* Action Row */}
+                            <div className="flex justify-between items-end mt-auto gap-3">
+                              <div className="flex flex-col">
+                                <span className="text-[15px] font-black text-blue-600">{formatPrice(order.confirmed_price, order.status)}</span>
+                                <span className="text-[10px] font-bold text-slate-400">{order.pcb_qty} PCS</span>
+                              </div>
+
+                              <div className="flex items-center gap-2">
+                                {order.copypcb_zip && (
+                                  <a
+                                    href={getFullUrl(order.copypcb_zip)}
+                                    download
+                                    className="w-8 h-8 bg-slate-50 border border-slate-200 text-blue-500 flex items-center justify-center rounded-xl hover:bg-white transition-all shadow-sm"
+                                  >
+                                    <FaDownload size={14} />
+                                  </a>
+                                )}
+                                {order.quotation_no && (
+                                  <Link
+                                    to={`/${order.quotation_no}`}
+                                    target="_blank"
+                                    className="w-8 h-8 bg-blue-50 border border-blue-100 text-blue-500 flex items-center justify-center rounded-xl hover:bg-white transition-all shadow-sm"
+                                    title="View Quotation"
+                                  >
+                                    <FaReceipt size={14} />
+                                  </Link>
+                                )}{" "}
+                                <button
+                                  onClick={() => {
+                                    setCancelTargetId(order.id);
+                                    setShowConfirmModal(true);
+                                  }}
+                                  className="w-8 h-8 bg-rose-50 border border-rose-100 text-rose-500 flex items-center justify-center rounded-xl hover:bg-white transition-all shadow-sm"
+                                >
+                                  <FaTrashAlt size={14} />
+                                </button>
+                              </div>
+                            </div>
+                          </div>
                         </div>
                       </div>
 
@@ -388,6 +416,16 @@ const CopyPCBCartScreen = () => {
                             <span className="font-bold text-[16px] text-slate-900 leading-none whitespace-nowrap">
                               {formatPrice(order.confirmed_price, order.status)}
                             </span>
+                            {order.quotation_no && (
+                              <Link
+                                to={`/${order.quotation_no}`}
+                                target="_blank"
+                                className="p-2 text-blue-400 hover:text-blue-600 hover:bg-blue-50 rounded-full transition-all duration-200"
+                                title="View Quotation"
+                              >
+                                <FaReceipt size={14} />
+                              </Link>
+                            )}
                             {order.copypcb_zip && (
                               <a
                                 href={getFullUrl(order.copypcb_zip)}
@@ -398,7 +436,18 @@ const CopyPCBCartScreen = () => {
                                 <FaDownload size={14} />
                               </a>
                             )}
-                            {/* Trash button removed */}
+                            {order.status !== "paid" && (
+                              <button
+                                onClick={() => {
+                                  setCancelTargetId(order.id);
+                                  setShowConfirmModal(true);
+                                }}
+                                className="p-2 text-gray-300 hover:text-rose-500 hover:bg-rose-50 rounded-full transition-all duration-200"
+                                title="Cancel/Remove Order"
+                              >
+                                <FaTrashAlt size={14} />
+                              </button>
+                            )}
                           </div>
                         </div>
                       </div>
@@ -413,7 +462,7 @@ const CopyPCBCartScreen = () => {
         </div>
 
         {/*  Right Column: Summary */}
-        <div className="w-full lg:w-[350px] bg-white border-l border-slate-200/60 p-8 lg:p-10 shrink-0 flex flex-col text-start">
+        <div className="w-full lg:w-[350px] bg-white border-l border-slate-200/60 p-4 md:p-8 lg:p-10 shrink-0 flex flex-col text-start">
           <h2 className="text-[14px] font-bold text-slate-800 uppercase tracking-[0.2em] mb-10">
             {language === "thai" ? "SUMMARY" : "SUMMARY"}
           </h2>
@@ -439,10 +488,10 @@ const CopyPCBCartScreen = () => {
                   disabled={
                     selectedIds.length === 0 || acceptedItems.length === 0
                   }
-                  className={`w-full py-4 rounded-lg text-[13px] font-bold tracking-[0.1em] uppercase transition-all flex items-center justify-center gap-3 mb-8
+                  className={`w-full py-4 rounded-xl text-[13px] font-black tracking-[0.1em] uppercase transition-all flex items-center justify-center gap-3 mb-4
                                         ${selectedIds.length > 0 &&
                       acceptedItems.length > 0
-                      ? "bg-black text-white hover:bg-zinc-900 shadow-lg hover:shadow-xl active:scale-[0.98]"
+                      ? "bg-black text-white hover:bg-zinc-900 shadow-xl hover:shadow-2xl active:scale-[0.98]"
                       : "bg-slate-200 text-slate-400 cursor-not-allowed"
                     }
                                     `}
@@ -451,10 +500,11 @@ const CopyPCBCartScreen = () => {
                     ? "ชำระเงินตามที่เลือก"
                     : "Checkout Selected"}
                 </button>
+
               </div>
 
               {/* Evaluation Info Box */}
-              <div className="bg-[#f8fafc] border border-slate-200 rounded-xl p-6 space-y-4">
+              <div className="bg-[#f8fafc] border border-slate-200 rounded-xl p-4 md:p-6 space-y-4">
                 <h4 className="text-[11px] font-black text-slate-800 uppercase tracking-widest">
                   {language === "thai"
                     ? "การประเมินเบื้องต้น"
@@ -487,52 +537,48 @@ const CopyPCBCartScreen = () => {
         </div>
       </div>
 
-      {/* Confirm Delete Modal */}
+      {/* Confirmation Modal */}
       {showConfirmModal &&
         createPortal(
-          <div
-            className="fixed inset-0 z-[9999] flex items-center justify-center p-4 overflow-hidden"
-            style={{ width: "100vw", height: "100vh", top: 0, left: 0 }}
-          >
-            <AnimatePresence>
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                onClick={() => setShowConfirmModal(false)}
-                className="absolute inset-0 bg-slate-900/60 backdrop-blur-md"
-              />
-            </AnimatePresence>
+          <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
             <motion.div
-              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowConfirmModal(false)}
+              className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
+            />
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0, y: 20 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.9, opacity: 0, y: 20 }}
-              className="relative bg-white rounded-[3rem] shadow-3xl w-full max-w-sm p-12 text-center border border-white/20 font-prompt z-10"
+              className="relative w-full max-w-sm bg-white rounded-3xl shadow-2xl overflow-hidden"
             >
-              <div className="w-20 h-20 bg-rose-50 text-rose-500 rounded-3xl flex items-center justify-center mx-auto mb-8 shadow-inner border border-rose-100/50">
-                <FaExclamationTriangle size={32} />
-              </div>
-              <h3 className="text-2xl font-black text-slate-900 mb-3 uppercase tracking-tight leading-none">
-                {language === "thai" ? "ลบรายการ?" : "Remove Item?"}
-              </h3>
-              <p className="text-sm text-slate-500 mb-10 font-medium leading-relaxed">
-                {language === "thai"
-                  ? "คุณแน่ใจหรือไม่ที่จะลบรายการนี้ออกจากตะกร้า?"
-                  : "Are you sure you want to remove this project from your cart?"}
-              </p>
-              <div className="flex gap-4">
-                <button
-                  onClick={() => setShowConfirmModal(false)}
-                  className="flex-1 py-4 bg-slate-100 text-slate-500 font-black text-[11px] uppercase tracking-widest hover:bg-slate-200 transition-all rounded-2xl border-none"
-                >
-                  {language === "thai" ? "ยกเลิก" : "Cancel"}
-                </button>
-                <button
-                  onClick={() => handleCancel(cancelTargetId)}
-                  className="flex-1 py-4 bg-rose-600 text-white font-black text-[11px] uppercase tracking-widest hover:bg-rose-700 transition-all shadow-xl shadow-rose-200 rounded-2xl border-none"
-                >
-                  {language === "thai" ? "ยืนยันการลบ" : "Remove"}
-                </button>
+              <div className="p-8 text-center">
+                <div className="w-16 h-16 bg-rose-50 text-rose-500 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                  <FaExclamationTriangle size={32} />
+                </div>
+                <h3 className="text-xl font-black text-slate-900 mb-2 uppercase tracking-tight">
+                  {language === "thai" ? "ยืนยันการลบ" : "Confirm Deletion"}
+                </h3>
+                <p className="text-sm text-slate-500 font-medium leading-relaxed mb-8">
+                  {language === "thai"
+                    ? "คุณแน่ใจหรือไม่ว่าต้องการลบรายการนี้ออกจากตะกร้า? การดำเนินการนี้ไม่สามารถย้อนกลับได้"
+                    : "Are you sure you want to remove this item? This action cannot be undone."}
+                </p>
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    onClick={() => setShowConfirmModal(false)}
+                    className="py-3 px-6 rounded-xl text-sm font-bold text-slate-500 bg-slate-100 hover:bg-slate-200 transition-colors"
+                  >
+                    {language === "thai" ? "ยกเลิก" : "Cancel"}
+                  </button>
+                  <button
+                    onClick={() => handleCancel(cancelTargetId)}
+                    className="py-3 px-6 rounded-xl text-sm font-bold text-white bg-rose-500 hover:bg-rose-600 shadow-lg shadow-rose-200 transition-all active:scale-95"
+                  >
+                    {language === "thai" ? "ลบรายการ" : "Delete"}
+                  </button>
+                </div>
               </div>
             </motion.div>
           </div>,

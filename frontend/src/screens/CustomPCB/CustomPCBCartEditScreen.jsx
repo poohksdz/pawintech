@@ -197,7 +197,7 @@ const CustomPCBCartEditScreen = () => {
 
   return (
     <div className="min-h-screen bg-slate-50/50 pb-12 font-prompt">
-      <Container className="py-6">
+      <Container className="py-4 md:py-6">
         {/* Header & Navigation */}
         <div className="mb-8">
           <div className="flex items-center gap-4 mb-4">
@@ -235,7 +235,7 @@ const CustomPCBCartEditScreen = () => {
             <Col lg={8}>
               <div className="space-y-6">
                 {/* Project Name Card */}
-                <div className="bg-white rounded-[2.5rem] shadow-sm border border-slate-100 p-8">
+                <div className="bg-white rounded-[2.5rem] shadow-sm border border-slate-100 p-4 md:p-8">
                   <div className="flex items-center gap-3 mb-6">
                     <div className="w-10 h-10 rounded-2xl bg-blue-50 text-blue-500 flex items-center justify-center">
                       <FaMicrochip size={18} />
@@ -260,7 +260,7 @@ const CustomPCBCartEditScreen = () => {
                 </div>
 
                 {/* Images Card */}
-                <div className="bg-white rounded-[2.5rem] shadow-sm border border-slate-100 p-8">
+                <div className="bg-white rounded-[2.5rem] shadow-sm border border-slate-100 p-4 md:p-8">
                   <div className="flex items-center justify-between mb-6">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-2xl bg-blue-50 text-blue-500 flex items-center justify-center">
@@ -318,7 +318,7 @@ const CustomPCBCartEditScreen = () => {
                 </div>
 
                 {/* Technical Files Card */}
-                <div className="bg-white rounded-[2.5rem] shadow-sm border border-slate-100 p-8">
+                <div className="bg-white rounded-[2.5rem] shadow-sm border border-slate-100 p-4 md:p-8">
                   <div className="flex items-center gap-3 mb-6">
                     <div className="w-10 h-10 rounded-2xl bg-amber-50 text-amber-500 flex items-center justify-center">
                       <FaFileArchive size={18} />
@@ -368,7 +368,7 @@ const CustomPCBCartEditScreen = () => {
                     ) : (
                       <label
                         htmlFor="zipFileInput"
-                        className="block w-full py-6 rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50/50 hover:bg-amber-50/50 hover:border-amber-200 transition-all cursor-pointer group text-center"
+                        className="block w-full py-4 md:py-6 rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50/50 hover:bg-amber-50/50 hover:border-amber-200 transition-all cursor-pointer group text-center"
                       >
                         <FaCloudUploadAlt
                           size={24}
@@ -383,7 +383,7 @@ const CustomPCBCartEditScreen = () => {
                 </div>
 
                 {/* Notes Card */}
-                <div className="bg-white rounded-[2.5rem] shadow-sm border border-slate-100 p-8">
+                <div className="bg-white rounded-[2.5rem] shadow-sm border border-slate-100 p-4 md:p-8">
                   <div className="flex items-center gap-3 mb-6">
                     <div className="w-10 h-10 rounded-2xl bg-emerald-50 text-emerald-500 flex items-center justify-center">
                       <FaSave size={18} />
@@ -407,7 +407,7 @@ const CustomPCBCartEditScreen = () => {
             {/* Right Column: Summary & Submit */}
             <Col lg={4}>
               <div className="sticky top-6 space-y-6">
-                <div className="bg-white rounded-[2.5rem] shadow-sm border border-slate-100 p-8">
+                <div className="bg-white rounded-[2.5rem] shadow-sm border border-slate-100 p-4 md:p-8">
                   <h5 className="text-lg font-bold text-slate-900 mb-6">
                     Configuration
                   </h5>

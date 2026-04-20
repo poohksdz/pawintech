@@ -147,10 +147,10 @@ const StockListForIssueScreen = () => {
     .reduce((a, [, b]) => a + Number(b), 0);
 
   return (
-    <div className="font-sans text-gray-800 bg-white min-h-[600px] py-10 px-4 md:px-8 flex justify-center w-full text-start">
+    <div className="font-sans text-gray-800 bg-white min-h-[600px] py-4 md:py-6 lg:py-10 px-4 md:px-8 flex justify-center w-full text-start">
       <div className="w-full max-w-[1200px] flex flex-col lg:flex-row gap-0 border border-gray-200/60 shadow-sm rounded-md overflow-hidden bg-white">
         {/*  Left Column: Cart Items */}
-        <div className="flex-1 p-6 md:p-8 bg-white text-start">
+        <div className="flex-1 p-4 md:p-6 lg:p-8 bg-white text-start">
           <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 mb-10 border-b border-gray-200 pb-6">
             <h1 className="text-[18px] font-black text-gray-900 uppercase tracking-tight">
               Component Issue Cart
@@ -202,7 +202,7 @@ const StockListForIssueScreen = () => {
                     key={p.ID}
                     className={`border p-5 rounded-md relative group transition-all duration-300 ${selectedItems.includes(p.ID) ? "border-gray-800 shadow-sm bg-gray-50/50" : "border-gray-200 bg-white hover:border-gray-300"}`}
                   >
-                    <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-start md:items-center">
+                    <div className="grid grid-cols-1 md:grid-cols-12 gap-4 md:gap-6 items-start md:items-center">
                       {/* 1. Part Info */}
                       <div className="col-span-1 md:col-span-8 flex gap-4 items-start md:items-center w-full">
                         <input
@@ -214,7 +214,7 @@ const StockListForIssueScreen = () => {
                         <div className="w-20 h-20 md:w-28 md:h-28 bg-[#f3f4f6] shrink-0 flex items-center justify-center overflow-hidden rounded-md border border-gray-100 p-2 relative">
                           {p.img ? (
                             <img
-                              src={`/componentImages${p.img}`}
+                              src={p.img}
                               alt={p.electotronixPN}
                               className="w-full h-full object-contain mix-blend-multiply"
                             />
@@ -301,7 +301,7 @@ const StockListForIssueScreen = () => {
             </AnimatePresence>
           </div>
 
-          <div className="mt-8 pt-4 flex flex-col sm:flex-row gap-6">
+          <div className="mt-8 pt-4 flex flex-col sm:flex-row gap-4 md:gap-6">
             <button
               onClick={() => navigate(-1)}
               className="text-[11px] font-bold text-gray-400 hover:text-black transition-colors uppercase tracking-[0.2em] flex items-center gap-2 w-fit"
@@ -312,7 +312,7 @@ const StockListForIssueScreen = () => {
         </div>
 
         {/*  Right Column: Summary */}
-        <div className="w-full lg:w-[350px] bg-[#f8f8f8] p-6 lg:p-8 shrink-0 flex flex-col text-start border-t lg:border-t-0 lg:border-l border-gray-200/50">
+        <div className="w-full lg:w-[350px] bg-[#f8f8f8] p-4 md:p-6 lg:p-8 shrink-0 flex flex-col text-start border-t lg:border-t-0 lg:border-l border-gray-200/50">
           <h2 className="text-[14px] font-bold text-gray-900 uppercase tracking-wide mb-6">
             Issue Summary
           </h2>
@@ -348,7 +348,7 @@ const StockListForIssueScreen = () => {
             </div>
 
             <div className="mt-auto">
-              <div className="bg-white border border-dashed border-gray-300 rounded-sm p-6 shadow-sm">
+              <div className="bg-white border border-dashed border-gray-300 rounded-sm p-4 md:p-6 shadow-sm">
                 <p className="text-[11px] text-gray-500 font-medium leading-relaxed mb-4">
                   <strong className="text-gray-900 uppercase tracking-widest block mb-2 text-[10px]">
                     Issue Policy
@@ -383,7 +383,7 @@ const StockListForIssueScreen = () => {
                   initial={{ scale: 0.95, opacity: 0, y: 20 }}
                   animate={{ scale: 1, opacity: 1, y: 0 }}
                   exit={{ scale: 0.95, opacity: 0, y: 20 }}
-                  className="relative bg-white rounded-sm shadow-2xl w-full max-w-sm p-8 text-center border-t-4 border-black font-sans"
+                  className="relative bg-white rounded-sm shadow-2xl w-full max-w-sm p-4 md:p-8 text-center border-t-4 border-black font-sans"
                 >
                   <div className="mx-auto w-16 h-16 bg-gray-50 border border-gray-200 rounded-full flex items-center justify-center mb-6">
                     <FaCheckCircle className="text-green-600 text-3xl" />
@@ -432,7 +432,7 @@ const StockListForIssueScreen = () => {
                   initial={{ scale: 0.95, opacity: 0, y: 20 }}
                   animate={{ scale: 1, opacity: 1, y: 0 }}
                   exit={{ scale: 0.95, opacity: 0, y: 20 }}
-                  className="relative bg-white rounded-sm shadow-2xl w-full max-w-sm p-8 text-center border-t-4 border-black font-sans"
+                  className="relative bg-white rounded-sm shadow-2xl w-full max-w-sm p-4 md:p-8 text-center border-t-4 border-black font-sans"
                 >
                   <div className="mx-auto w-16 h-16 bg-red-50 border border-red-100 rounded-full flex items-center justify-center mb-6 shadow-inner">
                     <FaTrashAlt className="text-red-500 text-2xl" />
@@ -465,13 +465,13 @@ const StockListForIssueScreen = () => {
           document.body,
         )}
 
-      <style>{`
-            .hide-scrollbar::-webkit-inner-spin-button, 
-            .hide-scrollbar::-webkit-outer-spin-button { 
-               -webkit-appearance: none; 
-               margin: 0; 
+      <style dangerouslySetInnerHTML={{ __html: `
+            .hide-scrollbar::-webkit-inner-spin-button,
+            .hide-scrollbar::-webkit-outer-spin-button {
+               -webkit-appearance: none;
+               margin: 0;
             }
-         `}</style>
+         ` }} />
     </div>
   );
 };

@@ -154,7 +154,7 @@ const createStockGoodsreceipt = asyncHandler(async (req, res) => {
     console.error(`Error creating goodsreceipts: ${error.message}`);
     res.status(500).json({
       error: "Error creating goodsreceipts",
-      detail: error.message,
+      detail: "Internal error",
     });
   }
 });

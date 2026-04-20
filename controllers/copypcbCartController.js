@@ -1,5 +1,6 @@
 const asyncHandler = require("../middleware/asyncHandler");
 const { pool } = require("../config/db.js"); //  เรียกใช้ pool ให้ถูกต้อง
+const { automateQuotation } = require("../utils/quotationAutomation");
 
 // Utility: Generate timestamp
 const getTimestamp = () => {
@@ -74,7 +75,7 @@ const getcopyCartPCBs = asyncHandler(async (req, res) => {
     );
     res.status(200).json({ success: true, data: rows });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(500).json({ success: false, message: "เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์" });
   }
 });
 
@@ -91,7 +92,7 @@ const getcopyCartPCBById = asyncHandler(async (req, res) => {
         .json({ success: false, message: "Order not found" });
     res.status(200).json({ success: true, data: rows[0] });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(500).json({ success: false, message: "เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์" });
   }
 });
 
@@ -105,7 +106,7 @@ const getcopyCartPCBByUserId = asyncHandler(async (req, res) => {
     );
     res.status(200).json({ success: true, count: rows.length, data: rows });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(500).json({ success: false, message: "เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์" });
   }
 });
 
@@ -213,7 +214,7 @@ const createcopyCartPCB = asyncHandler(async (req, res) => {
       });
   } catch (error) {
     console.error("Create Copy PCB Error:", error);
-    res.status(500).json({ success: false, message: error.message });
+    res.status(500).json({ success: false, message: "เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์" });
   }
 });
 
@@ -279,7 +280,7 @@ const updatecopyCartPCB = asyncHandler(async (req, res) => {
     await pool.query(sql, values);
     res.status(200).json({ success: true, message: "Updated successfully" });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(500).json({ success: false, message: "เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์" });
   }
 });
 
@@ -291,7 +292,7 @@ const updateAmountcopyCartPCBById = asyncHandler(async (req, res) => {
     ]);
     res.status(200).json({ success: true, message: "Qty set to 0" });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(500).json({ success: false, message: "เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์" });
   }
 });
 
@@ -326,9 +327,14 @@ const updateStatuscopyCartPCBById = asyncHandler(async (req, res) => {
       `UPDATE pcb_copy_carts SET ${fields.join(", ")}, updated_at=NOW() WHERE id=?`,
       values,
     );
+
+    if (status === "accepted") {
+      automateQuotation("copy", id).catch(err => console.error("Copy automation error:", err));
+    }
+
     res.status(200).json({ success: true, message: "Status updated" });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(500).json({ success: false, message: "เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์" });
   }
 });
 
@@ -372,7 +378,7 @@ const updateShippingcopyCartPCBById = asyncHandler(async (req, res) => {
     await pool.query(sql, values);
     res.status(200).json({ success: true, message: "Shipping info updated" });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(500).json({ success: false, message: "เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์" });
   }
 });
 
@@ -400,7 +406,7 @@ const updatePaymentcopyCartPCBById = asyncHandler(async (req, res) => {
         paymentComfirmID: paymentID,
       });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(500).json({ success: false, message: "เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์" });
   }
 });
 
@@ -412,7 +418,7 @@ const deletecopyCartPCB = asyncHandler(async (req, res) => {
     ]);
     res.status(200).json({ success: true, message: "Deleted successfully" });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(500).json({ success: false, message: "เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์" });
   }
 });
 

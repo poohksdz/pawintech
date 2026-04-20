@@ -86,7 +86,7 @@ const OrderassemblySetScreen = () => {
   return (
     <div className="min-h-screen bg-white pb-20 font-sans antialiased selection:bg-black selection:text-white">
       {/* Header Section */}
-      <div className="bg-white border-b border-slate-100 py-8 mb-12">
+      <div className="bg-white border-b border-slate-100 py-4 md:py-8 mb-12">
         <div className="max-w-5xl mx-auto px-4 sm:px-6">
           <button
             onClick={() => navigate("/")}
@@ -95,7 +95,7 @@ const OrderassemblySetScreen = () => {
             <FaArrowLeft /> BACK
           </button>
 
-          <div className="flex items-center gap-6">
+          <div className="flex items-center gap-4 md:gap-6">
             <div className="w-16 h-16 rounded-2xl bg-black text-white flex items-center justify-center text-3xl shrink-0">
               <FaLayerGroup />
             </div>
@@ -126,7 +126,7 @@ const OrderassemblySetScreen = () => {
                 {isActive && (
                   <motion.div
                     layoutId="activeTabBackground"
-                    className={`absolute inset-0 bg-black rounded-2xl z-0 shadow-lg shadow-black/20`}
+                    className="absolute inset-0 bg-black rounded-2xl z-0 shadow-lg shadow-black/20"
                     transition={{ type: "spring", stiffness: 400, damping: 35 }}
                   />
                 )}
@@ -155,7 +155,7 @@ const OrderassemblySetScreen = () => {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
-              className="flex flex-col sm:flex-row items-center gap-2 sm:gap-4 bg-white px-8 py-4 rounded-3xl border border-slate-100 shadow-sm"
+              className="flex flex-col sm:flex-row items-center gap-2 sm:gap-4 bg-white px-4 md:px-8 py-4 rounded-3xl border border-slate-100 shadow-sm"
             >
               <div className="flex items-center gap-3">
                 <FaCheckCircle className="shrink-0 text-black text-sm" />

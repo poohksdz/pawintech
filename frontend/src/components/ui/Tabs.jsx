@@ -19,11 +19,10 @@ export const Tabs = ({ children, defaultActiveKey, className = "" }) => {
               key={tab.props.eventKey}
               onClick={() => setActiveKey(tab.props.eventKey)}
               className={`
-                whitespace-nowrap py-3 px-6 text-sm font-medium border-b-2 transition-colors duration-200 focus:outline-none
-                ${
-                  isActive
-                    ? "border-blue-600 text-blue-600"
-                    : "border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300"
+                whitespace-nowrap py-3 px-4 md:px-6 text-sm font-medium border-b-2 transition-colors duration-200 focus:outline-none
+                ${isActive
+                  ? "border-blue-600 text-blue-600"
+                  : "border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300"
                 }
               `}
             >

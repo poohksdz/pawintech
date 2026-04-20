@@ -38,7 +38,7 @@ const Footer = () => {
       companyName: "Pawin Technology Co., Ltd.",
       slogan: "Precision engineering for global electronics.",
       addressHeader: "Location",
-      addressText: "139/65 Soi Romklao 24, Bangkok 10510.",
+      addressText: "124 Soi Rom Klao 24, Min Buri, Bangkok, 10510",
       taxIDLbl: "Tax ID",
       legal: "Precision · Innovation",
       mapHeader: "Our Office",
@@ -57,7 +57,7 @@ const Footer = () => {
       companyName: "บริษัท ภาวินท์เทคโนโลยี จำกัด",
       slogan: "ผู้เชี่ยวชาญด้านนวัตกรรมและวิศวกรรมอิเล็กทรอนิกส์",
       addressHeader: "ที่ตั้งสำนักงาน",
-      addressText: "139/65 ซอยร่มเกล้า 24 กรุงเทพฯ 10510",
+      addressText: "124 ซอยร่มเกล้า 24 กรุงเทพฯ 10510",
       taxIDLbl: "เลขประจำตัวผู้เสียภาษี",
       legal: "ความแม่นยำ · นวัตกรรม",
       mapHeader: "แผนที่",
@@ -100,12 +100,12 @@ const Footer = () => {
   );
 
   return (
-    <footer className="relative bg-[#020617] text-zinc-400 mt-32 pt-20 pb-12 border-t border-blue-900/30 overflow-hidden selection:bg-blue-500/20">
+    <footer className="relative bg-[#020617] text-zinc-400 mt-32 pt-20 pb-12 border-t border-blue-900/30 overflow-hidden selection:bg-blue-500/20 print:hidden">
       {/* --- Ambient Background Glow --- */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-px bg-gradient-to-r from-transparent via-blue-500/40 to-transparent" />
       <div className="absolute -top-24 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-blue-600/10 blur-[120px] rounded-full pointer-events-none" />
 
-      <div className="max-w-7xl mx-auto px-8 relative z-10">
+      <div className="max-w-7xl mx-auto px-4 md:px-8 relative z-10">
         {/* --- Top Section: Brand & Newsletter --- */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-20 mb-20">
           <div className="lg:col-span-5">
@@ -169,7 +169,7 @@ const Footer = () => {
                 placeholder={t.placeholder}
                 className="w-full bg-zinc-900/30 border border-zinc-800/50 rounded-2xl py-4 pl-6 pr-32 text-sm text-zinc-200 focus:outline-none focus:ring-1 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all duration-500 placeholder:text-zinc-600 hover:bg-zinc-900/50"
               />
-              <button className="absolute right-2 bg-white text-black text-[12px] font-black uppercase tracking-wider px-6 py-2.5 rounded-xl transition-all duration-500 hover:bg-blue-500 hover:text-white active:scale-95 shadow-xl">
+              <button className="absolute right-2 bg-white text-black text-[12px] font-black uppercase tracking-wider px-4 md:px-6 py-2.5 rounded-xl transition-all duration-500 hover:bg-blue-500 hover:text-white active:scale-95 shadow-xl">
                 {t.subscribe}
               </button>
             </form>
@@ -194,7 +194,7 @@ const Footer = () => {
                     animate={{ height: "auto", opacity: 1 }}
                     exit={{ height: 0, opacity: 0 }}
                     transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-                    className="py-8 lg:py-0 overflow-hidden"
+                    className="py-4 md:py-8 lg:py-0 overflow-hidden"
                   >
                     <div className="lg:mb-8 hidden lg:block">
                       <h4 className="text-white text-[11px] font-bold uppercase tracking-[0.2em]">
@@ -241,7 +241,7 @@ const Footer = () => {
                     animate={{ height: "auto", opacity: 1 }}
                     exit={{ height: 0, opacity: 0 }}
                     transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-                    className="py-8 lg:py-0 overflow-hidden"
+                    className="py-4 md:py-8 lg:py-0 overflow-hidden"
                   >
                     <div className="lg:mb-8 hidden lg:block">
                       <h4 className="text-white text-[11px] font-bold uppercase tracking-[0.2em]">
@@ -289,7 +289,7 @@ const Footer = () => {
                     animate={{ height: "auto", opacity: 1 }}
                     exit={{ height: 0, opacity: 0 }}
                     transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-                    className="py-8 lg:py-0 overflow-hidden"
+                    className="py-4 md:py-8 lg:py-0 overflow-hidden"
                   >
                     <div className="lg:mb-8 hidden lg:block">
                       <h4 className="text-white text-[11px] font-bold uppercase tracking-[0.2em]">
@@ -328,7 +328,7 @@ const Footer = () => {
                     animate={{ height: "auto", opacity: 1 }}
                     exit={{ height: 0, opacity: 0 }}
                     transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-                    className="py-8 lg:py-0 overflow-hidden"
+                    className="py-4 md:py-8 lg:py-0 overflow-hidden"
                   >
                     <div className="lg:mb-8 hidden lg:block">
                       <h4 className="text-white text-[11px] font-bold uppercase tracking-[0.2em]">
@@ -356,7 +356,7 @@ const Footer = () => {
         </div>
 
         {/* --- Bottom Bar --- */}
-        <div className="pt-10 border-t border-zinc-900/50 flex flex-col md:flex-row justify-between items-center gap-8">
+        <div className="pt-10 border-t border-zinc-900/50 flex flex-col md:flex-row justify-between items-center gap-4 md:gap-8">
           <p className="text-zinc-600 text-[11px] font-medium tracking-tight">
             &copy; {currentYear}{" "}
             <span className="text-zinc-400 font-bold ml-1">{t.companyName}</span>

@@ -67,7 +67,7 @@ const ForgotPasswordScreen = () => {
   return (
     <div className="min-h-screen flex w-full bg-white font-['Prompt']">
       {/* --- LEFT SIDE: FORM --- */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center p-8 sm:p-12 lg:p-16 animate__animated animate__fadeInLeft">
+      <div className="w-full lg:w-1/2 flex items-center justify-center p-4 md:p-8 sm:p-12 lg:p-16 animate__animated animate__fadeInLeft">
         <div className="w-full max-w-[450px] space-y-8">
           {/* Header */}
           <div className="text-center lg:text-left">
@@ -96,7 +96,7 @@ const ForgotPasswordScreen = () => {
 
           {isSubmitted ? (
             <div className="space-y-6 animate__animated animate__fadeInUp">
-              <div className="bg-emerald-50 border border-emerald-100 rounded-[2.5rem] p-8 text-center shadow-sm">
+              <div className="bg-emerald-50 border border-emerald-100 rounded-[2.5rem] p-4 md:p-8 text-center shadow-sm">
                 <FaCheckCircle
                   size={64}
                   className="text-emerald-500 mx-auto mb-4"
@@ -141,7 +141,7 @@ const ForgotPasswordScreen = () => {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full flex justify-center items-center py-4 px-6 bg-indigo-600 text-white rounded-2xl font-black uppercase tracking-widest text-sm hover:bg-indigo-700 focus:ring-4 focus:ring-indigo-500/20 disabled:opacity-50 transition-all shadow-xl shadow-indigo-600/20 active:scale-[0.98]"
+                className="w-full flex justify-center items-center py-4 px-4 md:px-6 bg-indigo-600 text-white rounded-2xl font-black uppercase tracking-widest text-sm hover:bg-indigo-700 focus:ring-4 focus:ring-indigo-500/20 disabled:opacity-50 transition-all shadow-xl shadow-indigo-600/20 active:scale-[0.98]"
               >
                 {isLoading ? (
                   <div className="w-6 h-6 border-3 border-white border-t-transparent rounded-full animate-spin"></div>

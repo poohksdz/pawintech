@@ -131,7 +131,7 @@ const ServiceScreen = () => {
                 <div className="pt-6 flex justify-center max-w-2xl mx-auto lg:mx-0">
                   <Link
                     to="/contact"
-                    className="bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white text-lg rounded-full px-10 py-4 shadow-lg shadow-indigo-500/30 font-semibold transition-all duration-300 hover:-translate-y-1"
+                    className="bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white text-lg rounded-full px-4 md:px-10 py-4 shadow-lg shadow-indigo-500/30 font-semibold transition-all duration-300 hover:-translate-y-1"
                   >
                     {t.contact}
                   </Link>
@@ -178,7 +178,7 @@ const ServiceScreen = () => {
             <div className="w-16 h-1.5 bg-indigo-600 rounded-full mt-4"></div>
           </motion.div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 lg:gap-8">
             {[
               {
                 icon: <FaShieldAlt />,
@@ -200,7 +200,7 @@ const ServiceScreen = () => {
               },
             ].map((f, i) => (
               <motion.div variants={itemFadeUp} key={i}>
-                <div className="bg-white dark:bg-zinc-900/40 border border-slate-100 dark:border-zinc-800 rounded-3xl p-8 h-full shadow-sm transition-all duration-300 hover:shadow-xl hover:shadow-indigo-900/5 hover:-translate-y-2 group">
+                <div className="bg-white dark:bg-zinc-900/40 border border-slate-100 dark:border-zinc-800 rounded-3xl p-4 md:p-8 h-full shadow-sm transition-all duration-300 hover:shadow-xl hover:shadow-indigo-900/5 hover:-translate-y-2 group">
                   <div className="w-14 h-14 bg-indigo-50 dark:bg-zinc-800 text-indigo-600 dark:text-indigo-400 rounded-2xl flex items-center justify-center text-2xl mb-6 group-hover:scale-110 group-hover:bg-indigo-600 group-hover:text-white transition-all duration-300">
                     {f.icon}
                   </div>
@@ -217,7 +217,7 @@ const ServiceScreen = () => {
         </section>
 
         {/* --- Process Timeline Section --- */}
-        <section className="mb-20 py-16 px-6 lg:px-12 bg-white dark:bg-zinc-950/20 rounded-[3rem] shadow-sm border border-slate-100 dark:border-zinc-800 transition-colors">
+        <section className="mb-20 py-16 px-4 md:px-6 lg:px-12 bg-white dark:bg-zinc-950/20 rounded-[3rem] shadow-sm border border-slate-100 dark:border-zinc-800 transition-colors">
           <motion.div variants={itemFadeUp} className="text-center mb-16">
             <h3 className="font-extrabold text-3xl text-slate-900 dark:text-white transition-colors">
               {t.process}
@@ -229,7 +229,7 @@ const ServiceScreen = () => {
             {/* Dashed Connecting Line */}
             <div className="hidden md:block absolute top-[28px] left-[10%] right-[10%] h-[2px] border-t-2 border-dashed border-slate-200 dark:border-zinc-800 z-0 transition-colors"></div>
 
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-10 lg:gap-6 justify-center">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 md:gap-10 lg:gap-6 justify-center">
               {[
                 { s: "01", t: language === "thai" ? "วางแผน" : "Plan" },
                 { s: "02", t: language === "thai" ? "ออกแบบ" : "Design" },
@@ -270,7 +270,7 @@ const ServiceScreen = () => {
           </div>
 
           <div className="overflow-x-auto pb-8 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-            <div className="flex md:grid md:grid-cols-4 gap-6">
+            <div className="flex md:grid md:grid-cols-4 gap-4 md:gap-6">
               {services?.services
                 ?.filter((s) => s._id !== service._id)
                 .slice(0, 4)
@@ -280,7 +280,7 @@ const ServiceScreen = () => {
                     variants={itemFadeUp}
                     className="min-w-[280px] md:min-w-0"
                   >
-                    <Link to={`/service/${item.ID}`} className="block group">
+                    <Link to={`/${item.ID}`} className="block group">
                       <div className="bg-white dark:bg-zinc-900/40 rounded-[2rem] border border-slate-100 dark:border-zinc-800 p-3 h-full transition-all duration-500 hover:shadow-2xl hover:shadow-indigo-900/10 dark:hover:shadow-indigo-900/5">
                         <div className="aspect-[4/3] rounded-2xl overflow-hidden relative mb-4">
                           <div className="absolute inset-0 bg-slate-900/10 group-hover:bg-transparent z-10 transition-colors duration-500"></div>
@@ -327,13 +327,13 @@ const ServiceScreen = () => {
       </div>
 
       {/* Tailwind Custom Animation (Float) */}
-      <style>{`
+      <style dangerouslySetInnerHTML={{ __html: `
         @keyframes float {
           0% { transform: translateY(0px); }
           50% { transform: translateY(-15px); }
           100% { transform: translateY(0px); }
         }
-      `}</style>
+      ` }} />
     </motion.div>
   );
 };

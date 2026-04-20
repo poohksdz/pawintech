@@ -30,7 +30,7 @@ const getMyOrders = asyncHandler(async (req, res) => {
       const [orders] = await pool.query(
         `SELECT o.*, 
         (SELECT GROUP_CONCAT(productName SEPARATOR ', ') FROM orderitems WHERE order_id = o.id) as projectname 
-        FROM orders o WHERE o.user_id = ? AND (o.status IN ('Paid', 'COMPLETED') OR o.isPaid = 1)`,
+        FROM orders o WHERE o.user_id = ?`,
         [userId],
       );
       orders.forEach((o) =>
@@ -47,6 +47,7 @@ const getMyOrders = asyncHandler(async (req, res) => {
           createdAt: o.createdAt,
           projectname: o.projectname,
           paymentSlip: o.paymentSlip,
+          quotation_no: o.quotation_no || null,
         }),
       );
     } catch (e) {
@@ -73,6 +74,7 @@ const getMyOrders = asyncHandler(async (req, res) => {
           createdAt: o.created_at,
           projectname: o.projectname,
           paymentSlip: o.paymentSlip,
+          quotation_no: o.quotation_no || null,
         }),
       );
     } catch (e) {
@@ -82,14 +84,14 @@ const getMyOrders = asyncHandler(async (req, res) => {
     // 3. ดึง Copy PCB (ลบ isPaid ออก)
     try {
       const [copies] = await pool.query(
-        `SELECT * FROM pcb_copy_carts WHERE user_id = ? AND (status IN ('paid', 'accepted') OR paymentSlip IS NOT NULL AND paymentSlip != '')`,
+        `SELECT * FROM pcb_copy_orders WHERE user_id = ? AND (status IN ('paid', 'accepted') OR paymentSlip IS NOT NULL AND paymentSlip != '')`,
         [userId],
       );
       copies.forEach((o) =>
         allOrders.push({
           id: o.id,
           orderType: "copy",
-          amount: o.confirmed_price || o.estimatedCost,
+          amount: o.confirmed_price || o.transferedAmount,
           qty: o.pcb_qty,
           status: o.status || "paid",
           isPaid: 1,
@@ -99,6 +101,7 @@ const getMyOrders = asyncHandler(async (req, res) => {
           createdAt: o.created_at,
           projectname: o.projectname || "งาน Copy PCB",
           paymentSlip: o.paymentSlip || "",
+          quotation_no: o.quotation_no || null,
         }),
       );
     } catch (e) {
@@ -108,7 +111,7 @@ const getMyOrders = asyncHandler(async (req, res) => {
     // 4. ดึง Assembly PCB (ลบ isPaid ออก)
     try {
       const [assemblies] = await pool.query(
-        `SELECT * FROM pcb_assembly_carts WHERE user_id = ? AND (status IN ('paid', 'accepted') OR paymentSlip IS NOT NULL AND paymentSlip != '')`,
+        `SELECT * FROM pcb_assembly_orders WHERE user_id = ? AND (status IN ('paid', 'accepted') OR paymentSlip IS NOT NULL AND paymentSlip != '')`,
         [userId],
       );
       assemblies.forEach((o) =>
@@ -125,6 +128,7 @@ const getMyOrders = asyncHandler(async (req, res) => {
           createdAt: o.created_at,
           projectname: o.projectname || "งาน Assembly PCB",
           paymentSlip: o.paymentSlip || "",
+          quotation_no: o.quotation_no || null,
         }),
       );
     } catch (e) {
@@ -152,6 +156,7 @@ const getMyOrders = asyncHandler(async (req, res) => {
           projectname: o.projectname,
           paymentSlip: o.paymentSlip,
           isManufacting: o.isManufacting,
+          quotation_no: o.quotation_no || null,
         }),
       );
     } catch (e) {
@@ -337,7 +342,7 @@ const addOrderItems = asyncHandler(async (req, res) => {
     await connection.rollback();
     console.error("🔥 Transaction Error:", error.message);
     res.status(500);
-    throw new Error(error.message);
+    throw new Error("เกิดข้อผิดพลาดภายใน");
   } finally {
     //  คืน Connection เข้า Pool เสมอ ไม่ว่าจะสำเร็จหรือไม่
     connection.release();
@@ -350,9 +355,10 @@ const addOrderItems = asyncHandler(async (req, res) => {
 const getAllUnifiedOrders = asyncHandler(async (req, res) => {
   const sql = `
     SELECT 
-      _id as id, paymentComfirmID as orderID, 'Product Order' as projectname, '-' as company, 
+      id as id, paymentComfirmID as orderID, 'Product Order' as projectname, '-' as company, 
       userName as customer, shippingPhone as phone, totalPrice as price, 
-      IF(isDelivered = 1, 'delivered', 'pending') as status, createdAt, 'PRODUCT' as type
+      IF(isDelivered = 1, 'delivered', 'pending') as status, createdAt, 'PRODUCT' as type,
+      NULL as quotation_no
     FROM orders
     
     UNION ALL
@@ -360,7 +366,8 @@ const getAllUnifiedOrders = asyncHandler(async (req, res) => {
     SELECT 
       id, orderID, projectname, compay_name as company, 
       userName as customer, userPhone as phone, confirmed_price as price, 
-      status, created_at as createdAt, 'ASSEMBLY PCB' as type
+      status, created_at as createdAt, 'ASSEMBLY PCB' as type,
+      NULL as quotation_no
     FROM pcb_assembly_orders
     
     UNION ALL
@@ -368,7 +375,8 @@ const getAllUnifiedOrders = asyncHandler(async (req, res) => {
     SELECT 
       id, orderID, projectname, compay_name as company, 
       userName as customer, userPhone as phone, confirmed_price as price, 
-      status, created_at as createdAt, 'CUSTOM PCB' as type
+      status, created_at as createdAt, 'CUSTOM PCB' as type,
+      NULL as quotation_no
     FROM pcb_custom_orders
     
     UNION ALL
@@ -376,7 +384,8 @@ const getAllUnifiedOrders = asyncHandler(async (req, res) => {
     SELECT 
       id, orderID, projectname, compay_name as company, 
       userName as customer, userPhone as phone, confirmed_price as price, 
-      status, created_at as createdAt, 'COPY PCB' as type
+      status, created_at as createdAt, 'COPY PCB' as type,
+      NULL as quotation_no
     FROM pcb_copy_orders
     
     UNION ALL
@@ -384,7 +393,8 @@ const getAllUnifiedOrders = asyncHandler(async (req, res) => {
     SELECT 
       id, orderID, projectname, compay_name as company, 
       userName as customer, userPhone as phone, total_amount_cost as price, 
-      IF(isManufacting = 1, 'manufacturing', 'accepted') as status, created_at as createdAt, 'GERBER PCB' as type
+      IF(isManufacting = 1, 'manufacturing', 'accepted') as status, created_at as createdAt, 'GERBER PCB' as type,
+      quotation_no
     FROM order_pcbs
     
     ORDER BY createdAt DESC
@@ -494,6 +504,15 @@ const updateOrderToDelivered = asyncHandler(async (req, res) => {
   );
   res.json({ message: "Delivered" });
 });
+
+const updateOrderStatusByQuotationNo = asyncHandler(async (req, res) => {
+  const { quotation_no, status } = req.body;
+  await pool.query("UPDATE orders SET status = ? WHERE quotation_no = ?", [
+    status,
+    quotation_no,
+  ]);
+  res.json({ message: "Status Updated" });
+});
 const updateTransportationPrice = asyncHandler(async (req, res) => {
   await pool.query(
     `UPDATE transportaitions SET transportationPrice = ? WHERE ID = ?`,
@@ -520,4 +539,5 @@ module.exports = {
   updateTransportationPrice,
   getTransportationPrice,
   getAllUnifiedOrders, //  Added
+  updateOrderStatusByQuotationNo,
 };

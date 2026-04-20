@@ -312,7 +312,7 @@ const StockUserIssueDashboardScreen = () => {
                 <td>
                   {p.img ? (
                     <img
-                      src={`/componentImages${p.img}`}
+                      src={p.img}
                       alt="product"
                       width="50"
                       height="50"

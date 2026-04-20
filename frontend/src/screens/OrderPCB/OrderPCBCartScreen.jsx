@@ -10,15 +10,19 @@ import {
   FaChevronRight,
   FaExclamationTriangle,
   FaTimes,
+  FaReceipt,
 } from "react-icons/fa";
 import { Link, useNavigate } from "react-router-dom";
 import { createPortal } from "react-dom";
 import CustomCheckbox from "../../components/CustomCheckbox";
 import { removeFromPCBCart } from "../../slices/pcbCartSlice";
 import { useGetOrderPCBCartByUserIdQuery, useDeleteOrderpcbCartMutation } from "../../slices/orderpcbCartApiSlice";
+import { useGetDefaultInvoiceUsedQuery } from "../../slices/defaultInvoicesApiSlice";
+import FullTaxInvoiceA4 from "../../components/FullTaxInvoiceA4";
 import { toast } from "react-toastify";
 import Loader from "../../components/Loader";
 import Message from "../../components/Message";
+import { FaPrint } from "react-icons/fa";
 
 const OrderPCBCartScreen = () => {
   const navigate = useNavigate();
@@ -148,8 +152,8 @@ const OrderPCBCartScreen = () => {
       <div className="w-full flex flex-col lg:flex-row gap-0 overflow-hidden">
         {/*  Left Column: Cart Items */}
         <div className="flex-1 p-0 md:p-6 text-start">
-          {/* DESKTOP HEADER (Original) */}
-          <div className="hidden md:grid grid-cols-12 py-5 mb-8 border-b border-slate-200 text-[11px] font-black uppercase tracking-[0.2em] text-slate-400">
+          {/* DESKTOP HEADER (Premium Black) */}
+          <div className="hidden md:grid grid-cols-12 py-5 mb-8 bg-black text-[11px] font-black uppercase tracking-[0.2em] text-white rounded-t-[2rem] shadow-lg border-b border-white/10">
             <div className="col-span-1 flex items-center justify-center">
               <CustomCheckbox
                 checked={
@@ -157,19 +161,20 @@ const OrderPCBCartScreen = () => {
                   selectedIds.length === pcbOrderDetails.length
                 }
                 onChange={toggleSelectAll}
+                variant="white"
               />
             </div>
             <div className="col-span-11 grid grid-cols-11 pl-4 gap-2 md:gap-4">
-              <div className="col-span-6 font-semibold text-slate-900">
+              <div className="col-span-6 flex items-center text-white/90 whitespace-nowrap">
                 {language === "thai"
-                  ? "รายการ Standard PCB"
-                  : "Standard PCB Project"}
+                  ? "รายการ Standard PCB / PROJECT"
+                  : "STANDARD PCB PROJECT"}
               </div>
-              <div className="col-span-2 text-right font-semibold pr-4 text-slate-900">
-                {language === "thai" ? "จำนวน" : "Qty"}
+              <div className="col-span-2 text-right font-black pr-4 text-white/90 whitespace-nowrap">
+                {language === "thai" ? "จำนวน / QTY" : "QUANTITY"}
               </div>
-              <div className="col-span-3 text-right font-semibold text-slate-900 md:pr-10">
-                {language === "thai" ? "ยอดรวม" : "Subtotal"}
+              <div className="col-span-3 text-right font-black text-white md:pr-10">
+                {language === "thai" ? "ยอดรวม / SUBTOTAL" : "SUBTOTAL"}
               </div>
             </div>
           </div>
@@ -227,75 +232,70 @@ const OrderPCBCartScreen = () => {
                       layout
                       className="pb-4 md:pb-6 border-b border-slate-100 relative group"
                     >
-                      {/* --- MOBILE VIEW: PREMIUM TRUE BLACK CARD --- */}
-                      <div className="md:hidden flex flex-col w-full bg-[#0a0a0a] border border-zinc-900 p-6 rounded-[2.5rem] shadow-2xl overflow-hidden mb-6 relative group active:scale-[0.98] transition-all duration-300">
-                        {/* Selection Overlay */}
-                        <div className="absolute top-6 left-6 z-20">
+                      {/* --- MOBILE VIEW: REFINED COMPACT WHITE CARD --- */}
+                      <div className="md:hidden flex flex-col w-full bg-white border border-slate-200 p-4 rounded-3xl shadow-sm mb-4 relative group active:scale-[0.98] transition-all duration-300">
+                        {/* Selection and Status Row */}
+                        <div className="flex justify-between items-start mb-3">
                           <CustomCheckbox
                             checked={selectedIds.includes(item.id)}
                             onChange={() => toggleSelect(item.id)}
                           />
-                        </div>
-
-                        {/* Status Badge Top Right */}
-                        <div className="absolute top-6 right-6 z-20">
-                          <span className={`px-3 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest shadow-sm border ${item.status === 'accepted' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : item.status === 'pending' ? 'bg-amber-50 text-amber-500 border-amber-100 animate-pulse' : 'bg-rose-50 text-rose-600 border-rose-100'}`}>
-                            {item.status.toUpperCase()}
-                          </span>
-                        </div>
-
-                        {/* Icon Section */}
-                        <div className="w-full h-32 bg-[#111111] rounded-[2rem] flex items-center justify-center overflow-hidden mb-5 border border-zinc-800/50">
-                          <FaMicrochip size={48} className="text-zinc-800" />
-                        </div>
-
-                        {/* Project Info */}
-                        <div className="flex flex-col mb-6">
-                          <h3 className="text-[18px] font-black text-white uppercase tracking-tight leading-tight mb-1">
-                            {item.projectname || "Untitled Project"}
-                          </h3>
-                          <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-[0.2em]">
-                            ID: {item.id} • STANDARD PCB
-                          </span>
-                        </div>
-
-                        {/* Details Grid */}
-                        <div className="grid grid-cols-3 gap-2 mb-6">
-                          <div className="bg-zinc-900/50 p-3 rounded-2xl border border-zinc-800/30 flex flex-col items-center text-center">
-                            <span className="text-[7px] font-black text-zinc-500 uppercase tracking-widest mb-1">Layers</span>
-                            <span className="text-[11px] font-black text-white">{item.layers || 1}L</span>
-                          </div>
-                          <div className="bg-zinc-900/50 p-3 rounded-2xl border border-zinc-800/30 flex flex-col items-center text-center">
-                            <span className="text-[7px] font-black text-zinc-500 uppercase tracking-widest mb-1">Quantity</span>
-                            <span className="text-[11px] font-black text-white">{item.pcb_qty || item.pcb_quantity} PCS</span>
-                          </div>
-                          <div className="bg-zinc-900/50 p-3 rounded-2xl border border-zinc-800/30 flex flex-col items-center text-center overflow-hidden">
-                            <span className="text-[7px] font-black text-zinc-500 uppercase tracking-widest mb-1 text-center">Size (mm)</span>
-                            <span className="text-[10px] font-black text-white truncate w-full">{item.length_cm}x{item.width_cm}</span>
-                          </div>
-                        </div>
-
-                        {/* Action Bar */}
-                        <div className="flex items-center justify-between gap-4">
-                          <div className="flex-1 flex flex-col bg-indigo-500/10 p-4 rounded-2xl border border-indigo-500/20">
-                            <span className="text-[8px] font-black text-indigo-400 uppercase tracking-widest mb-1">Subtotal</span>
-                            <span className="text-[18px] font-black text-indigo-400 leading-none">
-                              {formatPrice(item.confirmed_price || item.price || item.total_amount_cost)}
+                          <div className="flex gap-2 items-center">
+                            <span className={`px-2 py-1 rounded-md text-[9px] font-black uppercase tracking-widest shadow-sm border ${item.status === 'accepted' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : item.status === 'pending' ? 'bg-amber-50 text-amber-500 border-amber-100 animate-pulse' : 'bg-rose-50 text-rose-600 border-rose-100'}`}>
+                              {item.status.toUpperCase()}
                             </span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <button
-                              onClick={() => setViewingItem(item)}
-                              className="w-14 h-14 bg-zinc-900 border border-zinc-800 text-zinc-400 flex items-center justify-center rounded-2xl hover:text-white transition-all"
-                            >
-                              <FaEye size={18} />
-                            </button>
                             <button
                               onClick={() => { setItemToRemoveId(item.id); setShowConfirmModal(true); }}
-                              className="w-14 h-14 bg-rose-500/10 border border-rose-500/20 text-rose-500 flex items-center justify-center rounded-2xl hover:bg-rose-500 hover:text-white transition-all"
+                              className="text-slate-400 hover:text-rose-500 transition-colors p-1"
                             >
-                              <FaTrashAlt size={18} />
+                              <FaTrashAlt size={14} />
                             </button>
+                          </div>
+                        </div>
+
+                        <div className="flex gap-4 items-center">
+                          {/* Icon section */}
+                          <div className="w-24 h-24 shrink-0 bg-slate-50 flex items-center justify-center overflow-hidden border border-slate-100 rounded-[1.25rem]">
+                            <FaMicrochip size={32} className="text-slate-300" />
+                          </div>
+
+                          {/* Details Section */}
+                          <div className="flex flex-col flex-1 min-w-0">
+                            <h3 className="text-sm font-bold text-slate-800 uppercase tracking-tight leading-snug mb-0.5 line-clamp-2">
+                              {item.projectname || "Untitled Project"}
+                            </h3>
+                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">
+                              ID: {item.id} • STANDARD
+                            </span>
+
+                            {/* Price and Action Row */}
+                            <div className="flex justify-between items-end mt-auto">
+                              <div className="flex flex-col">
+                                <span className="text-[15px] font-black text-blue-600">
+                                  {formatPrice(item.confirmed_price || item.price || item.total_amount_cost)}
+                                </span>
+                                <span className="text-[10px] font-bold text-slate-400">
+                                  {item.pcb_qty || item.pcb_quantity} PCS • {item.layers || 1}L
+                                </span>
+                              </div>
+
+                              <button
+                                onClick={() => setViewingItem(item)}
+                                className="w-8 h-8 bg-slate-50 border border-slate-200 text-slate-400 flex items-center justify-center rounded-xl hover:bg-white transition-all shadow-sm hover:text-blue-500"
+                              >
+                                <FaEye size={14} />
+                              </button>
+                              {item.quotation_no && (
+                                <Link
+                                  to={`/${item.quotation_no}`}
+                                  target="_blank"
+                                  className="w-8 h-8 bg-blue-50 border border-blue-100 text-blue-500 flex items-center justify-center rounded-xl hover:bg-white transition-all shadow-sm"
+                                  title="View Quotation"
+                                >
+                                  <FaReceipt size={14} />
+                                </Link>
+                              )}
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -363,6 +363,16 @@ const OrderPCBCartScreen = () => {
                             >
                               <FaEye size={14} />
                             </button>
+                            {item.quotation_no && (
+                              <Link
+                                to={`/${item.quotation_no}`}
+                                target="_blank"
+                                className="p-2 text-blue-400 hover:text-blue-600 hover:bg-blue-50 rounded-full transition-all duration-200"
+                                title="View Quotation"
+                              >
+                                <FaReceipt size={14} />
+                              </Link>
+                            )}
                             <button
                               onClick={() => {
                                 setItemToRemoveId(item.id);
@@ -397,7 +407,7 @@ const OrderPCBCartScreen = () => {
         </div>
 
         {/*  Right Column: Summary  */}
-        <div className="w-full lg:w-[350px] bg-slate-50/30 p-8 lg:p-10 shrink-0 flex flex-col text-start">
+        <div className="w-full lg:w-[350px] bg-slate-50/30 p-4 md:p-8 lg:p-10 shrink-0 flex flex-col text-start">
           <h2 className="text-[14px] font-black text-slate-900 uppercase tracking-widest mb-10 flex items-center gap-3">
             {language === "thai" ? "สรุปคำสั่งซื้อ" : "Order Summary"}
             <div className="h-px bg-slate-200 flex-grow" />
@@ -431,7 +441,7 @@ const OrderPCBCartScreen = () => {
               <button
                 onClick={checkoutHandler}
                 disabled={selectedIds.length === 0}
-                className={`w-full py-3 rounded-none text-[12px] font-black tracking-[0.2em] uppercase transition-all shadow-xl flex items-center justify-center gap-3 group mb-8
+                className={`w-full py-4 rounded-xl text-[12px] font-black tracking-[0.2em] uppercase transition-all shadow-xl flex items-center justify-center gap-3 group mb-4
                                     ${selectedIds.length > 0
                     ? "bg-black text-white hover:bg-slate-900 active:scale-[0.98]"
                     : "bg-slate-200 text-slate-400 cursor-not-allowed shadow-none"
@@ -445,6 +455,7 @@ const OrderPCBCartScreen = () => {
                   className={`text-[10px] transition-transform ${selectedIds.length > 0 ? "group-hover:translate-x-1" : ""}`}
                 />
               </button>
+
 
               <div className="flex justify-between items-end mb-8">
                 <div className="flex flex-col">
@@ -547,7 +558,7 @@ const OrderPCBCartScreen = () => {
                 exit={{ scale: 0.9, opacity: 0, y: 20 }}
                 className="relative bg-white rounded-[3rem] shadow-3xl w-full max-w-lg overflow-hidden border border-white/20 font-prompt z-10 flex flex-col max-h-[90vh]"
               >
-                <div className="bg-slate-50 p-8 border-b border-slate-100 flex items-center justify-between">
+                <div className="bg-slate-50 p-4 md:p-8 border-b border-slate-100 flex items-center justify-between">
                   <h3 className="text-2xl font-black text-slate-900 uppercase tracking-tight m-0">
                     Project Details
                   </h3>
@@ -558,7 +569,7 @@ const OrderPCBCartScreen = () => {
                     <FaTimes />
                   </button>
                 </div>
-                <div className="p-8 overflow-y-auto custom-scrollbar">
+                <div className="p-4 md:p-8 overflow-y-auto custom-scrollbar">
                   <div className="grid grid-cols-2 gap-4">
                     {Object.entries(viewingItem)
                       .filter(([k]) =>
@@ -625,6 +636,7 @@ const OrderPCBCartScreen = () => {
 
           )}
       </div>
+
     </div>
   );
 };

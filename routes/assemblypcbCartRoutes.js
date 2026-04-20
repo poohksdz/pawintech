@@ -7,6 +7,7 @@ const {
   getassemblyCartPCBByUserId,
   getassemblyCartPCBByaccepted,
   createassemblyCartPCB,
+  deleteassemblyCartPCB,
   updateAmountassemblyCartPCBById,
   updateStatusassemblyCartPCBById,
   updateShippingassemblyCartPCBById,
@@ -26,6 +27,6 @@ router.put("/status/:id", updateStatusassemblyCartPCBById);
 router.put("/assemblyshippingrates/:id", updateShippingassemblyCartPCBById);
 router.get("/:id", getassemblyCartPCBById);
 router.put("/:id", updateassemblyCartPCB);
-router.delete("/:id", getassemblyCartPCBById);
+router.delete("/:id", deleteassemblyCartPCB);
 
 module.exports = router;

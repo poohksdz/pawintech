@@ -112,8 +112,8 @@ const ProductListScreen = () => {
 
   // ================= RENDER =================
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-black py-8 px-4 md:px-8 font-['Prompt',sans-serif] text-slate-800 dark:text-white flex justify-center w-full transition-colors duration-500">
-      <div className="w-full max-w-[1280px] flex flex-col gap-6">
+    <div className="min-h-screen bg-slate-50 dark:bg-black py-4 md:py-8 px-4 md:px-8 font-['Prompt',sans-serif] text-slate-800 dark:text-white flex justify-center w-full transition-colors duration-500">
+      <div className="w-full max-w-[1280px] flex flex-col gap-4 md:gap-6">
         {/* ================= HEADER SECTION ================= */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 mb-2">
           <div>
@@ -189,20 +189,20 @@ const ProductListScreen = () => {
             {error?.data?.message || "Failed to load products"}
           </Message>
         ) : (
-          <div className="flex flex-col gap-6">
+          <div className="flex flex-col gap-4 md:gap-6">
             {/* ---------- DESKTOP TABLE VIEW ---------- */}
             <div className="hidden md:block bg-white dark:bg-zinc-900/30 border border-slate-200 dark:border-zinc-800 shadow-sm rounded-xl overflow-x-auto transition-colors duration-500">
               <table className="w-full text-left border-collapse whitespace-nowrap">
                 <thead className="bg-slate-50 dark:bg-zinc-950 text-slate-500 dark:text-slate-400 text-xs uppercase font-semibold border-b border-slate-100 dark:border-zinc-800">
                   <tr>
-                    <th className="py-4 px-6 w-20 text-center">
+                    <th className="py-4 px-4 md:px-6 w-20 text-center">
                       {t.headers.image}
                     </th>
-                    <th className="py-4 px-6">{t.headers.name}</th>
-                    <th className="py-4 px-6">{t.headers.category}</th>
-                    <th className="py-4 px-6">{t.headers.brand}</th>
-                    <th className="py-4 px-6 text-right">{t.headers.price}</th>
-                    <th className="py-4 px-6 text-center">
+                    <th className="py-4 px-4 md:px-6">{t.headers.name}</th>
+                    <th className="py-4 px-4 md:px-6">{t.headers.category}</th>
+                    <th className="py-4 px-4 md:px-6">{t.headers.brand}</th>
+                    <th className="py-4 px-4 md:px-6 text-right">{t.headers.price}</th>
+                    <th className="py-4 px-4 md:px-6 text-center">
                       {t.headers.actions}
                     </th>
                   </tr>
@@ -230,7 +230,7 @@ const ProductListScreen = () => {
                           className="hover:bg-slate-50/50 transition-colors group"
                         >
                           {/* Image */}
-                          <td className="py-3 px-6 text-center">
+                          <td className="py-3 px-4 md:px-6 text-center">
                             <div className="w-12 h-12 bg-white dark:bg-black border border-slate-100 dark:border-zinc-800 rounded-lg flex items-center justify-center overflow-hidden mx-auto shadow-sm p-1">
                               {product.image ? (
                                 <img
@@ -245,7 +245,7 @@ const ProductListScreen = () => {
                           </td>
 
                           {/* Name & ID */}
-                          <td className="py-3 px-6">
+                          <td className="py-3 px-4 md:px-6">
                             <div
                               className="font-semibold text-slate-900 dark:text-white mb-0.5 truncate max-w-[250px] lg:max-w-[400px]"
                               title={product.name}
@@ -258,26 +258,26 @@ const ProductListScreen = () => {
                           </td>
 
                           {/* Category */}
-                          <td className="py-3 px-6">
+                          <td className="py-3 px-4 md:px-6">
                             <span className="bg-slate-100 dark:bg-zinc-800 text-slate-600 dark:text-slate-300 px-2.5 py-1 rounded-md text-xs font-medium">
                               {product.category}
                             </span>
                           </td>
 
                           {/* Brand */}
-                          <td className="py-3 px-6">
+                          <td className="py-3 px-4 md:px-6">
                             <span className="text-slate-600 dark:text-slate-300 font-medium">
                               {product.brand}
                             </span>
                           </td>
 
                           {/* Price */}
-                          <td className="py-3 px-6 text-right font-semibold text-slate-900 dark:text-white">
+                          <td className="py-3 px-4 md:px-6 text-right font-semibold text-slate-900 dark:text-white">
                             ฿{Number(product.price).toLocaleString()}
                           </td>
 
                           {/* Actions - ปุ่มมีสีสันชัดเจน */}
-                          <td className="py-3 px-6">
+                          <td className="py-3 px-4 md:px-6">
                             <div className="flex items-center justify-center gap-2">
                               {/* Edit Link Button */}
                               <Link
@@ -421,7 +421,7 @@ const ProductListScreen = () => {
                   exit={{ scale: 0.95, opacity: 0, y: 10 }}
                   className="relative bg-white rounded-2xl shadow-xl w-full max-w-sm overflow-hidden"
                 >
-                  <div className="p-6 text-center">
+                  <div className="p-4 md:p-6 text-center">
                     <div className="w-14 h-14 bg-rose-100 text-rose-500 rounded-full flex items-center justify-center mx-auto mb-4">
                       <FaTrash size={20} />
                     </div>

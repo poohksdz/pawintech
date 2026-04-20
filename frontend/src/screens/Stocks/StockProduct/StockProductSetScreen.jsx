@@ -168,7 +168,7 @@ const StockProductSetScreen = () => {
       toast.success(res.message);
       setFormData((prev) => ({
         ...prev,
-        img: res.image.replace("/componentImages", ""),
+        img: res.image, // Keep full path for both preview and DB storage
       }));
     } catch (err) {
       toast.error(err?.data?.message || err.error);
@@ -627,7 +627,7 @@ const StockProductSetScreen = () => {
                   <Col md={6} className="text-center">
                     {formData.img ? (
                       <Image
-                        src={`/componentImages${formData.img}`}
+                        src={formData.img}
                         alt="Preview"
                         thumbnail
                         style={{ maxHeight: "150px" }}
@@ -687,7 +687,7 @@ const StockProductSetScreen = () => {
                 onChange={(e) =>
                   setModalState({ ...modalState, value: e.target.value })
                 }
-                placeholder={`Enter new ${modalState.type} name`}
+                placeholder={`Enter new ${modalState.type}`}
               />
               {/* Show Category Context for Sub/Footprint */}
               {(modalState.type === "Subcategory" ||

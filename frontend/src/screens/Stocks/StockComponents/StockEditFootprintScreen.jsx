@@ -80,7 +80,7 @@ const StockEditFootprintScreen = () => {
     );
   if (error)
     return (
-      <div className="max-w-3xl mx-auto py-10 px-4">
+      <div className="max-w-3xl mx-auto py-4 md:py-6 md:py-10 px-4">
         <Message variant="danger">
           {error?.data?.message || error.error}
         </Message>
@@ -88,7 +88,7 @@ const StockEditFootprintScreen = () => {
     );
 
   return (
-    <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-pageFade">
+    <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-4 md:py-8 animate-pageFade">
       <Card>
         <CardHeader title={`Edit Footprint: ${footprint?.footprintID || id}`} />
         <CardBody>
@@ -127,14 +127,14 @@ const StockEditFootprintScreen = () => {
               <button
                 type="button"
                 onClick={() => navigate(-1)}
-                className="px-6 py-2.5 rounded-xl font-bold bg-white text-slate-500 hover:text-slate-800 border border-slate-200 hover:border-slate-300 hover:bg-slate-50 transition-all flex items-center gap-2"
+                className="px-4 md:px-6 py-2.5 rounded-xl font-bold bg-white text-slate-500 hover:text-slate-800 border border-slate-200 hover:border-slate-300 hover:bg-slate-50 transition-all flex items-center gap-2"
               >
                 <FaArrowLeft size={14} /> Back
               </button>
               <button
                 type="submit"
                 disabled={isUpdating}
-                className="px-6 py-2.5 rounded-xl font-black bg-indigo-600 text-white hover:bg-indigo-700 transition-all shadow-md shadow-indigo-600/20 active:scale-95 disabled:opacity-50 disabled:active:scale-100 flex items-center gap-2"
+                className="px-4 md:px-6 py-2.5 rounded-xl font-black bg-indigo-600 text-white hover:bg-indigo-700 transition-all shadow-md shadow-indigo-600/20 active:scale-95 disabled:opacity-50 disabled:active:scale-100 flex items-center gap-2"
               >
                 {isUpdating ? (
                   <>

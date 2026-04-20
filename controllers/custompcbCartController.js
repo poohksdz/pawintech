@@ -1,5 +1,24 @@
 const asyncHandler = require('../middleware/asyncHandler')
 const { pool } = require('../config/db.js')
+const { automateQuotation } = require('../utils/quotationAutomation')
+
+// Helper: Fix image paths for diagram images
+// DB stores paths like "/images-xxx.jpg" or "image-xxx.jpg" but files live under /custompcbImages/
+const fixCartImagePaths = (row) => {
+  const fixed = { ...row };
+  for (let i = 1; i <= 10; i++) {
+    const key = `dirgram_image_${i}`;
+    const val = fixed[key];
+    if (val && typeof val === 'string' && !val.startsWith('/custompcbImages') && !val.startsWith('http')) {
+      fixed[key] = val.startsWith('/') ? `/custompcbImages${val}` : `/custompcbImages/${val}`;
+    }
+  }
+  // Also fix zip path
+  if (fixed.dirgram_zip && typeof fixed.dirgram_zip === 'string' && !fixed.dirgram_zip.startsWith('/custompcbImages') && !fixed.dirgram_zip.startsWith('http')) {
+    fixed.dirgram_zip = fixed.dirgram_zip.startsWith('/') ? `/custompcbImages${fixed.dirgram_zip}` : `/custompcbImages/${fixed.dirgram_zip}`;
+  }
+  return fixed;
+};
 
 // Utility: Generate timestamp string
 const getTimestamp = () => {
@@ -34,9 +53,9 @@ const generateUniquePaymentConfirmID = async () => {
 const getCustomCartPCBs = asyncHandler(async (req, res) => {
   try {
     const [rows] = await pool.query('SELECT * FROM pcb_custom_carts ORDER BY created_at DESC')
-    res.status(200).json({ success: true, data: rows })
+    res.status(200).json({ success: true, data: rows.map(fixCartImagePaths) })
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message })
+    res.status(500).json({ success: false, message: "เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์" })
   }
 })
 
@@ -45,9 +64,9 @@ const getCustomCartPCBById = asyncHandler(async (req, res) => {
   try {
     const [rows] = await pool.query('SELECT * FROM pcb_custom_carts WHERE id = ?', [req.params.id])
     if (rows.length === 0) return res.status(404).json({ success: false, message: 'Order not found' })
-    res.status(200).json({ success: true, data: rows[0] })
+    res.status(200).json({ success: true, data: fixCartImagePaths(rows[0]) })
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message })
+    res.status(500).json({ success: false, message: "เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์" })
   }
 })
 
@@ -57,9 +76,9 @@ const getCustomCartPCBByUserId = asyncHandler(async (req, res) => {
 
   try {
     const [rows] = await pool.query('SELECT * FROM pcb_custom_carts WHERE user_id = ? ORDER BY created_at DESC', [user_id])
-    res.status(200).json({ success: true, count: rows.length, data: rows })
+    res.status(200).json({ success: true, count: rows.length, data: rows.map(fixCartImagePaths) })
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message })
+    res.status(500).json({ success: false, message: "เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์" })
   }
 })
 
@@ -67,9 +86,9 @@ const getCustomCartPCBByUserId = asyncHandler(async (req, res) => {
 const getCustomCartPCBByaccepted = asyncHandler(async (req, res) => {
   try {
     const [rows] = await pool.query('SELECT * FROM pcb_custom_carts WHERE status = ? ORDER BY created_at DESC', ['accepted'])
-    res.status(200).json({ success: true, count: rows.length, data: rows })
+    res.status(200).json({ success: true, count: rows.length, data: rows.map(fixCartImagePaths) })
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message })
+    res.status(500).json({ success: false, message: "เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์" })
   }
 })
 
@@ -115,7 +134,7 @@ const createCustomCartPCB = asyncHandler(async (req, res) => {
     })
   } catch (error) {
     console.error('Create Error:', error)
-    res.status(500).json({ success: false, message: error.message })
+    res.status(500).json({ success: false, message: "เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์" })
   }
 })
 
@@ -163,7 +182,7 @@ const updateCustomCartPCB = asyncHandler(async (req, res) => {
 
     res.status(200).json({ success: true, message: 'Order updated successfully' })
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message })
+    res.status(500).json({ success: false, message: "เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์" })
   }
 })
 
@@ -173,7 +192,7 @@ const updateAmountCustomCartPCBById = asyncHandler(async (req, res) => {
     await pool.query('UPDATE pcb_custom_carts SET pcb_qty = 0 WHERE id = ?', [req.params.id])
     res.status(200).json({ success: true, message: 'Quantity set to 0' })
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message })
+    res.status(500).json({ success: false, message: "เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์" })
   }
 })
 
@@ -198,9 +217,14 @@ const updateStatusCustomCartPCBById = asyncHandler(async (req, res) => {
     const sql = `UPDATE pcb_custom_carts SET ${updateFields.join(', ')}, updated_at=NOW() WHERE id = ?`
 
     await pool.query(sql, values)
+
+    if (status === "accepted") {
+      automateQuotation("custom", id).catch(err => console.error("Custom automation error:", err));
+    }
+
     res.status(200).json({ success: true, message: 'Status updated' })
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message })
+    res.status(500).json({ success: false, message: "เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์" })
   }
 })
 
@@ -214,7 +238,7 @@ const updateDeliveryCustomCartPCBById = asyncHandler(async (req, res) => {
     await pool.query(sql, [transferedNumber, transferedNumber, id])
     res.json({ message: 'Order marked as delivered' })
   } catch (error) {
-    res.status(500).json({ message: error.message })
+    res.status(500).json({ message: "เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์" })
   }
 })
 
@@ -240,7 +264,7 @@ const updateShippingCustomCartPCBById = asyncHandler(async (req, res) => {
     await pool.query(sql, values)
     res.status(200).json({ success: true, message: 'Shipping info updated' })
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message })
+    res.status(500).json({ success: false, message: "เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์" })
   }
 })
 
@@ -259,7 +283,7 @@ const updatePaymentCustomCartPCBById = asyncHandler(async (req, res) => {
     await pool.query(sql, [transferedAmount, transferedName, paymentSlip, transferedDate, paymentComfirmID, id])
     res.status(200).json({ success: true, message: 'Payment updated', paymentComfirmID })
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message })
+    res.status(500).json({ success: false, message: "เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์" })
   }
 })
 
@@ -269,7 +293,7 @@ const deleteCustomCartPCB = asyncHandler(async (req, res) => {
     await pool.query('DELETE FROM pcb_custom_carts WHERE id = ?', [req.params.id])
     res.status(200).json({ success: true, message: 'Order deleted' })
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message })
+    res.status(500).json({ success: false, message: "เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์" })
   }
 })
 

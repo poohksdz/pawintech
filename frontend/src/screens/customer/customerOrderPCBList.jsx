@@ -103,7 +103,7 @@ const CustomerOrderPCBList = () => {
 
       {/* Modern List Section */}
       <div className="bg-white rounded-[2rem] border border-slate-100 shadow-sm overflow-hidden">
-        <div className="hidden md:grid grid-cols-12 gap-4 items-center bg-slate-50/50 px-6 py-4 border-b border-slate-100 text-[10px] font-black uppercase tracking-widest text-slate-400">
+        <div className="hidden md:grid grid-cols-12 gap-4 items-center bg-slate-50/50 px-4 md:px-6 py-4 border-b border-slate-100 text-[10px] font-black uppercase tracking-widest text-slate-400">
           <div className="col-span-1 text-center">#</div>
           <div className="col-span-3">{translations.orderIdLbl}</div>
           <div className="col-span-2">{translations.orderDateLbl}</div>
@@ -126,7 +126,7 @@ const CustomerOrderPCBList = () => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3, delay: index * 0.05 }}
                 key={order.id}
-                className="group relative flex flex-col md:grid md:grid-cols-12 gap-4 items-start md:items-center p-6 hover:bg-slate-50/50 transition-colors"
+                className="group relative flex flex-col md:grid md:grid-cols-12 gap-4 items-start md:items-center p-4 md:p-6 hover:bg-slate-50/50 transition-colors"
               >
                 {/* Mobile Header: Order ID & Date */}
                 <div className="w-full md:hidden flex justify-between items-center mb-2">
@@ -222,7 +222,7 @@ const CustomerOrderPCBList = () => {
                     )}
 
                     <Link
-                      to={`/order/${order.id}`}
+                      to={`/${order.id}`}
                       className="absolute inset-0 z-10"
                       title={translations.orderDetailsLbl}
                     >

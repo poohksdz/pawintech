@@ -3,8 +3,12 @@ const express = require("express");
 const multer = require("multer");
 const fs = require("fs");
 const { v4: uuidv4 } = require("uuid"); // Import UUID
+const { protect } = require("../middleware/authMiddleware.js");
 
 const router = express.Router();
+
+// All upload routes require authentication
+router.use(protect);
 
 // Utility function to ensure consistent forward slashes in paths
 function normalizePath(filePath) {

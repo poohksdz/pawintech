@@ -219,7 +219,7 @@ const createStockIssuegoods = asyncHandler(async (req, res) => {
     console.error(`❌ Error creating issuegoods: ${error.message}`);
     res.status(500).json({
       message: "Error creating issuegoods",
-      error: error.message,
+      error: "Internal server error",
     });
   } finally {
     connection.release(); //  สำคัญมาก: ต้องคืน Connection เข้า Pool เสมอ

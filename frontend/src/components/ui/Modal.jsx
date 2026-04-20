@@ -68,7 +68,7 @@ const Modal = ({
       >
         <div className="relative flex flex-col w-full bg-white border-0 rounded-[2rem] shadow-[0_32px_64px_-16px_rgba(0,0,0,0.3)] outline-none focus:outline-none overflow-hidden">
           {/* Header */}
-          <div className="flex items-center justify-between p-6 border-b border-solid border-slate-100">
+          <div className="flex items-center justify-between p-4 md:p-6 border-b border-solid border-slate-100">
             <h3 className="text-xl font-bold tracking-tight text-slate-900">
               {title}
             </h3>
@@ -82,7 +82,7 @@ const Modal = ({
 
           {/* Body */}
           <div
-            className="relative p-8 flex-auto overflow-y-auto"
+            className="relative p-4 md:p-8 flex-auto overflow-y-auto"
             style={{ maxHeight: "calc(90vh - 150px)" }}
           >
             {children}
@@ -90,7 +90,7 @@ const Modal = ({
 
           {/* Footer (Optional) */}
           {footer && (
-            <div className="flex items-center justify-end p-6 border-t border-solid border-slate-100 bg-slate-50/50 gap-3">
+            <div className="flex items-center justify-end p-4 md:p-6 border-t border-solid border-slate-100 bg-slate-50/50 gap-3">
               {footer}
             </div>
           )}

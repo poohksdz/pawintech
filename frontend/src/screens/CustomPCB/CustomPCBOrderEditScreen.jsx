@@ -235,7 +235,7 @@ const CustomPCBOrderEditScreen = () => {
     );
   if (error)
     return (
-      <div className="p-6">
+      <div className="p-4 md:p-6">
         <Message variant="danger">
           {error?.data?.message || error.message}
         </Message>
@@ -269,18 +269,18 @@ const CustomPCBOrderEditScreen = () => {
 
         <form
           onSubmit={submitHandler}
-          className="flex flex-col lg:flex-row gap-6"
+          className="flex flex-col lg:flex-row gap-4 md:gap-6"
         >
           <div className="flex-1 space-y-6">
             {/* Project Info Section */}
             <div className="bg-white rounded-2xl shadow-sm border border-slate-200/60 overflow-hidden">
-              <div className="p-6 border-b border-slate-100 bg-slate-50/30">
+              <div className="p-4 md:p-6 border-b border-slate-100 bg-slate-50/30">
                 <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2">
                   <FaFileArchive className="text-indigo-500" /> Project
                   Information
                 </h2>
               </div>
-              <div className="p-6">
+              <div className="p-4 md:p-6">
                 <InputField
                   label="Project Name"
                   value={projectname}
@@ -292,7 +292,7 @@ const CustomPCBOrderEditScreen = () => {
                   <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
                     Diagram Images (Max 10)
                   </label>
-                  <label className="cursor-pointer group flex flex-col items-center justify-center border-2 border-dashed border-slate-200 rounded-2xl p-8 bg-slate-50 hover:bg-slate-100 hover:border-indigo-300 transition-all">
+                  <label className="cursor-pointer group flex flex-col items-center justify-center border-2 border-dashed border-slate-200 rounded-2xl p-4 md:p-8 bg-slate-50 hover:bg-slate-100 hover:border-indigo-300 transition-all">
                     <div className="w-14 h-14 bg-white rounded-full shadow-sm flex items-center justify-center text-indigo-500 group-hover:scale-110 transition-transform mb-3">
                       <FaCloudUploadAlt size={24} />
                     </div>
@@ -394,13 +394,13 @@ const CustomPCBOrderEditScreen = () => {
 
             {/* Address Details */}
             <div className="bg-white rounded-2xl shadow-sm border border-slate-200/60 overflow-hidden">
-              <div className="p-6 border-b border-slate-100 bg-slate-50/30">
+              <div className="p-4 md:p-6 border-b border-slate-100 bg-slate-50/30">
                 <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2">
                   <FaTruck className="text-indigo-500" /> Contact & Shipping
                   Details
                 </h2>
               </div>
-              <div className="p-6 grid lg:grid-cols-2 gap-8">
+              <div className="p-4 md:p-6 grid lg:grid-cols-2 gap-4 md:gap-8">
                 {/* Left Column */}
                 <div className="space-y-6">
                   <div>
@@ -510,7 +510,7 @@ const CustomPCBOrderEditScreen = () => {
 
           {/* Right Sidebar: Config & Save */}
           <div className="w-full lg:w-80 shrink-0">
-            <div className="bg-white rounded-2xl shadow-sm border border-slate-200/60 p-6 sticky top-6">
+            <div className="bg-white rounded-2xl shadow-sm border border-slate-200/60 p-4 md:p-6 sticky top-6">
               <h2 className="text-lg font-bold text-slate-800 mb-6 flex items-center gap-2 border-b border-slate-100 pb-4">
                 <FaRegCreditCard className="text-indigo-500" /> Order
                 Configuration

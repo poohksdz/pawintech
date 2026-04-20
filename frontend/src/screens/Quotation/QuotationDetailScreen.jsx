@@ -1,31 +1,67 @@
 import React, { useState, useEffect, useRef } from "react";
 import Button from "../../components/ui/Button";
 import { useGetDefaultQuotationUsedQuery } from "../../slices/quotationDefaultApiSlice";
-import { useGetQuotationByQuotationNoQuery } from "../../slices/quotationApiSlice";
-import jsPDF from "jspdf";
-import html2canvas from "html2canvas";
+import {
+  useUpdateQuotationByQuotationNoMutation,
+  useGetQuotationByQuotationNoQuery,
+} from "../../slices/quotationApiSlice";
+import { useUpdateOrderStatusByQuotationNoMutation } from "../../slices/ordersApiSlice";
 import Loader from "../../components/Loader";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
+import { toast } from "react-toastify";
+import { FaCheckCircle, FaPrint, FaArrowLeft, FaFileInvoice } from "react-icons/fa";
+import FullTaxInvoiceA4 from "../../components/FullTaxInvoiceA4";
+import { useGetDefaultInvoiceUsedQuery } from "../../slices/defaultInvoicesApiSlice";
 
 const QuotationDetailScreen = () => {
   const componentRef = useRef();
   const { id } = useParams();
+  const navigate = useNavigate();
+  const { userInfo } = useSelector((state) => state.auth);
 
-  const { data: quotationData } = useGetQuotationByQuotationNoQuery(id);
+  const { data: quotationData, isLoading, refetch } = useGetQuotationByQuotationNoQuery(id);
   const { data: defaultData } = useGetDefaultQuotationUsedQuery();
+  const { data: companyInfo } = useGetDefaultInvoiceUsedQuery();
+  const [updateStatus] = useUpdateOrderStatusByQuotationNoMutation();
+
   const defaultSelected = defaultData?.quotations?.[0] || null;
+
+  const handleAcceptQuote = async () => {
+    try {
+      await updateStatus({
+        quotation_no: id,
+        status: "Awaiting Payment"
+      }).unwrap();
+      toast.success("Quotation Accepted! Please proceed to payment.");
+      navigate("/profile?tab=orders");
+    } catch (err) {
+      toast.error(err?.data?.message || err.error);
+    }
+  };
+
+  const companyNameTH = "บริษัท ภาวินท์เทคโนโลยี จำกัด";
+  const companyNameEN = "PAWINTECHNOLOGY CO., LTD.";
+  const companyAddressTH = "สำนักงานใหญ่ : 124 ซอยร่มเกล้า 24 แขวงมีนบุรี เขตมีนบุรี กรุงเทพมหานคร 10510";
+  const companyAddressEN = "Head Office : 124 Soi Rom Klao 24, Min Buri, Min Buri, Bangkok, 10510";
+  const companyPhone = "099-226-3277";
+  const companyEmail = "contact@pawin-tech.com";
+  const companyTaxId = "0105562141221";
+  const companyLogo = "/image/Pawin_Logo_long.png";
 
   const [quotationNumber, setQuotationNumber] = useState("");
   const [due_date, setdue_date] = useState("");
   const [submit_price_within, setsubmit_price_within] = useState("");
   const [number_of_credit_days, setnumber_of_credit_days] = useState("");
-  const [numRows, setNumRows] = useState(10);
+  const [numRows, setNumRows] = useState(8);
 
   const [customerInfo, setCustomerInfo] = useState({
     customer_name: "",
     customer_present_name: "",
     customer_address: "",
     customer_vat: "",
+    branch_type: "สำนักงานใหญ่",
+    branch_no: "",
   });
 
   const [rows, setRows] = useState([]);
@@ -43,6 +79,8 @@ const QuotationDetailScreen = () => {
       customer_present_name: firstQuotation.customer_present_name || "",
       customer_address: firstQuotation.customer_address || "",
       customer_vat: firstQuotation.customer_vat || "",
+      branch_type: "สำนักงานใหญ่", // Defaulting, adjust as needed
+      branch_no: "",
     });
 
     setDefaultSummary({
@@ -72,9 +110,10 @@ const QuotationDetailScreen = () => {
 
   useEffect(() => {
     if (defaultSelected) {
-      setDefaultSummary({
-        discount: parseFloat(defaultSelected.discount) || 0,
-        vat: parseFloat(defaultSelected.vat) || 0,
+      setDefaultSummary((prev) => ({
+        ...prev,
+        discount: parseFloat(defaultSelected.discount) || prev.discount || 0,
+        vat: parseFloat(defaultSelected.vat) || prev.vat || 0,
         company_name: defaultSelected.company_name || "",
         company_name_thai: defaultSelected.company_name_thai || "",
         head_office: defaultSelected.head_office || "",
@@ -82,10 +121,10 @@ const QuotationDetailScreen = () => {
         tel: defaultSelected.tel || "",
         email: defaultSelected.email || "",
         tax_id: defaultSelected.tax_id || "",
-        bank_account_number: defaultSelected.bank_account_number || "",
-        bank_account_name: defaultSelected.bank_account_name || "",
-        deposit: defaultSelected.deposit || 50,
-      });
+        bank_account_number: defaultSelected.bank_account_number || prev.bank_account_number,
+        bank_account_name: defaultSelected.bank_account_name || prev.bank_account_name,
+        deposit: defaultSelected.deposit || prev.deposit || 50,
+      }));
     }
   }, [defaultData, defaultSelected]);
 
@@ -114,46 +153,85 @@ const QuotationDetailScreen = () => {
     e.target.style.height = e.target.scrollHeight + "px";
   };
 
-  const subTotal = rows.reduce((acc, r) => acc + r.qty * r.unit_price, 0);
-  const totalDiscount =
-    subTotal * (parseFloat(defaultSummary.discount || 0) / 100);
+  // Calculations
+  const subTotal = rows.reduce((acc, r) => acc + (r.qty * r.unit_price || 0), 0);
+  const totalDiscount = subTotal * (parseFloat(defaultSummary.discount || 0) / 100);
   const totalAfterDiscount = subTotal - totalDiscount;
-  const totalVat =
-    totalAfterDiscount * (parseFloat(defaultSummary.vat || 0) / 100);
+  const totalVat = totalAfterDiscount * (parseFloat(defaultSummary.vat || 0) / 100);
   const grandTotal = totalAfterDiscount + totalVat;
 
   const now = new Date();
-  const today = `${String(now.getDate()).padStart(2, "0")} / ${String(
+  const today = `${String(now.getDate()).padStart(2, "0")}/${String(
     now.getMonth() + 1,
-  ).padStart(2, "0")} / ${now.getFullYear() + 543}`;
+  ).padStart(2, "0")}/${now.getFullYear() + 543}`;
 
-  const handlePreviewPDF = async () => {
-    const pdf = new jsPDF("p", "mm", "a4");
-    const pdfWidth = pdf.internal.pageSize.getWidth();
-    const pdfHeight = pdf.internal.pageSize.getHeight();
+  const thaiBahtText = (price) => {
+    if (!price || isNaN(price) || price === 0) return "-";
+    const units = ["", "สิบ", "ร้อย", "พัน", "หมื่น", "แสน", "ล้าน"];
+    const numbers = ["ศูนย์", "หนึ่ง", "สอง", "สาม", "สี่", "ห้า", "หก", "เจ็ด", "แปด", "เก้า"];
+    const s = parseFloat(price).toFixed(2).split(".");
+    let integer = s[0];
+    const dec = parseInt(s[1]);
 
-    const tableEl = componentRef.current;
-    if (!tableEl) return;
-    const canvas = await html2canvas(tableEl, { scale: 2, useCORS: true });
-    const imgData = canvas.toDataURL("image/png");
+    const convert = (s) => {
+      let res = "";
+      for (let i = 0; i < s.length; i++) {
+        const digit = parseInt(s[i]);
+        const pos = s.length - i - 1;
+        if (digit !== 0) {
+          if (pos === 1 && digit === 1) res += "";
+          else if (pos === 1 && digit === 2) res += "ยี่";
+          else if (pos === 0 && digit === 1 && s.length > 1) res += "เอ็ด";
+          else res += numbers[digit];
+          res += units[pos];
+        }
+      }
+      return res;
+    };
 
-    const imgProps = pdf.getImageProperties(imgData);
-    const imgHeight = (imgProps.height * pdfWidth) / imgProps.width;
-
-    let heightLeft = imgHeight;
-    let position = 0;
-
-    while (heightLeft > 0) {
-      pdf.addImage(imgData, "PNG", 0, position, pdfWidth, imgHeight);
-      heightLeft -= pdfHeight;
-      position -= pdfHeight;
-      if (heightLeft > 0) pdf.addPage();
-    }
-
-    const pdfBlob = pdf.output("blob");
-    const pdfURL = URL.createObjectURL(pdfBlob);
-    window.open(pdfURL, "_blank");
+    let result = convert(integer) + "บาท";
+    if (dec === 0) result += "ถ้วน";
+    else result += convert(dec) + "สตางค์";
+    return result;
   };
+
+  const handlePrint = () => {
+    window.print();
+  };
+
+  // Adapter for FullTaxInvoiceA4
+  const firstQuotation = quotationData?.quotation?.[0]?.[0];
+  const mappedOrder = firstQuotation ? {
+    id: firstQuotation.quotation_no,
+    quotation_no: firstQuotation.quotation_no,
+    createdAt: firstQuotation.createdAt || new Date(),
+    status: firstQuotation.status || "Quoted",
+    billingAddress: {
+      billingName: firstQuotation.customer_present_name || firstQuotation.customer_name,
+      billinggAddress: firstQuotation.customer_address,
+      tax: firstQuotation.customer_vat,
+      branch: firstQuotation.branch_type === "สาขา" ? firstQuotation.branch_no : firstQuotation.branch_type,
+    },
+    orderItems: (quotationData?.quotation?.[0] || []).map(item => ({
+      product_id: item.product_id,
+      name: item.product_detail,
+      qty: item.quantity,
+      unit: item.unit,
+      price: item.unit_price,
+    })),
+    itemsPrice: subTotal,
+    vatPrice: totalVat,
+    totalPrice: grandTotal,
+    discountPrice: totalDiscount,
+    signatures: {
+      buyer: firstQuotation.buyer_approves_signature,
+      buyerDate: firstQuotation.buyer_approves_signature_date,
+      sales: firstQuotation.sales_person_signature,
+      salesDate: firstQuotation.sales_person_signature_date,
+      manager: firstQuotation.sales_manager_signature,
+      managerDate: firstQuotation.sales_manager_signature_date,
+    }
+  } : null;
 
   if (!quotationData || !defaultData)
     return (
@@ -164,400 +242,127 @@ const QuotationDetailScreen = () => {
 
   return (
     <>
-      <div className="flex justify-center w-full bg-slate-100 py-4">
-        <div
-          ref={componentRef}
-          className="bg-white border border-slate-300 shadow-sm flex flex-col justify-between"
-          style={{
-            width: "210mm",
-            minHeight: "297mm",
-            padding: "8mm 20mm 15mm",
-            boxSizing: "border-box",
-            fontSize: "12px",
-            fontFamily: "sans-serif",
+      {/* Control Panel (Not printed) */}
+      <div className="flex justify-center w-full bg-slate-100 py-2 print:hidden gap-4 items-center">
+        <label className="font-semibold text-sm">เลือกจำนวนแถวเริ่มต้น:</label>
+        <select
+          value={numRows}
+          className="border border-slate-300 rounded px-2 py-1 outline-none cursor-pointer"
+          onChange={(e) => {
+            const newCount = parseInt(e.target.value);
+            setNumRows(newCount);
+            setRows(
+              Array.from({ length: newCount }, (_, i) => rows[i] || { product_id: "", description: "", qty: 0, unit: "", unit_price: 0 })
+            );
           }}
         >
-          {/* Header */}
-          <div className="text-center relative">
-            <div className="absolute top-2 left-0">
-              <img
-                src={defaultSelected?.logo}
-                alt="Logo"
-                className="max-h-[40px] object-contain"
-              />
-            </div>
-            <div className="inline-block mt-3">
-              <h3 className="font-bold text-lg leading-tight">
-                {defaultSummary.company_name_thai}
-                <br />
-                {defaultSummary.company_name}
-              </h3>
-              <p className="mt-1 text-xs">
-                <strong>
-                  สำนักงานใหญ่: {defaultSummary.head_office_thai}
-                  <br />
-                  Head Office: {defaultSummary.head_office}
-                  <br />
-                  โทร: {defaultSummary.tel} | Email: {defaultSummary.email}
-                  <br />
-                  เลขประจำตัวผู้เสียภาษี: {defaultSummary.tax_id}
-                </strong>
-              </p>
-              <h5 className="border border-slate-300 p-1.5 inline-block mt-2 font-bold tracking-widest text-slate-800 text-sm">
-                <div className="flex flex-col">
-                  <span>ใบเสนอราคา</span>
-                  <span>QUOTATION</span>
-                </div>
-              </h5>
-            </div>
-          </div>
+          {Array.from({ length: 100 }, (_, i) => i + 5).map((n) => (
+            <option key={n} value={n}>{n} แถว</option>
+          ))}
+        </select>
 
-          <div className="h-4"></div>
-
-          {/* Customer Info */}
-          <div className="flex justify-between w-full mt-2 text-xs">
-            <div className="flex-1">
-              <div className="leading-loose relative">
-                <strong>ติดต่อจาก:</strong>
-                <input
-                  type="text"
-                  value={customerInfo.customer_name}
-                  onChange={(e) =>
-                    handleCustomerChange("customer_name", e.target.value)
-                  }
-                  className="border-none ml-2 w-[350px] outline-none bg-transparent"
-                />
-                <br />
-
-                <strong>ผู้มาติดต่อ:</strong>
-                <input
-                  type="text"
-                  value={customerInfo.customer_present_name}
-                  onChange={(e) =>
-                    handleCustomerChange(
-                      "customer_present_name",
-                      e.target.value,
-                    )
-                  }
-                  className="border-none ml-2 w-[350px] outline-none bg-transparent"
-                />
-                <br />
-
-                <strong>ที่อยู่:</strong>
-                <input
-                  type="text"
-                  value={customerInfo.customer_address}
-                  onChange={(e) =>
-                    handleCustomerChange("customer_address", e.target.value)
-                  }
-                  className="border-none ml-2 w-[380px] outline-none bg-transparent"
-                />
-                <br />
-
-                <strong>เลขประจำตัวผู้เสียภาษี:</strong>
-                <input
-                  type="text"
-                  value={customerInfo.customer_vat}
-                  onChange={(e) =>
-                    handleCustomerChange("customer_vat", e.target.value)
-                  }
-                  className="border-none ml-2 w-[280px] outline-none bg-transparent"
-                />
-                <br />
-
-                <label className="inline-flex items-center mt-1 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    className="form-checkbox h-3.5 w-3.5 text-blue-600 rounded-sm border-slate-400"
-                  />
-                  <strong className="ml-1.5 font-medium">สำนักงานใหญ่</strong>
-                </label>
-                <label className="inline-flex items-center mt-1 ml-4 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    className="form-checkbox h-3.5 w-3.5 text-blue-600 rounded-sm border-slate-400"
-                  />
-                  <strong className="ml-1.5 font-medium">สาขา</strong>
-                </label>
-
-                <div className="mt-1">
-                  <label>
-                    <strong>Number of rows: </strong>
-                  </label>
-                  <select
-                    value={numRows}
-                    className="border-none bg-transparent outline-none cursor-pointer"
-                    onChange={(e) => {
-                      const newCount = parseInt(e.target.value);
-                      setNumRows(newCount);
-                      setRows(
-                        Array.from(
-                          { length: newCount },
-                          (_, i) =>
-                            rows[i] || {
-                              product_id: "",
-                              description: "",
-                              qty: 0,
-                              unit: "",
-                              unit_price: 0,
-                            },
-                        ),
-                      );
-                    }}
-                  >
-                    {Array.from({ length: 200 }, (_, i) => i + 1).map((n) => (
-                      <option key={n} value={n}>
-                        {n}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-            </div>
-            <div className="flex flex-col justify-start items-end min-w-[200px] leading-loose text-xs">
-              <div>
-                <strong>เลขที่:</strong>
-                <div className="inline-block border-b border-slate-400 min-w-[105px] ml-2 text-center font-bold">
-                  {quotationNumber || " "}
-                </div>
-                <br />
-                <strong>วันที่: </strong>
-                <input
-                  type="text"
-                  value={today}
-                  readOnly
-                  className="w-[80px] border-none outline-none ml-5 bg-transparent font-bold text-center"
-                />
-                <br />
-                <strong>วันที่กำหนดส่ง:</strong>
-                <input
-                  type="number"
-                  value={due_date}
-                  onChange={(e) => setdue_date(e.target.value)}
-                  className="w-[30px] border-none outline-none ml-1 bg-transparent text-center font-bold"
-                />{" "}
-                วัน
-                <br />
-                <strong>ยืนราคาภายใน:</strong>
-                <input
-                  type="number"
-                  value={submit_price_within}
-                  onChange={(e) => setsubmit_price_within(e.target.value)}
-                  className="w-[30px] border-none outline-none ml-1 bg-transparent text-center font-bold"
-                />{" "}
-                วัน
-                <br />
-                <strong>จำนวนวันเคดิต:</strong>
-                <input
-                  type="number"
-                  value={number_of_credit_days}
-                  onChange={(e) => setnumber_of_credit_days(e.target.value)}
-                  className="w-[30px] border-none outline-none ml-1 bg-transparent text-center font-bold"
-                />{" "}
-                วัน
-              </div>
-            </div>
-          </div>
-
-          <div className="h-4"></div>
-
-          {/* Products Table */}
-          <div className="flex-grow mt-2">
-            <div
-              className="grid border border-slate-300 w-full max-w-[180mm]"
-              style={{
-                gridTemplateColumns: "0.5fr 1fr 2.8fr 0.7fr 0.7fr 1fr 1.2fr",
-              }}
-            >
-              {[
-                "ลำดับ",
-                "รหัสสินค้า",
-                "รายละเอียด",
-                "จำนวน",
-                "หน่วย",
-                "ราคา/หน่วย",
-                "จำนวนเงิน",
-              ].map((header, i) => (
-                <div
-                  key={i}
-                  className={`text-center py-1.5 px-1 font-bold bg-slate-50 ${i === 6 ? "" : "border-r border-slate-300"} text-xs`}
-                >
-                  {header}
-                </div>
-              ))}
-              {rows.map((row, index) => (
-                <React.Fragment key={index}>
-                  <div className="text-center content-start border-t border-r border-slate-300 py-1 px-1 text-xs">
-                    {index + 1}
-                  </div>
-                  <div className="border-t border-r border-slate-300 px-1 content-start">
-                    <input
-                      value={row.product_id}
-                      onChange={(e) =>
-                        handleChange(index, "product_id", e.target.value)
-                      }
-                      className="w-full text-xs h-[24px] border-none outline-none leading-none p-0 bg-transparent text-center"
-                    />
-                  </div>
-
-                  <div className="border-t border-r border-slate-300 px-1.5 py-1 content-start">
-                    <textarea
-                      value={row.description}
-                      onChange={(e) =>
-                        handleChange(index, "description", e.target.value)
-                      }
-                      onInput={autoGrow}
-                      className="w-full text-xs min-h-[22px] border-none outline-none resize-none overflow-hidden leading-snug p-0 bg-transparent"
-                      rows={1}
-                    />
-                  </div>
-
-                  <div className="text-center border-t border-r border-slate-300 px-1 content-start">
-                    <input
-                      type="number"
-                      min="0"
-                      value={row.qty || ""}
-                      onChange={(e) =>
-                        handleChange(index, "qty", e.target.value)
-                      }
-                      className="w-full text-xs text-center h-[24px] border-none outline-none leading-none p-0 bg-transparent"
-                    />
-                  </div>
-
-                  <div className="text-center border-t border-r border-slate-300 px-1 content-start">
-                    <input
-                      value={row.unit}
-                      onChange={(e) =>
-                        handleChange(index, "unit", e.target.value)
-                      }
-                      className="w-full text-xs text-center h-[24px] border-none outline-none leading-none p-0 bg-transparent"
-                    />
-                  </div>
-
-                  <div className="text-right border-t border-r border-slate-300 px-1 content-start">
-                    <input
-                      type="number"
-                      min="0"
-                      value={row.unit_price || ""}
-                      onChange={(e) =>
-                        handleChange(index, "unit_price", e.target.value)
-                      }
-                      className="w-full text-xs text-right h-[24px] border-none outline-none leading-none px-1 bg-transparent"
-                    />
-                  </div>
-
-                  <div className="text-right content-start border-t border-slate-300 py-1.5 px-1.5 text-xs tabular-nums">
-                    {row.qty && row.unit_price
-                      ? (
-                          parseFloat(row.qty) * parseFloat(row.unit_price)
-                        ).toLocaleString(undefined, {
-                          minimumFractionDigits: 2,
-                        })
-                      : ""}
-                  </div>
-                </React.Fragment>
-              ))}
-
-              {/* Summary Rows */}
-              {[
-                [
-                  `*** มัดจำ ${defaultSummary.deposit} % ***`,
-                  `ส่วนลด ${defaultSummary.discount || "0"} %`,
-                  totalDiscount,
-                ],
-                [
-                  `${defaultSummary.bank_account_name || ""}\n${defaultSummary.bank_account_number || ""}`,
-                  "มูลค่าสินค้าหลังหักส่วนลด",
-                  totalAfterDiscount,
-                ],
-                [
-                  "",
-                  `ภาษีมูลค่าเพิ่ม ${defaultSummary.vat || "0"} %`,
-                  totalVat,
-                ],
-                ["", "ยอดรวมสุทธิ", grandTotal],
-              ].map(([note, label, value], i) => (
-                <React.Fragment key={i}>
-                  <div
-                    className={`text-center py-1.5 px-1 whitespace-pre-line ${i === 0 ? "border-t border-slate-300" : ""} border-r border-slate-300 font-normal text-xs`}
-                    style={{ gridColumn: "1 / span 4" }}
-                  >
-                    {note}
-                  </div>
-                  <div
-                    className="text-left py-1.5 px-2 border-t border-r border-slate-300 font-bold text-xs bg-slate-50/50"
-                    style={{ gridColumn: "5 / span 2" }}
-                  >
-                    {label}
-                  </div>
-                  <div
-                    className="text-right py-1.5 px-1.5 border-t border-slate-300 font-bold text-xs bg-slate-50/50 tabular-nums"
-                    style={{ gridColumn: "7" }}
-                  >
-                    {parseFloat(value).toLocaleString(undefined, {
-                      minimumFractionDigits: 2,
-                    })}
-                  </div>
-                </React.Fragment>
-              ))}
-            </div>
-          </div>
-
-          <div className="h-8"></div>
-
-          {/* Footer / Signatures */}
-          <div className="flex justify-between w-full mt-2 mb-0 gap-4">
-            {["buyer_approves", "sales_person", "sales_manager"].map(
-              (role, idx) => (
-                <div
-                  key={idx}
-                  className="flex-1 min-w-0 border border-slate-300 px-4 pb-2 pt-2 flex flex-col items-center h-[95px] justify-between text-xs"
-                >
-                  <div className="flex items-center w-full mb-1">
-                    <span className="flex-[0_0_50%] text-left self-end font-medium text-slate-700">
-                      {role === "buyer_approves"
-                        ? "ผู้ขอซื้อ"
-                        : role === "sales_person"
-                          ? "ผู้เสนอราคา"
-                          : "ผู้จัดการขาย"}
-                    </span>
-
-                    <div
-                      className={`flex-[0_0_90px] border-b border-slate-400 h-[45px] flex items-end justify-center ${role === "buyer_approves" ? "-ml-2.5" : ""}`}
-                    >
-                      {role !== "buyer_approves" && (
-                        <img
-                          src={defaultSelected?.[role]}
-                          alt={`${role} Signature`}
-                          className="max-h-[35px] object-contain mb-1"
-                        />
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="flex items-center w-full mt-1">
-                    <span className="flex-[0_0_25%] text-left font-medium text-slate-700">
-                      ลงวันที่
-                    </span>
-                    <div className="flex-1 border-b border-slate-400 h-[22px] flex items-center justify-center font-semibold text-slate-800">
-                      {today}
-                    </div>
-                  </div>
-                </div>
-              ),
-            )}
-          </div>
-        </div>
-      </div>
-
-      <div className="flex justify-center w-full py-8 mt-4 bg-white border-t border-slate-200">
-        <Button
-          onClick={handlePreviewPDF}
-          className="min-w-[200px] shadow-sm font-semibold"
-        >
-          Preview PDF
+        <Button onClick={handlePrint} className="shadow-sm font-semibold bg-[#5F9EA0] text-white px-6">
+          Print / Save PDF
         </Button>
       </div>
+
+      {/* A4 Paper Canvas */}
+      <div className="flex justify-center w-full bg-slate-200 py-4 print:py-0 print:bg-white overflow-visible">
+        {mappedOrder && (
+          <FullTaxInvoiceA4
+            order={mappedOrder}
+            companyInfo={companyInfo}
+            isQuotation={true}
+            isAdmin={userInfo?.isAdmin}
+            docType="quotation"
+          />
+        )}
+      </div>
+
+      <style dangerouslySetInnerHTML={{ __html: `
+          @media print {
+              @page {
+                  size: A4;
+                  margin: 0;
+              }
+              body {
+                  margin: 0 !important;
+                  padding: 0 !important;
+                  -webkit-print-color-adjust: exact;
+                  print-color-adjust: exact;
+                  background: white !important;
+              }
+              .no-print { display: none !important; }
+              #root > *:not(.print-area),
+              .navbar, .footer, .header { display: none !important; }
+
+              .print-area {
+                  display: block !important;
+                  width: 210mm !important;
+                  height: 297mm !important;
+                  margin: 0 !important;
+                  padding: 8mm !important;
+                  border: none !important;
+                  box-shadow: none !important;
+                  background: white !important;
+              }
+          }
+
+          .break-after-page {
+              page-break-after: avoid !important;
+              page-break-inside: avoid !important;
+              break-after: avoid !important;
+              break-inside: avoid !important;
+              margin: 0 !important;
+          }
+          .font-prompt { font-family: 'Prompt', sans-serif; }
+      ` }} />
+
+      {/* Floating Action Bar (Customer View) */}
+      {!userInfo?.isAdmin && (
+        <div className="fixed bottom-10 left-0 right-0 flex justify-center z-[100] no-print px-4">
+          <div className="bg-white/90 backdrop-blur-2xl border border-slate-200 px-4 sm:px-8 py-4 rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,0,0.15)] flex flex-col sm:flex-row items-center gap-4 sm:gap-8 max-w-2xl w-full border-t border-white/50">
+            <div className="flex items-center gap-4">
+              <div className="w-10 h-10 bg-black rounded-2xl flex items-center justify-center text-white shrink-0">
+                <FaFileInvoice size={18} />
+              </div>
+              <div className="flex flex-col">
+                <span className="text-[10px] uppercase tracking-[0.2em] text-slate-400 font-black">Next Action</span>
+                <span className="text-sm font-bold text-slate-800">ยืนยันราคา & รับใบแจ้งหนี้</span>
+              </div>
+            </div>
+
+            <div className="hidden sm:block h-10 w-px bg-slate-200" />
+
+            <div className="flex items-center gap-3 w-full sm:w-auto">
+              <button
+                onClick={() => window.print()}
+                className="flex-1 sm:flex-none px-6 py-3.5 bg-slate-50 border border-slate-200 text-slate-700 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-white hover:shadow-md transition-all active:scale-95 flex items-center justify-center gap-2"
+              >
+                <FaPrint /> Print
+              </button>
+              <button
+                onClick={handleAcceptQuote}
+                className="flex-1 sm:flex-none px-8 py-3.5 bg-black text-white rounded-2xl font-black text-[10px] uppercase tracking-widest hover:shadow-2xl hover:shadow-black/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2 border border-black"
+              >
+                <FaCheckCircle className="text-green-400" /> Accept Quote
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Admin Quick Nav */}
+      {userInfo?.isAdmin && (
+        <div className="fixed top-24 left-8 z-[100] no-print">
+          <button
+            onClick={() => navigate(-1)}
+            className="w-12 h-12 bg-white border border-slate-200 rounded-2xl shadow-xl flex items-center justify-center text-slate-600 hover:text-black hover:border-black transition-all group"
+          >
+            <FaArrowLeft className="group-hover:-translate-x-1 transition-transform" />
+          </button>
+        </div>
+      )}
     </>
   );
 };

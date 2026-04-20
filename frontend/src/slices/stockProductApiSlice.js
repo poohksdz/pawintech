@@ -97,9 +97,9 @@ export const stockProductApiSlice = apiSlice.injectEndpoints({
       invalidatesTags: ["StockProduct"],
     }),
 
-    toggleStarProduct: builder.mutation({
+    rateProduct: builder.mutation({
       query: ({ productId, rating }) => ({
-        url: `${STOCK_PRODUCT_URL}/${productId}/star`,
+        url: `${STOCK_PRODUCT_URL}/${productId}/rate`,
         method: "PUT",
         body: { rating },
       }),
@@ -132,5 +132,5 @@ export const {
 
   // --- Export Hook ใหม่ ---
   useCreateStockAdditionMutation,
-  useToggleStarProductMutation,
+  useRateProductMutation,
 } = stockProductApiSlice;

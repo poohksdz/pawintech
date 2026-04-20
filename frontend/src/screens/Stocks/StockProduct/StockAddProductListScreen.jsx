@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { motion, AnimatePresence } from "framer-motion";
@@ -16,6 +16,10 @@ import {
   FaChevronDown,
   FaWarehouse,
   FaMapMarkerAlt,
+  FaStar,
+  FaRegStar,
+  FaExclamationCircle,
+  FaCheckCircle,
 } from "react-icons/fa";
 import { useGetStockProductsQuery } from "../../../slices/stockProductApiSlice";
 import { useGetStockManufacturesQuery } from "../../../slices/stockManufactureApiSlice";
@@ -47,7 +51,7 @@ const CustomDropdown = ({
   );
 
   return (
-    <div className="mb-5 relative">
+    <div className="mb-2 relative">
       <label className="text-[11px] font-semibold text-slate-500 mb-1.5 block tracking-wide uppercase">
         {label}
       </label>
@@ -56,7 +60,7 @@ const CustomDropdown = ({
           type="button"
           disabled={disabled}
           onClick={() => setIsOpen(!isOpen)}
-          className={`w-full bg-white border ${isOpen ? "border-indigo-400 ring-2 ring-indigo-50" : "border-slate-200"} rounded-xl px-4 py-2.5 text-sm font-medium text-slate-800 flex items-center justify-between transition-all hover:border-slate-300 outline-none ${disabled ? "opacity-50 cursor-not-allowed bg-slate-50" : "cursor-pointer"}`}
+          className={`w-full bg-white border ${isOpen ? "border-indigo-400 ring-2 ring-indigo-50" : "border-slate-200"} rounded-xl px-4 py-2 text-sm font-medium text-slate-800 flex items-center justify-between transition-all hover:border-slate-300 outline-none ${disabled ? "opacity-50 cursor-not-allowed bg-slate-50" : "cursor-pointer"}`}
         >
           <span
             className={`truncate mr-2 ${!selectedOption ? "text-slate-400 font-normal" : ""}`}
@@ -156,7 +160,12 @@ const StockAddProductListScreen = () => {
   });
 
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 12; // 4 columns grid on large screens
+  const itemsPerPage = 99999; // Show all products without pagination
+
+  // Infinite scroll state
+  const ITEMS_PER_BATCH = 50;
+  const [visibleCount, setVisibleCount] = useState(ITEMS_PER_BATCH);
+  const sentinelRef = useRef(null);
 
   // Scroll Lock for Modals
   useEffect(() => {
@@ -199,19 +208,31 @@ const StockAddProductListScreen = () => {
     return filtered;
   }, [formData, searchQuery, products]);
 
-  const indexOfLastItem = currentPage * itemsPerPage;
-  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentItems = filteredProducts.slice(
-    indexOfFirstItem,
-    indexOfLastItem,
-  );
-  const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
+  const currentItems = filteredProducts.slice(0, visibleCount);
+  const hasMore = currentItems.length < filteredProducts.length;
+
+  // Infinite scroll: load more when sentinel enters viewport
+  useEffect(() => {
+    const el = sentinelRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          setVisibleCount((prev) => prev + ITEMS_PER_BATCH);
+        }
+      },
+      { rootMargin: "400px" }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [currentItems.length]);
 
   // Handlers
   const handleTriggerSearch = () => {
     setSearchQuery(searchInput);
     setShowMobileFilter(false);
     setCurrentPage(1);
+    setVisibleCount(ITEMS_PER_BATCH);
   };
   const handleKeyDown = (e) => {
     if (e.key === "Enter") handleTriggerSearch();
@@ -219,6 +240,7 @@ const StockAddProductListScreen = () => {
   const handleChange = (e) => {
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
     setCurrentPage(1);
+    setVisibleCount(ITEMS_PER_BATCH);
   };
   const handleReset = () => {
     setSearchInput("");
@@ -231,6 +253,7 @@ const StockAddProductListScreen = () => {
       supplier: "",
     });
     setCurrentPage(1);
+    setVisibleCount(ITEMS_PER_BATCH);
   };
 
   // ปรับให้สามารถลดลงเหลือ 0 (เคลียร์ค่า) ได้
@@ -285,7 +308,7 @@ const StockAddProductListScreen = () => {
     );
   if (error)
     return (
-      <div className="p-10">
+      <div className="p-4 md:p-6 lg:p-10">
         <Message variant="danger">
           {error?.data?.message || error.error || "ERROR"}
         </Message>
@@ -294,10 +317,10 @@ const StockAddProductListScreen = () => {
 
   return (
     <React.Fragment>
-      <div className="bg-[#f9fafb] min-h-screen font-sans pb-24 text-slate-800 antialiased selection:bg-indigo-100 relative overflow-hidden">
+      <div className="bg-[#f9fafb] min-h-screen font-sans pb-24 text-slate-800 antialiased selection:bg-indigo-100 relative">
         <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 pt-8 sm:pt-12 relative z-10">
           {/* ================= HEADER ================= */}
-          <header className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10 pb-6 border-b border-slate-200/60">
+          <header className="flex flex-col md:flex-row md:items-end justify-between gap-4 md:gap-6 mb-10 pb-6 border-b border-slate-200/60">
             <div>
               <div className="flex items-center gap-3 mb-2">
                 <div className="w-10 h-10 bg-indigo-50 border border-indigo-100 rounded-xl flex items-center justify-center text-indigo-600 shadow-sm">
@@ -356,11 +379,11 @@ const StockAddProductListScreen = () => {
             </div>
           </header>
 
-          <div className="flex flex-col lg:flex-row gap-10">
+          <div className="flex flex-col lg:flex-row gap-4 md:gap-6 lg:gap-10">
             {/* ================= SIDEBAR FILTERS (DESKTOP) ================= */}
-            <aside className="w-64 shrink-0 hidden lg:block">
-              <div className="sticky top-8">
-                <div className="flex justify-between items-center mb-6">
+            <aside className="w-64 shrink-0 hidden lg:block sticky top-8 self-start max-h-[calc(100vh-4rem)] overflow-y-auto custom-scrollbar">
+              <div>
+                <div className="flex justify-between items-center mb-3">
                   <h3 className="text-sm font-semibold text-slate-900">
                     Filter Items
                   </h3>
@@ -464,218 +487,328 @@ const StockAddProductListScreen = () => {
                     </p>
                     <button
                       onClick={handleReset}
-                      className="mt-6 px-6 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-semibold text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition-colors shadow-sm"
+                      className="mt-6 px-4 md:px-6 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-semibold text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition-colors shadow-sm"
                     >
                       Reset All Filters
                     </button>
                   </motion.div>
                 ) : (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-5">
-                    {currentItems.map((p, index) => (
-                      <motion.div
-                        key={p.ID}
-                        layout
-                        initial={{ opacity: 0, y: 15 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{
-                          duration: 0.3,
-                          delay: (index % itemsPerPage) * 0.03,
-                          ease: "easeOut",
-                        }}
-                        className="group bg-white border border-slate-200/80 rounded-2xl p-4 flex flex-col transition-all hover:shadow-[0_8px_30px_rgba(0,0,0,0.06)] hover:border-slate-300"
-                      >
-                        {/* Image Area */}
-                        <div
-                          className="relative aspect-[4/3] w-full bg-[#f8fafc] rounded-xl mb-4 flex items-center justify-center p-4 cursor-pointer overflow-hidden group-hover:bg-indigo-50/30 transition-colors"
-                          onClick={() => handleViewDetail(p)}
-                        >
-                          {p.img ? (
-                            <motion.img
-                              whileHover={{ scale: 1.05 }}
-                              transition={{ duration: 0.4 }}
-                              src={`/componentImages${p.img}`}
-                              className="max-w-full max-h-full object-contain mix-blend-multiply"
-                              alt="Product"
-                            />
-                          ) : (
-                            <FaBoxOpen className="text-slate-200" size={40} />
-                          )}
-                        </div>
-
-                        {/* Details Area */}
-                        <div className="flex flex-col flex-1">
-                          <div className="flex justify-between items-start mb-1">
-                            <p className="text-[10px] font-bold text-indigo-500 uppercase tracking-widest truncate pr-2">
-                              {p.category}
-                            </p>
-                            <span className="text-[10px] font-medium text-slate-400 bg-slate-50 px-1.5 py-0.5 rounded border border-slate-100">
-                              #{p.ID}
-                            </span>
-                          </div>
-
-                          <h3
-                            className="text-[15px] font-bold text-slate-900 leading-tight mb-1 truncate cursor-pointer hover:text-indigo-600 transition-colors"
-                            onClick={() => handleViewDetail(p)}
-                            title={p.electotronixPN}
-                          >
-                            {p.electotronixPN || "-"}
-                          </h3>
-
-                          {/* MPN / PN Subtitle */}
-                          <div className="text-[10px] font-bold text-slate-400 mb-1 truncate" title={`MPN / PN: ${p.manufacturePN}`}>
-                            {p.manufacturePN || "-"}
-                          </div>
-
-                          <div className="flex items-center gap-1.5 mb-2">
-                            <FaIndustry className="text-slate-300" size={10} />
-                            <p className="text-[10px] text-slate-500 truncate font-medium uppercase tracking-wider">
-                              {p.manufacture || "Unknown MFR"}
-                            </p>
-                          </div>
-
-                          {/* Value Display */}
-                          <div
-                            className="text-[12px] font-black text-indigo-600 mb-4 truncate py-1 px-2 bg-indigo-50/50 rounded-lg inline-block w-fit"
-                            title={p.value}
-                          >
-                            Value: {p.value || "-"}
-                          </div>
-
-                          {/* Stock & Action Area */}
-                          <div className="mt-auto pt-4 border-t border-slate-100/80 space-y-3">
-                            <div className="flex justify-between items-end mb-1">
-                              <div>
-                                <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider mb-0.5">
-                                  Current Stock
-                                </p>
-                                <p className="text-sm font-bold text-slate-800">
-                                  {Number(p.quantity || 0).toLocaleString()}{" "}
-                                  <span className="text-[10px] font-medium text-slate-500 lowercase">
-                                    pcs
+                  <div>
+                    {/* DESKTOP VIEW (Modern Edge-to-Edge Table in Card) */}
+                    <div className="hidden lg:block bg-white border border-slate-200/80 shadow-[0_4px_24px_rgba(0,0,0,0.02)] rounded-[2rem] overflow-hidden">
+                      <table className="w-full text-left border-collapse">
+                        <thead>
+                          <tr className="border-b border-slate-100 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] bg-slate-50/50">
+                            <th className="py-5 pl-8 pr-4 w-28 text-center">
+                              Preview
+                            </th>
+                            <th className="py-5 px-4 w-16 text-center">
+                              Star
+                            </th>
+                            <th className="py-5 px-4">Component Details</th>
+                            <th className="py-5 px-4 w-48">Brand / MFR</th>
+                            <th className="py-5 px-4 w-32 text-right">
+                              Current Stock
+                            </th>
+                            <th className="py-5 px-4 w-32 text-right">
+                              Cost
+                            </th>
+                            <th className="py-5 pr-8 pl-4 w-56 text-center">
+                              Action
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100/80">
+                          {currentItems.map((p, index) => (
+                            <tr
+                              key={`p.ID ?? row-${index}`}
+                              className="hover:bg-slate-50/50 transition-colors group"
+                            >
+                              <td className="py-4 pl-8 pr-4">
+                                <div className="relative">
+                                  <div
+                                    className="w-14 h-14 rounded-2xl bg-[#f8fafc] border border-slate-100 flex items-center justify-center mx-auto overflow-hidden p-2 group-hover:bg-white group-hover:shadow-sm transition-all cursor-pointer"
+                                    onClick={() => handleViewDetail(p)}
+                                  >
+                                    {p.img ? (
+                                      <img
+                                        src={p.img}
+                                        alt={p.electotronixPN}
+                                        className="w-full h-full object-contain mix-blend-multiply group-hover:scale-110 transition-transform duration-500"
+                                      />
+                                    ) : (
+                                      <FaBoxOpen
+                                        className="text-slate-200"
+                                        size={24}
+                                      />
+                                    )}
+                                  </div>
+                                </div>
+                              </td>
+                              <td className="py-4 px-4 text-center">
+                                <div className="flex flex-col items-center gap-1">
+                                  {p.isStarred ? (
+                                    <FaStar className="text-amber-400" size={18} />
+                                  ) : (
+                                    <FaRegStar className="text-slate-300" size={18} />
+                                  )}
+                                  {p.starRating > 0 && (
+                                    <span className="text-[9px] font-bold text-slate-400">
+                                      {p.starRating} ({p.ratingCount})
+                                    </span>
+                                  )}
+                                </div>
+                              </td>
+                              <td className="py-4 px-4 max-w-[300px]">
+                                <div className="flex items-center gap-2 mb-1.5">
+                                  <span className="text-[9px] font-black uppercase tracking-widest text-indigo-500 bg-indigo-50 px-2 py-0.5 rounded-md">
+                                    {p.category}
                                   </span>
-                                </p>
+                                  <span className="text-[9px] text-slate-400 font-medium">#{p.ID}</span>
+                                  {p.important && (
+                                    <span className="text-[9px] font-black uppercase tracking-widest text-red-500 bg-red-50 px-2 py-0.5 rounded border border-red-100">
+                                      Priority
+                                    </span>
+                                  )}
+                                </div>
+                                <div
+                                  className="font-bold text-slate-900 leading-tight mb-0.5 cursor-pointer hover:text-slate-600 transition-colors truncate text-[15px]"
+                                  onClick={() => handleViewDetail(p)}
+                                  title={p.electotronixPN && p.electotronixPN !== "-" ? p.electotronixPN : (p.barcode || "-")}
+                                >
+                                  {p.electotronixPN && p.electotronixPN !== "-" ? p.electotronixPN : (p.barcode || "-")}
+                                </div>
+                                <div
+                                  className="text-[10px] font-bold text-slate-400 mb-0.5 truncate"
+                                  title={`MPN: ${p.manufacturePN}`}
+                                >
+                                  {p.manufacturePN || "-"}
+                                </div>
+                                <div
+                                  className="text-[11px] font-black text-indigo-600 truncate"
+                                  title={p.value}
+                                >
+                                  {p.value}
+                                </div>
+                              </td>
+                              <td className="py-4 px-4">
+                                <span className="text-xs font-semibold text-slate-700 flex items-center gap-2">
+                                  {p.manufacture || "-"}
+                                </span>
+                              </td>
+                              <td className="py-4 px-4 text-right">
+                                <span
+                                  className={`inline-flex items-center justify-center px-3 py-1 rounded-lg text-xs font-bold ${p.quantity > 0 ? "bg-emerald-50 text-emerald-700" : "bg-rose-50 text-rose-700"} whitespace-nowrap`}
+                                >
+                                  {Number(p.quantity || 0).toLocaleString()} pcs
+                                </span>
+                              </td>
+                              <td className="py-4 px-4 text-right font-bold text-slate-800 text-sm">
+                                {formatPrice(p.price)}
+                              </td>
+                              <td className="py-4 pr-8 pl-4 w-56 text-center">
+                                <div className="flex items-center justify-center gap-2">
+                                  <div className="flex items-center border border-slate-200 rounded-xl overflow-hidden focus-within:border-indigo-400 focus-within:ring-2 focus-within:ring-indigo-50 transition-all bg-white shadow-sm h-9 w-[100px] shrink-0">
+                                    <button
+                                      type="button"
+                                      onClick={() => adjustQty(p.ID, -1)}
+                                      className="w-7 h-full flex items-center justify-center text-slate-400 hover:text-slate-800 hover:bg-slate-50 transition-colors shrink-0"
+                                    >
+                                      <FaMinus size={10} />
+                                    </button>
+                                    <input
+                                      type="number"
+                                      min="0"
+                                      value={
+                                        additionqty[p.ID] !== undefined
+                                          ? additionqty[p.ID]
+                                          : ""
+                                      }
+                                      onChange={(e) =>
+                                        setAdditionqty((prev) => ({
+                                          ...prev,
+                                          [p.ID]: e.target.value,
+                                        }))
+                                      }
+                                      placeholder="Qty"
+                                      className="flex-1 w-full h-full px-0 text-center text-xs font-bold text-slate-800 outline-none placeholder:text-slate-300 placeholder:font-normal hide-arrows"
+                                    />
+                                    <button
+                                      type="button"
+                                      onClick={() => adjustQty(p.ID, 1)}
+                                      className="w-7 h-full flex items-center justify-center text-slate-400 hover:text-slate-800 hover:bg-slate-50 transition-colors shrink-0"
+                                    >
+                                      <FaPlus size={10} />
+                                    </button>
+                                  </div>
+                                  <button
+                                    onClick={() =>
+                                      addToAdditionStockCartHandler(p, additionqty[p.ID])
+                                    }
+                                    className="h-9 px-3 bg-indigo-50 text-indigo-600 rounded-lg flex items-center justify-center hover:bg-indigo-600 hover:text-white hover:scale-105 active:scale-95 transition-all shadow-sm text-xs font-bold"
+                                  >
+                                    <FaPlus className="mr-1" size={10} /> Add
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+
+                    {/* MOBILE LIST VIEW (Cards like EditList) */}
+                    <div className="lg:hidden grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      {currentItems.map((p, index) => (
+                        <div
+                          key={`p.ID ?? card-${index}`}
+                          className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex flex-col relative"
+                        >
+                          {p.important && (
+                            <div className="absolute top-4 right-4 z-10">
+                              <span className="text-[9px] font-black uppercase tracking-widest text-red-500 bg-red-50 px-2 py-0.5 rounded border border-red-100 flex items-center gap-1">
+                                <FaExclamationCircle size={10} /> Priority
+                              </span>
+                            </div>
+                          )}
+
+                          <div className="flex gap-4 mb-4">
+                            <div
+                              className="w-20 h-20 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center shrink-0 p-2 cursor-pointer"
+                              onClick={() => handleViewDetail(p)}
+                            >
+                              {p.img ? (
+                                <img
+                                  src={p.img}
+                                  alt={p.electotronixPN}
+                                  className="max-w-full max-h-full object-contain mix-blend-multiply"
+                                />
+                              ) : (
+                                <FaBoxOpen className="text-slate-200" size={28} />
+                              )}
+                            </div>
+                            <div className="flex-1 min-w-0 pr-8">
+                              <div className="flex items-center gap-2 mb-1">
+                                <span className="text-[9px] font-black text-indigo-500 uppercase tracking-widest">
+                                  {p.category}
+                                </span>
+                                <span className="text-[9px] font-bold text-slate-400">
+                                  #{p.ID}
+                                </span>
                               </div>
-                              <div className="text-right">
-                                <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider mb-0.5">
-                                  Cost
-                                </p>
-                                <p className="text-sm font-bold text-slate-800">
-                                  {formatPrice(p.price)}
-                                </p>
+                              <h4
+                                className="font-bold text-slate-900 truncate text-[15px] mb-1 cursor-pointer"
+                                onClick={() => handleViewDetail(p)}
+                                title={p.electotronixPN && p.electotronixPN !== "-" ? p.electotronixPN : (p.barcode || "-")}
+                              >
+                                {p.electotronixPN && p.electotronixPN !== "-" ? p.electotronixPN : (p.barcode || "-")}
+                              </h4>
+                              <div className="text-[10px] font-bold text-slate-400 mb-1 truncate">
+                                {p.manufacturePN || "-"}
+                              </div>
+                              <div className="flex justify-between items-center mt-2">
+                                <span className="text-[11px] font-bold text-slate-500 uppercase flex items-center gap-1">
+                                  {p.manufacture || "Unknown"}
+                                </span>
                               </div>
                             </div>
+                          </div>
 
-                            {/* Input Group with separated Add Button */}
-                            <div className="flex items-center gap-2">
-                              {/* Stepper */}
-                              <div className="flex items-center border border-slate-200 rounded-xl overflow-hidden focus-within:border-indigo-400 focus-within:ring-2 focus-within:ring-indigo-50 transition-all bg-white shadow-sm h-10 w-[110px] shrink-0">
-                                <button
-                                  type="button"
-                                  onClick={() => adjustQty(p.ID, -1)}
-                                  className="w-8 h-full flex items-center justify-center text-slate-400 hover:text-slate-800 hover:bg-slate-50 transition-colors shrink-0"
-                                >
-                                  <FaMinus size={10} />
-                                </button>
-                                <input
-                                  type="number"
-                                  min="0"
-                                  value={
-                                    additionqty[p.ID] !== undefined
-                                      ? additionqty[p.ID]
-                                      : ""
-                                  }
-                                  onChange={(e) =>
-                                    setAdditionqty((prev) => ({
-                                      ...prev,
-                                      [p.ID]: e.target.value,
-                                    }))
-                                  }
-                                  placeholder="Qty"
-                                  className="flex-1 w-full h-full px-0 text-center text-sm font-bold text-slate-800 outline-none placeholder:text-slate-300 placeholder:font-normal hide-arrows"
-                                />
-                                <button
-                                  type="button"
-                                  onClick={() => adjustQty(p.ID, 1)}
-                                  className="w-8 h-full flex items-center justify-center text-slate-400 hover:text-slate-800 hover:bg-slate-50 transition-colors shrink-0"
-                                >
-                                  <FaPlus size={10} />
-                                </button>
-                              </div>
+                          <div className="flex items-center gap-1.5 mb-4 px-1">
+                            {p.isStarred ? (
+                              <FaStar className="text-amber-400" size={16} />
+                            ) : (
+                              <FaRegStar className="text-slate-300" size={16} />
+                            )}
+                            <div className="flex items-center gap-0.5 ml-1">
+                              {[1, 2, 3, 4, 5].map((star) => (
+                                <span key={star} className={p.starRating >= star ? "text-amber-400" : "text-slate-200"}>
+                                  {p.starRating >= star ? <FaStar size={10} /> : <FaRegStar size={10} />}
+                                </span>
+                              ))}
+                            </div>
+                            {p.starRating > 0 && <span className="text-[10px] text-slate-400 ml-1">({p.ratingCount})</span>}
+                          </div>
 
-                              {/* Add Button */}
-                              <button
-                                onClick={() =>
-                                  addToAdditionStockCartHandler(
-                                    p,
-                                    additionqty[p.ID],
-                                  )
-                                }
-                                className="flex-1 h-10 bg-indigo-50 text-indigo-600 hover:bg-indigo-600 hover:text-white rounded-xl text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-1.5 transition-colors shadow-sm"
+                          <div className="flex justify-between items-end mb-4 px-1">
+                            <div>
+                              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">
+                                Stock
+                              </p>
+                              <span
+                                className={`text-sm font-black ${p.quantity > 0 ? "text-emerald-600" : "text-rose-600"} whitespace-nowrap`}
                               >
-                                <FaPlus size={10} /> Add
+                                {Number(p.quantity || 0).toLocaleString()} <span className="text-[10px] font-normal text-slate-500">pcs</span>
+                              </span>
+                            </div>
+                            <div className="text-right">
+                              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">
+                                Cost
+                              </p>
+                              <span className="text-sm font-black text-slate-800">
+                                {formatPrice(p.price)}
+                              </span>
+                            </div>
+                          </div>
+
+                          <div className="flex gap-2 mt-auto border-t border-slate-100 pt-4 items-center">
+                            <div className="flex items-center border border-slate-200 rounded-xl overflow-hidden focus-within:border-indigo-400 focus-within:ring-2 focus-within:ring-indigo-50 transition-all bg-white shadow-sm h-10 w-[110px] shrink-0">
+                              <button
+                                type="button"
+                                onClick={() => adjustQty(p.ID, -1)}
+                                className="w-8 h-full flex items-center justify-center text-slate-400 hover:text-slate-800 hover:bg-slate-50 transition-colors shrink-0"
+                              >
+                                <FaMinus size={10} />
+                              </button>
+                              <input
+                                type="number"
+                                min="0"
+                                value={
+                                  additionqty[p.ID] !== undefined
+                                    ? additionqty[p.ID]
+                                    : ""
+                                }
+                                onChange={(e) =>
+                                  setAdditionqty((prev) => ({
+                                    ...prev,
+                                    [p.ID]: e.target.value,
+                                  }))
+                                }
+                                placeholder="Qty"
+                                className="flex-1 w-full h-full px-0 text-center text-sm font-bold text-slate-800 outline-none placeholder:text-slate-300 placeholder:font-normal hide-arrows"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => adjustQty(p.ID, 1)}
+                                className="w-8 h-full flex items-center justify-center text-slate-400 hover:text-slate-800 hover:bg-slate-50 transition-colors shrink-0"
+                              >
+                                <FaPlus size={10} />
                               </button>
                             </div>
+                            <button
+                              onClick={() => addToAdditionStockCartHandler(p, additionqty[p.ID])}
+                              className="flex-[2] h-10 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center hover:bg-indigo-600 hover:text-white active:scale-[0.98] transition-all text-sm font-bold shadow-sm uppercase tracking-wider"
+                            >
+                              <FaPlus className="mr-2" size={12} /> Add
+                            </button>
                           </div>
                         </div>
-                      </motion.div>
-                    ))}
+                      ))}
+                    </div>
                   </div>
                 )}
               </AnimatePresence>
 
-              {/* ================= PAGINATION ================= */}
-              {totalPages > 1 && (
-                <div className="mt-12 flex items-center justify-center gap-2">
-                  <button
-                    disabled={currentPage === 1}
-                    onClick={() => setCurrentPage((c) => c - 1)}
-                    className="w-9 h-9 flex items-center justify-center rounded-full bg-white border border-slate-200 text-slate-500 hover:bg-slate-50 hover:text-slate-800 disabled:opacity-30 disabled:hover:bg-white transition-all"
-                  >
-                    <FaChevronLeft size={10} />
-                  </button>
-                  <div className="flex items-center gap-1">
-                    {Array.from({ length: totalPages }, (_, i) => i + 1).map(
-                      (pageNum) => {
-                        const isPageDots =
-                          totalPages > 5 &&
-                          (pageNum < currentPage - 1 ||
-                            pageNum > currentPage + 1) &&
-                          pageNum !== 1 &&
-                          pageNum !== totalPages;
-                        if (isPageDots) {
-                          if (
-                            pageNum === currentPage - 2 ||
-                            pageNum === currentPage + 2
-                          )
-                            return (
-                              <span
-                                key={pageNum}
-                                className="text-slate-400 px-1 text-sm"
-                              >
-                                ...
-                              </span>
-                            );
-                          return null;
-                        }
-                        return (
-                          <button
-                            key={pageNum}
-                            onClick={() => setCurrentPage(pageNum)}
-                            className={`min-w-[36px] h-9 px-2 rounded-full text-sm font-semibold transition-all ${currentPage === pageNum ? "bg-slate-800 text-white" : "bg-transparent text-slate-600 hover:bg-slate-100"}`}
-                          >
-                            {pageNum}
-                          </button>
-                        );
-                      },
-                    )}
+              {/* Infinite Scroll Sentinel */}
+              {hasMore && (
+                <div
+                  ref={sentinelRef}
+                  className="flex items-center justify-center py-10"
+                >
+                  <div className="flex items-center gap-3 text-slate-400 text-sm">
+                    <div className="w-5 h-5 border-2 border-slate-300 border-t-slate-600 rounded-full animate-spin" />
+                    กำลังโหลดเพิ่มเติม...
                   </div>
-                  <button
-                    disabled={currentPage === totalPages}
-                    onClick={() => setCurrentPage((c) => c + 1)}
-                    className="w-9 h-9 flex items-center justify-center rounded-full bg-white border border-slate-200 text-slate-500 hover:bg-slate-50 hover:text-slate-800 disabled:opacity-30 disabled:hover:bg-white transition-all"
-                  >
-                    <FaChevronRight size={10} />
-                  </button>
                 </div>
               )}
             </main>
@@ -842,11 +975,11 @@ const StockAddProductListScreen = () => {
                   </button>
 
                   {/* Image Section */}
-                  <div className="w-full md:w-2/5 p-8 bg-slate-50 flex flex-col items-center justify-center border-b md:border-b-0 md:border-r border-slate-100 shrink-0">
+                  <div className="w-full md:w-2/5 p-4 md:p-8 bg-slate-50 flex flex-col items-center justify-center border-b md:border-b-0 md:border-r border-slate-100 shrink-0">
                     <div className="w-40 h-40 bg-white border border-slate-100 rounded-xl p-4 flex items-center justify-center mb-6 shadow-sm">
                       {selectedDetailProduct.img ? (
                         <img
-                          src={`/componentImages${selectedDetailProduct.img}`}
+                          src={selectedDetailProduct.img}
                           className="max-w-full max-h-full object-contain mix-blend-multiply"
                           alt="product"
                         />
@@ -864,7 +997,7 @@ const StockAddProductListScreen = () => {
                   </div>
 
                   {/* Details Section */}
-                  <div className="flex-1 p-8 overflow-y-auto custom-scrollbar bg-white flex flex-col">
+                  <div className="flex-1 p-4 md:p-8 overflow-y-auto custom-scrollbar bg-white flex flex-col">
                     <h4 className="text-[11px] font-bold text-slate-400 uppercase tracking-widest border-b border-slate-100 pb-2 mb-6">
                       Specifications
                     </h4>
@@ -997,12 +1130,12 @@ const StockAddProductListScreen = () => {
           document.body,
         )}
 
-      <style>{`
+      <style dangerouslySetInnerHTML={{ __html: `
                 .custom-scrollbar::-webkit-scrollbar { width: 5px; height: 5px; }
                 .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
                 .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
                 .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
-                
+
                 /* ซ่อนลูกศรในช่อง input type number */
                 .hide-arrows::-webkit-inner-spin-button,
                 .hide-arrows::-webkit-outer-spin-button {
@@ -1012,7 +1145,7 @@ const StockAddProductListScreen = () => {
                 .hide-arrows {
                     -moz-appearance: textfield; /* สำหรับ Firefox */
                 }
-            `}</style>
+            ` }} />
     </React.Fragment>
   );
 };

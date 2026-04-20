@@ -303,7 +303,7 @@ const StockRequestImportanceScreen = () => {
                   <td className="text-center">
                     {p.img ? (
                       <img
-                        src={`/componentImages${p.img}`}
+                        src={p.img}
                         alt="prod"
                         width="50"
                         height="50"

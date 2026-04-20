@@ -21,7 +21,7 @@ function ConfirmModle({
         </div>
       }
     >
-      <div className="p-6">
+      <div className="p-4 md:p-6">
         <p className="text-slate-600 mb-6">{text}</p>
         <div className="flex justify-end gap-3">
           <Button variant="secondary" onClick={onCancel}>

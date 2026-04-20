@@ -85,8 +85,7 @@ const getassemblyPCBs = asyncHandler(async (req, res) => {
       .status(500)
       .json({
         success: false,
-        message: "Failed to fetch Assembly PCB orders",
-        error: error.message,
+        message: "Internal server error",
       });
   }
 });
@@ -104,13 +103,7 @@ const getassemblyPCBById = asyncHandler(async (req, res) => {
         .json({ success: false, message: "Order not found" });
     res.status(200).json({ success: true, data: rows[0] });
   } catch (error) {
-    res
-      .status(500)
-      .json({
-        success: false,
-        message: "Failed to fetch order",
-        error: error.message,
-      });
+    res.status(500).json({ success: false, message: "Internal server error" });
   }
 });
 
@@ -131,13 +124,7 @@ const getassemblyPCBByUserId = asyncHandler(async (req, res) => {
         });
     res.status(200).json({ success: true, count: rows.length, data: rows });
   } catch (error) {
-    res
-      .status(500)
-      .json({
-        success: false,
-        message: "Failed to fetch assembly orders",
-        error: error.message,
-      });
+    res.status(500).json({ success: false, message: "Internal server error" });
   }
 });
 
@@ -267,7 +254,7 @@ const createassemblyPCB = asyncHandler(async (req, res) => {
               receivePlace, 
               billingName, billinggAddress, billingCity, billingPostalCode, billingCountry, billingPhone, billingTax,
               transferedAmount, transferedName, paymentSlip, transferedDate,
-              orderID, paymentComfirmID, cartId, isDelivered
+              orderID, paymentComfirmID, cartId, quotation_no, isDelivered
           ) VALUES (
               ?, ?, ?, ?, ?, 
               'paid', ?, ?, NOW(), NOW(), 
@@ -276,7 +263,7 @@ const createassemblyPCB = asyncHandler(async (req, res) => {
               ?, 
               ?, ?, ?, ?, ?, ?, ?, 
               ?, ?, ?, ?, 
-              ?, ?, ?, 0
+              ?, ?, ?, ?, 0
           )
       `;
 
@@ -311,6 +298,7 @@ const createassemblyPCB = asyncHandler(async (req, res) => {
         orderID,
         paymentComfirmID,
         cartId,
+        cart.quotation_no || null,
       ];
 
       await db.execute(insertSql, insertValues);
@@ -332,7 +320,6 @@ const createassemblyPCB = asyncHandler(async (req, res) => {
       .json({
         success: false,
         message: "เกิดข้อผิดพลาดในการบันทึกข้อมูล",
-        error: error.message,
       });
   }
 });
@@ -493,7 +480,6 @@ const createassemblyPCBbyAdmin = asyncHandler(async (req, res) => {
       .json({
         success: false,
         message: "Failed to create Assembly PCB order",
-        error: error.message,
       });
   }
 });
@@ -662,7 +648,7 @@ const deleteassemblyPCB = asyncHandler(async (req, res) => {
       .status(200)
       .json({ success: true, message: "Order deleted successfully" });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(500).json({ success: false, message: "Internal server error" });
   }
 });
 

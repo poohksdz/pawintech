@@ -244,7 +244,7 @@ const CustomPCBCartDetailScreen = () => {
 
   return (
     <div className="min-h-screen bg-slate-50/50 pb-12 font-prompt">
-      <Container className="py-6">
+      <Container className="py-4 md:py-6">
         {/* Header & Navigation */}
         <div className="mb-8">
           <div className="flex items-center gap-4 mb-4">
@@ -283,7 +283,7 @@ const CustomPCBCartDetailScreen = () => {
             <div className="space-y-6">
               {/* Project Info Card */}
               <div className="bg-white rounded-[2.5rem] shadow-sm border border-slate-100 overflow-hidden">
-                <div className="p-8 border-bottom border-slate-50 flex items-center justify-between bg-slate-50/30">
+                <div className="p-4 md:p-8 border-bottom border-slate-50 flex items-center justify-between bg-slate-50/30">
                   <div className="flex items-center gap-3">
                     <div className="w-12 h-12 rounded-[1.25rem] bg-blue-600 text-white flex items-center justify-center shadow-lg shadow-blue-100">
                       <FaMicrochip size={20} />
@@ -300,8 +300,8 @@ const CustomPCBCartDetailScreen = () => {
                   <StatusBadgeDetail status={order.status} />
                 </div>
 
-                <div className="p-8">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+                <div className="p-4 md:p-8">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8 mb-8">
                     <div className="flex items-start gap-4">
                       <div className="w-10 h-10 rounded-2xl bg-blue-50 text-blue-500 flex items-center justify-center flex-shrink-0">
                         <FaBox size={16} />
@@ -332,7 +332,7 @@ const CustomPCBCartDetailScreen = () => {
                     </div>
                   </div>
 
-                  <div className="p-6 bg-slate-50 rounded-3xl border border-slate-100">
+                  <div className="p-4 md:p-6 bg-slate-50 rounded-3xl border border-slate-100">
                     <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3 flex items-center gap-2">
                       <FaInfoCircle /> {t.NotesLbl}
                     </p>
@@ -342,7 +342,7 @@ const CustomPCBCartDetailScreen = () => {
                   </div>
 
                   {order.confirmed_reason && (
-                    <div className="mt-6 p-6 bg-blue-50/50 rounded-3xl border border-blue-100/50">
+                    <div className="mt-6 p-4 md:p-6 bg-blue-50/50 rounded-3xl border border-blue-100/50">
                       <p className="text-[10px] font-bold text-blue-400 uppercase tracking-widest mb-3 flex items-center gap-2">
                         <FaQuoteRight /> {t.ConfirmedReasonLbl}
                       </p>
@@ -355,7 +355,7 @@ const CustomPCBCartDetailScreen = () => {
               </div>
 
               {/* Images Grid */}
-              <div className="bg-white rounded-[2.5rem] shadow-sm border border-slate-100 p-8">
+              <div className="bg-white rounded-[2.5rem] shadow-sm border border-slate-100 p-4 md:p-8">
                 <div className="flex items-center justify-between mb-8">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-2xl bg-sky-50 text-sky-500 flex items-center justify-center">
@@ -387,8 +387,7 @@ const CustomPCBCartDetailScreen = () => {
                             className="w-full h-full object-fit-cover transition-transform duration-500 group-hover:scale-110"
                             onError={(e) => {
                               e.target.onerror = null;
-                              e.target.src =
-                                "https://via.placeholder.com/150?text=No+Image";
+                              e.target.src = "/images/sample.jpg";
                             }}
                           />
                           <div className="absolute inset-0 bg-slate-900/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-[1px]">
@@ -413,7 +412,7 @@ const CustomPCBCartDetailScreen = () => {
           <Col lg={4}>
             <div className="sticky top-6 space-y-6">
               {/* Technical Files Card */}
-              <div className="bg-white rounded-[2.5rem] shadow-sm border border-slate-100 p-8 text-center">
+              <div className="bg-white rounded-[2.5rem] shadow-sm border border-slate-100 p-4 md:p-8 text-center">
                 <div className="w-16 h-16 rounded-[2rem] bg-amber-50 text-amber-500 flex items-center justify-center mx-auto mb-6 shadow-inner">
                   <FaFileArchive size={28} />
                 </div>
@@ -451,7 +450,7 @@ const CustomPCBCartDetailScreen = () => {
               </div>
 
               {/* Quick Actions / Help Card */}
-              <div className="bg-gradient-to-br from-blue-600 to-blue-700 rounded-[2.5rem] shadow-xl shadow-blue-100 p-8 text-white relative overflow-hidden">
+              <div className="bg-gradient-to-br from-blue-600 to-blue-700 rounded-[2.5rem] shadow-xl shadow-blue-100 p-4 md:p-8 text-white relative overflow-hidden">
                 <div className="absolute -top-10 -right-10 w-40 h-40 bg-white/10 rounded-full blur-3xl"></div>
                 <div className="relative z-10">
                   <h5 className="text-lg font-bold mb-4">Questions?</h5>

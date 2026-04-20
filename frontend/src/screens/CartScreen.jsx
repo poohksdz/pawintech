@@ -84,7 +84,7 @@ const CartScreen = () => {
 
         {/* Header */}
         <header className="flex items-center justify-between mb-16 border-b border-slate-100 dark:border-zinc-800 pb-10 transition-colors duration-500">
-          <div className="flex items-center gap-6">
+          <div className="flex items-center gap-4 md:gap-6">
             <Link to="/product" className="group">
               <div className="w-12 h-12 bg-white dark:bg-black rounded-full border border-slate-200 dark:border-zinc-800 flex items-center justify-center text-slate-400 dark:text-white group-hover:text-slate-900 dark:group-hover:text-white group-hover:border-slate-900 dark:group-hover:border-white transition-all shadow-sm">
                 <FaArrowLeft size={16} />
@@ -112,7 +112,7 @@ const CartScreen = () => {
                   <button
                     key={tab.key}
                     onClick={() => handleTabChange(tab.key)}
-                    className="relative px-6 py-3.5 rounded-xl transition-all active:scale-95 flex items-center gap-2.5 overflow-hidden group"
+                    className="relative px-4 md:px-6 py-3.5 rounded-xl transition-all active:scale-95 flex items-center gap-2.5 overflow-hidden group"
                   >
                     {isActive && (
                       <motion.div

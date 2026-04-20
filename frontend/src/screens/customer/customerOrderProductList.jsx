@@ -148,7 +148,7 @@ const CustomerOrderProductList = () => {
                   <td className="text-end pe-3">
                     <Button
                       as={Link}
-                      to={`/order/${order.id}`}
+                      to={`/${order.id}`}
                       variant="outline-primary"
                       size="sm"
                       className="rounded-pill px-3"

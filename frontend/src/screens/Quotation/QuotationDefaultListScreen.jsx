@@ -73,10 +73,10 @@ const QuotationDefaultListScreen = () => {
     );
 
   return (
-    <div className="py-8 px-4 sm:px-6 lg:px-8 bg-slate-50 min-h-screen font-sans">
+    <div className="py-4 md:py-8 px-4 sm:px-6 lg:px-8 bg-slate-50 min-h-screen font-sans">
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Header Section */}
-        <div className="bg-white shadow-sm border border-slate-200 rounded-3xl p-6 sm:p-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+        <div className="bg-white shadow-sm border border-slate-200 rounded-3xl p-4 md:p-6 sm:p-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 md:gap-6">
           <div className="flex items-center gap-4">
             <div className="bg-blue-50 p-4 rounded-2xl text-blue-600 shadow-inner">
               <FaCheckCircle size={28} />
@@ -93,7 +93,7 @@ const QuotationDefaultListScreen = () => {
           <div className="flex w-full md:w-auto">
             <Link
               to="/admin/defaultquotations/set"
-              className="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-bold transition-colors shadow-md shadow-blue-500/30 w-full"
+              className="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 md:px-6 py-3 rounded-xl font-bold transition-colors shadow-md shadow-blue-500/30 w-full"
             >
               <FaPlus /> Create Default
             </Link>
@@ -101,13 +101,13 @@ const QuotationDefaultListScreen = () => {
         </div>
 
         {/* List Section */}
-        <div className="bg-white shadow-sm border border-slate-200 rounded-3xl p-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="bg-white shadow-sm border border-slate-200 rounded-3xl p-4 md:p-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
             {data.quotations && data.quotations.length > 0 ? (
               data.quotations.map((q) => (
                 <div
                   key={q.id}
-                  className={`relative flex flex-col p-6 rounded-2xl border ${q.is_used === 1 ? "border-green-500 bg-green-50/30 shadow-md ring-1 ring-green-500/50" : "border-slate-200 bg-white shadow-sm hover:border-blue-300"} transition-all`}
+                  className={`relative flex flex-col p-4 md:p-6 rounded-2xl border ${q.is_used === 1 ? "border-green-500 bg-green-50/30 shadow-md ring-1 ring-green-500/50" : "border-slate-200 bg-white shadow-sm hover:border-blue-300"} transition-all`}
                 >
                   {/* Default Badge/Checkbox */}
                   <div className="absolute top-4 right-4">

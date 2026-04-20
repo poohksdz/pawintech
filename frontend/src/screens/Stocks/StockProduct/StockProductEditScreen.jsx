@@ -20,7 +20,7 @@ import {
   useGetStockProductByIdQuery,
   useUpdateStockProductMutation,
   useUploadStockProductImageMutation,
-  useToggleStarProductMutation,
+  useRateProductMutation,
 } from "../../../slices/stockProductApiSlice";
 import {
   useGetStockCategoriesQuery,
@@ -162,7 +162,7 @@ const SmoothModal = ({
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.95, opacity: 0, y: 20 }}
             transition={{ duration: 0.2 }}
-            className="relative bg-white rounded-3xl w-full max-w-md p-6 shadow-2xl z-10 border border-slate-100"
+            className="relative bg-white rounded-3xl w-full max-w-md p-4 md:p-6 shadow-2xl z-10 border border-slate-100"
           >
             <div className="flex justify-between items-center mb-5">
               <h3 className="text-lg font-bold text-slate-900">{title}</h3>
@@ -268,13 +268,13 @@ const StockProductEditScreen = () => {
   const [newManufactureName, setNewManufactureName] = useState("");
   const [createStockManufacture] = useCreateStockManufactureMutation();
 
-  const [toggleStarProduct, { isLoading: isTogglingStar }] =
-    useToggleStarProductMutation();
+  const [rateProductHook, { isLoading: isTogglingStar }] =
+    useRateProductMutation();
 
   const starRatingHandler = async (newRating) => {
     try {
-      const finalRating = data?.starRating === newRating ? 0 : newRating;
-      await toggleStarProduct({ productId, rating: finalRating }).unwrap();
+      const finalRating = newRating; // ให้คะแนน 1-5 โดยตรง (สะสมเฉลี่ย)
+      await rateProductHook({ productId, rating: finalRating }).unwrap();
       toast.success(
         finalRating > 0 ? `Rated ${finalRating} stars` : "Rating cleared",
       );
@@ -310,7 +310,7 @@ const StockProductEditScreen = () => {
       toast.success(res.message);
       setFormData((prev) => ({
         ...prev,
-        img: res.image.replace("/componentImages", ""),
+        img: res.image, // Keep full path for both preview and DB storage
       }));
     } catch (err) {
       toast.error(err?.data?.message || err.error);
@@ -353,7 +353,7 @@ const StockProductEditScreen = () => {
     "block mb-2 text-xs font-black text-slate-600 uppercase tracking-widest";
 
   return (
-    <div className="min-h-screen bg-[#F1F5F9] py-10 px-4 sm:px-6 lg:px-8 font-sans selection:bg-indigo-100 dark:text-white">
+    <div className="min-h-screen bg-[#F1F5F9] py-4 md:py-6 lg:py-10 px-4 sm:px-6 lg:px-8 font-sans selection:bg-indigo-100 dark:text-white">
       <div className="max-w-5xl mx-auto">
         {/* Header Section */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
@@ -445,16 +445,16 @@ const StockProductEditScreen = () => {
         {/* Main Form */}
         <form
           onSubmit={handleSubmit}
-          className="bg-white rounded-[2.5rem] p-6 sm:p-10 shadow-xl border border-slate-200 mb-10 overflow-hidden"
+          className="bg-white rounded-[2.5rem] p-4 md:p-6 sm:p-10 shadow-xl border border-slate-200 mb-10 overflow-hidden"
         >
           {/* Image Upload Section */}
           <div className="mb-10">
             <label className={labelClass}>Component Image</label>
-            <div className="flex flex-col sm:flex-row items-center gap-6 p-6 border-2 border-dashed border-slate-200 rounded-3xl bg-slate-50/50 hover:bg-slate-50 transition-colors group">
+            <div className="flex flex-col sm:flex-row items-center gap-4 md:gap-6 p-4 md:p-6 border-2 border-dashed border-slate-200 rounded-3xl bg-slate-50/50 hover:bg-slate-50 transition-colors group">
               <div className="w-32 h-32 rounded-2xl bg-white border border-slate-200 shadow-sm flex items-center justify-center overflow-hidden shrink-0">
                 {formData.img ? (
                   <img
-                    src={`/componentImages${formData.img}`}
+                    src={formData.img}
                     alt="Preview"
                     className="w-full h-full object-contain p-2 mix-blend-multiply"
                   />
@@ -476,7 +476,7 @@ const StockProductEditScreen = () => {
                     onChange={uploadImageHandler}
                     className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                   />
-                  <div className="flex items-center justify-center gap-2 bg-white border border-slate-200 text-slate-700 px-6 py-2.5 rounded-xl text-sm font-bold shadow-sm group-hover:border-indigo-300 group-hover:text-indigo-600 transition-colors">
+                  <div className="flex items-center justify-center gap-2 bg-white border border-slate-200 text-slate-700 px-4 md:px-6 py-2.5 rounded-xl text-sm font-bold shadow-sm group-hover:border-indigo-300 group-hover:text-indigo-600 transition-colors">
                     <FaUpload />{" "}
                     {isUploadingImage ? "Uploading..." : "Choose File"}
                   </div>
@@ -814,7 +814,7 @@ const StockProductEditScreen = () => {
             <button
               type="submit"
               disabled={isUpdating || isUploadingImage}
-              className="w-full sm:w-auto px-10 py-4 bg-indigo-600 hover:bg-indigo-700 text-white font-black rounded-2xl shadow-lg shadow-indigo-200 transition-all flex items-center justify-center gap-3 disabled:opacity-50"
+              className="w-full sm:w-auto px-4 md:px-10 py-4 bg-indigo-600 hover:bg-indigo-700 text-white font-black rounded-2xl shadow-lg shadow-indigo-200 transition-all flex items-center justify-center gap-3 disabled:opacity-50"
             >
               <FaSave size={16} />
               {isUpdating || isUploadingImage
@@ -984,12 +984,13 @@ const StockProductEditScreen = () => {
           />
         </SmoothModal>
       </div>
-      <style>{`
+      <style dangerouslySetInnerHTML={{
+        __html: `
         .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
-      `}</style>
+      ` }} />
     </div>
   );
 };

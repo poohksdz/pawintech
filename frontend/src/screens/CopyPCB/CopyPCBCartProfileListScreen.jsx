@@ -95,7 +95,7 @@ const CopyPCBCartProfileListScreen = () => {
                   <td className="text-center">
                     <Button
                       as={Link}
-                      to={`/copypcb/${order.id}`}
+                      to={`/${order.id}`}
                       variant="light"
                       className="btn-sm"
                     >

@@ -171,11 +171,11 @@ const ProductEditScreen = () => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay }}
-      className="bg-white rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 p-8 mb-8"
+      className="bg-white rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 p-4 md:p-8 mb-8"
     >
       <div className="flex items-center gap-3 mb-8">
         <div
-          className={`w-10 h-10 rounded-2xl ${colorClass} bg-opacity-10 flex items-center justify-center text-lg`}
+          className={`w-10 h-10 rounded-2xl ${colorClass}`} bg-opacity-10 flex items-center justify-center text-lg
         >
           <Icon className={colorClass.replace("bg-", "text-")} />
         </div>
@@ -212,14 +212,14 @@ const ProductEditScreen = () => {
           <div className="d-flex align-items-center gap-3">
             <button
               onClick={() => navigate("/admin/productlist")}
-              className="px-6 py-2 rounded-full border border-slate-200 text-slate-600 font-bold text-sm hover:bg-slate-50 transition-all hidden md:block"
+              className="px-4 md:px-6 py-2 rounded-full border border-slate-200 text-slate-600 font-bold text-sm hover:bg-slate-50 transition-all hidden md:block"
             >
               Cancel
             </button>
             <Button
               form="product-form"
               type="submit"
-              className="bg-slate-900 border-0 text-white px-8 py-2.5 rounded-full font-black text-sm shadow-xl shadow-slate-900/10 hover:bg-indigo-600 hover:scale-105 active:scale-95 transition-all d-flex align-items-center gap-2"
+              className="bg-slate-900 border-0 text-white px-4 md:px-8 py-2.5 rounded-full font-black text-sm shadow-xl shadow-slate-900/10 hover:bg-indigo-600 hover:scale-105 active:scale-95 transition-all d-flex align-items-center gap-2"
               disabled={loadingUpdate}
             >
               <FaSave />
@@ -390,7 +390,7 @@ const ProductEditScreen = () => {
                           className="w-full h-full object-contain"
                         />
                       ) : (
-                        <div className="text-center p-8">
+                        <div className="text-center p-4 md:p-8">
                           <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-4">
                             <FaImage className="text-slate-300 text-2xl" />
                           </div>
@@ -515,11 +515,11 @@ const ProductEditScreen = () => {
         )}
       </div>
 
-      <style>{`
+      <style dangerouslySetInnerHTML={{ __html: `
         body { font-family: 'Prompt', sans-serif !important; }
         .form-control:focus { outline: none; opacity: 1; }
         .hidden { display: none; }
-      `}</style>
+      ` }} />
     </div>
   );
 };

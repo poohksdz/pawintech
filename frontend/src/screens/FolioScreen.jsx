@@ -77,7 +77,7 @@ const FolioScreen = () => {
   if (error) {
     return (
       <div className="min-h-screen flex justify-center items-center bg-[#FAFAFB] dark:bg-black transition-colors duration-500">
-        <div className="bg-rose-50 dark:bg-rose-900/20 text-rose-500 dark:text-rose-400 px-6 py-4 rounded-xl border border-rose-100 dark:border-rose-900/30 font-bold">
+        <div className="bg-rose-50 dark:bg-rose-900/20 text-rose-500 dark:text-rose-400 px-4 md:px-6 py-4 rounded-xl border border-rose-100 dark:border-rose-900/30 font-bold">
           Error: {error?.data?.message || "Something went wrong"}
         </div>
       </div>
@@ -85,7 +85,7 @@ const FolioScreen = () => {
   }
 
   return (
-    <div className="bg-[#FAFAFB] dark:bg-black min-h-screen py-8 md:py-16 font-sans selection:bg-blue-500 selection:text-white transition-colors duration-500">
+    <div className="bg-[#FAFAFB] dark:bg-black min-h-screen py-4 md:py-8 md:py-16 font-sans selection:bg-blue-500 selection:text-white transition-colors duration-500">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* --- Header Section --- */}
         <div className="mb-10 md:mb-16 text-center md:text-left">
@@ -116,7 +116,7 @@ const FolioScreen = () => {
             variants={containerVariants}
             initial="hidden"
             animate="visible"
-            className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6 sm:gap-8 lg:gap-10 items-stretch"
+            className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6 sm:gap-8 lg:gap-10 items-stretch"
           >
             {foliosArray.map((folio) => (
               <motion.div
@@ -125,7 +125,7 @@ const FolioScreen = () => {
                 className="h-full"
               >
                 <Link
-                  to={`/folio/${folio.ID}`}
+                  to={`/${folio.ID}`}
                   className="group block h-full bg-white dark:bg-zinc-900/50 rounded-2xl md:rounded-[1.5rem] p-2.5 sm:p-4 border border-slate-100 dark:border-zinc-800 shadow-sm hover:shadow-xl hover:shadow-blue-900/10 dark:hover:shadow-white/5 transition-all duration-300 flex flex-col"
                 >
                   {/* Image Wrapper */}

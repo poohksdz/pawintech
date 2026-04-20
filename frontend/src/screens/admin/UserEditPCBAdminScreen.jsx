@@ -204,14 +204,14 @@ const UserEditPCBAdminScreen = () => {
 
   return (
     <>
-      <style>{`
+      <style dangerouslySetInnerHTML={{ __html: `
         .user-edit-screen .form-control:disabled,
         .user-edit-screen .form-control[disabled] {
           background-color: #fff !important;
           opacity: 1 !important;
           color: #c4c4c4;
         }
-      `}</style>
+      ` }} />
       <Link
         to="/useraddresslistcreateorder/set"
         className="btn btn-light my-3"

@@ -394,12 +394,12 @@ const ReorderPCBAdminCreateOrderPCBScreen = () => {
 
         <form
           onSubmit={handleSubmit}
-          className="grid grid-cols-1 gap-8 lg:grid-cols-3"
+          className="grid grid-cols-1 gap-4 md:gap-8 lg:grid-cols-3"
         >
           {/* Left/Main Column: Project Details (Read-Only) */}
           <div className="space-y-6 lg:col-span-2">
             {/* Technical Configuration Summary */}
-            <div className="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
+            <div className="rounded-3xl border border-slate-200 bg-white p-4 md:p-8 shadow-sm">
               <div className="mb-6 flex items-center gap-3 border-b border-slate-100 pb-4">
                 <FaMicrochip className="text-xl text-blue-500" />
                 <h2 className="text-lg font-black uppercase tracking-wide text-slate-800">
@@ -462,7 +462,7 @@ const ReorderPCBAdminCreateOrderPCBScreen = () => {
             </div>
 
             {/* Logistics & Fulfillment Summary */}
-            <div className="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
+            <div className="rounded-3xl border border-slate-200 bg-white p-4 md:p-8 shadow-sm">
               <div className="mb-6 flex items-center gap-3 border-b border-slate-100 pb-4">
                 <FaTruck className="text-xl text-emerald-500" />
                 <h2 className="text-lg font-black uppercase tracking-wide text-slate-800">
@@ -470,7 +470,7 @@ const ReorderPCBAdminCreateOrderPCBScreen = () => {
                 </h2>
               </div>
 
-              <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
+              <div className="grid grid-cols-1 gap-4 md:gap-8 md:grid-cols-2">
                 <div>
                   <div className="mb-4 flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400">
                     <FaUserCircle /> Customer Profile
@@ -518,7 +518,7 @@ const ReorderPCBAdminCreateOrderPCBScreen = () => {
           <div className="lg:col-span-1">
             <div className="sticky top-10 space-y-6">
               {/* Financial Dashboard */}
-              <div className="overflow-hidden rounded-3xl bg-slate-900 p-8 shadow-xl">
+              <div className="overflow-hidden rounded-3xl bg-slate-900 p-4 md:p-8 shadow-xl">
                 <div className="mb-6 flex items-center justify-between border-b border-white/10 pb-6">
                   <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/10 text-white">
                     <FaMoneyBillWave size={18} />
@@ -615,7 +615,7 @@ const ReorderPCBAdminCreateOrderPCBScreen = () => {
               </div>
 
               {/* Payment Slip Upload (Optional/Admin Override) */}
-              <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+              <div className="rounded-3xl border border-slate-200 bg-white p-4 md:p-6 shadow-sm">
                 <h3 className="mb-4 flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400">
                   <FaShieldAlt className="text-slate-300" /> Admin Payment
                   Override{" "}

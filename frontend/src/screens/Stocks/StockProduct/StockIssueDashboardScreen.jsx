@@ -243,7 +243,7 @@ const StockIssueDashboardScreen = () => {
                           >
                             {p.img ? (
                               <img
-                                src={`/componentImages${p.img}`}
+                                src={p.img}
                                 alt="prod"
                                 style={{
                                   maxWidth: "100%",
@@ -425,7 +425,7 @@ const StockIssueDashboardScreen = () => {
                       >
                         {p.img ? (
                           <img
-                            src={`/componentImages${p.img}`}
+                            src={p.img}
                             alt="img"
                             style={{
                               width: "100%",

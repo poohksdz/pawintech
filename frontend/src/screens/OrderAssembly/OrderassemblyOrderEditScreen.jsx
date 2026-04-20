@@ -485,7 +485,7 @@ const OrderassemblyOrderEditScreen = () => {
                             {["Top", "Bottom", "Both"].map((side, idx) => (
                               <ToggleButton
                                 key={idx}
-                                id={`smd-${side}`}
+                                id={`-${side}`}
                                 type="radio"
                                 variant="outline-primary"
                                 name="smd_side"
@@ -545,7 +545,7 @@ const OrderassemblyOrderEditScreen = () => {
                             {["Top", "Bottom", "Both"].map((side, idx) => (
                               <ToggleButton
                                 key={idx}
-                                id={`tht-${side}`}
+                                id={`-${side}`}
                                 type="radio"
                                 variant="outline-primary"
                                 name="tht_side"
@@ -806,10 +806,10 @@ const OrderassemblyOrderEditScreen = () => {
         </Row>
       </Form>
 
-      <style>{`
+      <style dangerouslySetInnerHTML={{ __html: `
         .font-prompt { font-family: 'Prompt', sans-serif; }
         .border-dashed { border-bottom: 1px dashed #dee2e6; }
-      `}</style>
+      ` }} />
     </Container>
   );
 };

@@ -187,7 +187,9 @@ const createCustomPCB = asyncHandler(async (req, res) => {
                 receivePlace, 
                 billingName, billinggAddress, billingCity, billingPostalCode, billingCountry, billingPhone, billingTax,
                 transferedAmount, transferedName, paymentSlip, transferedDate,
-                orderID, paymentComfirmID, cartId, isDelivered
+                orderID, paymentComfirmID, cartId, quotation_no, isDelivered,
+                slot_buyer, slot_cashier, slot_manager, slot_sender,
+                slot_quo_buyer, slot_quo_sales, slot_quo_manager
             ) VALUES (
                 ?, ?, ?, ?, ?, 
                 ?, ?, ?, ?, ?, 
@@ -197,8 +199,10 @@ const createCustomPCB = asyncHandler(async (req, res) => {
                 ?, ?, ?, ?, ?, ?, 
                 ?, 
                 ?, ?, ?, ?, ?, ?, ?, 
-                ?, ?, ?, ?, 
-                ?, ?, ?, 0
+                ?, ?, ?, ?,
+                ?, ?, ?, ?, 0,
+                NULL, NULL, NULL, NULL,
+                NULL, NULL, NULL
             )
         `;
 
@@ -242,6 +246,7 @@ const createCustomPCB = asyncHandler(async (req, res) => {
       orderID,
       paymentComfirmID,
       cartId,
+      cart.quotation_no || null,
     ];
 
     await pool.query(insertSql, insertValues);
@@ -262,7 +267,7 @@ const createCustomPCB = asyncHandler(async (req, res) => {
       .json({
         success: false,
         message: "เกิดข้อผิดพลาดในการบันทึกข้อมูล",
-        error: error.message,
+        error: "Internal server error",
       });
   }
 });
@@ -303,8 +308,11 @@ const createCustomPCBbyAdmin = asyncHandler(async (req, res) => {
                 status, confirmed_price, userName, userEmail,
                 shippingName, shippingAddress, shippingCity, shippingPostalCode, shippingCountry, shippingPhone,
                 receivePlace, billingName, billinggAddress, billingCity, billingPostalCode, billingCountry, billingPhone, billingTax,
-                orderID, paymentComfirmID, cartId, created_at, updated_at, isDelivered
-            ) VALUES (?, ?, ?, ?, ?, 'accepted', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0)
+                orderID, paymentComfirmID, cartId, created_at, updated_at, isDelivered,
+                slot_buyer, slot_cashier, slot_manager, slot_sender,
+                slot_quo_buyer, slot_quo_sales, slot_quo_manager
+            ) VALUES (?, ?, ?, ?, ?, 'accepted', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0,
+                NULL, NULL, NULL, NULL, NULL, NULL, NULL)
         `;
 
     const insertValues = [
@@ -342,7 +350,7 @@ const createCustomPCBbyAdmin = asyncHandler(async (req, res) => {
       .status(201)
       .json({ success: true, message: "แอดมินสร้างออเดอร์สำเร็จ", orderID });
   } catch (error) {
-    return res.status(500).json({ success: false, message: error.message });
+    return res.status(500).json({ success: false, message: "เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์" });
   }
 });
 
@@ -357,7 +365,7 @@ const updateDeliveryCustomPCBById = asyncHandler(async (req, res) => {
     );
     res.json({ success: true, message: "แจ้งจัดส่งสำเร็จ" });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(500).json({ success: false, message: "เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์" });
   }
 });
 
@@ -378,7 +386,7 @@ const updatePaymentCustomPCBById = asyncHandler(async (req, res) => {
     );
     res.status(200).json({ success: true, message: `อัปเดตสำเร็จ` });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(500).json({ success: false, message: "เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์" });
   }
 });
 
@@ -389,7 +397,7 @@ const getCustomPCBs = asyncHandler(async (req, res) => {
     );
     res.status(200).json({ success: true, data: rows });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(500).json({ success: false, message: "เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์" });
   }
 });
 
@@ -403,7 +411,7 @@ const getCustomPCBById = asyncHandler(async (req, res) => {
       return res.status(404).json({ success: false, message: "Not found" });
     res.status(200).json({ success: true, data: rows[0] });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(500).json({ success: false, message: "เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์" });
   }
 });
 
@@ -415,7 +423,7 @@ const getCustomPCBByUserId = asyncHandler(async (req, res) => {
     );
     res.status(200).json({ success: true, data: rows });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(500).json({ success: false, message: "เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์" });
   }
 });
 
@@ -427,7 +435,7 @@ const getCustomPCBByOrderId = asyncHandler(async (req, res) => {
     );
     res.status(200).json({ success: true, data: rows });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(500).json({ success: false, message: "เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์" });
   }
 });
 
@@ -459,7 +467,7 @@ const deleteCustomPCB = asyncHandler(async (req, res) => {
         .json({ success: false, message: "Order not found" });
     res.status(200).json({ success: true, message: "ลบสำเร็จ" });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(500).json({ success: false, message: "เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์" });
   }
 });
 
@@ -490,6 +498,13 @@ const updateCustomPCBById = asyncHandler(async (req, res) => {
       billingPostalCode,
       billingCountry,
       billingTax,
+      slot_buyer,
+      slot_cashier,
+      slot_manager,
+      slot_sender,
+      slot_quo_buyer,
+      slot_quo_sales,
+      slot_quo_manager,
     } = data;
 
     // 1. Prepare base update fields
@@ -540,6 +555,36 @@ const updateCustomPCBById = asyncHandler(async (req, res) => {
       billingTax || "",
     ];
 
+    // 4. Handle signature slots (only if provided)
+    if (slot_buyer !== undefined) {
+      updateFields.push("slot_buyer = ?");
+      queryParams.push(slot_buyer);
+    }
+    if (slot_cashier !== undefined) {
+      updateFields.push("slot_cashier = ?");
+      queryParams.push(slot_cashier);
+    }
+    if (slot_manager !== undefined) {
+      updateFields.push("slot_manager = ?");
+      queryParams.push(slot_manager);
+    }
+    if (slot_sender !== undefined) {
+      updateFields.push("slot_sender = ?");
+      queryParams.push(slot_sender);
+    }
+    if (slot_quo_buyer !== undefined) {
+      updateFields.push("slot_quo_buyer = ?");
+      queryParams.push(slot_quo_buyer);
+    }
+    if (slot_quo_sales !== undefined) {
+      updateFields.push("slot_quo_sales = ?");
+      queryParams.push(slot_quo_sales);
+    }
+    if (slot_quo_manager !== undefined) {
+      updateFields.push("slot_quo_manager = ?");
+      queryParams.push(slot_quo_manager);
+    }
+
     // 2. Handle Price
     if (confirmed_price !== undefined) {
       updateFields.push("confirmed_price = ?");
@@ -562,7 +607,7 @@ const updateCustomPCBById = asyncHandler(async (req, res) => {
     res.json({ success: true, message: "อัปเดตสำเร็จ" });
   } catch (error) {
     console.error("🔥 Update Error:", error);
-    res.status(500).json({ success: false, message: error.message });
+    res.status(500).json({ success: false, message: "เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์" });
   }
 });
 

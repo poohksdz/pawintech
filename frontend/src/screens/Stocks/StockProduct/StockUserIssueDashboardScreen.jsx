@@ -178,7 +178,7 @@ const StockUserIssueDashboardScreen = () => {
                     <td className="text-center">
                       {p.img ? (
                         <img
-                          src={`/componentImages${p.img}`}
+                          src={p.img}
                           className="product-img"
                           alt="img"
                         />

@@ -118,7 +118,7 @@ const OrderPCBCartListScreen = () => {
                             <p><strong>Dimensions:</strong> {selectedCart.length_cm} x {selectedCart.width_cm} mm</p>
                             <p><strong>Layers:</strong> {selectedCart.layers}</p>
                             <p><strong>Material/Finish:</strong> {selectedCart.base_material} / {selectedCart.surface_finish}</p>
-                            <p><strong>Zip File:</strong> <a href={`/uploads/${selectedCart.gerberZip}`} target='_blank' rel='noreferrer'>{selectedCart.gerberZip}</a></p>
+                            <p><strong>Zip File:</strong> <a href={`/${selectedCart.gerberZip}`} target='_blank' rel='noreferrer'>{selectedCart.gerberZip}</a></p>
 
                             <Form.Group className='mb-3' controlId='confirmedPrice'>
                                 <Form.Label>Confirmed Price (THB)</Form.Label>

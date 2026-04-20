@@ -53,6 +53,7 @@ const quotationDefaultRoutes = require("./routes/quotationDefaultRoutes.js");
 const customerRoutes = require("./routes/customerRoutes.js");
 const gerberRoutes = require("./routes/gerberRoutes.js");
 const notificationRoutes = require("./routes/notificationRoutes.js");
+const signatureRoutes = require("./routes/signatureRoutes.js");
 
 // Payment Routes
 const paymentRoutes = require("./routes/paymentRoutes.js");
@@ -90,18 +91,19 @@ app.set("trust proxy", 1);
 // =========================================================
 // ️ CORS SECTION (แก้ปัญหา Blocked Origin ตรงนี้)
 // =========================================================
-// กำหนด Origin ที่อนุญาตให้ชัดเจน ไม่ต้องใช้ Function Callback เพื่อลดความผิดพลาด
-const allowedOrigins = [
-  "http://localhost:3000",
-  "http://localhost:5000",
-  "http://127.0.0.1:3000",
-  process.env.CLIENT_URL, // (ถ้าใน .env ไม่มีค่านี้ ก็ไม่เป็นไร เพราะมี localhost ดักไว้แล้ว)
-];
+const allowedOrigins = (process.env.CLIENT_URL || "").split(",").filter(Boolean);
 
 app.use(
   cors({
-    origin: allowedOrigins,
-    credentials: true, // อนุญาตให้ส่ง Cookie/Auth Header
+    origin: (origin, callback) => {
+      // อนุญาต requests ที่ไม่มี origin (เช่น mobile apps, curl) หรือ localhost ทั้งหมด
+      if (!origin || allowedOrigins.includes(origin) || origin.startsWith("http://localhost") || origin.startsWith("http://127.0.0.1")) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS: " + origin));
+      }
+    },
+    credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   }),
 );
@@ -116,23 +118,27 @@ app.use(express.urlencoded({ extended: true, limit: "50mb" }));
 app.use(cookieParser());
 
 // Helmet (Security Headers)
-app.use(
-  helmet({
-    crossOriginResourcePolicy: false,
-    contentSecurityPolicy: {
-      directives: {
-        defaultSrc: ["'self'"],
-        scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
-        styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
-        imgSrc: ["'self'", "data:", "blob:", "http:", "https:"],
-        fontSrc: ["'self'", "https://fonts.gstatic.com"],
-        connectSrc: ["'self'", "http:", "https:", "ws:", "wss:"],
-      },
+const helmetConfig = {
+  crossOriginResourcePolicy: false,
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
+      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+      imgSrc: ["'self'", "data:", "blob:", "http:", "https:"],
+      fontSrc: ["'self'", "https://fonts.gstatic.com"],
+      connectSrc: ["'self'", "http:", "https:", "ws:", "wss:"],
     },
-    referrerPolicy: { policy: "same-origin" }, //  ป้องกัน Leak ข้อมูล Referrer
-    hsts: { maxAge: 31536000, includeSubDomains: true, preload: true }, //  Enforce HTTPS
-  }),
-);
+  },
+  referrerPolicy: { policy: "same-origin" },
+};
+
+// HSTS ต้องเปิดเฉพาะ production เท่านั้น
+if (process.env.NODE_ENV === "production") {
+  helmetConfig.hsts = { maxAge: 31536000, includeSubDomains: true, preload: true };
+}
+
+app.use(helmet(helmetConfig));
 
 app.use(xss());
 app.use(hpp());
@@ -151,6 +157,13 @@ const loginLimiter = rateLimit({
   max: process.env.NODE_ENV === "development" ? 1000 : 20, //  เพิ่ม Limit ในโหมด Dev
   message: "Too many login attempts, please try again after 15 minutes",
 });
+// Rate limiting specifically for register
+const registerLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: process.env.NODE_ENV === "development" ? 100 : 10,
+  message: "Too many registration attempts, please try again after 15 minutes",
+});
+
 // Rate limiting specifically for reset password
 const resetLimit = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
@@ -161,6 +174,7 @@ const resetLimit = rateLimit({
 });
 
 app.use("/api/users/login", loginLimiter);
+app.use("/api/users/register", registerLimiter);
 app.use("/api/users/request-reset", resetLimit);
 
 // =========================================================
@@ -212,6 +226,7 @@ staticFolders.forEach((folder) => {
 // But for legacy compatibility (where DB paths might lack prefixes), 
 // we also serve them at the root level.
 app.use(express.static(path.join(rootPath, "uploads")));
+app.use(express.static(path.join(rootPath, "componentImages"))); // Fallback for component images stored as /images/xxx.jpg in DB
 app.use(express.static(path.join(rootPath, "custompcbImages")));
 app.use(express.static(path.join(rootPath, "custompcbZipFiles")));
 app.use(express.static(path.join(rootPath, "assemblypcbImages")));
@@ -260,6 +275,9 @@ app.use("/api/abouts", aboutRoutes);
 app.use("/api/aboutimages", aboutImageRoutes);
 app.use("/api/emails", emailRoutes);
 app.use("/api/notifications", notificationRoutes);
+
+// Signature Routes
+app.use("/api/signatures", signatureRoutes);
 
 // Payment Routes
 app.use("/api/payments", paymentRoutes);

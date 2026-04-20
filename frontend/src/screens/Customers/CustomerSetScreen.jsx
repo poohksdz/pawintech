@@ -201,10 +201,10 @@ const CustomerSetScreen = () => {
         </Col>
       </Row>
 
-      <style>{`
+      <style dangerouslySetInnerHTML={{ __html: `
         .font-prompt { font-family: 'Prompt', sans-serif; }
         .form-control:focus { box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.1); border-color: #86b7fe; }
-      `}</style>
+      ` }} />
     </Container>
   );
 };

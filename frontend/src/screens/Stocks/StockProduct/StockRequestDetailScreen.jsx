@@ -134,7 +134,7 @@ const StockRequestDetailScreen = () => {
               <div className="image-container">
                 {product.img ? (
                   <Image
-                    src={`/componentImages${product.img}`}
+                    src={product.img}
                     alt="Product"
                     fluid
                   />

@@ -124,7 +124,7 @@ const InvoiceEditScreen = () => {
 
   if (error)
     return (
-      <div className="max-w-4xl mx-auto p-8 pt-24">
+      <div className="max-w-4xl mx-auto p-4 md:p-8 pt-24">
         <Message variant="danger">
           {error?.data?.message || error.message}
         </Message>
@@ -173,9 +173,9 @@ const InvoiceEditScreen = () => {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-white rounded-[2.5rem] border border-slate-200 shadow-xl shadow-slate-200/40 p-8 md:p-12"
+            className="bg-white rounded-[2.5rem] border border-slate-200 shadow-xl shadow-slate-200/40 p-4 md:p-8 md:p-12"
           >
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8">
               {/* Basic Info Section */}
               <div className="space-y-8">
                 <h2 className="text-lg font-black text-slate-900 flex items-center gap-3">
@@ -227,7 +227,7 @@ const InvoiceEditScreen = () => {
                   Billing Details
                 </h2>
 
-                <div className="grid grid-cols-2 gap-6">
+                <div className="grid grid-cols-2 gap-4 md:gap-6">
                   <InputField
                     label="Quantity"
                     icon={FaHashtag}
@@ -278,14 +278,14 @@ const InvoiceEditScreen = () => {
             <div className="mt-12 pt-8 border-t border-slate-100 flex flex-col md:flex-row gap-4 items-center justify-end">
               <Link
                 to="/admin/invoicelist"
-                className="w-full md:w-auto px-8 py-4 text-slate-500 font-bold hover:text-slate-700 transition-colors"
+                className="w-full md:w-auto px-4 md:px-8 py-4 text-slate-500 font-bold hover:text-slate-700 transition-colors"
               >
                 Cancel
               </Link>
               <button
                 type="submit"
                 disabled={isUpdating}
-                className="w-full md:w-auto px-10 py-4 bg-slate-900 hover:bg-emerald-600 text-white rounded-2xl font-black shadow-xl shadow-slate-200 hover:shadow-emerald-200 transition-all active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2"
+                className="w-full md:w-auto px-4 md:px-10 py-4 bg-slate-900 hover:bg-emerald-600 text-white rounded-2xl font-black shadow-xl shadow-slate-200 hover:shadow-emerald-200 transition-all active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2"
               >
                 {isUpdating ? (
                   <>
@@ -302,9 +302,9 @@ const InvoiceEditScreen = () => {
         </form>
       </div>
 
-      <style>{`
+      <style dangerouslySetInnerHTML={{ __html: `
         .font-prompt { font-family: 'Prompt', sans-serif; }
-      `}</style>
+      ` }} />
     </div>
   );
 };

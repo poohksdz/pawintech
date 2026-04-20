@@ -255,7 +255,7 @@ const StockUserRequestDashboardScreen = () => {
 
         <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 pt-8 sm:pt-12 relative z-10">
           {/* ================= HEADER ================= */}
-          <header className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10 pb-6 border-b border-slate-200/60">
+          <header className="flex flex-col md:flex-row md:items-end justify-between gap-4 md:gap-6 mb-10 pb-6 border-b border-slate-200/60">
             <div>
               <div className="flex items-center gap-3 mb-2">
                 <div className="w-12 h-12 bg-white border border-slate-200/60 rounded-2xl flex items-center justify-center text-slate-700 shadow-sm">
@@ -291,7 +291,7 @@ const StockUserRequestDashboardScreen = () => {
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={() => navigate("/componentcartlist")}
-                className="w-full sm:w-auto flex items-center justify-center gap-2 bg-slate-900 text-white px-6 h-11 rounded-xl text-sm font-bold hover:bg-slate-800 transition-colors shadow-md"
+                className="w-full sm:w-auto flex items-center justify-center gap-2 bg-slate-900 text-white px-4 md:px-6 h-11 rounded-xl text-sm font-bold hover:bg-slate-800 transition-colors shadow-md"
               >
                 <FaPlus size={12} />
                 <span>{t.newRequest}</span>
@@ -358,7 +358,7 @@ const StockUserRequestDashboardScreen = () => {
               </div>
             </div>
 
-            <div className="hidden lg:flex bg-slate-900 rounded-2xl p-6 shadow-md items-center justify-between relative overflow-hidden">
+            <div className="hidden lg:flex bg-slate-900 rounded-2xl p-4 md:p-6 shadow-md items-center justify-between relative overflow-hidden">
               <div className="absolute -right-4 -bottom-4 opacity-10 pointer-events-none">
                 <FaBoxOpen size={100} />
               </div>
@@ -396,7 +396,7 @@ const StockUserRequestDashboardScreen = () => {
                   {searchQuery && (
                     <button
                       onClick={() => setSearchQuery("")}
-                      className="mt-8 px-6 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-sm font-semibold transition-colors"
+                      className="mt-8 px-4 md:px-6 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-sm font-semibold transition-colors"
                     >
                       {t.clearSearch}
                     </button>
@@ -473,7 +473,7 @@ const StockUserRequestDashboardScreen = () => {
                               <div className="w-12 h-12 rounded-xl bg-[#f8fafc] border border-slate-100 flex items-center justify-center mx-auto overflow-hidden p-1.5 shadow-sm">
                                 {p.img ? (
                                   <img
-                                    src={`/componentImages${p.img}`}
+                                    src={p.img}
                                     alt={p.electotronixPN}
                                     className="w-full h-full object-contain mix-blend-multiply group-hover:scale-110 transition-transform duration-500"
                                   />
@@ -571,7 +571,7 @@ const StockUserRequestDashboardScreen = () => {
                           <div className="w-16 h-16 bg-slate-50 rounded-xl border border-slate-100 flex items-center justify-center p-2 shrink-0">
                             {p.img ? (
                               <img
-                                src={`/componentImages${p.img}`}
+                                src={p.img}
                                 alt={p.electotronixPN}
                                 className="max-w-full max-h-full object-contain mix-blend-multiply"
                               />
@@ -663,7 +663,7 @@ const StockUserRequestDashboardScreen = () => {
                   animate={{ scale: 1, opacity: 1, y: 0 }}
                   exit={{ scale: 0.95, opacity: 0, y: 15 }}
                   transition={{ duration: 0.2 }}
-                  className="relative bg-white rounded-3xl w-full max-w-sm p-6 sm:p-8 shadow-2xl z-10 border border-slate-100 text-center"
+                  className="relative bg-white rounded-3xl w-full max-w-sm p-4 md:p-6 sm:p-8 shadow-2xl z-10 border border-slate-100 text-center"
                 >
                   <div className="w-14 h-14 bg-rose-50 text-rose-500 rounded-full border border-rose-100 flex items-center justify-center shrink-0 mx-auto mb-4">
                     <FaTrashAlt size={20} />

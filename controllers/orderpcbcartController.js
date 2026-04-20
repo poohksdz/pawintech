@@ -1,5 +1,6 @@
 const asyncHandler = require('../middleware/asyncHandler')
 const { pool } = require('../config/db.js')
+const { automateQuotation } = require('../utils/quotationAutomation')
 
 // Auto-create table if not exists
 const initDB = async () => {
@@ -77,7 +78,7 @@ const getOrderPCBCarts = asyncHandler(async (req, res) => {
     const [rows] = await pool.query('SELECT * FROM pcb_gerber_carts ORDER BY created_at DESC')
     res.status(200).json({ success: true, data: rows })
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message })
+    res.status(500).json({ success: false, message: "เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์" })
   }
 })
 
@@ -89,7 +90,7 @@ const getOrderPCBCartById = asyncHandler(async (req, res) => {
     if (rows.length === 0) return res.status(404).json({ success: false, message: 'Cart item not found' })
     res.status(200).json({ success: true, data: rows[0] })
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message })
+    res.status(500).json({ success: false, message: "เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์" })
   }
 })
 
@@ -102,7 +103,7 @@ const getOrderPCBCartByUserId = asyncHandler(async (req, res) => {
     const [rows] = await pool.query('SELECT * FROM pcb_gerber_carts WHERE user_id = ? ORDER BY created_at DESC', [user_id])
     res.status(200).json({ success: true, count: rows.length, data: rows })
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message })
+    res.status(500).json({ success: false, message: "เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์" })
   }
 })
 
@@ -147,7 +148,7 @@ const createOrderPCBCart = asyncHandler(async (req, res) => {
     const [result] = await pool.query(sql, values)
     res.status(201).json({ success: true, message: 'Added to cart for review', id: result.insertId })
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message })
+    res.status(500).json({ success: false, message: "เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์" })
   }
 })
 
@@ -164,9 +165,15 @@ const updateOrderPCBCartStatus = asyncHandler(async (req, res) => {
     )
 
     if (result.affectedRows === 0) return res.status(404).json({ success: false, message: 'Cart item not found' })
+
+    // Automation: Send quotation if status is accepted
+    if (status === "accepted") {
+      automateQuotation("gerber", id).catch(err => console.error("Gerber automation error:", err));
+    }
+
     res.status(200).json({ success: true, message: 'Status updated successfully' })
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message })
+    res.status(500).json({ success: false, message: "เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์" })
   }
 })
 
@@ -178,7 +185,7 @@ const deleteOrderPCBCart = asyncHandler(async (req, res) => {
     if (result.affectedRows === 0) return res.status(404).json({ success: false, message: 'Cart item not found' })
     res.status(200).json({ success: true, message: 'Item removed from cart' })
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message })
+    res.status(500).json({ success: false, message: "เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์" })
   }
 })
 

@@ -109,6 +109,8 @@ const registerUser = asyncHandler(async (req, res) => {
 const logoutUser = asyncHandler(async (req, res) => {
   res.cookie("jwt", "", {
     httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "strict",
     expires: new Date(0),
   });
   res.status(200).json({ message: "ออกจากระบบสำเร็จ" });
@@ -333,6 +335,9 @@ const updateUser = asyncHandler(async (req, res) => {
 // @desc    Update user Staff Only
 // @route   PUT /api/users/:id/Staff
 const updateUserStaff = asyncHandler(async (req, res) => {
+  const { isStaff } = req.body;
+  const valIsStaff = isStaff ? 1 : 0;
+  await pool.query("UPDATE users SET isStaff = ? WHERE _id = ?", [valIsStaff, req.params.id]);
   res.json({ message: "อัปเดตสถานะพนักงานสำเร็จ" });
 });
 

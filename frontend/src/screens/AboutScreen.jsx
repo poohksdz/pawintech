@@ -200,7 +200,7 @@ const AboutScreen = () => {
           <div className="absolute -bottom-[20%] -left-[10%] w-[50vw] h-[50vw] max-w-[600px] max-h-[600px] bg-emerald-500/20 rounded-full blur-[100px]"></div>
         </div>
 
-        <div className="relative z-10 max-w-5xl mx-auto px-6 lg:px-8 text-center text-white">
+        <div className="relative z-10 max-w-5xl mx-auto px-4 md:px-6 lg:px-8 text-center text-white">
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-slate-800/80 border border-slate-700/50 backdrop-blur-md mb-8 shadow-2xl">
             <span className="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_10px_rgba(52,211,153,0.8)] animate-pulse"></span>
             <span className="text-xs font-bold tracking-widest uppercase text-slate-300">
@@ -227,8 +227,8 @@ const AboutScreen = () => {
 
       {/* 2. Overlapping Stats Bar */}
       <section className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative z-20 -mt-20 md:-mt-24 mb-32">
-        <div className="bg-white dark:bg-black rounded-[2.5rem] shadow-[0_20px_60px_-15px_rgba(0,0,0,0.1)] border border-slate-100/60 dark:border-zinc-800/60 p-8 md:p-14 overflow-hidden backdrop-blur-xl bg-white/90 dark:bg-black transition-colors duration-500">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-4 divide-y md:divide-y-0 md:divide-x divide-slate-100 dark:divide-slate-800 transition-colors duration-500">
+        <div className="bg-white dark:bg-black rounded-[2.5rem] shadow-[0_20px_60px_-15px_rgba(0,0,0,0.1)] border border-slate-100/60 dark:border-zinc-800/60 p-4 md:p-8 md:p-14 overflow-hidden backdrop-blur-xl bg-white/90 dark:bg-black transition-colors duration-500">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-8 md:gap-4 divide-y md:divide-y-0 md:divide-x divide-slate-100 dark:divide-slate-800 transition-colors duration-500">
             {t.stats.map((stat, i) => (
               <div
                 key={i}
@@ -255,12 +255,12 @@ const AboutScreen = () => {
           <div className="w-16 h-1.5 bg-blue-600 rounded-full mx-auto"></div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 md:gap-8">
           {t.values.map((v, i) => (
             <TrackVisibility once partialVisibility key={i}>
               {({ isVisible }) => (
                 <div
-                  className={`bg-white dark:bg-black rounded-3xl p-8 hover:bg-slate-900 dark:hover:bg-slate-800 hover:-translate-y-2 group transition-all duration-500 shadow-sm border border-slate-100 dark:border-zinc-800 hover:shadow-2xl h-full flex flex-col ${isVisible ? "animate-[slideUpFade_0.8s_ease-out_forwards]" : "opacity-0"}`}
+                  className={`bg-white dark:bg-black rounded-3xl p-4 md:p-8 hover:bg-slate-900 dark:hover:bg-slate-800 hover:-translate-y-2 group transition-all duration-500 shadow-sm border border-slate-100 dark:border-zinc-800 hover:shadow-2xl h-full flex flex-col ${isVisible ? "animate-[slideUpFade_0.8s_ease-out_forwards]" : "opacity-0"}`}
                   style={{ animationDelay: `${i * 100}ms` }}
                 >
                   <div className="w-16 h-16 bg-blue-50 text-blue-600 group-hover:bg-blue-600/20 group-hover:text-blue-400 rounded-2xl flex items-center justify-center text-3xl mb-8 transition-colors duration-500">
@@ -299,7 +299,7 @@ const AboutScreen = () => {
           )}
         </div>
 
-        <div className="bg-white dark:bg-black p-8 sm:p-12 md:p-16 rounded-[2.5rem] shadow-sm border border-slate-100 dark:border-zinc-800 min-h-[300px] flex flex-col justify-center transition-colors duration-500">
+        <div className="bg-white dark:bg-black p-4 md:p-8 sm:p-12 md:p-16 rounded-[2.5rem] shadow-sm border border-slate-100 dark:border-zinc-800 min-h-[300px] flex flex-col justify-center transition-colors duration-500">
           <div
             className="prose prose-lg md:prose-xl prose-slate dark:prose-invert max-w-none transition-colors duration-500
                           prose-headings:font-black prose-headings:text-slate-900 dark:prose-headings:text-white prose-headings:tracking-tight

@@ -59,11 +59,11 @@ export const syncCartDB = createAsyncThunk(
 const initialState = localStorage.getItem("cart")
   ? JSON.parse(localStorage.getItem("cart"))
   : {
-      cartItems: [],
-      shippingAddress: {},
-      billingAddress: {},
-      paymentMethod: "PayPal",
-    };
+    cartItems: [],
+    shippingAddress: {},
+    billingAddress: {},
+    paymentMethod: "PayPal",
+  };
 
 const cartSlice = createSlice({
   name: "cart",
@@ -77,11 +77,32 @@ const cartSlice = createSlice({
       if (existItem) {
         const newQty = replaceQty ? item.qty : existItem.qty + item.qty;
         state.cartItems = state.cartItems.map((x) =>
-          x._id === existItem._id ? { ...item, qty: newQty } : x,
+          x._id === existItem._id ? { ...item, qty: newQty, isSelected: x.isSelected ?? true } : x,
         );
       } else {
-        state.cartItems = [...state.cartItems, item];
+        // New item is selected by default
+        state.cartItems = [...state.cartItems, { ...item, isSelected: true }];
       }
+      updateCart(state);
+      localStorage.setItem("cart", JSON.stringify(state));
+    },
+
+    toggleSelectItem: (state, action) => {
+      const id = action.payload;
+      const item = state.cartItems.find((x) => x._id === id);
+      if (item) {
+        item.isSelected = !item.isSelected;
+      }
+      updateCart(state);
+      localStorage.setItem("cart", JSON.stringify(state));
+    },
+
+    selectAllItems: (state, action) => {
+      const isSelected = action.payload;
+      state.cartItems = state.cartItems.map((x) => ({
+        ...x,
+        isSelected: isSelected,
+      }));
       updateCart(state);
       localStorage.setItem("cart", JSON.stringify(state));
     },
@@ -153,6 +174,8 @@ const cartSlice = createSlice({
 export const {
   addToCart,
   removeFromCart,
+  toggleSelectItem,
+  selectAllItems,
   saveShippingAddress,
   saveBillingAddress,
   savePaymentMethod,

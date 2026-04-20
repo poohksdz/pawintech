@@ -32,7 +32,7 @@ const Tr = ({ children, className = "", onClick }) => (
 const Th = ({ children, className = "" }) => (
   <th
     scope="col"
-    className={`px-6 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider ${className}`}
+    className={`px-4 md:px-6 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider ${className}`}
   >
     {children}
   </th>
@@ -40,7 +40,7 @@ const Th = ({ children, className = "" }) => (
 
 const Td = ({ children, className = "" }) => (
   <td
-    className={`px-6 py-4 whitespace-nowrap text-sm text-slate-700 ${className}`}
+    className={`px-4 md:px-6 py-4 whitespace-nowrap text-sm text-slate-700 ${className}`}
   >
     {children}
   </td>

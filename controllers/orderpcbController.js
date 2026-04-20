@@ -110,8 +110,8 @@ const createOrderPCB = asyncHandler(async (req, res) => {
             shippingName, shippingAddress, shippingCity, shippingPostalCode, shippingCountry, shippingPhone, receivePlace,
             billingName, billinggAddress, billingCity, billingPostalCode, billingCountry, billingPhone, billingTax,
             pcb_cost, ems, total_amount_cost, transferedAmount, transferedName, paymentSlip, transferedDate,
-            order_type, created_at, updated_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'PCB_GERBER_ORDER', NOW(), NOW())
+            order_type, quotation_no, created_at, updated_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'PCB_GERBER_ORDER', ?, NOW(), NOW())
     `;
 
   try {
@@ -164,6 +164,7 @@ const createOrderPCB = asyncHandler(async (req, res) => {
         paymentResult.transferedName || "",
         cleanPaymentSlip, // บันทึก Path รูปภาพที่ผ่านการตรวจสอบแล้ว
         paymentResult.transferedDate || new Date(),
+        item.quotation_no || null,
       ];
 
       await pool.query(sql, values);
@@ -179,7 +180,7 @@ const createOrderPCB = asyncHandler(async (req, res) => {
       });
   } catch (error) {
     console.error("🔥 Error creating PCB order:", error);
-    res.status(500).json({ success: false, message: error.message });
+    res.status(500).json({ success: false, message: "เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์" });
   }
 });
 
@@ -199,7 +200,7 @@ const getMyOrders = asyncHandler(async (req, res) => {
       orders: rows,
     });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(500).json({ success: false, message: "เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์" });
   }
 });
 
@@ -328,7 +329,7 @@ const createOrderPCBbyAdmin = asyncHandler(async (req, res) => {
       });
   } catch (error) {
     console.error("🔥 Error creating PCB order by Admin:", error);
-    res.status(500).json({ success: false, message: error.message });
+    res.status(500).json({ success: false, message: "เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์" });
   }
 });
 
@@ -386,11 +387,36 @@ const updateOrderPCB = asyncHandler(async (req, res) => {
   const { id } = req.params;
   const updatedData = req.body;
 
+  // Allowlist of columns that can be updated via this endpoint
+  const ALLOWED_COLUMNS = [
+    "status",
+    "confirmedPrice",
+    "confirmedReason",
+    "isManufacting",
+    "manfactingDate",
+    "manufactureOrderNumber",
+    "isDelivered",
+    "deliveryat",
+    "transferedNumber",
+    "receivePlace",
+    "projectname",
+    "notes",
+    "quotation_no",
+  ];
+
+  // Filter to only allowlisted columns
+  const filteredData = {};
+  for (const key of ALLOWED_COLUMNS) {
+    if (updatedData[key] !== undefined) {
+      filteredData[key] = updatedData[key];
+    }
+  }
+
   // Build SET clause dynamically for safe updates
-  const fields = Object.keys(updatedData)
-    .map((key) => `\`` + key + `\` = ?`)
+  const fields = Object.keys(filteredData)
+    .map((key) => `\`${key}\` = ?`)
     .join(", ");
-  const values = Object.values(updatedData);
+  const values = Object.values(filteredData);
 
   if (fields.length === 0) {
     return res
@@ -433,7 +459,7 @@ const deleteOrderPCB = asyncHandler(async (req, res) => {
         .json({ success: false, message: "Order not found" });
     res.status(200).json({ success: true, message: "ลบสำเร็จ" });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(500).json({ success: false, message: "เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์" });
   }
 });
 
@@ -478,7 +504,7 @@ const getOwnShippingRates = asyncHandler(async (req, res) => {
       pcbColors: pcbColors || [],
     });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(500).json({ success: false, message: "เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์" });
   }
 });
 
@@ -580,7 +606,7 @@ const updateShippingRates = asyncHandler(async (req, res) => {
       .json({ success: true, message: "Configuration updated successfully" });
   } catch (error) {
     await connection.rollback();
-    res.status(500).json({ success: false, message: error.message });
+    res.status(500).json({ success: false, message: "เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์" });
   } finally {
     connection.release();
   }

@@ -9,31 +9,30 @@ export const addDecimals = (num) => {
 
 // 导出一个函数，用于更新购物车
 export const updateCart = (state) => {
-  // Calculate the items price in whole number (pennies) to avoid issues with
-  // floating point number calculations
+  // Calculate the items price - ONLY for selected items
   const itemsPrice = state.cartItems.reduce(
-    (acc, item) => acc + (item.price * 100 * item.qty) / 100,
+    (acc, item) => {
+      // If isSelected is undefined (new item/old data), treat as selected
+      if (item.isSelected !== false) {
+        return acc + (item.price * 100 * item.qty) / 100;
+      }
+      return acc;
+    },
     0,
   );
   state.itemsPrice = addDecimals(itemsPrice);
 
   // Calculate the shipping price
-  // const shippingPrice = itemsPrice > 100 ? 0 : 10;
-  const shippingPrice = 70;
+  const shippingPrice = state.receivePlace === "atcompany" ? 0 : 70;
   state.shippingPrice = addDecimals(shippingPrice);
 
-  // Calculate the tax price
-  // const taxPrice = 0.15 * itemsPrice;
-  // state.taxPrice = addDecimals(taxPrice);
-
-  // const totalPrice = itemsPrice + shippingPrice + taxPrice;
-  const totalPrice = itemsPrice * 0.07 + itemsPrice + shippingPrice;
-  // Calculate the total price
-  state.totalPrice = addDecimals(totalPrice);
-
-  const vatPrice = itemsPrice * 0.07;
   // Calculate the vat price
+  const vatPrice = itemsPrice * 0.07;
   state.vatPrice = addDecimals(vatPrice);
+
+  // Calculate the total price
+  const totalPrice = itemsPrice * 1.07 + shippingPrice;
+  state.totalPrice = addDecimals(totalPrice);
 
   // Save the cart to localStorage
   localStorage.setItem("cart", JSON.stringify(state));

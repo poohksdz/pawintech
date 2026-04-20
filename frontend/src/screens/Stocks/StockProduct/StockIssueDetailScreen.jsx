@@ -131,7 +131,7 @@ const StockIssueDetailScreen = () => {
             >
               {product.img ? (
                 <Image
-                  src={`/componentImages${product.img}`}
+                  src={product.img}
                   fluid
                   style={{ maxHeight: "250px", objectFit: "contain" }}
                 />

@@ -230,7 +230,7 @@ const OrderPCBListScreen = () => {
 
   if (errorOrders || errorCarts) {
     return (
-      <div className="mx-auto max-w-2xl p-8">
+      <div className="mx-auto max-w-2xl p-4 md:p-8">
         <Message variant="danger">
           {(errorOrders?.data?.message || errorOrders?.error) || (errorCarts?.data?.message || errorCarts?.error)}
         </Message>
@@ -240,12 +240,12 @@ const OrderPCBListScreen = () => {
 
   // --- Main Render ---
   return (
-    <div className="min-h-screen bg-[#f8f9fb] dark:bg-black p-6 font-sans selection:bg-blue-100 selection:text-blue-900 md:p-10 lg:p-12 transition-colors duration-500">
-      <style>{`
+    <div className="min-h-screen bg-[#f8f9fb] dark:bg-black p-4 md:p-6 font-sans selection:bg-blue-100 selection:text-blue-900 md:p-10 lg:p-12 transition-colors duration-500">
+      <style dangerouslySetInnerHTML={{ __html: `
                 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Outfit:wght@400;500;600;700;800;900&family=Prompt:wght@400;500;600;700;800;900&display=swap');
                 .font-display { font-family: 'Outfit', 'Prompt', sans-serif; }
                 .font-sans { font-family: 'Inter', 'Prompt', sans-serif; }
-                
+
                 .glass-header {
                   background: white;
                   border: 1px solid rgba(0,0,0,0.05);
@@ -285,12 +285,12 @@ const OrderPCBListScreen = () => {
                 .btn-action:active {
                     transform: scale(0.95);
                 }
-            `}</style>
+            ` }} />
 
       <div className="mx-auto max-w-7xl">
         {/* --- HEADER DASHBOARD --- */}
-        <header className="glass-header mb-12 flex flex-col items-center justify-between gap-8 rounded-[2.5rem] p-8 md:flex-row md:p-10">
-          <div className="flex flex-col items-center gap-6 md:flex-row md:items-start">
+        <header className="glass-header mb-12 flex flex-col items-center justify-between gap-4 md:gap-8 rounded-[2.5rem] p-4 md:p-8 md:flex-row md:p-10">
+          <div className="flex flex-col items-center gap-4 md:gap-6 md:flex-row md:items-start">
             <div className="flex h-16 w-16 items-center justify-center rounded-[1.5rem] bg-slate-950 dark:bg-blue-600 text-blue-400 dark:text-white">
               <PiCircuitryFill size={32} />
             </div>
@@ -304,7 +304,7 @@ const OrderPCBListScreen = () => {
             </div>
           </div>
 
-          <div className="flex flex-wrap justify-center gap-10 md:justify-end">
+          <div className="flex flex-wrap justify-center gap-4 md:gap-6 md:gap-10 md:justify-end">
             <StatItem label={t.Stats.total} value={stats.total} />
             <StatItem
               label={t.Stats.manufacturing}
@@ -320,7 +320,7 @@ const OrderPCBListScreen = () => {
         </header>
 
         {/* --- TOOLBAR --- */}
-        <div className="mb-8 flex flex-col items-center justify-between gap-6 md:flex-row md:px-4">
+        <div className="mb-8 flex flex-col items-center justify-between gap-4 md:gap-6 md:flex-row md:px-4">
           <div className="relative w-full max-w-md">
             <FaSearch className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300" />
             <input
@@ -334,7 +334,7 @@ const OrderPCBListScreen = () => {
 
           <button
             onClick={() => navigate("/admin/orderpcbeditlist")}
-            className="flex h-14 items-center gap-4 rounded-2xl bg-slate-950 px-8 font-display text-xs font-black uppercase ls-widest text-white shadow-xl shadow-slate-950/20 hover:bg-slate-900 transition-all"
+            className="flex h-14 items-center gap-4 rounded-2xl bg-slate-950 px-4 md:px-8 font-display text-xs font-black uppercase ls-widest text-white shadow-xl shadow-slate-950/20 hover:bg-slate-900 transition-all"
           >
             <PiCurrencyCircleDollarBold size={20} className="text-blue-400" />
             {t.BtnPrice}
@@ -371,11 +371,11 @@ const OrderPCBListScreen = () => {
                     key={pcb.id}
                     className="group hover:bg-slate-50/50 transition-colors"
                   >
-                    <td className="py-8 ps-10 font-display text-sm font-black text-slate-200 dark:text-zinc-800">
+                    <td className="py-4 md:py-8 ps-10 font-display text-sm font-black text-slate-200 dark:text-zinc-800">
                       {String(index + 1).padStart(2, "0")}
                     </td>
-                    <td className="py-8 ps-4">
-                      <div className="flex items-center gap-6">
+                    <td className="py-4 md:py-8 ps-4">
+                      <div className="flex items-center gap-4 md:gap-6">
                         <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-white dark:bg-black shadow-sm ring-1 ring-slate-100 dark:ring-zinc-800">
                           {pcb.pcb_image ? (
                             <img
@@ -400,7 +400,7 @@ const OrderPCBListScreen = () => {
                         </div>
                       </div>
                     </td>
-                    <td className="py-8">
+                    <td className="py-4 md:py-8">
                       <div className="flex flex-col">
                         <span className="font-mono text-sm font-bold text-blue-600 dark:text-blue-400">
                           {formatCurrency(
@@ -413,7 +413,7 @@ const OrderPCBListScreen = () => {
                         </span>
                       </div>
                     </td>
-                    <td className="py-6 text-center">
+                    <td className="py-4 md:py-6 text-center">
                       <div className="flex items-center justify-center gap-2">
                         {pcb.itemType === 'ORDER' ? (
                           <>
@@ -457,7 +457,7 @@ const OrderPCBListScreen = () => {
                         )}
                       </div>
                     </td>
-                    <td className="py-6 pe-10 text-right">
+                    <td className="py-4 md:py-6 pe-10 text-right">
                       <div className="flex justify-end gap-3">
                         {pcb.itemType === 'ORDER' ? (
                           <>
@@ -543,11 +543,11 @@ const OrderPCBListScreen = () => {
           </div>
 
           {/* MOBILE VIEW */}
-          <div className="grid grid-cols-1 gap-6 lg:hidden">
+          <div className="grid grid-cols-1 gap-4 md:gap-6 lg:hidden">
             {filteredOrders.map((pcb) => (
               <div
                 key={pcb.id}
-                className="relative flex flex-col gap-6 rounded-[2.5rem] bg-white dark:bg-zinc-900/30 p-8 shadow-sm ring-1 ring-slate-100 dark:ring-zinc-800 transition-colors duration-500"
+                className="relative flex flex-col gap-4 md:gap-6 rounded-[2.5rem] bg-white dark:bg-zinc-900/30 p-4 md:p-8 shadow-sm ring-1 ring-slate-100 dark:ring-zinc-800 transition-colors duration-500"
               >
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-4 min-w-0">
@@ -580,7 +580,7 @@ const OrderPCBListScreen = () => {
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between gap-4 py-4 rounded-3xl bg-slate-50/50 dark:bg-zinc-950/50 px-6">
+                <div className="flex items-center justify-between gap-4 py-4 rounded-3xl bg-slate-50/50 dark:bg-zinc-950/50 px-4 md:px-6">
                   {pcb.itemType === 'ORDER' ? (
                     <>
                       <button

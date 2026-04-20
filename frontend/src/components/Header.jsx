@@ -261,20 +261,23 @@ const Header = () => {
   };
 
   const handleNotificationClick = (n) => {
-    if (!n.isRead) markAsRead(n.id);
+    if (!n.isRead) markAsRead({ id: n.id, scope: n.scope });
 
     if (n.type === "star_expiration_warning" || n.type === "star_reset") {
       if (n.related_id) {
         navigate(`/componenteditlist/${n.related_id}/edit`);
         setActiveDropdown(null);
       }
+    } else if (n.type === "stock_request") {
+      navigate("/componentrequestlist");
+      setActiveDropdown(null);
     }
   };
 
-  const handleDeleteNotification = async (e, id) => {
+  const handleDeleteNotification = async (e, n) => {
     e.stopPropagation();
     try {
-      await deleteNotification(id).unwrap();
+      await deleteNotification({ id: n.id, scope: n.scope }).unwrap();
     } catch (err) {
       console.error(err);
     }
@@ -412,7 +415,7 @@ const Header = () => {
 
   return (
     <>
-      <header className="fixed top-0 left-0 w-full bg-white/95 dark:bg-black backdrop-blur-md border-b border-slate-200/60 dark:border-zinc-800/60 z-[100] h-[70px] md:h-[76px] m-0 p-0 transition-colors duration-500">
+      <header className="fixed top-0 left-0 w-full bg-white/95 dark:bg-black backdrop-blur-md border-b border-slate-200/60 dark:border-zinc-800/60 z-[100] h-[70px] md:h-[76px] m-0 p-0 transition-colors duration-500 print:hidden">
         <div className="w-full h-full flex items-center justify-between px-4 md:px-10 relative m-0">
           {/* 1. LOGO */}
           <Link
@@ -497,7 +500,7 @@ const Header = () => {
               </button>
               {activeDropdown === "service" && !serviceLoading && (
                 <DropdownWrapper className="w-[550px] left-1/2 transform -translate-x-1/2 flex">
-                  <div className="flex-1 p-6">
+                  <div className="flex-1 p-4 md:p-6">
                     <div className="flex items-center mb-4">
                       <SectionLabel label="SOLUTIONS" />
                     </div>
@@ -514,7 +517,7 @@ const Header = () => {
                           .map((s) => (
                             <SimpleListItem
                               key={s.ID}
-                              to={`/service/${s.ID}`}
+                              to={`/${s.ID}`}
                               label={
                                 language === "thai"
                                   ? s.headerThaiOne
@@ -526,7 +529,7 @@ const Header = () => {
                       </div>
                     </div>
                   </div>
-                  <div className="w-[280px] bg-slate-50 dark:bg-zinc-900/50 border-l border-slate-100 dark:border-zinc-800 p-6 transition-colors">
+                  <div className="w-[280px] bg-slate-50 dark:bg-zinc-900/50 border-l border-slate-100 dark:border-zinc-800 p-4 md:p-6 transition-colors">
                     <SectionLabel label={t.Ordering} />
                     <div className="space-y-2 mt-3">
                       <CleanLinkItem
@@ -672,7 +675,7 @@ const Header = () => {
                       <DropdownWrapper className="w-max right-0">
                         <div className="p-2 min-w-[220px]">
                           <SectionLabel
-                            label="PCB Orders"
+                            label={language === "thai" ? "รายการสั่งทำ PCB" : "PCB Orders"}
                             icon={<FaMicrochip />}
                           />
                           <div className="space-y-0.5 mb-2">
@@ -806,20 +809,13 @@ const Header = () => {
                   <DropdownWrapper className="!fixed sm:!absolute top-[70px] sm:top-full left-4 right-4 sm:left-auto sm:right-0 sm:w-[400px] !mt-2 sm:!mt-3 overflow-visible z-[1050]">
                     <div className="hidden sm:block absolute top-0 right-4 -mt-1.5 w-3 h-3 bg-white rotate-45 border-l border-t border-slate-900/5"></div>
                     <div className="relative bg-white rounded-xl overflow-hidden border border-slate-100 shadow-xl flex flex-col">
-                      {/* Clean 2-Row Header */}
                       <div className="bg-white border-b border-slate-100 flex flex-col">
-                        {/* Row 1: Title & Status Indicator */}
                         <div className="px-4 py-3 sm:px-5 sm:py-4 flex items-center justify-between">
                           <div className="flex items-center gap-2 sm:gap-2.5">
                             <div className="p-1.5 sm:p-2 bg-indigo-50 text-indigo-600 rounded-lg">
-                              <MdNotifications
-                                size={16}
-                                className="sm:size-[18px]"
-                              />
+                              <MdNotifications size={16} className="sm:size-[18px]" />
                             </div>
-                            <h3 className="font-bold text-slate-800 text-xs sm:text-sm tracking-tight">
-                              Notifications
-                            </h3>
+                            <h3 className="font-bold text-slate-800 text-xs sm:text-sm tracking-tight">Notifications</h3>
                           </div>
                           {unreadCount > 0 && (
                             <div className="px-2 py-0.5 bg-indigo-600 text-white text-[8px] sm:text-[9px] font-black rounded-md shadow-sm">
@@ -827,8 +823,6 @@ const Header = () => {
                             </div>
                           )}
                         </div>
-
-                        {/* Row 2: Shared Action Bar */}
                         <div className="px-3 py-1.5 sm:px-4 sm:py-2 bg-slate-50/50 flex items-center justify-between border-t border-slate-50">
                           <button
                             onClick={() => markAllAsRead()}
@@ -848,44 +842,35 @@ const Header = () => {
                         </div>
                       </div>
 
-                      {/* Content */}
                       <div className="max-h-[300px] sm:max-h-[420px] overflow-y-auto custom-scrollbar bg-slate-50/30">
                         {notifications?.length > 0 ? (
                           <div className="pb-2">
-                            {["Today", "Yesterday", "Earlier"].map(
-                              (group) =>
-                                groupedNotifications[group]?.length > 0 && (
-                                  <div key={group} className="mt-1 first:mt-0">
-                                    <div className="sticky top-0 z-10 px-5 py-2.5 bg-slate-50/95 backdrop-blur-sm border-y border-slate-100/50 flex items-center justify-between">
-                                      <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                                        {group}
-                                      </span>
-                                      <span className="text-[10px] font-bold text-slate-300">
-                                        {groupedNotifications[group].length}{" "}
-                                        messages
-                                      </span>
-                                    </div>
-                                    <div className="divide-y divide-slate-100/50">
-                                      {groupedNotifications[group].map((n) => (
-                                        <div
-                                          key={n.id}
-                                          className={`px-4 py-3 sm:px-5 sm:py-4 hover:bg-white transition-all cursor-pointer relative group ${!n.isRead ? "bg-indigo-50/20" : ""}`}
-                                          onClick={() =>
-                                            handleNotificationClick(n)
-                                          }
-                                        >
+                            {["Today", "Yesterday", "Earlier"].map((group) => {
+                              const groupItems = groupedNotifications[group] || [];
+                              if (groupItems.length === 0) return null;
+                              return (
+                                <div key={group} className="mt-1 first:mt-0">
+                                  <div className="sticky top-0 z-10 px-5 py-2.5 bg-slate-50/95 backdrop-blur-sm border-y border-slate-100/50 flex items-center justify-between">
+                                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{group}</span>
+                                    <span className="text-[10px] font-bold text-slate-300">{groupItems.length} messages</span>
+                                  </div>
+                                  <div className="divide-y divide-slate-100/50">
+                                    {groupItems.map((n) => {
+                                      const rowClasses = "px-4 py-3 sm:px-5 sm:py-4 hover:bg-white transition-all cursor-pointer relative group " + (!n.isRead ? "bg-indigo-50/20" : "");
+                                      const textClasses = "text-[12px] sm:text-[13px] leading-relaxed mb-1 sm:mb-1.5 " + (!n.isRead ? "text-slate-900 font-bold" : "text-slate-600 font-medium");
+                                      return (
+                                        <div key={n.id} className={rowClasses} onClick={() => handleNotificationClick(n)}>
                                           {!n.isRead && (
                                             <div className="absolute left-0 top-0 bottom-0 w-1 bg-indigo-600 rounded-r-full shadow-[0_0_8px_rgba(79,70,229,0.3)]"></div>
                                           )}
                                           <div className="flex gap-2.5 sm:gap-4">
-                                            <div
-                                              className={`w-9 h-9 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl flex items-center justify-center shrink-0 overflow-hidden bg-white shadow-sm ring-1 ring-slate-100 group-hover:ring-slate-200 group-hover:shadow transition-all duration-300`}
-                                            >
+                                            <div className="w-9 h-9 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl flex items-center justify-center shrink-0 overflow-hidden bg-white shadow-sm ring-1 ring-slate-100 group-hover:ring-slate-200 group-hover:shadow transition-all duration-300">
                                               {n.product_img ? (
                                                 <img
-                                                  src={`/componentImages${n.product_img}`}
+                                                  src={n.product_img}
                                                   alt="Product"
                                                   className="w-full h-full object-contain mix-blend-multiply scale-110 group-hover:scale-125 transition-transform duration-500"
+                                                  onError={(e) => { e.target.onerror = null; e.target.src = "/images/sample.jpg"; }}
                                                 />
                                               ) : n.type?.includes("star") ? (
                                                 <FaStar className="size-3.5 sm:size-4 text-amber-500 animate-pulse-slow" />
@@ -894,33 +879,19 @@ const Header = () => {
                                               )}
                                             </div>
                                             <div className="flex-1 min-w-0">
-                                              <p
-                                                className={`text-[12px] sm:text-[13px] leading-relaxed mb-1 sm:mb-1.5 ${!n.isRead ? "text-slate-900 font-bold" : "text-slate-600 font-medium"}`}
-                                              >
+                                              <p className={textClasses}>
                                                 {n.message}
                                               </p>
                                               <div className="flex items-center justify-between">
                                                 <span className="text-[9px] sm:text-[10px] text-slate-400 font-bold tracking-tight">
-                                                  {format(
-                                                    new Date(n.createdAt),
-                                                    "HH:mm",
-                                                  )}
+                                                  {format(new Date(n.createdAt), "HH:mm")}
                                                 </span>
                                                 <div className="flex items-center gap-2 sm:gap-3">
                                                   <button
-                                                    onClick={(e) =>
-                                                      handleDeleteNotification(
-                                                        e,
-                                                        n.id,
-                                                      )
-                                                    }
+                                                    onClick={(e) => { e.stopPropagation(); handleDeleteNotification(e, n); }}
                                                     className="opacity-0 group-hover:opacity-100 p-1 text-slate-300 hover:text-rose-500 hover:bg-rose-50 rounded-lg transition-all"
-                                                    title="Delete notification"
                                                   >
-                                                    <MdDelete
-                                                      size={14}
-                                                      className="sm:size-[15px]"
-                                                    />
+                                                    <MdDelete size={14} className="sm:size-[15px]" />
                                                   </button>
                                                   {!n.isRead && (
                                                     <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-indigo-600 rounded-full shadow-[0_0_8px_rgba(79,70,229,0.4)]"></div>
@@ -930,23 +901,21 @@ const Header = () => {
                                             </div>
                                           </div>
                                         </div>
-                                      ))}
-                                    </div>
+                                      );
+                                    })}
                                   </div>
-                                ),
-                            )}
+                                </div>
+                              );
+                            })}
                           </div>
                         ) : (
-                          <div className="py-6 sm:py-20 px-4 sm:px-8 text-center bg-white">
+                          <div className="py-4 md:py-6 sm:py-20 px-4 sm:px-8 text-center bg-white">
                             <div className="w-12 h-12 sm:w-20 sm:h-20 bg-slate-50 rounded-full sm:rounded-[2rem] flex items-center justify-center mx-auto mb-3 sm:mb-5 border border-slate-100 shadow-inner rotate-12 group-hover:rotate-0 transition-transform duration-500">
                               <MdNotifications className="text-slate-200 -rotate-12 size-6 sm:size-10" />
                             </div>
-                            <h4 className="text-sm font-bold text-slate-900 mb-1">
-                              Clean slate
-                            </h4>
+                            <h4 className="text-sm font-bold text-slate-900 mb-1">Clean slate</h4>
                             <p className="text-[10px] sm:text-[11px] text-slate-400 font-medium max-w-[180px] sm:max-w-[200px] mx-auto leading-relaxed">
-                              You're all caught up! No notifications at the
-                              moment.
+                              You're all caught up! No notifications at the moment.
                             </p>
                           </div>
                         )}
@@ -1054,68 +1023,68 @@ const Header = () => {
       <div
         className={`fixed inset-y-0 right-0 w-[85%] max-w-[320px] bg-white z-[1010] shadow-2xl transform transition-transform duration-300 ease-out xl:hidden flex flex-col ${showOffcanvas ? "translate-x-0" : "translate-x-full"}`}
       >
-        <div className="flex items-center justify-between p-5 border-b border-slate-100">
-          <span className="font-black text-xl text-slate-900 tracking-tight">
-            PAWIN
-          </span>
-          <button
-            onClick={closeMenu}
-            className="p-2 text-slate-400 hover:text-slate-800 hover:bg-slate-100 rounded-full transition-colors"
-          >
-            <FaTimes size={20} />
-          </button>
-        </div>
-        <div className="flex-1 overflow-y-auto p-4 custom-scrollbar text-start">
-          {userInfo ? (
-            <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 mb-6 flex items-center gap-3 text-start">
-              <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center text-slate-300 shadow-sm border border-slate-100">
-                <FaUserCircle size={32} />
-              </div>
-              <div className="overflow-hidden text-start">
-                <div className="font-bold text-slate-800 truncate">
-                  {userInfo?.name || ""}
-                </div>
-                <div className="text-xs text-slate-500 truncate">
-                  {userInfo?.email || ""}
-                </div>
-                <Link
-                  to="/profile"
-                  onClick={closeMenu}
-                  className="text-xs font-bold text-blue-600 mt-1 inline-block hover:underline"
-                >
-                  {t.profile}
-                </Link>
-              </div>
-            </div>
-          ) : (
-            <div className="mb-6">
-              <Link
-                to="/login"
-                onClick={closeMenu}
-                className="flex w-full items-center justify-center py-3 bg-slate-900 text-white font-bold rounded-xl shadow-lg"
-              >
-                {t.signIn}
-              </Link>
-            </div>
-          )}
-          <div className="space-y-1">
-            <MobileLink to="/" label={t.home} onClick={closeMenu} />
-            <MobileAccordion
-              title={t.product}
-              isOpen={mobileMenuOpen["product"]}
-              onClick={() => toggleMobileMenu("product")}
-            >
-              <Link
-                to="/product"
-                onClick={closeMenu}
-                className="block py-2 text-sm text-slate-600 hover:text-blue-600 border-l-2 border-slate-200 pl-3"
-              >
-                {language === "thai" ? "สินค้าทั้งหมด" : "All Products"}
-              </Link>
-              {categories.map((cat, idx) => (
-                <Link
-                  key={idx}
-                  to={`/product?category=${cat.value}`}
+                        <div className="flex items-center justify-between p-5 border-b border-slate-100">
+                          <span className="font-black text-xl text-slate-900 tracking-tight">
+                            PAWIN
+                          </span>
+                          <button
+                            onClick={closeMenu}
+                            className="p-2 text-slate-400 hover:text-slate-800 hover:bg-slate-100 rounded-full transition-colors"
+                          >
+                            <FaTimes size={20} />
+                          </button>
+                        </div>
+                        <div className="flex-1 overflow-y-auto p-4 custom-scrollbar text-start">
+                          {userInfo ? (
+                            <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 mb-6 flex items-center gap-3 text-start">
+                              <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center text-slate-300 shadow-sm border border-slate-100">
+                                <FaUserCircle size={32} />
+                              </div>
+                              <div className="overflow-hidden text-start">
+                                <div className="font-bold text-slate-800 truncate">
+                                  {userInfo?.name || ""}
+                                </div>
+                                <div className="text-xs text-slate-500 truncate">
+                                  {userInfo?.email || ""}
+                                </div>
+                                <Link
+                                  to="/profile"
+                                  onClick={closeMenu}
+                                  className="text-xs font-bold text-blue-600 mt-1 inline-block hover:underline"
+                                >
+                                  {t.profile}
+                                </Link>
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="mb-6">
+                              <Link
+                                to="/login"
+                                onClick={closeMenu}
+                                className="flex w-full items-center justify-center py-3 bg-slate-900 text-white font-bold rounded-xl shadow-lg"
+                              >
+                                {t.signIn}
+                              </Link>
+                            </div>
+                          )}
+                          <div className="space-y-1">
+                            <MobileLink to="/" label={t.home} onClick={closeMenu} />
+                            <MobileAccordion
+                              title={t.product}
+                              isOpen={mobileMenuOpen["product"]}
+                              onClick={() => toggleMobileMenu("product")}
+                            >
+                              <Link
+                                to="/product"
+                                onClick={closeMenu}
+                                className="block py-2 text-sm text-slate-600 hover:text-blue-600 border-l-2 border-slate-200 pl-3"
+                              >
+                                {language === "thai" ? "สินค้าทั้งหมด" : "All Products"}
+                              </Link>
+                              {categories.map((cat, idx) => (
+                                <Link
+                                  key={idx}
+                                  to={`/product?category=${cat.value}`}
                   onClick={closeMenu}
                   className="block py-2 text-sm text-slate-600 hover:text-blue-600 border-l-2 border-slate-200 pl-3"
                 >
@@ -1129,14 +1098,14 @@ const Header = () => {
               onClick={() => toggleMobileMenu("service")}
             >
               <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 mt-1">
-                Hardware Solutions
+                {language === "thai" ? "โซลูชันฮาร์ดแวร์" : "Hardware Solutions"}
               </div>
               {services?.services
                 ?.filter((s) => s.deploymentTypes === "Hardware Deployment")
                 .map((s) => (
                   <Link
                     key={s.ID}
-                    to={`/service/${s.ID}`}
+                    to={`/ service / ${s.ID}`}
                     onClick={closeMenu}
                     className="block py-2 text-sm text-slate-600 hover:text-blue-600 border-l-2 border-slate-200 pl-3"
                   >
@@ -1144,7 +1113,7 @@ const Header = () => {
                   </Link>
                 ))}
               <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 mt-4">
-                Ordering Tools
+                {language === "thai" ? "เครื่องมือสั่งซื้อ" : "Ordering Tools"}
               </div>
               <Link
                 to="/custompcb"
@@ -1185,72 +1154,104 @@ const Header = () => {
                 onClick={() => toggleMobileMenu("admin")}
               >
                 {isStore && (
-                  <div className="mb-3">
-                    <div className="text-xs font-bold text-blue-500 uppercase tracking-wider mb-1">
-                      Inventory
+                  <div className="mb-4">
+                    <div className="text-[10px] font-black text-blue-500 uppercase tracking-widest mb-1.5 mt-2">
+                      {t.Inventory}
                     </div>
-                    <Link
-                      to="/components"
-                      onClick={closeMenu}
-                      className="block py-1.5 text-sm text-slate-600 text-start"
-                    >
+                    <Link to="/components" onClick={closeMenu} className="block py-2 text-sm text-slate-600 hover:text-blue-600 border-l-2 border-slate-200 pl-3">
                       {t.Dashboard}
                     </Link>
-                    <Link
-                      to="/componentcheckboom"
-                      onClick={closeMenu}
-                      className="block py-1.5 text-sm text-slate-600 text-start"
-                    >
+                    <Link to="/componentcheckboom" onClick={closeMenu} className="block py-2 text-sm text-slate-600 hover:text-blue-600 border-l-2 border-slate-200 pl-3">
                       {t.CheckBoom}
                     </Link>
-                    <Link
-                      to="/componentaddproductlist"
-                      onClick={closeMenu}
-                      className="block py-1.5 text-sm text-slate-600 text-start"
-                    >
+                    <Link to="/componentaddproductlist" onClick={closeMenu} className="block py-2 text-sm text-slate-600 hover:text-blue-600 border-l-2 border-slate-200 pl-3">
                       {t.AddQuantity}
                     </Link>
+                    <Link to="/componenteditlist" onClick={closeMenu} className="block py-2 text-sm text-slate-600 hover:text-blue-600 border-l-2 border-slate-200 pl-3">
+                      {t.ManageComponents}
+                    </Link>
+
+                    <div className="text-[10px] font-black text-blue-500 uppercase tracking-widest mb-1.5 mt-4">
+                      {t.Requests}
+                    </div>
+                    <Link to="/componentuserrequestlist" onClick={closeMenu} className="block py-2 text-sm text-slate-600 hover:text-blue-600 border-l-2 border-slate-200 pl-3">
+                      {t.MyRequested}
+                    </Link>
+                    <Link to="/componentrequestlist" onClick={closeMenu} className="block py-2 text-sm text-slate-600 hover:text-blue-600 border-l-2 border-slate-200 pl-3">
+                      {t.AllRequested}
+                    </Link>
+
+                    <div className="text-[10px] font-black text-blue-500 uppercase tracking-widest mb-1.5 mt-4">
+                      {t.StoreAdmin}
+                    </div>
+                    <Link to="/admin/productlist" onClick={closeMenu} className="block py-2 text-sm text-slate-600 hover:text-blue-600 border-l-2 border-slate-200 pl-3">
+                      {t.adminProducts}
+                    </Link>
+                    <Link to="/admin/orderlist" onClick={closeMenu} className="block py-2 text-sm text-slate-600 hover:text-blue-600 border-l-2 border-slate-200 pl-3">
+                      {t.orderlist}
+                    </Link>
                   </div>
                 )}
+
                 {isPCB && (
-                  <div className="mb-3">
-                    <div className="text-xs font-bold text-emerald-500 uppercase tracking-wider mb-1">
-                      PCB Orders
+                  <div className="mb-4">
+                    <div className="text-[10px] font-black text-emerald-500 uppercase tracking-widest mb-1.5 mt-2">
+                      {language === "thai" ? "รายการสั่งทำ PCB" : "PCB Orders"}
                     </div>
-                    <Link
-                      to="/admin/orderpcblist"
-                      onClick={closeMenu}
-                      className="block py-1.5 text-sm text-slate-600 text-start"
-                    >
-                      All Orders
+                    <Link to="/admin/orderpcblist" onClick={closeMenu} className="block py-2 text-sm text-slate-600 hover:text-emerald-600 border-l-2 border-slate-200 pl-3">
+                      {t.orderCustomerGerberPCB}
+                    </Link>
+                    <Link to="/admin/ordercustompcblist" onClick={closeMenu} className="block py-2 text-sm text-slate-600 hover:text-emerald-600 border-l-2 border-slate-200 pl-3">
+                      {t.orderCustomIdeaPCB}
+                    </Link>
+                    <Link to="/admin/ordercopypcblist" onClick={closeMenu} className="block py-2 text-sm text-slate-600 hover:text-emerald-600 border-l-2 border-slate-200 pl-3">
+                      {t.orderCopyModifyPCB}
+                    </Link>
+                    <Link to="/admin/orderassemblypcblist" onClick={closeMenu} className="block py-2 text-sm text-slate-600 hover:text-emerald-600 border-l-2 border-slate-200 pl-3">
+                      {t.orderAssemblyPCB}
+                    </Link>
+
+                    <div className="text-[10px] font-black text-emerald-500 uppercase tracking-widest mb-1.5 mt-4">
+                      {t.ConfirmList}
+                    </div>
+                    <Link to="/admin/cartcustompcblist" onClick={closeMenu} className="block py-2 text-sm text-slate-600 hover:text-emerald-600 border-l-2 border-slate-200 pl-3">
+                      {t.confirmCustomIdeaPCB}
+                    </Link>
+                    <Link to="/admin/cartcopypcblist" onClick={closeMenu} className="block py-2 text-sm text-slate-600 hover:text-emerald-600 border-l-2 border-slate-200 pl-3">
+                      {t.confirmCopyModifyPCB}
+                    </Link>
+                    <Link to="/admin/cartassemblypcblist" onClick={closeMenu} className="block py-2 text-sm text-slate-600 hover:text-emerald-600 border-l-2 border-slate-200 pl-3">
+                      {t.confirmAssemblyBoard}
                     </Link>
                   </div>
                 )}
+
                 {isAdmin && (
-                  <div>
-                    <div className="text-xs font-bold text-rose-500 uppercase tracking-wider mb-1">
-                      System
-                    </div>
-                    <Link
-                      to="/admin/orderlist"
-                      onClick={closeMenu}
-                      className="block py-1.5 text-sm text-slate-600 text-start"
-                    >
-                      Dashboard
-                    </Link>
-                    <Link
-                      to="/admin/paymentlist"
-                      onClick={closeMenu}
-                      className="block py-1.5 text-sm text-slate-600 text-start"
-                    >
+                  <div className="mb-4">
+                    <div className="text-[10px] font-black text-rose-500 uppercase tracking-widest mb-1.5 mt-2">
                       {t.Finance}
+                    </div>
+                    <Link to="/admin/paymentlist" onClick={closeMenu} className="block py-2 text-sm text-slate-600 hover:text-rose-600 border-l-2 border-slate-200 pl-3">
+                      {t.AdminPayments}
                     </Link>
-                    <Link
-                      to="/admin/userlist"
-                      onClick={closeMenu}
-                      className="block py-1.5 text-sm text-slate-600 text-start"
-                    >
-                      Users
+                    <Link to="/admin/quotations" onClick={closeMenu} className="block py-2 text-sm text-slate-600 hover:text-rose-600 border-l-2 border-slate-200 pl-3">
+                      {t.Quotations}
+                    </Link>
+                    <Link to="/admin/invoicelist" onClick={closeMenu} className="block py-2 text-sm text-slate-600 hover:text-rose-600 border-l-2 border-slate-200 pl-3">
+                      {t.Invoices}
+                    </Link>
+
+                    <div className="text-[10px] font-black text-rose-500 uppercase tracking-widest mb-1.5 mt-4">
+                      {t.People}
+                    </div>
+                    <Link to="/admin/customers" onClick={closeMenu} className="block py-2 text-sm text-slate-600 hover:text-rose-600 border-l-2 border-slate-200 pl-3">
+                      {t.Customers}
+                    </Link>
+                    <Link to="/admin/userlist" onClick={closeMenu} className="block py-2 text-sm text-slate-600 hover:text-rose-600 border-l-2 border-slate-200 pl-3">
+                      {t.adminUsers}
+                    </Link>
+                    <Link to="/admin/servicelist" onClick={closeMenu} className="block py-2 text-sm text-slate-600 hover:text-rose-600 border-l-2 border-slate-200 pl-3">
+                      {t.ServiceConfig}
                     </Link>
                   </div>
                 )}
@@ -1262,43 +1263,43 @@ const Header = () => {
           <div className="grid grid-cols-2 gap-3">
             <button
               onClick={() => dispatch(setLanguageCredentials("en"))}
-              className={`py-2 text-xs font-bold rounded-lg border transition-colors ${language === "en" ? "bg-slate-800 text-white border-slate-800" : "bg-white text-slate-600 border-slate-200"}`}
+              className={`py - 2 text - xs font - bold rounded - lg border transition - colors ${ language === "en" ? "bg-slate-800 text-white border-slate-800" : "bg-white text-slate-600 border-slate-200"}`}
             >
-              English
-            </button>
-            <button
-              onClick={() => dispatch(setLanguageCredentials("thai"))}
-              className={`py-2 text-xs font-bold rounded-lg border transition-colors ${language === "thai" ? "bg-slate-800 text-white border-slate-800" : "bg-white text-slate-600 border-slate-200"}`}
-            >
-              ภาษาไทย
-            </button>
-          </div>
-          <button
-            onClick={() => dispatch(toggleTheme())}
-            className="w-full mt-3 py-2 flex items-center justify-center gap-2 text-sm font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg transition-colors border border-slate-200"
-          >
-            {theme === "dark" ? (
-              <>
-                <MdLightMode size={16} /> Light Mode
-              </>
-            ) : (
-              <>
-                <MdDarkMode size={16} /> Dark Mode
-              </>
-            )}
-          </button>
-          {userInfo && (
-            <button
-              onClick={logoutHandler}
-              className="w-full mt-3 py-2 text-sm font-bold text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition-colors border border-red-100"
-            >
-              {t.logout}
-            </button>
-          )}
-        </div>
-      </div>
-    </>
-  );
+                              English
+                            </button>
+                            <button
+                              onClick={() => dispatch(setLanguageCredentials("thai"))}
+                              className={`py-2 text-xs font-bold rounded-lg border transition-colors ${language === "thai" ? "bg-slate-800 text-white border-slate-800" : "bg-white text-slate-600 border-slate-200"}`}
+                            >
+                              ภาษาไทย
+                            </button>
+                          </div>
+                          <button
+                            onClick={() => dispatch(toggleTheme())}
+                            className="w-full mt-3 py-2 flex items-center justify-center gap-2 text-sm font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg transition-colors border border-slate-200"
+                          >
+                            {theme === "dark" ? (
+                              <>
+                                <MdLightMode size={16} /> Light Mode
+                              </>
+                            ) : (
+                              <>
+                                <MdDarkMode size={16} /> Dark Mode
+                              </>
+                            )}
+                          </button>
+                          {userInfo && (
+                            <button
+                              onClick={logoutHandler}
+                              className="w-full mt-3 py-2 text-sm font-bold text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition-colors border border-red-100"
+                            >
+                              {t.logout}
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    </>
+                    );
 };
 
-export default Header;
+                    export default Header;

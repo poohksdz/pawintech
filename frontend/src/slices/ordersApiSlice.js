@@ -85,6 +85,13 @@ export const orderApiSlice = apiSlice.injectEndpoints({
         body: data,
       }),
     }),
+    updateOrderStatusByQuotationNo: builder.mutation({
+      query: ({ quotation_no, status }) => ({
+        url: `${ORDERS_URL}/quotation/${quotation_no}/status`,
+        method: "PUT",
+        body: { status, quotation_no },
+      }),
+    }),
   }),
 });
 
@@ -101,4 +108,5 @@ export const {
   useUploadPaymentSlipImageMutation,
   useGetTransportationPriceQuery,
   useUpdateTransportationPriceMutation,
+  useUpdateOrderStatusByQuotationNoMutation,
 } = orderApiSlice;

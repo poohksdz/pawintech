@@ -64,7 +64,7 @@ const ConfirmModleChange = ({ show, onHide, onConfirm, aboutImageId }) => {
 
   return (
     <Modal isOpen={show} onClose={onHide} title="Confirm Update">
-      <div className="p-6">
+      <div className="p-4 md:p-6">
         <p className="text-slate-600 mb-4">
           Are you sure you want to update image with ID:{" "}
           <strong className="text-slate-900">{aboutImageId}</strong>?

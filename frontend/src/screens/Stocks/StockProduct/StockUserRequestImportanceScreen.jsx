@@ -126,7 +126,7 @@ const StockUserRequestImportanceScreen = () => {
                 <td className="text-center">
                   {p.img ? (
                     <img
-                      src={`/componentImages${p.img}`}
+                      src={p.img}
                       width="40"
                       alt="p"
                       style={{ objectFit: "contain" }}

@@ -4,6 +4,7 @@ import { Container, Row, Col, Card, Image } from "react-bootstrap"; // ลบ Bu
 import { FaPhoneAlt, FaFacebook, FaLine, FaMapMarkerAlt } from "react-icons/fa";
 import { MdEmail } from "react-icons/md";
 import ContactComponent from "../components/ContactComponent";
+import pawintechLocation from "../assets/pawintech_location.png";
 
 const ContactScreen = () => {
   const { language } = useSelector((state) => state.language);
@@ -14,14 +15,14 @@ const ContactScreen = () => {
       title: "Contact Us",
       companyName: "Pawin Technology Co., Ltd.",
       address:
-        "139/65 Soi Romklao 24, Romklao Road, Min Buri Subdistrict, Min Buri District, Bangkok 10510.",
+        "124 Soi Rom Klao 24, Min Buri, Min Buri, Bangkok, 10510",
       mapCaption: "Location Map",
     },
     thai: {
       title: "ติดต่อเรา",
       companyName: "บริษัท ภาวินท์เทคโนโลยี จำกัด",
       address:
-        "139/65 ซอยร่มเกล้า24 ถนนร่มเกล้า แขวงมีนบุรี เขตมีนบุรี กรุงเทพ 10510",
+        "124 ซอยร่มเกล้า 24 แขวงมีนบุรี เขตมีนบุรี กรุงเทพมหานคร 10510",
       mapCaption: "แผนที่บริษัท",
     },
   };
@@ -173,8 +174,8 @@ const ContactScreen = () => {
                 }}
               >
                 <Image
-                  src="image/pawintach_location.JPG"
-                  alt="Location map of Phawin Technology Co., Ltd."
+                  src={pawintechLocation}
+                  alt="Location map of Pawin Technology Co., Ltd."
                   style={{
                     width: "100%",
                     height: "100%",

@@ -182,7 +182,7 @@ const CustomPCBProfileListScreen = () => {
                   <td className="text-end pe-3">
                     <Button
                       as={Link}
-                      to={`/custompcb/${order.id}`}
+                      to={`/${order.id}`}
                       variant="outline-primary"
                       size="sm"
                       className="rounded-pill px-3 d-inline-flex align-items-center gap-1"

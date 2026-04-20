@@ -198,7 +198,7 @@ const CopyPCBOrderListScreen = () => {
 
         {/* Dashboard Metrics */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-          <div className="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm relative overflow-hidden group flex items-center justify-between">
+          <div className="bg-white rounded-2xl p-4 md:p-6 border border-slate-100 shadow-sm relative overflow-hidden group flex items-center justify-between">
             <div>
               <p className="text-sm font-semibold text-slate-500 mb-1 relative z-10">
                 {t.TotalOrders}
@@ -214,7 +214,7 @@ const CopyPCBOrderListScreen = () => {
               <FaClipboardList size={140} />
             </div>
           </div>
-          <div className="bg-emerald-600 rounded-2xl p-6 border border-emerald-500 shadow-md relative overflow-hidden group flex items-center justify-between text-white">
+          <div className="bg-emerald-600 rounded-2xl p-4 md:p-6 border border-emerald-500 shadow-md relative overflow-hidden group flex items-center justify-between text-white">
             <div>
               <p className="text-sm font-medium text-emerald-100 mb-1 relative z-10">
                 {t.TotalRevenue}
@@ -283,7 +283,7 @@ const CopyPCBOrderListScreen = () => {
               <Loader />
             </div>
           ) : error ? (
-            <div className="p-6">
+            <div className="p-4 md:p-6">
               <Message variant="danger">
                 {error?.data?.message || error.message || "Error occurred"}
               </Message>
@@ -295,28 +295,28 @@ const CopyPCBOrderListScreen = () => {
                 <table className="w-full text-left text-sm whitespace-nowrap border-collapse border border-slate-200">
                   <thead className="bg-[#f8fafc] text-slate-600 font-bold border-b-2 border-slate-300">
                     <tr>
-                      <th className="px-6 py-4 w-12 text-center border-r border-slate-200">
+                      <th className="px-4 md:px-6 py-4 w-12 text-center border-r border-slate-200">
                         #
                       </th>
-                      <th className="px-6 py-4 border-r border-slate-200">
+                      <th className="px-4 md:px-6 py-4 border-r border-slate-200">
                         ID
                       </th>
-                      <th className="px-6 py-4 border-r border-slate-200">
+                      <th className="px-4 md:px-6 py-4 border-r border-slate-200">
                         โปรเจกต์
                       </th>
-                      <th className="px-6 py-4 border-r border-slate-200">
+                      <th className="px-4 md:px-6 py-4 border-r border-slate-200">
                         วันที่สั่งซื้อ
                       </th>
-                      <th className="px-6 py-4 text-center border-r border-slate-200">
+                      <th className="px-4 md:px-6 py-4 text-center border-r border-slate-200">
                         จัดส่ง
                       </th>
-                      <th className="px-6 py-4 text-center border-r border-slate-200">
+                      <th className="px-4 md:px-6 py-4 text-center border-r border-slate-200">
                         {t.Qty}
                       </th>
-                      <th className="px-6 py-4 text-right border-r border-slate-200">
+                      <th className="px-4 md:px-6 py-4 text-right border-r border-slate-200">
                         ยอดรวม
                       </th>
-                      <th className="px-6 py-4 text-center">{t.Action}</th>
+                      <th className="px-4 md:px-6 py-4 text-center">{t.Action}</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-200 relative">
@@ -336,15 +336,15 @@ const CopyPCBOrderListScreen = () => {
                             key={pcb.id}
                             className="hover:bg-emerald-50/30 transition-colors group"
                           >
-                            <td className="px-6 py-4 text-center text-slate-500 font-semibold border-r border-slate-200">
+                            <td className="px-4 md:px-6 py-4 text-center text-slate-500 font-semibold border-r border-slate-200">
                               {index + 1}
                             </td>
-                            <td className="px-6 py-4 border-r border-slate-200">
+                            <td className="px-4 md:px-6 py-4 border-r border-slate-200">
                               <span className="font-mono text-emerald-600 font-bold bg-emerald-50 px-2.5 py-1 rounded-md border border-emerald-200 shadow-sm">
                                 {pcb.orderID}
                               </span>
                             </td>
-                            <td className="px-6 py-4 border-r border-slate-200">
+                            <td className="px-4 md:px-6 py-4 border-r border-slate-200">
                               <div
                                 className="font-bold text-slate-800 max-w-[200px] truncate"
                                 title={pcb.projectname}
@@ -352,10 +352,10 @@ const CopyPCBOrderListScreen = () => {
                                 {pcb.projectname}
                               </div>
                             </td>
-                            <td className="px-6 py-4 text-slate-600 border-r border-slate-200">
+                            <td className="px-4 md:px-6 py-4 text-slate-600 border-r border-slate-200">
                               {formatDate(pcb.created_at, language)}
                             </td>
-                            <td className="px-6 py-4 text-center border-r border-slate-200 align-middle">
+                            <td className="px-4 md:px-6 py-4 text-center border-r border-slate-200 align-middle">
                               {pcb.isDelivered ? (
                                 <span className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold rounded-full border bg-emerald-100/50 text-emerald-700 border-emerald-200">
                                   <FaCheckCircle size={12} /> Delivered
@@ -372,15 +372,15 @@ const CopyPCBOrderListScreen = () => {
                                 </button>
                               )}
                             </td>
-                            <td className="px-6 py-4 text-center border-r border-slate-200 align-middle">
+                            <td className="px-4 md:px-6 py-4 text-center border-r border-slate-200 align-middle">
                               <span className="font-bold text-slate-700 bg-slate-100 px-2 py-1 rounded inline-block min-w-[2rem] border border-slate-300 shadow-sm">
                                 {pcb.pcb_qty}
                               </span>
                             </td>
-                            <td className="px-6 py-4 text-right font-bold text-emerald-600 border-r border-slate-200 text-base">
+                            <td className="px-4 md:px-6 py-4 text-right font-bold text-emerald-600 border-r border-slate-200 text-base">
                               {formatCurrency(pcb.confirmed_price)}
                             </td>
-                            <td className="px-6 py-4 align-middle text-center">
+                            <td className="px-4 md:px-6 py-4 align-middle text-center">
                               <div className="flex items-center justify-center gap-2">
                                 <Link
                                   to={`/copypcb/${pcb.id}`}
@@ -424,7 +424,7 @@ const CopyPCBOrderListScreen = () => {
                         >
                           <td
                             colSpan="8"
-                            className="px-6 py-16 text-center text-slate-400 absolute w-full left-0 border-b-0"
+                            className="px-4 md:px-6 py-16 text-center text-slate-400 absolute w-full left-0 border-b-0"
                           >
                             <FaBox
                               className="mx-auto mb-3 opacity-20"
@@ -567,7 +567,7 @@ const CopyPCBOrderListScreen = () => {
                 exit={{ opacity: 0, scale: 0.95, y: 20 }}
                 className="bg-white rounded-3xl shadow-2xl w-full max-w-md relative z-10 overflow-hidden border border-slate-100"
               >
-                <div className="p-8">
+                <div className="p-4 md:p-8">
                   <div className="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-2xl flex items-center justify-center mb-6 shadow-inner mx-auto">
                     <FaTruck size={32} />
                   </div>
@@ -595,7 +595,7 @@ const CopyPCBOrderListScreen = () => {
                     </div>
                   </div>
                 </div>
-                <div className="flex gap-4 p-8 pt-0">
+                <div className="flex gap-4 p-4 md:p-8 pt-0">
                   <button
                     onClick={() => setShowModal(false)}
                     className="flex-1 bg-slate-100 text-slate-700 font-bold py-4 rounded-xl hover:bg-slate-200 transition-all active:scale-95"

@@ -373,13 +373,13 @@ const CategoryListScreen = () => {
         </Modal.Footer>
       </Modal>
 
-      <style>{`
+      <style dangerouslySetInnerHTML={{ __html: `
         .font-prompt { font-family: 'Prompt', sans-serif; }
         .row-hover:hover { background-color: #f8f9fa; transition: background-color 0.2s; }
         .btn-icon { width: 32px; height: 32px; padding: 0; display: inline-flex; align-items: center; justify-content: center; transition: all 0.2s; }
         .hover-primary:hover { color: #0d6efd !important; background-color: #f8f9fa; border-color: #0d6efd !important; }
         .hover-danger:hover { color: #dc3545 !important; background-color: #f8f9fa; border-color: #dc3545 !important; }
-      `}</style>
+      ` }} />
     </Container >
   );
 };

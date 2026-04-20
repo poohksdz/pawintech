@@ -7,7 +7,7 @@ const {
     createOrderPCBCart,
     updateOrderPCBCartStatus,
     deleteOrderPCBCart
-} = require('../controllers/orderPCBCartController')
+} = require('../controllers/orderpcbcartController')
 const { protect, admin } = require('../middleware/authMiddleware')
 
 router.route('/')

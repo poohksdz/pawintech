@@ -200,8 +200,8 @@ const OrderassemblyCartListScreen = () => {
       <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
 
         {/* Header - True Black Style */}
-        <header className="mb-10 flex flex-col lg:flex-row lg:items-end justify-between gap-8 border-b border-slate-200 pb-10">
-          <div className="flex flex-col md:flex-row md:items-center gap-6">
+        <header className="mb-10 flex flex-col lg:flex-row lg:items-end justify-between gap-4 md:gap-8 border-b border-slate-200 pb-10">
+          <div className="flex flex-col md:flex-row md:items-center gap-4 md:gap-6">
             <div className="w-16 h-16 bg-slate-900 text-white rounded-[2rem] flex items-center justify-center shadow-2xl shadow-slate-200/50">
               <FaCogs size={28} />
             </div>
@@ -295,14 +295,14 @@ const OrderassemblyCartListScreen = () => {
               <table className="w-full text-left">
                 <thead>
                   <tr className="bg-slate-50/50 border-b border-slate-100 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
-                    <th className="py-6 pl-10 w-16">{t.headers.id}</th>
-                    <th className="py-6 px-6">{t.headers.project}</th>
-                    <th className="py-6 px-6 text-center">{t.headers.type}</th>
-                    <th className="py-6 px-6 text-center">{t.headers.qty}</th>
-                    <th className="py-6 px-6 text-right">{t.headers.price}</th>
-                    <th className="py-6 px-6 text-center">{t.headers.date}</th>
-                    <th className="py-6 px-6 text-center">{t.headers.status}</th>
-                    <th className="py-6 pr-10 text-right">{t.headers.actions}</th>
+                    <th className="py-4 md:py-6 pl-10 w-16">{t.headers.id}</th>
+                    <th className="py-4 md:py-6 px-4 md:px-6">{t.headers.project}</th>
+                    <th className="py-4 md:py-6 px-4 md:px-6 text-center">{t.headers.type}</th>
+                    <th className="py-4 md:py-6 px-4 md:px-6 text-center">{t.headers.qty}</th>
+                    <th className="py-4 md:py-6 px-4 md:px-6 text-right">{t.headers.price}</th>
+                    <th className="py-4 md:py-6 px-4 md:px-6 text-center">{t.headers.date}</th>
+                    <th className="py-4 md:py-6 px-4 md:px-6 text-center">{t.headers.status}</th>
+                    <th className="py-4 md:py-6 pr-10 text-right">{t.headers.actions}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-50">
@@ -315,10 +315,10 @@ const OrderassemblyCartListScreen = () => {
                         transition={{ delay: index * 0.03 }}
                         className="group hover:bg-indigo-50/30 transition-all duration-300"
                       >
-                        <td className="py-6 pl-10 font-mono text-[11px] font-bold text-slate-400">
+                        <td className="py-4 md:py-6 pl-10 font-mono text-[11px] font-bold text-slate-400">
                           {String(index + 1).padStart(2, '0')}
                         </td>
-                        <td className="py-6 px-6">
+                        <td className="py-4 md:py-6 px-4 md:px-6">
                           <div className="flex flex-col min-w-0">
                             <span className="text-sm font-black text-slate-900 group-hover:text-indigo-600 transition-colors uppercase tracking-tight truncate max-w-[200px]">
                               {order.projectname}
@@ -328,7 +328,7 @@ const OrderassemblyCartListScreen = () => {
                             </span>
                           </div>
                         </td>
-                        <td className="py-6 px-6">
+                        <td className="py-4 md:py-6 px-4 md:px-6">
                           <div className="flex justify-center">
                             <AssemblyTypeBadge
                               smd={order.count_smd}
@@ -336,12 +336,12 @@ const OrderassemblyCartListScreen = () => {
                             />
                           </div>
                         </td>
-                        <td className="py-6 px-6 text-center">
+                        <td className="py-4 md:py-6 px-4 md:px-6 text-center">
                           <span className="inline-flex h-8 w-12 items-center justify-center rounded-lg bg-slate-50 border border-slate-100 text-xs font-black text-slate-700">
                             {order.pcb_qty}
                           </span>
                         </td>
-                        <td className="py-6 px-6 text-right">
+                        <td className="py-4 md:py-6 px-4 md:px-6 text-right">
                           <div className="flex flex-col items-end">
                             <span className="text-[15px] font-black text-slate-900">
                               {formatCurrency(order.confirmed_price || order.estimatedCost)}
@@ -353,7 +353,7 @@ const OrderassemblyCartListScreen = () => {
                             )}
                           </div>
                         </td>
-                        <td className="py-6 px-6 text-center">
+                        <td className="py-4 md:py-6 px-4 md:px-6 text-center">
                           <span className="text-[11px] font-bold text-slate-500 uppercase">
                             {new Date(order.created_at).toLocaleDateString("th-TH", {
                               day: "2-digit",
@@ -362,10 +362,10 @@ const OrderassemblyCartListScreen = () => {
                             })}
                           </span>
                         </td>
-                        <td className="py-6 px-6 text-center">
+                        <td className="py-4 md:py-6 px-4 md:px-6 text-center">
                           <StatusBadge status={order.status} t={t} />
                         </td>
-                        <td className="py-6 pr-10 text-right">
+                        <td className="py-4 md:py-6 pr-10 text-right">
                           <div className="flex justify-end gap-2.5">
                             {order.status === "pending" && (
                               <button
@@ -393,14 +393,14 @@ const OrderassemblyCartListScreen = () => {
             </div>
 
             {/* Mobile Card View (Premium True Black) */}
-            <div className="lg:hidden flex flex-col gap-6 px-2">
+            <div className="lg:hidden flex flex-col gap-4 md:gap-6 px-2">
               {filteredOrders.map((order, index) => (
                 <motion.div
                   key={order.id}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.1 }}
-                  className="bg-[#0a0a0a] rounded-[2.5rem] border border-zinc-900 p-8 shadow-2xl relative overflow-hidden group active:scale-[0.98] transition-all duration-300"
+                  className="bg-[#0a0a0a] rounded-[2.5rem] border border-zinc-900 p-4 md:p-8 shadow-2xl relative overflow-hidden group active:scale-[0.98] transition-all duration-300"
                 >
                   {/* Status Badge Top Right */}
                   <div className="absolute top-8 right-8 z-10">

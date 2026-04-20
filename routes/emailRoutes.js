@@ -8,8 +8,8 @@ const { protect, admin } = require("../middleware/authMiddleware.js");
 
 const router = express.Router();
 
-router.post("/", sendEmail);
-router.get("/", getAllEmails);
-// router.get('/getallemails', protect, admin, getAllEmails)
+// Admin only: send emails and view email list
+router.post("/", protect, admin, sendEmail);
+router.get("/", protect, admin, getAllEmails);
 
 module.exports = router;

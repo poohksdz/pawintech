@@ -13,7 +13,7 @@ export const Card = ({ children, className = "" }) => {
 export const CardHeader = ({ title, action, className = "" }) => {
   return (
     <div
-      className={`px-6 py-4 border-b border-slate-200 flex items-center justify-between bg-slate-50/50 ${className}`}
+      className={`px-4 md:px-6 py-4 border-b border-slate-200 flex items-center justify-between bg-slate-50/50 ${className}`}
     >
       <h3 className="text-lg font-semibold text-slate-800 m-0">{title}</h3>
       {action && <div>{action}</div>}
@@ -22,13 +22,13 @@ export const CardHeader = ({ title, action, className = "" }) => {
 };
 
 export const CardBody = ({ children, className = "" }) => {
-  return <div className={`p-6 ${className}`}>{children}</div>;
+  return <div className={`p-4 md:p-6 ${className}`}>{children}</div>;
 };
 
 export const CardFooter = ({ children, className = "" }) => {
   return (
     <div
-      className={`px-6 py-4 border-t border-slate-200 bg-slate-50 ${className}`}
+      className={`px-4 md:px-6 py-4 border-t border-slate-200 bg-slate-50 ${className}`}
     >
       {children}
     </div>

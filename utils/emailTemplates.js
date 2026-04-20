@@ -108,6 +108,145 @@ const resetPasswordTemplate = (resetUrl, userName) => `
 </html>
 `;
 
+const quotationEmailTemplate = (userName, quotationNo, grandTotal, companyName, bankInfo) => `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f8fafc;
+            color: #334155;
+        }
+        .container {
+            max-width: 600px;
+            margin: 30px auto;
+            background: #ffffff;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            border: 1px solid #e2e8f0;
+        }
+        .header {
+            background-color: #0f172a;
+            padding: 40px 20px;
+            text-align: center;
+        }
+        .header h1 {
+            color: #ffffff;
+            margin: 0;
+            font-size: 22px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        .content {
+            padding: 40px;
+            line-height: 1.7;
+        }
+        .content h2 {
+            margin-top: 0;
+            font-size: 18px;
+            color: #0f172a;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 15px;
+            margin-bottom: 25px;
+        }
+        .info-grid {
+            background-color: #f1f5f9;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+        }
+        .info-item {
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .info-label {
+            font-weight: 600;
+            color: #64748b;
+        }
+        .info-value {
+            font-weight: 700;
+            color: #0f172a;
+        }
+        .price-box {
+            background-color: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            padding: 15px;
+            border-radius: 12px;
+            text-align: center;
+            margin: 25px 0;
+        }
+        .price-label {
+            font-size: 14px;
+            color: #166534;
+            margin-bottom: 5px;
+        }
+        .price-value {
+            font-size: 24px;
+            font-weight: 800;
+            color: #15803d;
+        }
+        .footer {
+            background-color: #f8fafc;
+            padding: 20px;
+            text-align: center;
+            font-size: 12px;
+            color: #94a3b8;
+            border-top: 1px solid #e2e8f0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>PAWIN TECH</h1>
+        </div>
+        <div class="content">
+            <h2>ใบเสนอราคา / Quotation Notification</h2>
+            <p>เรียนคุณ <strong>${userName || "ลูกค้า"}</strong>,</p>
+            <p>ขณะนี้แอดมินได้ตรวจสอบรายการสั่งผลิต PCB ของคุณแล้ว และได้แจ้งราคาประเมินเบื้องต้นตามรายละเอียดด้านล่างนี้:</p>
+            
+            <div class="info-grid">
+                <div class="info-item">
+                    <span class="info-label">เลขที่ใบเสนอราคา:</span>
+                    <span class="info-value">${quotationNo}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">วันที่:</span>
+                    <span class="info-value">${new Date().toLocaleDateString('th-TH')}</span>
+                </div>
+            </div>
+
+            <div class="price-box">
+                <div class="price-label">ยอดรวมสุทธิ (GRAND TOTAL)</div>
+                <div class="price-value">${Number(grandTotal).toLocaleString('th-TH', { minimumFractionDigits: 2 })} บาท</div>
+            </div>
+
+            <p>ท่านสามารถเข้าสู่ระบบเพื่อตรวจสอบรายละเอียดเพิ่มเติมและดำเนินการชำระเงินเพื่อยืนยันการผลิตได้ที่เว็บไซต์ของเรา</p>
+            
+            <p style="margin-top: 30px; font-size: 13px; color: #64748b;">
+                <strong>ข้อมูลการชำระเงิน:</strong><br>
+                ธนาคาร: ${bankInfo?.name || "ธนาคารกสิกรไทย"}<br>
+                ชื่อบัญชี: ${bankInfo?.accountName || "บริษัท ภาวินท์เทคโนโลยี จำกัด"}<br>
+                เลขที่บัญชี: ${bankInfo?.accountNumber || "123-4-56789-0"}
+            </p>
+        </div>
+        <div class="footer">
+            <p>© 2025 ${companyName || "Pawin Technology Co., Ltd."}. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>
+`;
+
 module.exports = {
-  resetPasswordTemplate,
+    resetPasswordTemplate,
+    quotationEmailTemplate,
 };

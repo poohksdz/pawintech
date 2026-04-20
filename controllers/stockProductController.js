@@ -7,12 +7,17 @@ const db = require("../config/db.js");
 const getStockProducts = asyncHandler(async (req, res) => {
   try {
     const [products] = await db.pool.query(
-      "SELECT *, isStarred, lastStarredAt, lastUnstarredAt FROM tbl_product",
+      "SELECT * FROM tbl_product",
     );
-    res.status(200).json({ products });
+    // Fix image paths: DB stores /images/xxx but files are at /componentImages/images/xxx
+    const fixed = products.map((p) => ({
+      ...p,
+      img: p.img && p.img.startsWith("/images/") ? `/componentImages${p.img}` : p.img,
+    }));
+    res.status(200).json({ products: fixed });
   } catch (error) {
-    console.error(`Error fetching products: ${error.message}`);
-    res.status(500).json({ message: error.message });
+    console.error(`Error fetching products:`, error);
+    res.status(500).json({ message: "เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์" });
   }
 });
 
@@ -24,46 +29,65 @@ const getStockProductById = asyncHandler(async (req, res) => {
 
   try {
     const [product] = await db.pool.query(
-      "SELECT *, isStarred, lastStarredAt, lastUnstarredAt FROM tbl_product WHERE id = ?",
+      "SELECT * FROM tbl_product WHERE id = ?",
       [id],
     );
 
     if (product.length === 0) {
-      res.status(404);
-      throw new Error("Product not found");
+      return res.status(404).json({ message: "Product not found" });
     }
 
-    res.status(200).json(product[0]);
+    const p = product[0];
+    if (p.img && p.img.startsWith("/images/")) {
+      p.img = `/componentImages${p.img}`;
+    }
+    res.status(200).json(p);
   } catch (error) {
-    console.error(`Error fetching product: ${error.message}`);
-    res.status(500).json({ message: error.message });
+    console.error(`Error fetching product ID ${id}:`, error);
+    res.status(500).json({ message: "เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์" });
   }
 });
 
 // Helper to generate the next barcode (format: [CatID][SubID][Sequence])
 const generateNextBarcode = async (categoryName, subcategoryName) => {
   try {
-    // 1. Get Category and Subcategory IDs
-    const [catRows] = await db.pool.query(
-      "SELECT categoryid FROM tbl_category WHERE category = ?",
-      [categoryName],
-    );
-    const [subRows] = await db.pool.query(
-      "SELECT subcategoryID FROM tbl_subcategory WHERE subcategory = ? AND category = ?",
-      [subcategoryName, categoryName],
-    );
+    let catId = "0000";
+    let subId = "0000";
 
-    const catId = catRows[0]?.categoryid || "0000";
-    const subId = subRows[0]?.subcategoryID || "0000";
-    const prefix = `${catId}${subId}`;
+    // Resolve Category ID if provided
+    if (categoryName && categoryName.trim() !== "") {
+      const [catRows] = await db.pool.query(
+        "SELECT categoryid FROM tbl_category WHERE category = ?",
+        [categoryName]
+      );
+      catId = catRows[0]?.categoryid || "0000";
+    }
 
-    // 2. Query highest identifier with this prefix across both columns to ensure continuity
+    // Resolve Subcategory ID if both category and subcategory are provided
+    if (categoryName && categoryName.trim() !== "" && subcategoryName && subcategoryName.trim() !== "") {
+      const [subRows] = await db.pool.query(
+        "SELECT subcategoryID FROM tbl_subcategory WHERE subcategory = ? AND category = ?",
+        [subcategoryName, categoryName]
+      );
+      subId = subRows[0]?.subcategoryID || "0000";
+    } else if (subcategoryName && subcategoryName.trim() !== "") {
+      // Has subcategory but no category — look it up without category filter
+      const [subRows] = await db.pool.query(
+        "SELECT subcategoryID FROM tbl_subcategory WHERE subcategory = ?",
+        [subcategoryName]
+      );
+      subId = subRows[0]?.subcategoryID || "0000";
+    }
+
+    const prefix = `${String(catId).padEnd(4, "0")}${String(subId).padEnd(4, "0")}`;
+
+    // Query highest identifier with this prefix across barcode and electotronixPN
     const [rows] = await db.pool.query(
       `SELECT val FROM (
-        SELECT barcode as val FROM tbl_product WHERE barcode LIKE ? 
-        UNION 
+        SELECT barcode as val FROM tbl_product WHERE barcode LIKE ?
+        UNION
         SELECT electotronixPN as val FROM tbl_product WHERE electotronixPN LIKE ?
-      ) as combined 
+      ) as combined
       WHERE val REGEXP '^[0-9]{12}$'
       ORDER BY val DESC LIMIT 1`,
       [`${prefix}%`, `${prefix}%`],
@@ -80,7 +104,6 @@ const generateNextBarcode = async (categoryName, subcategoryName) => {
     return generatedID;
   } catch (error) {
     console.error("Error generating barcode:", error);
-    // Return a random-ish fallback ID to prevent null breaks, but ideally lookup should work
     const timestamp = Date.now().toString().slice(-12);
     console.error(`[BarcodeGen Fallback] Using timestamp: ${timestamp}`);
     return timestamp;
@@ -95,7 +118,7 @@ const getStockProductByBarcode = asyncHandler(async (req, res) => {
 
   try {
     const [product] = await db.pool.query(
-      "SELECT *, isStarred, lastStarredAt, lastUnstarredAt FROM tbl_product WHERE barcode = ?",
+      "SELECT * FROM tbl_product WHERE barcode = ?",
       [barcode],
     );
 
@@ -103,10 +126,14 @@ const getStockProductByBarcode = asyncHandler(async (req, res) => {
       return res.status(404).json({ message: "Product not found" });
     }
 
-    res.status(200).json(product[0]);
+    const p = product[0];
+    if (p.img && p.img.startsWith("/images/")) {
+      p.img = `/componentImages${p.img}`;
+    }
+    res.status(200).json(p);
   } catch (error) {
-    console.error(`Error fetching product by barcode: ${error.message}`);
-    res.status(500).json({ message: error.message });
+    console.error(`Error fetching product by barcode ${barcode}:`, error);
+    res.status(500).json({ message: "เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์" });
   }
 });
 
@@ -184,7 +211,7 @@ const createStockProduct = asyncHandler(async (req, res) => {
     res.status(201).json({ id: result.insertId, barcode, ...req.body });
   } catch (error) {
     console.error(`Error creating product: ${error.message}`);
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ message: "เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์" });
   }
 });
 
@@ -215,41 +242,75 @@ const updateStockProduct = asyncHandler(async (req, res) => {
     link,
     alternative,
     note,
+    barcode,
   } = req.body;
 
   try {
-    // Check if we need to auto-assign a barcode to Electotronix P/N
-    let finalEPN = electotronixPN;
     const [currentProduct] = await db.pool.query(
-      "SELECT barcode, category, subcategory FROM tbl_product WHERE ID = ?",
+      "SELECT barcode, electotronixPN, category, subcategory FROM tbl_product WHERE ID = ?",
       [id],
     );
 
+    if (currentProduct.length === 0) {
+      return res.status(404).json({ message: "Product not found" });
+    }
+
+    const oldCategory = currentProduct[0]?.category || "";
+    const oldSubcategory = currentProduct[0]?.subcategory || "";
+    const oldBarcode = currentProduct[0]?.barcode || "";
+    const oldEPN = currentProduct[0]?.electotronixPN || "";
+
     const trimmedPN = electotronixPN ? String(electotronixPN).trim() : "";
-    if (
-      !electotronixPN ||
-      trimmedPN === "" ||
-      trimmedPN === "-"
-    ) {
-      // If PN is blank or "-", use existing barcode or generate a new one
-      if (currentProduct[0]?.barcode) {
-        finalEPN = currentProduct[0].barcode;
+    const trimmedBarcode = barcode ? String(barcode).trim() : "";
+
+    // --- Determine finalBarcode ---
+    let finalBarcode;
+
+    if (trimmedBarcode !== "") {
+      // User explicitly provided a barcode → use it
+      finalBarcode = trimmedBarcode;
+    } else {
+      // Barcode field is empty → check if category changed, then generate
+      const categoryChanged = category !== oldCategory;
+      const subcategoryChanged = subcategory !== oldSubcategory;
+
+      if (categoryChanged || subcategoryChanged) {
+        const cat = category !== undefined ? category : oldCategory;
+        const sub = subcategory !== undefined ? subcategory : oldSubcategory;
+        finalBarcode = await generateNextBarcode(cat, sub);
+        console.log(`[UpdateProduct] Category/Sub changed — Barcode regenerated: ${finalBarcode}`);
+      } else if (oldBarcode) {
+        finalBarcode = oldBarcode;
       } else {
-        // Generate new barcode if product doesn't have one
-        const cat = category || currentProduct[0]?.category;
-        const sub = subcategory || currentProduct[0]?.subcategory;
-        finalEPN = await generateNextBarcode(cat, sub);
-        console.log(`[UpdateProduct] Generated New Barcode: ${finalEPN}`);
+        // Old barcode was also empty → generate a new one
+        const cat = category !== undefined ? category : oldCategory;
+        const sub = subcategory !== undefined ? subcategory : oldSubcategory;
+        finalBarcode = await generateNextBarcode(cat, sub);
+        console.log(`[UpdateProduct] Generated New Barcode (was empty): ${finalBarcode}`);
       }
     }
 
-    console.log(`[UpdateProduct] Final EPN: ${finalEPN}, ID: ${id}`);
+    // --- Determine finalEPN ---
+    let finalEPN;
+
+    if (trimmedPN !== "" && trimmedPN !== "-") {
+      // User provided an EPN → use it
+      finalEPN = trimmedPN;
+    } else if (oldEPN && oldEPN !== "-" && oldEPN !== oldBarcode) {
+      // Keep the old EPN if it was meaningful (not just the old barcode)
+      finalEPN = oldEPN;
+    } else {
+      // Fall back to the barcode
+      finalEPN = finalBarcode;
+    }
+
+    console.log(`[UpdateProduct] Final EPN: ${finalEPN}, Barcode: ${finalBarcode}, ID: ${id}`);
 
     await db.pool.query(
-      `UPDATE tbl_product SET 
-       \`electotronixPN\` = ?, \`manufacturePN\` = ?, \`manufacture\` = ?, \`description\` = ?, \`category\` = ?, 
+      `UPDATE tbl_product SET
+       \`electotronixPN\` = ?, \`manufacturePN\` = ?, \`manufacture\` = ?, \`description\` = ?, \`category\` = ?,
        \`subcategory\` = ?, \`footprint\` = ?, \`price\` = ?, \`quantity\` = ?, \`position\` = ?, \`supplier\` = ?, \`img\` = ?,
-       \`value\` = ?, \`weight\` = ?, \`supplierPN\` = ?, \`moq\` = ?, \`spq\` = ?, \`process\` = ?, \`link\` = ?, \`alternative\` = ?, \`note\` = ?, \`barcode\` = IFNULL(\`barcode\`, ?)
+       \`value\` = ?, \`weight\` = ?, \`supplierPN\` = ?, \`moq\` = ?, \`spq\` = ?, \`process\` = ?, \`link\` = ?, \`alternative\` = ?, \`note\` = ?, \`barcode\` = ?
        WHERE ID = ?`,
       [
         finalEPN,
@@ -273,15 +334,15 @@ const updateStockProduct = asyncHandler(async (req, res) => {
         link,
         alternative,
         note,
-        finalEPN, // Ensure barcode column is also updated if it was null
+        finalBarcode,
         id,
       ],
     );
 
-    res.status(200).json({ id, ...req.body });
+    res.status(200).json({ id, barcode: finalBarcode, electotronixPN: finalEPN, ...req.body });
   } catch (error) {
-    console.error(`Error updating product: ${error.message}`);
-    res.status(500).json({ message: error.message });
+    console.error(`Error updating product ID ${id}:`, error);
+    res.status(500).json({ message: "เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์" });
   }
 });
 
@@ -296,7 +357,7 @@ const deleteStockProduct = asyncHandler(async (req, res) => {
     res.status(200).json({ message: "Product deleted" });
   } catch (error) {
     console.error(`Error deleting product: ${error.message}`);
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ message: "เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์" });
   }
 });
 
@@ -315,7 +376,7 @@ const updateStockProductQty = asyncHandler(async (req, res) => {
     res.status(200).json({ message: "Quantity updated" });
   } catch (error) {
     console.error(`Error updating quantity: ${error.message}`);
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ message: "เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์" });
   }
 });
 
@@ -342,19 +403,20 @@ const updateStockProductQtyByElectotronixPN = asyncHandler(async (req, res) => {
 // @desc    Toggle star status for a product
 // @route   PUT /api/stockproducts/:id/star
 // @access  Private/Stock
-const toggleStarProduct = asyncHandler(async (req, res) => {
+const rateProduct = asyncHandler(async (req, res) => {
   const { id } = req.params;
   const { rating } = req.body;
   const userName = req.user?.name || "Unknown User";
+  const userId = req.user?._id || req.user?.id;
 
-  if (rating !== undefined && (rating < 0 || rating > 5)) {
+  if (!rating || rating < 1 || rating > 5) {
     res.status(400);
-    throw new Error("Rating must be between 0 and 5");
+    throw new Error("Rating must be between 1 and 5");
   }
 
   try {
     const [productRows] = await db.pool.query(
-      "SELECT isStarred, starRating FROM tbl_product WHERE id = ?",
+      "SELECT totalRating, ratingCount, starRating, isStarred FROM tbl_product WHERE id = ?",
       [id],
     );
 
@@ -363,39 +425,60 @@ const toggleStarProduct = asyncHandler(async (req, res) => {
       throw new Error("Product not found");
     }
 
-    const currentRating = productRows[0].starRating;
-    const newRating =
-      rating !== undefined ? rating : productRows[0].isStarred ? 0 : 5; // Fallback to toggle if no rating provided
-    const newStarredStatus = newRating > 0 ? 1 : 0;
+    const product = productRows[0];
+    const prevTotalRating = product.totalRating || 0;
+    const prevRatingCount = product.ratingCount || 0;
+    const prevAvgRating = product.starRating || 0;
     const now = new Date();
 
-    let query = "";
-    let queryParams = [];
+    // คำนวณคะแนนเฉลี่ยใหม่
+    const newTotalRating = prevTotalRating + rating;
+    const newRatingCount = prevRatingCount + 1;
+    const newAvgRating = parseFloat((newTotalRating / newRatingCount).toFixed(1));
 
-    if (newStarredStatus) {
-      query =
-        "UPDATE tbl_product SET isStarred = ?, starRating = ?, lastStarredAt = ?, lastStarredBy = ?, starExpirationAlertSent = FALSE WHERE id = ?";
-      queryParams = [newStarredStatus, newRating, now, userName, id];
-    } else {
-      query =
-        "UPDATE tbl_product SET isStarred = ?, starRating = ?, lastUnstarredAt = ?, lastUnstarredBy = ?, starExpirationAlertSent = FALSE WHERE id = ?";
-      queryParams = [newStarredStatus, newRating, now, userName, id];
+    // ตรวจสอบว่าดาวขึ้นหรือลง
+    let ratingChange = "";
+    if (newAvgRating > prevAvgRating) {
+      ratingChange = "increased";
+    } else if (newAvgRating < prevAvgRating) {
+      ratingChange = "decreased";
+    } else if (prevRatingCount === 0) {
+      ratingChange = "first_time";
     }
 
-    await db.pool.query(query, queryParams);
+    const isStarred = newAvgRating > 0 ? 1 : 0;
+
+    await db.pool.query(
+      "UPDATE tbl_product SET totalRating = ?, ratingCount = ?, starRating = ?, isStarred = ?, lastStarredAt = ?, lastStarredBy = ?, lastRatingChange = ?, starExpirationAlertSent = FALSE WHERE id = ?",
+      [newTotalRating, newRatingCount, newAvgRating, isStarred, now, userName, ratingChange, id],
+    );
+
+    // สร้างแจ้งเตือนเมื่อมีการให้ดาว
+    if (userId) {
+      const changeText = ratingChange === "increased" ? "คะแนนเพิ่มขึ้น" : ratingChange === "decreased" ? "คะแนนลดลง" : ratingChange === "first_time" ? "ให้คะแนนครั้งแรก" : "";
+      await db.pool.query(
+        "INSERT INTO tbl_notifications (user_id, message, type, related_id) VALUES (?, ?, ?, ?)",
+        [
+          userId,
+          `${userName} ให้คะแนนสินค้า ID ${id} → ${rating} ดาว (เฉลี่ย ${newAvgRating} ดาว จาก ${newRatingCount} คน)`,
+          "star_rating",
+          id,
+        ],
+      );
+    }
 
     res.status(200).json({
-      message: newStarredStatus
-        ? `Product rated ${newRating} stars`
-        : "Product unstarred",
-      isStarred: !!newStarredStatus,
-      starRating: newRating,
+      message: `ให้คะแนน ${rating} ดาวสำเร็จ (เฉลี่ย ${newAvgRating} จาก ${newRatingCount} คน)`,
+      isStarred: !!isStarred,
+      starRating: newAvgRating,
+      ratingCount: newRatingCount,
+      ratingChange,
       timestamp: now,
       userName: userName,
     });
   } catch (error) {
     console.error(`Error rating product: ${error.message}`);
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ message: "เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์" });
   }
 });
 
@@ -408,5 +491,5 @@ module.exports = {
   deleteStockProduct,
   updateStockProductQty,
   updateStockProductQtyByElectotronixPN,
-  toggleStarProduct,
+  rateProduct,
 };

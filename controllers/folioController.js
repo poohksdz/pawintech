@@ -94,7 +94,7 @@ const updateFolio = asyncHandler(async (req, res) => {
     res.json({ message: "Folio updated successfully" });
   } catch (error) {
     console.error("Error updateFolio:", error);
-    res.status(500).json({ message: "Error updating folio: " + error.message });
+    res.status(500).json({ message: "เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์" });
   }
 });
 

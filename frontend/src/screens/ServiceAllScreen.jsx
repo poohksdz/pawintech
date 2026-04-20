@@ -72,7 +72,7 @@ const ServiceAllScreen = () => {
     );
 
   return (
-    <div className="bg-[#FAFAFB] dark:bg-black min-h-screen py-6 md:py-16 font-sans selection:bg-indigo-500 dark:selection:bg-zinc-800 selection:text-white transition-colors duration-500">
+    <div className="bg-[#FAFAFB] dark:bg-black min-h-screen py-4 md:py-6 md:py-16 font-sans selection:bg-indigo-500 dark:selection:bg-zinc-800 selection:text-white transition-colors duration-500">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* --- Header Section --- */}
         <div className="mb-8 md:mb-16 text-center md:text-left">
@@ -107,7 +107,7 @@ const ServiceAllScreen = () => {
               className="h-full"
             >
               <Link
-                to={`/service/${service.ID}`}
+                to={`/${service.ID}`}
                 className="group block h-full bg-white dark:bg-zinc-900/40 rounded-2xl md:rounded-[1.5rem] p-2.5 sm:p-4 border border-slate-50 dark:border-zinc-800/50 shadow-sm hover:shadow-[0_12px_30px_rgba(79,70,229,0.1)] dark:hover:shadow-[0_12px_30px_rgba(79,70,229,0.05)] transition-all duration-300 flex flex-col"
               >
                 {/* Image Wrapper - ใช้ 4:3 บนทุกขนาดจอเพื่อไม่ให้ยืดความสูง */}

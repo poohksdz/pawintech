@@ -378,7 +378,7 @@ const OrderListScreen = () => {
               <Loader />
             </div>
           ) : error ? (
-            <div className="p-6">
+            <div className="p-4 md:p-6">
               <Message variant="danger">
                 {error?.data?.message || error.error}
               </Message>
@@ -390,25 +390,25 @@ const OrderListScreen = () => {
                 <table className="w-full text-left text-sm whitespace-nowrap border-collapse border border-slate-200 dark:border-zinc-800">
                   <thead className="bg-[#f8fafc] dark:bg-zinc-950 text-slate-600 dark:text-slate-400 font-bold border-b-2 border-slate-300 dark:border-zinc-800">
                     <tr>
-                      <th className="px-6 py-4 w-12 text-center border-r border-slate-200">
+                      <th className="px-4 md:px-6 py-4 w-12 text-center border-r border-slate-200">
                         ID
                       </th>
-                      <th className="px-6 py-4 border-r border-slate-200">
+                      <th className="px-4 md:px-6 py-4 border-r border-slate-200">
                         ผู้สั่งซื้อ
                       </th>
-                      <th className="px-6 py-4 border-r border-slate-200">
+                      <th className="px-4 md:px-6 py-4 border-r border-slate-200">
                         วันที่ / เวลา
                       </th>
-                      <th className="px-6 py-4 text-right border-r border-slate-200">
+                      <th className="px-4 md:px-6 py-4 text-right border-r border-slate-200">
                         ยอดรวม
                       </th>
-                      <th className="px-6 py-4 text-center border-r border-slate-200">
+                      <th className="px-4 md:px-6 py-4 text-center border-r border-slate-200">
                         หลักฐาน
                       </th>
-                      <th className="px-6 py-4 text-center border-r border-slate-200">
+                      <th className="px-4 md:px-6 py-4 text-center border-r border-slate-200">
                         สถานะ
                       </th>
-                      <th className="px-6 py-4 text-center">จัดการ</th>
+                      <th className="px-4 md:px-6 py-4 text-center">จัดการ</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-200 relative">
@@ -428,12 +428,12 @@ const OrderListScreen = () => {
                             key={order.id}
                             className="hover:bg-indigo-50/30 transition-colors group"
                           >
-                            <td className="px-6 py-4 text-center border-r border-slate-200">
+                            <td className="px-4 md:px-6 py-4 text-center border-r border-slate-200">
                               <span className="font-mono text-indigo-600 font-bold bg-indigo-50 px-2.5 py-1 rounded-md border border-indigo-200 shadow-sm">
                                 #{order.paymentComfirmID || order.id}
                               </span>
                             </td>
-                            <td className="px-6 py-4 border-r border-slate-200">
+                            <td className="px-4 md:px-6 py-4 border-r border-slate-200">
                               <div className="flex items-center gap-3">
                                 <div className="w-8 h-8 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center font-bold shadow-sm">
                                   {(order.userName || "U")
@@ -445,16 +445,16 @@ const OrderListScreen = () => {
                                 </span>
                               </div>
                             </td>
-                            <td className="px-6 py-4 text-slate-600 font-medium border-r border-slate-200">
+                            <td className="px-4 md:px-6 py-4 text-slate-600 font-medium border-r border-slate-200">
                               {formatDate(order.createdAt)}
                             </td>
-                            <td className="px-6 py-4 text-right font-bold text-emerald-600 text-base border-r border-slate-200">
+                            <td className="px-4 md:px-6 py-4 text-right font-bold text-emerald-600 text-base border-r border-slate-200">
                               {(order.totalPrice || 0).toLocaleString()}{" "}
                               <span className="text-slate-400 font-normal">
                                 ฿
                               </span>
                             </td>
-                            <td className="px-6 py-4 text-center border-r border-slate-200 align-middle">
+                            <td className="px-4 md:px-6 py-4 text-center border-r border-slate-200 align-middle">
                               {order.paymentSlip ? (
                                 <button
                                   onClick={() => setShowSlipImage(order.id)}
@@ -467,14 +467,14 @@ const OrderListScreen = () => {
                                 <span className="text-slate-300">-</span>
                               )}
                             </td>
-                            <td className="px-6 py-4 text-center border-r border-slate-200 align-middle">
+                            <td className="px-4 md:px-6 py-4 text-center border-r border-slate-200 align-middle">
                               <StatusBadge
                                 isPaid={order.isPaid}
                                 isDelivered={order.isDelivered}
                                 slip={order.paymentSlip}
                               />
                             </td>
-                            <td className="px-6 py-4 text-right">
+                            <td className="px-4 md:px-6 py-4 text-right">
                               <div className="flex items-center justify-end gap-2">
                                 {!order.isPaid && order.paymentSlip && (
                                   <button
@@ -519,7 +519,7 @@ const OrderListScreen = () => {
                         >
                           <td
                             colSpan="7"
-                            className="px-6 py-12 text-center text-slate-400"
+                            className="px-4 md:px-6 py-12 text-center text-slate-400"
                           >
                             <FaBox
                               className="mx-auto mb-3 opacity-20"
@@ -717,7 +717,7 @@ const OrderListScreen = () => {
                     <FaTimes />
                   </button>
                 </div>
-                <form onSubmit={handleSaveDeliveryPrice} className="p-6">
+                <form onSubmit={handleSaveDeliveryPrice} className="p-4 md:p-6">
                   <div className="mb-6 relative">
                     <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                       <span className="text-slate-400 font-semibold">฿</span>
