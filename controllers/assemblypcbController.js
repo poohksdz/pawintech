@@ -1,6 +1,7 @@
 const asyncHandler = require("../middleware/asyncHandler");
 const { pool: db } = require("../config/db.js");
 const deleteFile = require("../utils/fileUtils");
+const { resolvePaymentSlipPath } = require("../utils/pathUtils.js");
 const fs = require("fs");
 const path = require("path");
 const jsQR = require("jsqr");
@@ -21,27 +22,20 @@ const getTimestamp = () => {
 // Utility: Generate unique payment confirm ID for Assembly
 const generateUniquePaymentConfirmID = async () => {
   const base = getTimestamp();
+  const maxTries = 10000;
   let counter = 1;
-  let uniqueID;
-  let isUnique = false;
-
-  while (!isUnique) {
+  while (counter < maxTries) {
     const suffix = String(counter).padStart(3, "0");
-    uniqueID = `PCPA-${base}${suffix}`;
-
+    const uniqueID = `PCPA-${base}${suffix}`;
     const [rows] = await db.execute(
       "SELECT id FROM pcb_assembly_orders WHERE paymentComfirmID = ?",
       [uniqueID],
     );
-
-    if (rows.length === 0) {
-      isUnique = true;
-    } else {
-      counter++;
-    }
+    if (rows.length === 0) return uniqueID;
+    counter++;
   }
-
-  return uniqueID;
+  const fallback = `-${Date.now().toString(36)}`;
+  return `PCPA-${base}${fallback}`;
 };
 
 // Helper: ตรวจสอบหา QR Code ในรูปภาพ
@@ -189,8 +183,13 @@ const createassemblyPCB = asyncHandler(async (req, res) => {
     let cleanPaymentSlip = paymentSlip.replace(/\\/g, "/");
     if (!cleanPaymentSlip.startsWith("/"))
       cleanPaymentSlip = "/" + cleanPaymentSlip;
-
-    const absoluteFilePath = path.join(__dirname, "..", cleanPaymentSlip);
+    const absoluteFilePath = resolvePaymentSlipPath(cleanPaymentSlip);
+    if (!absoluteFilePath) {
+      return res.status(400).json({
+        success: false,
+        message: "⚠️ Path ของไฟล์สลิปไม่ถูกต้อง",
+      });
+    }
 
     // 1. ตรวจสอบ QR Code (ถ้ามีไฟล์)
     const isValidQR = await checkSlipQR(absoluteFilePath);
@@ -229,18 +228,19 @@ const createassemblyPCB = asyncHandler(async (req, res) => {
       if (cartRows.length === 0) continue;
       const cart = cartRows[0];
 
-      let count = 1,
-        orderID = "",
-        isUnique = false;
       const targetUserId = userId || cart.user_id || 0;
-      while (!isUnique) {
-        orderID = `${parseInt(targetUserId) + 1000}PCA${count}`;
+      const userPrefix = parseInt(targetUserId) + 1000;
+      let count = 1;
+      const maxTries = 10000;
+      let orderID = "";
+      while (count < maxTries) {
+        orderID = `${userPrefix}PCA${count}`;
         const [existing] = await db.execute(
           `SELECT id FROM pcb_assembly_orders WHERE orderID = ?`,
           [orderID],
         );
-        if (existing.length === 0) isUnique = true;
-        else count++;
+        if (existing.length === 0) break;
+        count++;
       }
 
       const fileZip = cart.gerber_zip || cart.assembly_zip || cart.file_path || "";
@@ -341,17 +341,18 @@ const createassemblyPCBbyAdmin = asyncHandler(async (req, res) => {
   let useId = data.customerInfo.customerUserID;
 
   try {
-    let count = 1,
-      orderID,
-      isUnique = false;
-    while (!isUnique) {
-      orderID = `${parseInt(useId) + 1000}PCA${count}`;
+    const userPrefix = parseInt(useId) + 1000;
+    let count = 1;
+    const maxTries = 10000;
+    let orderID;
+    while (count < maxTries) {
+      orderID = `${userPrefix}PCA${count}`;
       const [existing] = await db.execute(
         `SELECT id FROM pcb_assembly_orders WHERE orderID = ?`,
         [orderID],
       );
-      if (existing.length === 0) isUnique = true;
-      else count++;
+      if (existing.length === 0) break;
+      count++;
     }
 
     const paymentComfirmID = await generateUniquePaymentConfirmID();

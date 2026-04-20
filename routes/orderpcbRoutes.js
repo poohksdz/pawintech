@@ -18,11 +18,14 @@ const {
 const { protect, admin } = require("../middleware/authMiddleware.js");
 
 // Routes
-router.route("/").post(createOrderPCB).get(protect, admin, getOrders);
+router.route("/")
+  .post(protect, createOrderPCB)
+  .get(protect, admin, getOrders);
 
 router
   .route("/createorderpcbbyadmin")
   .post(protect, admin, createOrderPCBbyAdmin);
+
 router.route("/myorders").get(protect, getMyOrders);
 router.route("/byorderid/:orderID").get(protect, getOrderPCBByorderID);
 router.route("/byorderpayid/:id").get(protect, getOrderPCBByorderpaymentID);
@@ -39,7 +42,5 @@ router
 
 router.route("/:id/verify-payment").put(protect, admin, verifyPaymentPCB);
 router.route("/:id/deliver").put(protect, admin, updateDeliveryPCB);
-
-module.exports = router;
 
 module.exports = router;

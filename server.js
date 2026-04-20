@@ -1,8 +1,8 @@
-const path = require("path");
+﻿const path = require("path");
 const express = require("express");
 const dotenv = require("dotenv");
 const cookieParser = require("cookie-parser");
-const cors = require("cors"); //  CORS ต้องมาก่อน
+const cors = require("cors"); //  CORS เธ•เนเธญเธเธกเธฒเธเนเธญเธ
 const helmet = require("helmet");
 const rateLimit = require("express-rate-limit");
 const hpp = require("hpp");
@@ -85,18 +85,18 @@ const port = process.env.PORT || 5000;
 
 const app = express();
 
-//  FIX: Proxy Trust (สำคัญสำหรับ Heroku/Cloud หรือการทำงานหลัง Nginx)
+//  FIX: Proxy Trust (เธชเธณเธเธฑเธเธชเธณเธซเธฃเธฑเธ Heroku/Cloud เธซเธฃเธทเธญเธเธฒเธฃเธ—เธณเธเธฒเธเธซเธฅเธฑเธ Nginx)
 app.set("trust proxy", 1);
 
 // =========================================================
-// ️ CORS SECTION (แก้ปัญหา Blocked Origin ตรงนี้)
+// ๏ธ CORS SECTION (เนเธเนเธเธฑเธเธซเธฒ Blocked Origin เธ•เธฃเธเธเธตเน)
 // =========================================================
 const allowedOrigins = (process.env.CLIENT_URL || "").split(",").filter(Boolean);
 
 app.use(
   cors({
     origin: (origin, callback) => {
-      // อนุญาต requests ที่ไม่มี origin (เช่น mobile apps, curl) หรือ localhost ทั้งหมด
+      // เธญเธเธธเธเธฒเธ• requests เธ—เธตเนเนเธกเนเธกเธต origin (เน€เธเนเธ mobile apps, curl) เธซเธฃเธทเธญ localhost เธ—เธฑเนเธเธซเธกเธ”
       if (!origin || allowedOrigins.includes(origin) || origin.startsWith("http://localhost") || origin.startsWith("http://127.0.0.1")) {
         callback(null, true);
       } else {
@@ -109,10 +109,10 @@ app.use(
 );
 
 // =========================================================
-// ️ SECURITY & PARSERS
+// ๏ธ SECURITY & PARSERS
 // =========================================================
 
-// Body Parser (ย้ายมาไว้ตรงนี้เพื่อให้รับ JSON ได้ก่อนจะโดน Security อื่นๆ กวน)
+// Body Parser (เธขเนเธฒเธขเธกเธฒเนเธงเนเธ•เธฃเธเธเธตเนเน€เธเธทเนเธญเนเธซเนเธฃเธฑเธ JSON เนเธ”เนเธเนเธญเธเธเธฐเนเธ”เธ Security เธญเธทเนเธเน เธเธงเธ)
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ extended: true, limit: "50mb" }));
 app.use(cookieParser());
@@ -133,7 +133,7 @@ const helmetConfig = {
   referrerPolicy: { policy: "same-origin" },
 };
 
-// HSTS ต้องเปิดเฉพาะ production เท่านั้น
+// HSTS เธ•เนเธญเธเน€เธเธดเธ”เน€เธเธเธฒเธฐ production เน€เธ—เนเธฒเธเธฑเนเธ
 if (process.env.NODE_ENV === "production") {
   helmetConfig.hsts = { maxAge: 31536000, includeSubDomains: true, preload: true };
 }
@@ -143,10 +143,10 @@ app.use(helmet(helmetConfig));
 app.use(xss());
 app.use(hpp());
 
-// Rate Limiting (จำกัดการยิง Request ถี่ๆ)
+// Rate Limiting (เธเธณเธเธฑเธ”เธเธฒเธฃเธขเธดเธ Request เธ–เธตเนเน)
 const limiter = rateLimit({
   windowMs: 10 * 60 * 1000,
-  max: process.env.NODE_ENV === "development" ? 5000 : 500, //  เพิ่ม Limit ในโหมด Dev
+  max: process.env.NODE_ENV === "development" ? 500 : 500, //  เน€เธเธดเนเธก Limit เนเธเนเธซเธกเธ” Dev
   message: "Too many requests from this IP, please try again later.",
 });
 app.use("/api", limiter);
@@ -154,7 +154,7 @@ app.use("/api", limiter);
 // Stricter Rate Limit for Login
 const loginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 mins
-  max: process.env.NODE_ENV === "development" ? 1000 : 20, //  เพิ่ม Limit ในโหมด Dev
+  max: process.env.NODE_ENV === "development" ? 100 : 20, //  เน€เธเธดเนเธก Limit เนเธเนเธซเธกเธ” Dev
   message: "Too many login attempts, please try again after 15 minutes",
 });
 // Rate limiting specifically for register
@@ -167,8 +167,8 @@ const registerLimiter = rateLimit({
 // Rate limiting specifically for reset password
 const resetLimit = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: process.env.NODE_ENV === "development" ? 1000 : 5, //  เพิ่ม Limit ในโหมด Dev
-  message: "มีการส่งคำขอมากเกินไป กรุณาลองใหม่ในอีก 15 นาที",
+  max: process.env.NODE_ENV === "development" ? 50 : 5, //  เน€เธเธดเนเธก Limit เนเธเนเธซเธกเธ” Dev
+  message: "เธกเธตเธเธฒเธฃเธชเนเธเธเธณเธเธญเธกเธฒเธเน€เธเธดเธเนเธ เธเธฃเธธเธ“เธฒเธฅเธญเธเนเธซเธกเนเนเธเธญเธตเธ 15 เธเธฒเธ—เธต",
   standardHeaders: true,
   legacyHeaders: false,
 });
@@ -323,7 +323,7 @@ app.use(
 
 // Production / Frontend Build
 if (process.env.NODE_ENV === "production") {
-  //  ใช้ rootPath แทน __dirname ป้องกัน Error Syntax ในบางโหมด
+  //  เนเธเน rootPath เนเธ—เธ __dirname เธเนเธญเธเธเธฑเธ Error Syntax เนเธเธเธฒเธเนเธซเธกเธ”
   app.use(express.static(path.join(rootPath, "frontend/build")));
   app.get("*", (req, res) => {
     res.sendFile(path.resolve(rootPath, "frontend", "build", "index.html"));
@@ -340,30 +340,30 @@ app.use(errorHandler);
 
 const server = app.listen(port, () =>
   console.log(
-    `✅ Server running in ${process.env.NODE_ENV} mode on port ${port} (SQL Mode)`,
+    `โ… Server running in ${process.env.NODE_ENV} mode on port ${port} (SQL Mode)`,
   ),
 );
 
 // =========================================================
-// ️ GRACEFUL SHUTDOWN (For Cloud Environments)
+// ๏ธ GRACEFUL SHUTDOWN (For Cloud Environments)
 // =========================================================
 process.on("SIGTERM", async () => {
-  console.log("🛑 SIGTERM received. Shutting down gracefully...");
+  console.log("๐‘ SIGTERM received. Shutting down gracefully...");
   server.close(async () => {
-    console.log("✔ HTTP server closed.");
+    console.log("โ” HTTP server closed.");
     try {
       await pool.end();
-      console.log("✔ Database pool closed.");
+      console.log("โ” Database pool closed.");
       process.exit(0);
     } catch (err) {
-      console.error("✘ Error during database pool shutdown:", err);
+      console.error("โ Error during database pool shutdown:", err);
       process.exit(1);
     }
   });
 });
 
 process.on("SIGINT", async () => {
-  console.log("🛑 SIGINT received. Shutting down gracefully...");
+  console.log("๐‘ SIGINT received. Shutting down gracefully...");
   server.close(async () => {
     try {
       await pool.end();
