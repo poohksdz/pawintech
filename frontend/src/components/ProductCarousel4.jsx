@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
 import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
 import Message from "./Message";
 import { useGetShowcasesQuery } from "../slices/showcasesApiSlice";
@@ -7,7 +8,8 @@ import { useGetShowcasesQuery } from "../slices/showcasesApiSlice";
 const ProductCarousel4 = () => {
   const { pageNumber } = useParams();
   const navigate = useNavigate();
-  const { data, isLoading, error } = useGetShowcasesQuery({ pageNumber });
+  const { userInfo } = useSelector((state) => state.auth);
+  const { data, isLoading, error } = useGetShowcasesQuery({ pageNumber }, { skip: !userInfo });
   const [activeIndex, setActiveIndex] = useState(0);
 
   const handleNavigateLinkChange = (navigateLink) => {

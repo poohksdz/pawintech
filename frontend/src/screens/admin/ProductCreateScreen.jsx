@@ -328,8 +328,8 @@ const ProductCreateScreen = () => {
   );
 
   return (
-    <div className="min-h-screen bg-slate-50 py-10 px-4 md:px-8 font-['Prompt',sans-serif] text-slate-800 flex justify-center w-full">
-      <div className="w-full max-w-[1000px] flex flex-col gap-6">
+    <div className="min-h-screen bg-slate-50 py-4 md:py-6 md:py-10 px-4 md:px-8 font-['Prompt',sans-serif] text-slate-800 flex justify-center w-full">
+      <div className="w-full max-w-[1000px] flex flex-col gap-4 md:gap-6">
         {/* Header */}
         <div>
           <Link
@@ -361,7 +361,7 @@ const ProductCreateScreen = () => {
 
         <form
           onSubmit={submitHandler}
-          className="flex flex-col md:flex-row gap-6 items-start"
+          className="flex flex-col md:flex-row gap-4 md:gap-6 items-start"
         >
           {/* Navigation Sidebar */}
           <div className="w-full md:w-64 shrink-0 bg-white border border-slate-200 rounded-xl p-2 shadow-sm grid grid-cols-2 md:grid-cols-1 gap-1">
@@ -398,7 +398,7 @@ const ProductCreateScreen = () => {
           {/* Content Area */}
           <div className="flex-1 bg-white border border-slate-200 shadow-sm rounded-xl w-full flex flex-col">
             {/* Remove overflow-hidden from this container so Quill dropdowns and buttons aren't cut off */}
-            <div className="p-6 md:p-8 flex-1 min-h-[350px]">
+            <div className="p-4 md:p-8 flex-1 min-h-[350px]">
               <AnimatePresence mode="wait">
                 {/* TAB 1: General Info */}
                 {activeTab === "general" && (
@@ -407,13 +407,13 @@ const ProductCreateScreen = () => {
                     initial={{ opacity: 0, x: 10 }}
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: -10 }}
-                    className="flex flex-col gap-6"
+                    className="flex flex-col gap-4 md:gap-6"
                   >
                     <h2 className="text-lg font-bold text-slate-800 border-b border-slate-100 pb-4">
                       {t.tabs.general}
                     </h2>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                       <div>
                         <InputLabel>{t.lbl.code}</InputLabel>
                         <TextInput
@@ -431,7 +431,7 @@ const ProductCreateScreen = () => {
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                       <div>
                         <InputLabel required>{t.lbl.nameEn}</InputLabel>
                         <TextInput
@@ -451,7 +451,7 @@ const ProductCreateScreen = () => {
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
                       <div>
                         <InputLabel>{t.lbl.price}</InputLabel>
                         <div className="relative">
@@ -488,7 +488,7 @@ const ProductCreateScreen = () => {
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                       <div>
                         <InputLabel>{t.lbl.weight}</InputLabel>
                         <TextInput
@@ -515,7 +515,7 @@ const ProductCreateScreen = () => {
                     initial={{ opacity: 0, x: 10 }}
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: -10 }}
-                    className="flex flex-col gap-6"
+                    className="flex flex-col gap-4 md:gap-6"
                   >
                     <h2 className="text-lg font-bold text-slate-800 border-b border-slate-100 pb-4">
                       {t.tabs.details}
@@ -551,7 +551,7 @@ const ProductCreateScreen = () => {
                     initial={{ opacity: 0, x: 10 }}
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: -10 }}
-                    className="flex flex-col gap-6"
+                    className="flex flex-col gap-4 md:gap-6"
                   >
                     <h2 className="text-lg font-bold text-slate-800 border-b border-slate-100 pb-4">
                       {t.tabs.files}
@@ -570,7 +570,7 @@ const ProductCreateScreen = () => {
                         <div className="relative overflow-hidden shrink-0 rounded-lg border border-slate-200 hover:border-slate-300">
                           <button
                             type="button"
-                            className="w-full sm:w-auto bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs uppercase tracking-widest px-6 py-3.5 transition-colors flex items-center justify-center gap-2"
+                            className="w-full sm:w-auto bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs uppercase tracking-widest px-4 md:px-6 py-3.5 transition-colors flex items-center justify-center gap-2"
                           >
                             <FaCloudUploadAlt size={16} /> {t.btn.upload}
                           </button>
@@ -585,7 +585,7 @@ const ProductCreateScreen = () => {
 
                     <div>
                       <InputLabel>{t.lbl.imgs}</InputLabel>
-                      <div className="border-2 border-dashed border-slate-200 bg-slate-50/50 hover:bg-slate-50 transition-colors rounded-xl p-8 text-center relative cursor-pointer group">
+                      <div className="border-2 border-dashed border-slate-200 bg-slate-50/50 hover:bg-slate-50 transition-colors rounded-xl p-4 md:p-8 text-center relative cursor-pointer group">
                         <input
                           type="file"
                           multiple
@@ -606,7 +606,7 @@ const ProductCreateScreen = () => {
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                       <div>
                         <InputLabel>
                           <span className="flex items-center gap-1.5">
@@ -674,14 +674,14 @@ const ProductCreateScreen = () => {
                     initial={{ opacity: 0, x: 10 }}
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: -10 }}
-                    className="flex flex-col gap-6"
+                    className="flex flex-col gap-4 md:gap-6"
                   >
                     <h2 className="text-lg font-bold text-slate-800 border-b border-slate-100 pb-4">
                       {t.tabs.extra}
                     </h2>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div className="col-span-1 md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+                      <div className="col-span-1 md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                         <div>
                           <InputLabel>{t.lbl.cat}</InputLabel>
                           <select
@@ -778,7 +778,7 @@ const ProductCreateScreen = () => {
                 <button
                   type="button"
                   onClick={handleNextTab}
-                  className="flex items-center gap-2 px-6 py-2.5 rounded-lg text-sm font-bold uppercase tracking-widest bg-slate-900 text-white hover:bg-slate-800 transition-all shadow-md"
+                  className="flex items-center gap-2 px-4 md:px-6 py-2.5 rounded-lg text-sm font-bold uppercase tracking-widest bg-slate-900 text-white hover:bg-slate-800 transition-all shadow-md"
                 >
                   {t.btn.next} <FaArrowRight size={10} />
                 </button>
@@ -786,7 +786,7 @@ const ProductCreateScreen = () => {
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="flex items-center gap-2 px-8 py-2.5 rounded-lg text-sm font-bold uppercase tracking-widest bg-indigo-600 text-white hover:bg-indigo-700 transition-all shadow-md disabled:bg-indigo-400"
+                  className="flex items-center gap-2 px-4 md:px-8 py-2.5 rounded-lg text-sm font-bold uppercase tracking-widest bg-indigo-600 text-white hover:bg-indigo-700 transition-all shadow-md disabled:bg-indigo-400"
                 >
                   <FaSave size={14} /> {isLoading ? t.btn.saving : t.btn.save}
                 </button>
@@ -796,7 +796,7 @@ const ProductCreateScreen = () => {
         </form>
       </div>
 
-      <style>{`
+      <style dangerouslySetInnerHTML={{ __html: `
                 .quill-custom .ql-toolbar {
                     border-top-left-radius: 0.5rem;
                     border-top-right-radius: 0.5rem;
@@ -822,7 +822,7 @@ const ProductCreateScreen = () => {
                     -ms-overflow-style: none; /* IE and Edge */
                     scrollbar-width: none; /* Firefox */
                 }
-            `}</style>
+            ` }} />
     </div>
   );
 };

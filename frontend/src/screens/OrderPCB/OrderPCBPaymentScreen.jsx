@@ -31,7 +31,7 @@ import {
 } from "react-icons/fa";
 
 const SHOP_CONFIG = {
-  promptPayID: "0632684099",
+  promptPayID: "0992263277",
   bankName: "ธนาคารกสิกรไทย (KBANK)",
   accName: "บจก. พาวิน เทคโนโลยี",
   accNo: "012-3-45678-9",
@@ -124,6 +124,13 @@ const OrderPCBPaymentScreen = () => {
     }
 
     if (finalAmount > 0) {
+      // Validation: เช็คจำนวนแผ่นและรายการซ้ำ
+      const items = reduxOrders || [];
+      const totalQty = items.reduce((acc, item) => acc + Number(item.qty || 1), 0);
+      const uniqueItems = new Set(items.map((i) => i.id || i.orderID)).size;
+
+      console.log(`[Validation] PCB Items: ${items.length}, Unique: ${uniqueItems}, Total Qty: ${totalQty}, Final Amount: ${finalAmount}`);
+
       const payload = generatePayload(SHOP_CONFIG.promptPayID, {
         amount: finalAmount,
       });
@@ -260,8 +267,8 @@ const OrderPCBPaymentScreen = () => {
           step1
           step2
           step3
-          shippingPath={`/pcbshipping`}
-          paymentPath={`/pcbpayment`}
+          shippingPath="/pcbshipping"
+          paymentPath="/pcbpayment"
         />
 
         <motion.div
@@ -272,7 +279,7 @@ const OrderPCBPaymentScreen = () => {
           <h1 className="text-3xl lg:text-5xl font-black text-slate-900 tracking-tight uppercase mb-4">
             {language === "thai" ? "ยืนยันการชำระเงิน" : "Confirm Payment"}
           </h1>
-          <div className="inline-flex items-center gap-2 px-6 py-2 rounded-full bg-blue-50 text-blue-600 border border-blue-100 shadow-sm">
+          <div className="inline-flex items-center gap-2 px-4 md:px-6 py-2 rounded-full bg-blue-50 text-blue-600 border border-blue-100 shadow-sm">
             <FaTags size={14} />
             <span className="text-[11px] font-black uppercase tracking-[0.2em]">
               {language === "thai"
@@ -286,7 +293,7 @@ const OrderPCBPaymentScreen = () => {
           variants={containerVariants}
           initial="hidden"
           animate="visible"
-          className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start"
+          className="grid grid-cols-1 lg:grid-cols-12 gap-4 md:gap-8 items-start"
         >
           {/*  Left: QR & Bank Details */}
           <motion.div
@@ -313,7 +320,7 @@ const OrderPCBPaymentScreen = () => {
                 </button>
               </div>
 
-              <div className="p-10 text-center">
+              <div className="p-4 md:p-8 text-center">
                 <AnimatePresence mode="wait">
                   {paymentMethod === "promptpay" ? (
                     <motion.div
@@ -323,7 +330,7 @@ const OrderPCBPaymentScreen = () => {
                       exit={{ opacity: 0, scale: 0.9 }}
                     >
                       {finalAmount > 0 ? (
-                        <div className="bg-white p-6 rounded-[2.5rem] border-2 border-slate-50 shadow-2xl inline-block mb-8 relative group transition-transform hover:scale-[1.02]">
+                        <div className="bg-white p-4 md:p-6 rounded-[2.5rem] border-2 border-slate-50 shadow-2xl inline-block mb-8 relative group transition-transform hover:scale-[1.02]">
                           <QRCodeCanvas
                             value={qrCodePayload}
                             size={240}
@@ -358,7 +365,7 @@ const OrderPCBPaymentScreen = () => {
                       exit={{ opacity: 0, x: -20 }}
                       className="space-y-6"
                     >
-                      <div className="bg-emerald-50/50 border border-emerald-100 p-8 rounded-[2.5rem] text-start">
+                      <div className="bg-emerald-50/50 border border-emerald-100 p-4 md:p-8 rounded-[2.5rem] text-start">
                         <div className="flex items-center gap-5 mb-6">
                           <div className="w-16 h-16 bg-emerald-600 rounded-3xl flex items-center justify-center text-white font-black text-2xl shadow-xl shadow-emerald-200">
                             K
@@ -372,7 +379,7 @@ const OrderPCBPaymentScreen = () => {
                             </p>
                           </div>
                         </div>
-                        <div className="bg-white p-6 rounded-2xl flex items-center justify-between border border-emerald-100 shadow-sm">
+                        <div className="bg-white p-4 md:p-6 rounded-2xl flex items-center justify-between border border-emerald-100 shadow-sm">
                           <span className="text-2xl font-black text-slate-900 font-mono tracking-wider">
                             {SHOP_CONFIG.accNo}
                           </span>
@@ -399,7 +406,7 @@ const OrderPCBPaymentScreen = () => {
               </div>
             </div>
 
-            <div className="bg-slate-900 rounded-[2.5rem] p-8 text-white flex justify-between items-center shadow-2xl shadow-slate-300 border border-slate-800">
+            <div className="bg-slate-900 rounded-[2.5rem] p-4 md:p-8 text-white flex justify-between items-center shadow-2xl shadow-slate-300 border border-slate-800">
               <div>
                 <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">
                   {language === "thai" ? "รหัสอ้างอิง" : "Order Reference"}
@@ -420,7 +427,7 @@ const OrderPCBPaymentScreen = () => {
             className="lg:col-span-7 space-y-8"
           >
             <div className="bg-white rounded-[3rem] shadow-xl shadow-slate-200/50 border border-slate-100 overflow-hidden relative">
-              <div className="bg-slate-50/50 px-10 py-6 border-b border-slate-100 flex items-center justify-between">
+              <div className="bg-slate-50/50 px-4 md:px-10 py-4 md:py-6 border-b border-slate-100 flex items-center justify-between">
                 <div className="flex items-center gap-4">
                   <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shadow-inner font-black uppercase text-[10px]">
                     <FaReceipt />
@@ -442,9 +449,9 @@ const OrderPCBPaymentScreen = () => {
                   e.preventDefault();
                   setShowConfirmModal(true);
                 }}
-                className="p-10 space-y-8"
+                className="p-4 md:p-8 space-y-8"
               >
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 text-start">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8 text-start">
                   <div className="md:col-span-2 space-y-2">
                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">
                       {language === "thai" ? "ชื่อผู้โอน" : "Transfered By"}
@@ -454,7 +461,7 @@ const OrderPCBPaymentScreen = () => {
                       value={customerName}
                       onChange={(e) => setCustomerName(e.target.value)}
                       required
-                      className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl px-6 py-4 text-sm font-black text-slate-900 focus:border-blue-500/20 focus:ring-8 focus:ring-blue-500/5 outline-none transition-all shadow-inner"
+                      className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl px-4 md:px-6 py-4 text-sm font-black text-slate-900 focus:border-blue-500/20 focus:ring-8 focus:ring-blue-500/5 outline-none transition-all shadow-inner"
                     />
                   </div>
 
@@ -469,7 +476,7 @@ const OrderPCBPaymentScreen = () => {
                         value={transferedName}
                         onChange={(e) => setTransferedName(e.target.value)}
                         required
-                        className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl px-6 py-4 text-sm font-black text-slate-900 outline-none appearance-none cursor-pointer focus:border-blue-500/20 transition-all shadow-inner pt-7"
+                        className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl px-4 md:px-6 py-4 text-sm font-black text-slate-900 outline-none appearance-none cursor-pointer focus:border-blue-500/20 transition-all shadow-inner pt-7"
                       >
                         <option value="" disabled>
                           {language === "thai"
@@ -505,7 +512,7 @@ const OrderPCBPaymentScreen = () => {
                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">
                       {language === "thai" ? "ยอดที่ต้องโอน" : "Amount Due"}
                     </label>
-                    <div className="w-full bg-blue-50/50 border-2 border-blue-100 text-blue-600 rounded-2xl px-6 py-4 text-xl font-black shadow-inner flex items-baseline gap-1">
+                    <div className="w-full bg-blue-50/50 border-2 border-blue-100 text-blue-600 rounded-2xl px-4 md:px-6 py-4 text-xl font-black shadow-inner flex items-baseline gap-1">
                       {Number(finalAmount).toLocaleString()}{" "}
                       <span className="text-xs uppercase">THB</span>
                     </div>
@@ -515,7 +522,7 @@ const OrderPCBPaymentScreen = () => {
                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">
                       {language === "thai" ? "วันเวลาปัจจุบัน" : "Current Time"}
                     </label>
-                    <div className="w-full bg-white border-2 border-slate-50 text-slate-400 rounded-2xl px-6 py-4 text-sm font-black shadow-inner">
+                    <div className="w-full bg-white border-2 border-slate-50 text-slate-400 rounded-2xl px-4 md:px-6 py-4 text-sm font-black shadow-inner">
                       {transferedDate.replace("T", " ")}
                     </div>
                   </div>
@@ -549,7 +556,7 @@ const OrderPCBPaymentScreen = () => {
                         </div>
                       </div>
                     ) : (
-                      <div className="py-6 flex flex-col items-center gap-5">
+                      <div className="py-4 md:py-6 flex flex-col items-center gap-5">
                         <div className="w-20 h-20 bg-white rounded-3xl flex items-center justify-center text-slate-200 group-hover:text-blue-500 group-hover:scale-110 group-hover:shadow-xl transition-all shadow-sm">
                           <FaFileUpload size={32} />
                         </div>
@@ -578,7 +585,7 @@ const OrderPCBPaymentScreen = () => {
                 <button
                   type="submit"
                   disabled={isProcessing || !image || finalAmount <= 0}
-                  className={`w-full py-6 rounded-2xl font-black text-lg uppercase tracking-[0.2em] shadow-2xl transition-all flex items-center justify-center gap-4 active:scale-[0.98] 
+                  className={`w-full py-4 md:py-6 rounded-2xl font-black text-lg uppercase tracking-[0.2em] shadow-2xl transition-all flex items-center justify-center gap-4 active:scale-[0.98] 
                                         ${!image || finalAmount <= 0 ? "bg-slate-100 text-slate-300" : "bg-blue-600 text-white hover:bg-blue-700 shadow-blue-200"}
                                     `}
                 >

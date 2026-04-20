@@ -111,10 +111,10 @@ const ServiceListScreen = () => {
   }, [pageNumber, refetch]);
 
   return (
-    <div className="bg-[#f8fafc] min-h-screen py-8 md:py-12 font-sans text-slate-800 selection:bg-indigo-100">
+    <div className="bg-[#f8fafc] min-h-screen py-4 md:py-8 md:py-12 font-sans text-slate-800 selection:bg-indigo-100">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* --- Header Section --- */}
-        <div className="bg-white rounded-[2rem] shadow-sm border border-slate-100 p-6 md:p-8 mb-8 flex flex-col md:flex-row items-center justify-between gap-6">
+        <div className="bg-white rounded-[2rem] shadow-sm border border-slate-100 p-4 md:p-8 mb-8 flex flex-col md:flex-row items-center justify-between gap-4 md:gap-6">
           <div className="flex items-center gap-5 w-full md:w-auto">
             <div className="w-14 h-14 md:w-16 md:h-16 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-2xl shrink-0 border border-indigo-100/50">
               <FaTools />
@@ -131,7 +131,7 @@ const ServiceListScreen = () => {
 
           <Link
             to="/admin/service/create"
-            className="flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3.5 px-6 rounded-xl transition-all shadow-md shadow-indigo-600/20 hover:-translate-y-0.5 hover:shadow-lg w-full md:w-auto"
+            className="flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3.5 px-4 md:px-6 rounded-xl transition-all shadow-md shadow-indigo-600/20 hover:-translate-y-0.5 hover:shadow-lg w-full md:w-auto"
           >
             <FaPlus /> {t.btnCreate}
           </Link>
@@ -158,7 +158,7 @@ const ServiceListScreen = () => {
         ) : (
           <>
             {/* --- Grid Layout for Services --- */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6 md:gap-8">
               {data.services.map((service) => (
                 <div
                   key={service.ID}

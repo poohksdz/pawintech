@@ -127,7 +127,7 @@ const getPayments = asyncHandler(async (req, res) => {
     console.error("🔥 API Get Payments Error:", error);
     res
       .status(500)
-      .json({ message: "Failed to fetch payments: " + error.message });
+      .json({ message: "เกิดข้อผิดพลาดในการดึงข้อมูลการชำระเงิน" });
   }
 });
 
@@ -148,19 +148,18 @@ const updatePaymentStatus = asyncHandler(async (req, res) => {
       // Table 'order_pcbs' (GERBER)
       // We added 'status' column. Also has 'isManufacting' and 'manfactingDate'
       let dbStatus = "pending";
-      let extraFields = "";
-      let extraValues = [];
+      let extraSet = "";
 
       if (status === "Paid") {
         dbStatus = "accepted";
-        extraFields = ", isManufacting = 1, manfactingDate = NOW()";
+        extraSet = ", isManufacting = 1, manfactingDate = NOW()";
       } else if (status === "Reject") {
         dbStatus = "rejected";
       }
 
       await pool.query(
-        `UPDATE order_pcbs SET status = ?, updated_at = NOW() ${extraFields} WHERE id = ?`,
-        [dbStatus, ...extraValues, id],
+        `UPDATE order_pcbs SET status = ? ${extraSet} WHERE id = ?`,
+        [dbStatus, id],
       );
     } else {
       // Tables: pcb_custom_orders, pcb_copy_carts, pcb_assembly_carts
@@ -204,7 +203,7 @@ const updatePaymentStatus = asyncHandler(async (req, res) => {
     });
   } catch (error) {
     console.error("🔥 Update Payment Error:", error);
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ message: "เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์" });
   }
 });
 

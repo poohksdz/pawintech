@@ -16,12 +16,13 @@ import { toast } from "react-toastify";
 
 const BlogListScreen = () => {
   const { pageNumber } = useParams();
+  const { userInfo } = useSelector((state) => state.auth);
 
   const [showModal, setShowModal] = useState(false);
   const [blogToDelete, setBlogToDelete] = useState(null);
   const [selectedBlogs, setSelectedBlogs] = useState({});
 
-  const { data, isLoading, error, refetch } = useGetBlogsQuery({ pageNumber });
+  const { data, isLoading, error, refetch } = useGetBlogsQuery({ pageNumber }, { skip: !userInfo });
   const [deleteBlog, { isLoading: loadingDelete }] = useDeleteBlogMutation();
   const [updateShowFrontBlog] = useUpdateShowFrontBlogMutation();
 
@@ -113,7 +114,7 @@ const BlogListScreen = () => {
   const t = translations[language] || translations.en;
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-black py-8 px-4 md:px-8 font-prompt transition-colors duration-500">
+    <div className="min-h-screen bg-slate-50 dark:bg-black py-4 md:py-8 px-4 md:px-8 font-prompt transition-colors duration-500">
       <Row className="align-items-center mb-6">
         <Col>
           <h1 className="text-2xl font-bold text-slate-900 dark:text-white">{t.BlogsLbl}</h1>
@@ -136,11 +137,11 @@ const BlogListScreen = () => {
             <Table hover responsive className="mb-0 align-middle">
               <thead className="bg-slate-50 dark:bg-zinc-950 text-slate-500 dark:text-slate-400 text-xs uppercase font-semibold border-b border-slate-100 dark:border-zinc-800">
                 <tr>
-                  <th className="py-4 px-6 w-20 text-center">#</th>
-                  <th className="py-4 px-6 w-32">{t.imageLbl}</th>
-                  <th className="py-4 px-6">{t.titleLbl}</th>
-                  <th className="py-4 px-6 text-center">{t.EDITLbl}</th>
-                  <th className="py-4 px-6 text-center">{t.SHOWCASELbl}</th>
+                  <th className="py-4 px-4 md:px-6 w-20 text-center">#</th>
+                  <th className="py-4 px-4 md:px-6 w-32">{t.imageLbl}</th>
+                  <th className="py-4 px-4 md:px-6">{t.titleLbl}</th>
+                  <th className="py-4 px-4 md:px-6 text-center">{t.EDITLbl}</th>
+                  <th className="py-4 px-4 md:px-6 text-center">{t.SHOWCASELbl}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-zinc-800 text-sm text-slate-700 dark:text-slate-300">
@@ -150,20 +151,20 @@ const BlogListScreen = () => {
 
                   return (
                     <tr key={blog.id}>
-                      <td className="py-4 px-6 text-center text-slate-400 font-mono text-xs">
+                      <td className="py-4 px-4 md:px-6 text-center text-slate-400 font-mono text-xs">
                         {index + 1}
                       </td>
-                      <td className="py-4 px-6">
+                      <td className="py-4 px-4 md:px-6">
                         <div className="w-20 h-20 bg-white dark:bg-black border border-slate-100 dark:border-zinc-800 rounded-lg flex items-center justify-center overflow-hidden shadow-sm p-1">
                           <Image src={imageSrc} alt={title} className="w-full h-full object-cover" fluid />
                         </div>
                       </td>
-                      <td className="py-4 px-6">
+                      <td className="py-4 px-4 md:px-6">
                         <div className="font-semibold text-slate-900 dark:text-white">
                           {title}
                         </div>
                       </td>
-                      <td className="py-4 px-6 text-center">
+                      <td className="py-4 px-4 md:px-6 text-center">
                         <div className="flex items-center justify-center gap-2">
                           <Link
                             to={`/admin/blogs/${blog.id}/edit`}
@@ -181,7 +182,7 @@ const BlogListScreen = () => {
                           </button>
                         </div>
                       </td>
-                      <td className="py-4 px-6 text-center">
+                      <td className="py-4 px-4 md:px-6 text-center">
                         <input
                           type="checkbox"
                           className="w-4 h-4 rounded border-slate-300 dark:border-zinc-700 text-indigo-600 focus:ring-indigo-500 bg-white dark:bg-zinc-950 cursor-pointer"

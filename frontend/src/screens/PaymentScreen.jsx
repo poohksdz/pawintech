@@ -35,11 +35,39 @@ import {
 } from "react-icons/fa";
 
 const SHOP_CONFIG = {
-  promptPayID: "0632684099", // เบอร์สำหรับเทสระบบ
-  bankName: "ธนาคารกสิกรไทย (KBANK)",
+  promptPayID: "0992263277", // เบอร์สำหรับเทสระบบ
   accName: "บจก. พาวิน เทคโนโลยี",
-  accNo: "012-3-45678-9",
 };
+
+const BANK_ACCOUNTS = [
+  {
+    id: "KTB",
+    label: "KTB ธ.กรุงไทย - 082-0-74742-4",
+    value: "082-0-74742-4 (KTB)",
+    bankName: "ธนาคารกรุงไทย (KTB)",
+    accNo: "082-0-74742-4",
+    initial: "K",
+    color: "bg-[#00AEEF]", // KTB Blue
+  },
+  {
+    id: "SCB",
+    label: "SCB ธ.ไทยพาณิชย์ - 146-2-90304-4",
+    value: "146-2-90304-4 (SCB)",
+    bankName: "ธนาคารไทยพาณิชย์ (SCB)",
+    accNo: "146-2-90304-4",
+    initial: "S",
+    color: "bg-[#4E2E7F]", // SCB Purple
+  },
+  {
+    id: "KBANK",
+    label: "KBANK ธ.กสิกรไทย - 012-3-45678-9",
+    value: "012-3-45678-9 (KBANK)",
+    bankName: "ธนาคารกสิกรไทย (KBANK)",
+    accNo: "012-3-45678-9",
+    initial: "K",
+    color: "bg-[#138000]", // KBANK Green
+  },
+];
 
 const PaymentScreen = () => {
   const navigate = useNavigate();
@@ -50,7 +78,7 @@ const PaymentScreen = () => {
   const searchParams = new URLSearchParams(location.search);
   const orderType = searchParams.get("type") || "product";
   const urlOrderId = searchParams.get("orderId") || "";
-  const urlAmount = Number(searchParams.get("amount")) || 0;
+  const urlAmount = Number(searchParams.get("amount") || 0);
 
   //  เรียกใช้ API Hooks
   const [createOrder, { isLoading: isCreatingProductOrder }] =
@@ -83,6 +111,7 @@ const PaymentScreen = () => {
   const [previewUrl, setPreviewUrl] = useState(null);
   const [paymentMethod, setPaymentMethod] = useState("promptpay");
   const [transferedDate, setTransferedDate] = useState(getCurrentDateTime());
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   //  กำหนดยอดเงิน
   const transferedAmount =
@@ -110,9 +139,38 @@ const PaymentScreen = () => {
       setPaymentComfirmID(urlOrderId);
     }
 
-    // สร้าง QR Code
-    const rawAmount = String(transferedAmount).replace(/[^0-9.]/g, "");
-    const amountToPay = parseFloat(rawAmount) || 0;
+    // 1. เช็คจำนวนสินค้าและรายการซ้ำ (Validation)
+    let amountToPay = 0;
+    if (orderType === "product") {
+      // เฉพาะรายการที่ถูกเลือก (Selected Items)
+      const allItems = cart.cartItems || [];
+      const items = allItems.filter(item => item.isSelected !== false);
+      const totalItemsQty = items.reduce((acc, item) => acc + Number(item.qty), 0);
+      const uniqueItemsCount = new Set(items.map((i) => i.product)).size;
+
+      // ตรวจสอบความถูกต้องของยอดเงิน (คำนวณจากรายการที่เลือก + ภาษี + ขนส่ง)
+      const calculatedItemsPrice = items.reduce(
+        (acc, item) => acc + Number(item.price) * Number(item.qty),
+        0
+      );
+
+      // คำนวณยอดรวม (Items + VAT 7% + Shipping)
+      const expectedTotal = Number((calculatedItemsPrice * 1.07 + Number(cart.shippingPrice || 0)).toFixed(2));
+
+      console.log(`[Validation] Selected Items: ${items.length}, Total Qty: ${totalItemsQty}, Expected Total: ${expectedTotal}`);
+
+      if (items.length !== uniqueItemsCount) {
+        console.warn("พบรายการสินค้าซ้ำในรายการที่เลือก");
+      }
+
+      // ใช้ยอดที่คำนวณใหม่เพื่อความชัวร์
+      amountToPay = expectedTotal;
+    } else {
+      const rawAmount = String(transferedAmount).replace(/[^0-9.]/g, "");
+      amountToPay = parseFloat(rawAmount) || 0;
+    }
+
+    // 2. สร้าง QR Code
     if (amountToPay > 0) {
       const payload = generatePayload(SHOP_CONFIG.promptPayID, {
         amount: amountToPay,
@@ -316,7 +374,7 @@ const PaymentScreen = () => {
     isCreatingProductOrder || isCreatingCustom || isImageUploading;
 
   return (
-    <div className="bg-[#fcfdfe] min-h-screen py-10 px-4 font-sans antialiased">
+    <div className="bg-[#fcfdfe] min-h-screen py-4 md:py-8 px-4 font-sans antialiased">
       <div className="max-w-6xl mx-auto">
         {orderType === "product" && <CheckoutSteps step1 step2 step3 />}
 
@@ -337,7 +395,7 @@ const PaymentScreen = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 md:gap-8 items-start">
           {/* LEFT: Payment Methods */}
           <div className="lg:col-span-5 space-y-6">
             <div className="bg-white rounded-[2.5rem] shadow-sm border border-slate-100 overflow-hidden relative z-10">
@@ -389,43 +447,57 @@ const PaymentScreen = () => {
                       exit={{ opacity: 0, x: -20 }}
                       className="space-y-4"
                     >
-                      <div className="bg-slate-50 border border-slate-100 p-6 rounded-3xl text-start">
-                        <div className="flex items-center gap-4 mb-4">
-                          <div className="w-12 h-12 bg-black rounded-2xl flex items-center justify-center text-white font-bold text-xl shadow-lg">
-                            K
-                          </div>
-                          <div>
-                            <p className="text-xs font-black text-slate-400 uppercase tracking-widest mb-1">
-                              Bank Name
+                      {/* Dynamic Bank Display */}
+                      {(() => {
+                        const selectedBank =
+                          BANK_ACCOUNTS.find(
+                            (b) => b.value === transferedName,
+                          ) || BANK_ACCOUNTS[0];
+
+                        return (
+                          <div className="bg-slate-50 border border-slate-100 p-4 md:p-6 rounded-3xl text-start">
+                            <div className="flex items-center gap-4 mb-4">
+                              <div
+                                className={`w-12 h-12 ${selectedBank.color} rounded-2xl flex items-center justify-center text-white font-bold text-xl shadow-lg`}
+                              >
+                                {selectedBank.initial}
+                              </div>
+                              <div>
+                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">
+                                  Bank Name
+                                </p>
+                                <p className="font-bold text-slate-800">
+                                  {selectedBank.bankName}
+                                </p>
+                              </div>
+                            </div>
+                            <div className="bg-white p-4 rounded-2xl flex items-center justify-between border border-slate-100">
+                              <span className="text-xl font-black text-slate-900 font-mono">
+                                {selectedBank.accNo}
+                              </span>
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  copyToClipboard(selectedBank.accNo)
+                                }
+                                className="p-2 bg-slate-50 text-slate-400 hover:text-black rounded-xl transition-all"
+                              >
+                                <FaCopy />
+                              </button>
+                            </div>
+                            <p className="mt-4 text-xs font-bold text-slate-400 uppercase tracking-wider">
+                              Account: {SHOP_CONFIG.accName}
                             </p>
-                            <p className="font-bold text-slate-800">
-                              {SHOP_CONFIG.bankName}
-                            </p>
                           </div>
-                        </div>
-                        <div className="bg-white p-4 rounded-2xl flex items-center justify-between border border-slate-100">
-                          <span className="text-xl font-black text-slate-900 font-mono">
-                            {SHOP_CONFIG.accNo}
-                          </span>
-                          <button
-                            type="button"
-                            onClick={() => copyToClipboard(SHOP_CONFIG.accNo)}
-                            className="p-2 bg-slate-50 text-slate-400 hover:text-black rounded-xl transition-all"
-                          >
-                            <FaCopy />
-                          </button>
-                        </div>
-                        <p className="mt-4 text-xs font-bold text-slate-400 uppercase tracking-wider">
-                          Account: {SHOP_CONFIG.accName}
-                        </p>
-                      </div>
+                        );
+                      })()}
                     </motion.div>
                   )}
                 </AnimatePresence>
               </div>
             </div>
 
-            <div className="bg-slate-900 rounded-3xl p-6 text-white flex justify-between items-center shadow-xl shadow-slate-200">
+            <div className="bg-slate-900 rounded-3xl p-4 md:p-6 text-white flex justify-between items-center shadow-xl shadow-slate-200">
               <div className="text-start">
                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
                   หมายเลขอ้างอิงชำระเงิน
@@ -439,7 +511,7 @@ const PaymentScreen = () => {
           {/* RIGHT: Confirmation Form */}
           <div className="lg:col-span-7 text-start">
             <div className="bg-white rounded-[2.5rem] shadow-sm border border-slate-100 overflow-hidden h-full flex flex-col relative z-10">
-              <div className="bg-slate-50/50 px-6 md:px-8 py-4 md:py-5 border-b border-slate-100 flex items-center gap-3">
+              <div className="bg-slate-50/50 px-4 md:px-8 py-4 md:py-5 border-b border-slate-100 flex items-center gap-3">
                 <FaReceipt className="text-black" />{" "}
                 <h3 className="font-bold text-slate-800 text-sm md:text-base">
                   {t.summary}
@@ -448,9 +520,9 @@ const PaymentScreen = () => {
 
               <form
                 onSubmit={submitHandler}
-                className="p-6 md:p-8 flex-grow flex flex-col gap-6"
+                className="p-4 md:p-8 flex-grow flex flex-col gap-4 md:gap-6"
               >
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-start">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 text-start">
                   <div className="md:col-span-2 space-y-1.5">
                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">
                       {t.customer}
@@ -464,29 +536,119 @@ const PaymentScreen = () => {
                     />
                   </div>
 
-                  <div className="md:col-span-2 space-y-1.5">
+                  <div className="md:col-span-2 space-y-2">
                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">
                       {t.account}
                     </label>
-                    <select
-                      value={transferedName}
-                      onChange={(e) => setTransferedName(e.target.value)}
-                      required
-                      className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-sm font-bold text-slate-700 outline-none appearance-none cursor-pointer focus:border-blue-500 transition-all"
-                    >
-                      <option value="" disabled>
-                        -- เลือกบัญชีธนาคารที่คุณโอนเงินเข้า --
-                      </option>
-                      <option value="082-0-74742-4 (KTB)">
-                        KTB ธ.กรุงไทย - 082-0-74742-4
-                      </option>
-                      <option value="146-2-90304-4 (SCB)">
-                        SCB ธ.ไทยพาณิชย์ - 146-2-90304-4
-                      </option>
-                      <option value="PromptPay QR">
-                        พร้อมเพย์ สแกน QR Code
-                      </option>
-                    </select>
+                    {(() => {
+                      const selectedOption =
+                        transferedName === "PromptPay QR"
+                          ? { icon: "📲", label: "พร้อมเพย์ (Scan QR Code)" }
+                          : BANK_ACCOUNTS.find(
+                            (b) => b.value === transferedName,
+                          )
+                            ? {
+                              icon: "🏦",
+                              label: BANK_ACCOUNTS.find(
+                                (b) => b.value === transferedName,
+                              ).label,
+                            }
+                            : {
+                              icon: "💳",
+                              label: "-- เลือกช่องทางที่คุณชำระเงิน --",
+                            };
+
+                      const handleSelect = (val) => {
+                        setTransferedName(val);
+                        if (val === "PromptPay QR") {
+                          setPaymentMethod("promptpay");
+                        } else {
+                          setPaymentMethod("bank");
+                        }
+                        setIsDropdownOpen(false);
+                      };
+
+                      return (
+                        <div className="relative">
+                          {/* Selected View */}
+                          <div
+                            onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                            className={`w-full bg-white border-2 rounded-[1.2rem] px-4 py-3 flex items-center justify-between cursor-pointer transition-all duration-300 ${isDropdownOpen ? "border-black shadow-lg scale-[1.01]" : "border-slate-100 hover:border-slate-300 shadow-sm"}`}
+                          >
+                            <div className="flex items-center gap-3">
+                              <span className="text-lg">{selectedOption.icon}</span>
+                              <span className="text-sm font-bold text-slate-800">
+                                {selectedOption.label}
+                              </span>
+                            </div>
+                            <FaChevronRight
+                              className={`text-slate-400 transition-transform duration-300 ${isDropdownOpen ? "rotate-90 text-black" : "rotate-0"}`}
+                              size={10}
+                            />
+                          </div>
+
+                          {/* Dropdown Menu */}
+                          <AnimatePresence>
+                            {isDropdownOpen && (
+                              <>
+                                {/* Overlay to close */}
+                                <div
+                                  className="fixed inset-0 z-[60]"
+                                  onClick={() => setIsDropdownOpen(false)}
+                                />
+                                <motion.div
+                                  initial={{ opacity: 0, y: 5, scale: 0.98 }}
+                                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                                  exit={{ opacity: 0, y: 5, scale: 0.98 }}
+                                  className="absolute left-0 right-0 top-full mt-2 bg-white border border-slate-100 rounded-[1.5rem] shadow-2xl overflow-hidden z-[70] py-1"
+                                >
+                                  <div
+                                    onClick={() => handleSelect("PromptPay QR")}
+                                    className={`px-4 py-3 flex items-center gap-3 hover:bg-slate-50 cursor-pointer transition-colors ${transferedName === "PromptPay QR" ? "bg-slate-50" : ""}`}
+                                  >
+                                    <span className="text-xl text-start">📲</span>
+                                    <div className="flex flex-col text-start">
+                                      <span className="text-sm font-bold text-slate-800 leading-tight">
+                                        พร้อมเพย์ (Scan QR Code)
+                                      </span>
+                                      <span className="text-[10px] font-medium text-slate-400">
+                                        Scan and Pay instantly
+                                      </span>
+                                    </div>
+                                    {transferedName === "PromptPay QR" && (
+                                      <div className="ml-auto w-1.5 h-1.5 bg-black rounded-full" />
+                                    )}
+                                  </div>
+
+                                  <div className="mx-4 border-t border-slate-50 my-0.5" />
+
+                                  {BANK_ACCOUNTS.map((bank) => (
+                                    <div
+                                      key={bank.id}
+                                      onClick={() => handleSelect(bank.value)}
+                                      className={`px-4 py-3 flex items-center gap-3 hover:bg-slate-50 cursor-pointer transition-colors ${transferedName === bank.value ? "bg-slate-50" : ""}`}
+                                    >
+                                      <span className="text-xl text-start">🏦</span>
+                                      <div className="flex flex-col text-start">
+                                        <span className="text-sm font-bold text-slate-800 leading-tight">
+                                          {bank.label}
+                                        </span>
+                                        <span className="text-[10px] font-medium text-slate-400">
+                                          {bank.bankName}
+                                        </span>
+                                      </div>
+                                      {transferedName === bank.value && (
+                                        <div className="ml-auto w-1.5 h-1.5 bg-black rounded-full" />
+                                      )}
+                                    </div>
+                                  ))}
+                                </motion.div>
+                              </>
+                            )}
+                          </AnimatePresence>
+                        </div>
+                      );
+                    })()}
                   </div>
 
                   <div className="space-y-1.5">
@@ -512,7 +674,7 @@ const PaymentScreen = () => {
                     {t.upload} <span className="text-rose-500">*</span>
                   </label>
                   <div
-                    className={`relative group border-2 border-dashed rounded-3xl p-8 text-center transition-all duration-300 ${image ? "border-green-400 bg-green-50/30" : "border-slate-200 bg-slate-50/50 hover:border-blue-400"}`}
+                    className={`relative group border-2 border-dashed rounded-3xl p-4 md:p-8 text-center transition-all duration-300 ${image ? "border-green-400 bg-green-50/30" : "border-slate-200 bg-slate-50/50 hover:border-blue-400"}`}
                   >
                     <input
                       type="file"
@@ -564,7 +726,7 @@ const PaymentScreen = () => {
           </div>
         </div>
       </div>
-    </div>
+    </div >
   );
 };
 

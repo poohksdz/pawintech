@@ -15,7 +15,8 @@ import Message from "../components/Message";
 const BlogScreen = () => {
   const { pageNumber } = useParams();
   const { language } = useSelector((state) => state.language);
-  const { data, isLoading, error } = useGetBlogsQuery({ pageNumber });
+  const { userInfo } = useSelector((state) => state.auth);
+  const { data, isLoading, error } = useGetBlogsQuery({ pageNumber }, { skip: !userInfo });
 
   const translations = {
     en: {
@@ -68,7 +69,7 @@ const BlogScreen = () => {
     );
 
   return (
-    <div className="bg-[#FAFAFB] dark:bg-black min-h-screen py-10 md:py-16 font-sans selection:bg-indigo-100 dark:selection:bg-zinc-800 selection:text-indigo-900 dark:selection:text-white transition-colors duration-500">
+    <div className="bg-[#FAFAFB] dark:bg-black min-h-screen py-4 md:py-6 md:py-10 md:py-16 font-sans selection:bg-indigo-100 dark:selection:bg-zinc-800 selection:text-indigo-900 dark:selection:text-white transition-colors duration-500">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* --- Header Section --- */}
         <div className="mb-12 md:mb-16">
@@ -107,7 +108,7 @@ const BlogScreen = () => {
             variants={containerVariants}
             initial="hidden"
             animate="visible"
-            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-8"
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6 md:gap-8"
           >
             {data.blogs.map((blog) => (
               <motion.div key={blog._id} variants={itemVariants}>
@@ -139,7 +140,7 @@ const BlogScreen = () => {
                     </div>
 
                     {/* Content Body */}
-                    <div className="p-6 flex flex-col flex-grow">
+                    <div className="p-4 md:p-6 flex flex-col flex-grow">
                       <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-4 line-clamp-2 leading-snug group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
                         {language === "thai" ? blog.titleThai : blog.title}
                       </h2>

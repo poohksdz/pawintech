@@ -11,6 +11,7 @@ import {
   FaPuzzlePiece,
   FaTrashAlt,
   FaDownload,
+  FaReceipt,
 } from "react-icons/fa";
 import Message from "../../components/Message";
 import Loader from "../../components/Loader";
@@ -19,8 +20,11 @@ import {
   useGetAllCustomcartsQuery,
   useDeleteCustomcartMutation,
 } from "../../slices/custompcbCartApiSlice";
+import { useGetDefaultInvoiceUsedQuery } from "../../slices/defaultInvoicesApiSlice";
+import FullTaxInvoiceA4 from "../../components/FullTaxInvoiceA4";
 import { toast } from "react-toastify";
 import { BASE_URL as APP_BASE_URL } from "../../constants";
+import { FaPrint } from "react-icons/fa";
 
 const CustomPCBCartScreen = () => {
   const navigate = useNavigate();
@@ -191,7 +195,7 @@ const CustomPCBCartScreen = () => {
     );
   if (error)
     return (
-      <div className="max-w-4xl mx-auto p-10">
+      <div className="max-w-4xl mx-auto p-4 md:p-8">
         <Message variant="danger">
           {error?.data?.message || error.error}
         </Message>
@@ -203,8 +207,8 @@ const CustomPCBCartScreen = () => {
       <div className="w-full flex flex-col lg:flex-row gap-0 overflow-hidden">
         {/*  Left Column: Project Items */}
         <div className="flex-1 p-0 md:p-6 bg-white text-start">
-          {/* DESKTOP HEADER (Original) */}
-          <div className="hidden md:grid grid-cols-12 py-5 mb-8 border-b border-slate-200 text-[11px] font-black uppercase tracking-[0.2em] text-slate-400">
+          {/* DESKTOP HEADER (Premium Black) */}
+          <div className="hidden md:grid grid-cols-12 py-5 mb-8 bg-black text-[11px] font-black uppercase tracking-[0.2em] text-white rounded-t-[2rem] shadow-lg border-b border-white/10">
             <div className="col-span-1 flex items-center justify-center">
               <CustomCheckbox
                 checked={
@@ -212,20 +216,21 @@ const CustomPCBCartScreen = () => {
                   selectedIds.length === myCartItems.length
                 }
                 onChange={toggleSelectAll}
+                variant="white"
               />
             </div>
             <div className="col-span-11 grid grid-cols-11 pl-4 gap-3 md:gap-4">
-              <div className="col-span-4 font-semibold text-slate-900 text-start">
-                {language === "thai" ? "รายการสั่งทำ" : "Custom Project"}
+              <div className="col-span-4 flex items-center text-white/90 text-start whitespace-nowrap">
+                {language === "thai" ? "รายการสั่งทำ / PROJECT" : "CUSTOM PROJECT"}
               </div>
-              <div className="col-span-1 text-right font-semibold pr-4 text-slate-900">
-                {language === "thai" ? "จำนวน" : "Qty"}
+              <div className="col-span-1 text-right font-black pr-4 text-white/90 whitespace-nowrap">
+                {language === "thai" ? "จำนวน / QTY" : "QTY"}
               </div>
-              <div className="col-span-3 text-center font-semibold text-slate-900">
-                {language === "thai" ? "สถานะ" : "Status"}
+              <div className="col-span-3 text-center font-black text-white/90 whitespace-nowrap">
+                {language === "thai" ? "สถานะ / STATUS" : "STATUS"}
               </div>
-              <div className="col-span-3 text-right font-semibold text-slate-900 whitespace-nowrap md:pr-10">
-                {language === "thai" ? "ราคาที่ประเมิน" : "Confirmed Price"}
+              <div className="col-span-3 text-right font-black text-white md:pr-10">
+                {language === "thai" ? "ราคาประเมิน / PRICE" : "CONFIRMED PRICE"}
               </div>
             </div>
           </div>
@@ -277,75 +282,77 @@ const CustomPCBCartScreen = () => {
                     key={`${item.id}-${index}`}
                     className="border-b border-slate-100 pb-4 md:pb-6 relative group"
                   >
-                    {/* --- MOBILE VIEW: PREMIUM TRUE BLACK CARD --- */}
-                    <div className="md:hidden flex flex-col w-full bg-[#0a0a0a] border border-zinc-900 p-6 rounded-[2.5rem] shadow-2xl overflow-hidden mb-6 relative group active:scale-[0.98] transition-all duration-300">
-                      {/* Selection Overlay */}
-                      <div className="absolute top-6 left-6 z-20">
+                    {/* --- MOBILE VIEW: REFINED COMPACT WHITE CARD --- */}
+                    <div className="md:hidden flex flex-col w-full bg-white border border-slate-200 p-4 rounded-3xl shadow-sm mb-4 relative group active:scale-[0.98] transition-all duration-300">
+                      {/* Selection and Status Row */}
+                      <div className="flex justify-between items-start mb-3">
                         <CustomCheckbox
                           checked={selectedIds.includes(item.id)}
                           onChange={() => toggleSelect(item.id)}
                         />
-                      </div>
-
-                      {/* Status Badge Top Right */}
-                      <div className="absolute top-6 right-6 z-20">
-                        {getStatusBadge(item.status)}
-                      </div>
-
-                      {/* Image section */}
-                      <div className="w-full h-32 bg-[#111111] rounded-[2rem] flex items-center justify-center overflow-hidden mb-5 border border-zinc-800/50">
-                        {item.dirgram_image_1 ? (
-                          <img src={getFullUrl(item.dirgram_image_1)} alt="thumbnail" className="w-full h-full object-contain p-4" />
-                        ) : (
-                          <FaPuzzlePiece size={48} className="text-zinc-800" />
-                        )}
-                      </div>
-
-                      {/* Project Info */}
-                      <div className="flex flex-col mb-6">
-                        <Link to={`/customcartpcbs/${item.id}`} className="text-[18px] font-black text-white uppercase tracking-tight leading-tight mb-1">
-                          {item.projectname || "Untitled Project"}
-                        </Link>
-                        <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-[0.2em]">
-                          ID: {item.id} • CUSTOM PCB
-                        </span>
-                      </div>
-
-                      {/* Details Grid */}
-                      <div className="grid grid-cols-2 gap-4 mb-6">
-                        <div className="flex flex-col bg-zinc-900/50 p-4 rounded-3xl border border-zinc-800/30">
-                          <span className="text-[8px] font-black text-zinc-500 uppercase tracking-widest mb-1">Quantity</span>
-                          <span className="text-[16px] font-black text-white">{item.pcb_qty || item.qty || 0} PCS</span>
+                        <div className="flex gap-2 items-center">
+                          {getStatusBadge(item.status)}
+                          {item.status !== "paid" && (
+                            <button
+                              onClick={() => { setDeleteTargetId(item.id); setShowConfirmModal(true); }}
+                              className="text-slate-400 hover:text-rose-500 transition-colors p-1"
+                            >
+                              <FaTrashAlt size={14} />
+                            </button>
+                          )}
                         </div>
-                        <div className="flex flex-col bg-indigo-500/10 p-4 rounded-3xl border border-indigo-500/20 items-end text-right">
-                          <span className="text-[8px] font-black text-indigo-400 uppercase tracking-widest mb-1">Total Amount</span>
-                          <span className="text-[18px] font-black text-indigo-400 leading-none">
-                            {formatPrice(item.confirmed_price, item.status)}
+                      </div>
+
+                      <div className="flex gap-4 items-center">
+                        {/* Image section */}
+                        <div className="w-24 h-24 shrink-0 bg-slate-50 flex items-center justify-center overflow-hidden border border-slate-100 rounded-[1.25rem]">
+                          {item.dirgram_image_1 ? (
+                            <img src={getFullUrl(item.dirgram_image_1)} alt="thumbnail" className="w-full h-full object-contain p-2" />
+                          ) : (
+                            <FaPuzzlePiece size={24} className="text-slate-300" />
+                          )}
+                        </div>
+
+                        {/* Details Section */}
+                        <div className="flex flex-col flex-1 min-w-0">
+                          <Link to={`/customcartpcbs/${item.id}`} className="text-sm font-bold text-slate-800 uppercase tracking-tight leading-snug mb-0.5 line-clamp-2">
+                            {item.projectname || "Untitled Project"}
+                          </Link>
+                          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">
+                            ID: {item.id} • CUSTOM PCB
                           </span>
-                        </div>
-                      </div>
 
-                      {/* Action Bar */}
-                      <div className="flex items-center justify-end gap-3">
-                        {item.dirgram_zip && (
-                          <a
-                            href={getFullUrl(item.dirgram_zip)}
-                            download
-                            className="w-14 h-14 bg-blue-500/10 border border-blue-500/20 text-blue-500 flex items-center justify-center rounded-2xl hover:bg-blue-500 hover:text-white transition-all shadow-lg shadow-blue-900/10"
-                            title="Download Files"
-                          >
-                            <FaDownload size={18} />
-                          </a>
-                        )}
-                        {item.status !== "paid" && (
-                          <button
-                            onClick={() => { setDeleteTargetId(item.id); setShowConfirmModal(true); }}
-                            className="w-14 h-14 bg-rose-500/10 border border-rose-500/20 text-rose-500 flex items-center justify-center rounded-2xl hover:bg-rose-500 hover:text-white transition-all shadow-lg shadow-rose-900/10"
-                            title="Remove"
-                          >
-                            <FaTrashAlt size={18} />
-                          </button>
-                        )}
+                          {/* Price and Quantity Row */}
+                          <div className="flex justify-between items-end mt-auto">
+                            <div className="flex flex-col">
+                              <span className="text-[15px] font-black text-blue-600">{formatPrice(item.confirmed_price, item.status)}</span>
+                              <span className="text-[10px] font-bold text-slate-400">{item.pcb_qty || item.qty || 0} PCS</span>
+                            </div>
+
+                            {/* Action Icons */}
+                            <div className="flex gap-2">
+                              {item.dirgram_zip && (
+                                <a
+                                  href={getFullUrl(item.dirgram_zip)}
+                                  download
+                                  className="w-8 h-8 bg-slate-50 border border-slate-200 text-blue-500 flex items-center justify-center rounded-xl hover:bg-white transition-all shadow-sm"
+                                >
+                                  <FaDownload size={14} />
+                                </a>
+                              )}
+                              {item.quotation_no && (
+                                <Link
+                                  to={`/quotation/${item.quotation_no}`}
+                                  target="_blank"
+                                  className="w-8 h-8 bg-blue-50 border border-blue-100 text-blue-500 flex items-center justify-center rounded-xl hover:bg-white transition-all shadow-sm"
+                                  title="View Quotation"
+                                >
+                                  <FaReceipt size={14} />
+                                </Link>
+                              )}
+                            </div>
+                          </div>
+                        </div>
                       </div>
                     </div>
 
@@ -411,6 +418,16 @@ const CustomPCBCartScreen = () => {
                           <span className="font-bold text-[15px] text-gray-900 mr-2 whitespace-nowrap">
                             {formatPrice(item.confirmed_price, item.status)}
                           </span>
+                          {item.quotation_no && (
+                            <Link
+                              to={`/quotation/${item.quotation_no}`}
+                              target="_blank"
+                              className="p-2 text-blue-400 hover:text-blue-600 hover:bg-blue-50 rounded-full transition-all duration-200"
+                              title="View Quotation"
+                            >
+                              <FaReceipt size={14} />
+                            </Link>
+                          )}
                           {item.dirgram_zip && (
                             <a
                               href={getFullUrl(item.dirgram_zip)}
@@ -463,7 +480,7 @@ const CustomPCBCartScreen = () => {
         </div>
 
         {/*  Right Column: Summary */}
-        <div className="w-full lg:w-[350px] bg-white p-6 lg:p-8 shrink-0 flex flex-col text-start border-l border-slate-100">
+        <div className="w-full lg:w-[350px] bg-white p-4 md:p-6 lg:p-8 shrink-0 flex flex-col text-start border-l border-slate-100">
           <h2 className="text-[14px] font-bold text-gray-900 uppercase tracking-wide mb-8">
             Summary
           </h2>
@@ -486,7 +503,7 @@ const CustomPCBCartScreen = () => {
               <button
                 onClick={checkoutHandler}
                 disabled={selectedIds.length === 0 || acceptedItemsCount === 0}
-                className={`w-full py-3 rounded-none text-[13px] font-bold tracking-widest uppercase transition-all shadow-md mb-8
+                className={`w-full py-4 rounded-xl text-[13px] font-black tracking-widest uppercase transition-all shadow-xl mb-4
                                     ${selectedIds.length > 0 &&
                     acceptedItemsCount > 0
                     ? "bg-black text-white hover:bg-slate-900 active:scale-[0.98]"
@@ -498,6 +515,7 @@ const CustomPCBCartScreen = () => {
                   ? "ชำระเงินตามที่เลือก"
                   : "Checkout Selected"}
               </button>
+
 
               <div className="bg-gray-50 border border-dashed border-gray-200 rounded p-4 mb-6">
                 <p className="text-[10px] text-gray-400 font-bold uppercase leading-relaxed tracking-wide text-center">
@@ -539,7 +557,7 @@ const CustomPCBCartScreen = () => {
                 initial={{ scale: 0.95, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 exit={{ scale: 0.95, opacity: 0 }}
-                className="relative bg-white rounded shadow-2xl w-full max-w-sm p-8 text-center border-t-4 border-black font-sans z-10"
+                className="relative bg-white rounded shadow-2xl w-full max-w-sm p-4 md:p-8 text-center border-t-4 border-black font-sans z-10"
               >
                 <h3 className="text-[16px] font-bold text-gray-900 mb-2 uppercase tracking-tight">
                   Delete Project?
@@ -567,6 +585,7 @@ const CustomPCBCartScreen = () => {
             document.body,
           )}
       </div>
+
     </div>
   );
 };

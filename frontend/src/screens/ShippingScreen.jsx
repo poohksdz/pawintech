@@ -36,6 +36,7 @@ const InputField = ({
   fullWidth = false,
   disabled = false,
   isError = false,
+  isTextArea = false,
 }) => (
   <div
     id={`field-${id}`}
@@ -46,23 +47,39 @@ const InputField = ({
     >
       {label} {isError && "*"}
     </label>
-    <motion.input
-      animate={isError ? { x: [-2, 2, -2, 2, 0] } : {}}
-      transition={{ duration: 0.4 }}
-      type={type}
-      value={value}
-      onChange={onChange}
-      placeholder={placeholder}
-      disabled={disabled}
-      className={`w-full border rounded-xl px-4 py-3 text-sm transition-all outline-none 
-                ${
-                  disabled
-                    ? "bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed"
-                    : isError
-                      ? "bg-red-50 border-red-500 ring-4 ring-red-500/10"
-                      : "bg-slate-50 border-slate-200 text-slate-900 focus:ring-4 focus:ring-black/10 focus:border-black"
-                }`}
-    />
+    {isTextArea ? (
+      <textarea
+        value={value}
+        onChange={onChange}
+        placeholder={placeholder}
+        disabled={disabled}
+        rows={3}
+        className={`w-full border rounded-[1.25rem] px-5 py-4 text-sm transition-all duration-300 outline-none shadow-sm resize-none
+                ${disabled
+            ? "bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed"
+            : isError
+              ? "bg-red-50 border-red-500 ring-4 ring-red-500/10"
+              : "bg-white border-slate-200 text-slate-900 focus:ring-4 focus:ring-black/5 focus:border-black focus:shadow-lg"
+          }`}
+      />
+    ) : (
+      <motion.input
+        animate={isError ? { x: [-2, 2, -2, 2, 0] } : {}}
+        transition={{ duration: 0.4 }}
+        type={type}
+        value={value}
+        onChange={onChange}
+        placeholder={placeholder}
+        disabled={disabled}
+        className={`w-full border rounded-[1.25rem] px-5 py-4 text-sm transition-all duration-300 outline-none shadow-sm
+                ${disabled
+            ? "bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed"
+            : isError
+              ? "bg-red-50 border-red-500 ring-4 ring-red-500/10"
+              : "bg-white border-slate-200 text-slate-900 focus:ring-4 focus:ring-black/5 focus:border-black focus:shadow-lg"
+          }`}
+      />
+    )}
   </div>
 );
 
@@ -70,20 +87,23 @@ const InputField = ({
 const SelectionCard = ({ icon, title, active, onClick }) => (
   <div
     onClick={onClick}
-    className={`cursor-pointer p-4 rounded-2xl border-2 transition-all duration-300 flex items-center gap-4 ${active ? "border-black bg-slate-50 shadow-md scale-[1.02]" : "border-slate-100 bg-white hover:border-slate-200 hover:scale-[1.01]"}`}
+    className={`cursor-pointer p-5 rounded-[2rem] border-2 transition-all duration-500 flex items-center gap-5 group active:scale-[0.98] ${active
+      ? "border-black bg-slate-900 text-white shadow-xl shadow-slate-900/20 scale-[1.02]"
+      : "border-slate-100 bg-white hover:border-slate-200 hover:shadow-md hover:scale-[1.01]"}`}
   >
     <div
-      className={`p-3 rounded-xl transition-colors duration-300 ${active ? "bg-black text-white" : "bg-slate-100 text-slate-400"}`}
+      className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all duration-500 ${active ? "bg-white text-black shadow-lg" : "bg-slate-50 text-slate-400 group-hover:bg-slate-100 group-hover:text-black"
+        }`}
     >
       {icon}
     </div>
     <div className="flex flex-grow items-center justify-between">
       <span
-        className={`font-bold text-sm transition-colors duration-300 ${active ? "text-black" : "text-slate-500"}`}
+        className={`font-black text-sm uppercase tracking-wider transition-colors duration-500 ${active ? "text-white" : "text-slate-500 group-hover:text-slate-900"}`}
       >
         {title}
       </span>
-      {active && <FaCheckCircle className="text-black" />}
+      {active && <FaCheckCircle className="text-emerald-400 animate-bounce-slow" />}
     </div>
   </div>
 );
@@ -105,6 +125,10 @@ const ShippingScreen = () => {
   const [city, setCity] = useState("");
   const [postalCode, setPostalCode] = useState("");
   const [country, setCountry] = useState("");
+  const [tax, setTax] = useState("N/A");
+  const [companyName, setCompanyName] = useState("");
+  const [branch, setBranch] = useState("");
+  const [isCompanyOrder, setIsCompanyOrder] = useState(false);
 
   const [billingName, setBillingName] = useState("");
   const [billinggAddress, setBillinggAddress] = useState("");
@@ -112,7 +136,6 @@ const ShippingScreen = () => {
   const [billingPostalCode, setBillingPostalCode] = useState("");
   const [billingCountry, setBillingCountry] = useState("");
   const [billingPhone, setBillingPhone] = useState("");
-  const [tax, setTax] = useState("");
 
   // --- UI Logic States ---
   const [isReceiveCompleteSelected, setIsReceiveCompleteSelected] =
@@ -136,6 +159,19 @@ const ShippingScreen = () => {
       setCountry(userInfo.shippingAddress?.country || "");
     }
   }, [userInfo, addressSource]);
+
+  // Sync Billing Data when user selects "Full Tax Invoice" or "Buy as Company"
+  useEffect(() => {
+    if (isBillingCompleteSelected && !isCompanyOrder) {
+      // For personal billing, fill from shipping if blank
+      setBillingName((p) => p || shippingname || userInfo?.name || "");
+      setBillingPhone((p) => p || phone || userInfo?.phone || "");
+      setBillinggAddress((p) => p || address || "");
+      setBillingCity((p) => p || city || "");
+      setBillingPostalCode((p) => p || postalCode || "");
+      setBillingCountry((p) => p || country || "Thailand");
+    }
+  }, [isBillingCompleteSelected, isCompanyOrder, shippingname, phone, address, city, postalCode, country, userInfo]);
 
   const t = {
     en: {
@@ -212,7 +248,8 @@ const ShippingScreen = () => {
     }
     if (isBillingCompleteSelected) {
       if (!billingName) newErrors.billingName = true;
-      if (!tax) newErrors.tax = true;
+      // Only require Tax ID if it's a company order
+      if (isCompanyOrder && !tax) newErrors.tax = true;
       if (!billingPhone) newErrors.billingPhone = true;
       if (!billinggAddress) newErrors.billinggAddress = true;
       if (!billingCity) newErrors.billingCity = true;
@@ -241,36 +278,45 @@ const ShippingScreen = () => {
     try {
       const finalShippingAddress = isReceiveCompleteSelected
         ? {
-            shippingname: userInfo.name,
-            phone: userInfo.phone || "",
-            address: "Pickup at Company",
-            city: "Thailand",
-            postalCode: "00000",
-            country: "TH",
-          }
+          shippingname: userInfo.name,
+          phone: userInfo.phone || "",
+          address: "Pickup at Company",
+          city: "Thailand",
+          postalCode: "00000",
+          country: "TH",
+        }
         : addressSource === "profile"
-          ? { ...userInfo.shippingAddress }
+          ? {
+            shippingname: userInfo.shippingAddress?.shippingname || userInfo.name,
+            phone: userInfo.shippingAddress?.phone || userInfo.phone,
+            address: userInfo.shippingAddress?.address || "",
+            city: userInfo.shippingAddress?.city || "",
+            postalCode: userInfo.shippingAddress?.postalCode || "",
+            country: userInfo.shippingAddress?.country || "",
+          }
           : { shippingname, phone, address, city, postalCode, country };
 
       const finalBillingAddress = isBillingCompleteSelected
         ? {
-            billingName,
-            billinggAddress,
-            billingCity,
-            billingPostalCode,
-            billingCountry,
-            billingPhone,
-            tax,
-          }
+          billingName: isCompanyOrder ? companyName : shippingname,
+          billinggAddress: isCompanyOrder ? billinggAddress : address,
+          billingCity: isCompanyOrder ? billingCity : city,
+          billingPostalCode: isCompanyOrder ? billingPostalCode : postalCode,
+          billingCountry: isCompanyOrder ? billingCountry : country,
+          billingPhone: isCompanyOrder ? billingPhone : phone,
+          tax: isCompanyOrder ? tax : "N/A",
+          branch: isCompanyOrder ? branch : "",
+        }
         : {
-            billingName: finalShippingAddress.shippingname,
-            billinggAddress: finalShippingAddress.address,
-            billingCity: finalShippingAddress.city,
-            billingPostalCode: finalShippingAddress.postalCode,
-            billingCountry: finalShippingAddress.country,
-            billingPhone: finalShippingAddress.phone,
-            tax: "N/A",
-          };
+          billingName: shippingname,
+          billinggAddress: address,
+          billingCity: city,
+          billingPostalCode: postalCode,
+          billingCountry: country,
+          billingPhone: phone,
+          tax: "N/A",
+          branch: "",
+        };
 
       // 1. บันทึกข้อมูลที่อยู่ลง Cart (Redux)
       dispatch(
@@ -325,7 +371,7 @@ const ShippingScreen = () => {
   };
 
   return (
-    <div className="bg-[#fcfdfe] min-h-screen py-10 px-4">
+    <div className="bg-[#fcfdfe] min-h-screen py-4 md:py-6 md:py-10 px-4">
       <div className="max-w-3xl mx-auto text-start">
         <CheckoutSteps step1 step2 />
         <h1 className="text-2xl md:text-4xl font-black text-slate-900 text-center mt-6 md:mt-10 mb-6 md:mb-8 tracking-tight uppercase">
@@ -338,11 +384,11 @@ const ShippingScreen = () => {
             layout
             className="bg-white rounded-[2rem] shadow-sm border border-slate-100 overflow-hidden"
           >
-            <div className="bg-slate-50/50 px-8 py-5 border-b border-slate-100 flex items-center gap-3 text-start">
+            <div className="bg-slate-50/50 px-4 md:px-8 py-5 border-b border-slate-100 flex items-center gap-3 text-start">
               <FaTruck className="text-black" />{" "}
               <h3 className="font-bold text-slate-800">{t.receiveMethod}</h3>
             </div>
-            <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="p-4 md:p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
               <SelectionCard
                 icon={<FaTruck />}
                 title={t.sendOption}
@@ -369,7 +415,7 @@ const ShippingScreen = () => {
                 className="space-y-6 text-start"
               >
                 <div className="bg-white rounded-[2rem] shadow-sm border border-slate-100 overflow-hidden">
-                  <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="p-4 md:p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
                     <SelectionCard
                       icon={<FaIdCard />}
                       title={t.useProfile}
@@ -386,7 +432,7 @@ const ShippingScreen = () => {
                 </div>
 
                 <div className="bg-white rounded-[2rem] shadow-sm border border-slate-100 overflow-hidden">
-                  <div className="bg-slate-50/50 px-8 py-5 border-b border-slate-100 flex items-center gap-3 text-start">
+                  <div className="bg-slate-50/50 px-4 md:px-8 py-5 border-b border-slate-100 flex items-center gap-3 text-start">
                     <FaMapMarkerAlt className="text-black" />{" "}
                     <h3 className="font-bold text-slate-800">
                       {t.shippingDetails}
@@ -394,7 +440,7 @@ const ShippingScreen = () => {
                   </div>
                   <div className="p-4 md:p-8 text-start">
                     {addressSource === "profile" ? (
-                      <div className="bg-slate-50 border border-slate-100 rounded-2xl p-6 relative overflow-hidden group text-start">
+                      <div className="bg-slate-50 border border-slate-100 rounded-2xl p-4 md:p-6 relative overflow-hidden group text-start">
                         <div className="relative z-10 space-y-3 font-medium text-start">
                           <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
                             {t.profileAddrTitle}
@@ -489,7 +535,7 @@ const ShippingScreen = () => {
                   />
                   <InputField
                     label={t.phoneLabel}
-                    value={userInfo.phone || "N/A"}
+                    value={userInfo?.shippingAddress?.phone || userInfo?.phone || "N/A"}
                     disabled
                   />
                 </div>
@@ -502,11 +548,75 @@ const ShippingScreen = () => {
             layout
             className="bg-white rounded-[2rem] shadow-sm border border-slate-100 overflow-hidden"
           >
-            <div className="bg-slate-50/50 px-8 py-5 border-b border-slate-100 flex items-center gap-3 text-start">
+            <div className="bg-slate-50/50 px-4 md:px-8 py-5 border-b border-slate-100 flex items-center gap-3 text-start">
               <FaFileInvoice className="text-black" />{" "}
               <h3 className="font-bold text-slate-800">{t.billingDetails}</h3>
             </div>
             <div className="p-4 md:p-8 space-y-6 text-start">
+              {/* Buy as Company Toggle */}
+              <div
+                onClick={() => {
+                  const newState = !isCompanyOrder;
+                  setIsCompanyOrder(newState);
+                  if (newState) {
+                    setIsBillingCompleteSelected(true);
+                    if (userInfo?.billingAddress) {
+                      setBillingName(userInfo.billingAddress.companyName || userInfo.billingAddress.billingName || "");
+                      setTax(userInfo.billingAddress.tax || "");
+                      setCompanyName(userInfo.billingAddress.companyName || userInfo.billingAddress.billingName || "");
+                      setBranch(userInfo.billingAddress.branch || "");
+                      setBillinggAddress(userInfo.billingAddress.billinggAddress || userInfo.billingAddress.address || "");
+                      setBillingCity(userInfo.billingAddress.billingCity || "");
+                      setBillingPostalCode(userInfo.billingAddress.billingPostalCode || userInfo.billingAddress.postalCode || "");
+                      setBillingCountry(userInfo.billingAddress.billingCountry || userInfo.billingAddress.country || "Thailand");
+                      setBillingPhone(userInfo.billingAddress.billingPhone || userInfo.billingAddress.phone || "");
+                    }
+                  } else {
+                    setBillingName(userInfo.shippingAddress?.shippingname || userInfo.name || "");
+                    setTax("N/A");
+                    setBranch("");
+                    setBillinggAddress(userInfo.billingAddress?.billinggAddress || userInfo.billingAddress?.address || userInfo.shippingAddress?.address || "");
+                    setBillingCity(userInfo.billingAddress?.billingCity || userInfo.shippingAddress?.city || "");
+                    setBillingPostalCode(userInfo.billingAddress?.billingPostalCode || userInfo.shippingAddress?.postalCode || "");
+                    setBillingCountry(userInfo.billingAddress?.billingCountry || userInfo.shippingAddress?.country || "Thailand");
+                    setBillingPhone(userInfo.billingAddress?.billingPhone || userInfo.shippingAddress?.phone || "");
+                  }
+                }}
+                className={`relative overflow-hidden flex items-center justify-between p-6 rounded-[2rem] border-2 transition-all duration-500 cursor-pointer group shadow-sm active:scale-[0.98] ${isCompanyOrder
+                  ? "border-black bg-gradient-to-br from-slate-900 via-slate-800 to-black text-white shadow-xl shadow-slate-900/20"
+                  : "border-slate-100 bg-white hover:border-slate-200 hover:shadow-md"
+                  }`}
+              >
+                {/* Subtle Glow Effect for Active State */}
+                {isCompanyOrder && (
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-3xl -mr-16 -mt-16 animate-pulse" />
+                )}
+
+                <div className="flex items-center gap-5 relative z-10">
+                  <div className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all duration-500 transform group-hover:rotate-6 ${isCompanyOrder ? "bg-white text-black rotate-3 shadow-lg" : "bg-slate-50 text-slate-400 group-hover:bg-slate-100 group-hover:text-black shadow-inner"
+                    }`}>
+                    <FaBuilding size={24} />
+                  </div>
+                  <div>
+                    <p className={`font-black text-base uppercase tracking-wider mb-0.5 transition-colors duration-500 ${isCompanyOrder ? "text-white" : "text-slate-800"}`}>
+                      สั่งซื้อในนามนิติบุคคล / บริษัท
+                    </p>
+                    <p className={`text-[11px] font-medium leading-tight tracking-wide transition-colors duration-500 ${isCompanyOrder ? "text-slate-400" : "text-slate-400 font-bold"}`}>
+                      {isCompanyOrder
+                        ? "✓ Verified corporate billing data active"
+                        : "( Pull company info automatically from your profile )"}
+                    </p>
+                  </div>
+                </div>
+
+                <div className={`w-12 h-12 rounded-full flex items-center justify-center border-2 transition-all duration-500 relative z-10 ${isCompanyOrder
+                  ? "border-emerald-400 bg-emerald-400 text-slate-900 scale-110 shadow-lg shadow-emerald-500/30"
+                  : "border-slate-200 bg-transparent group-hover:border-slate-300 group-hover:scale-105"
+                  }`}>
+                  {isCompanyOrder ? <FaCheckCircle size={20} /> : <div className="w-2 h-2 rounded-full bg-slate-200" />}
+                </div>
+              </div>
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <SelectionCard
                   icon={<FaFileInvoice />}
@@ -543,12 +653,19 @@ const ShippingScreen = () => {
                         fullWidth
                       />
                       <InputField
+                        label="เลขประจำตัวผู้เสียภาษี"
                         id="tax"
-                        label={t.TaxLabel}
                         value={tax}
                         onChange={(e) => setTax(e.target.value)}
-                        placeholder={t.phTax}
+                        placeholder="Tax ID (13 หลัก)"
                         isError={errors.tax}
+                      />
+                      <InputField
+                        label="สาขา (ถ้ามี)"
+                        id="branch"
+                        value={branch}
+                        onChange={(e) => setBranch(e.target.value)}
+                        placeholder="สำนักงานใหญ่ / สาขาที่..."
                       />
                       <InputField
                         id="billingPhone"
@@ -557,6 +674,7 @@ const ShippingScreen = () => {
                         onChange={(e) => setBillingPhone(e.target.value)}
                         placeholder={t.phPhone}
                         isError={errors.billingPhone}
+                        fullWidth
                       />
                       <InputField
                         id="billinggAddress"
@@ -566,6 +684,7 @@ const ShippingScreen = () => {
                         placeholder={t.phAddr}
                         isError={errors.billinggAddress}
                         fullWidth
+                        isTextArea
                       />
                       <InputField
                         id="billingCity"
@@ -580,14 +699,17 @@ const ShippingScreen = () => {
                         label={t.postalCodeLabel}
                         value={billingPostalCode}
                         onChange={(e) => setBillingPostalCode(e.target.value)}
-                        placeholder={t.phZip}
+                        placeholder={t.phZip || t.phPostal}
                         isError={errors.billingPostalCode}
                       />
                       <InputField
+                        id="billingCountry"
                         label={t.countryLabel}
                         value={billingCountry}
                         onChange={(e) => setBillingCountry(e.target.value)}
                         placeholder={t.phCountry}
+                        isError={errors.billingCountry}
+                        fullWidth
                       />
                     </div>
                   </motion.div>

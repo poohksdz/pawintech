@@ -1,5 +1,6 @@
 const asyncHandler = require("../middleware/asyncHandler");
 const { pool } = require("../config/db.js"); //  เรียก pool ให้ถูกต้อง
+const { automateQuotation } = require("../utils/quotationAutomation");
 
 // @desc    Fetch Default Price
 const getassemblyCartPCBByDefault = asyncHandler(async (req, res) => {
@@ -12,7 +13,7 @@ const getassemblyCartPCBByDefault = asyncHandler(async (req, res) => {
       return res.status(404).json({ success: false, message: "Error default" });
     res.status(200).json({ success: true, data: rows[0] });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(500).json({ success: false, message: "เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์" });
   }
 });
 
@@ -37,7 +38,7 @@ const updateassemblyCartPCBByDefault = asyncHandler(async (req, res) => {
         .json({ success: false, message: "No record found" });
     res.status(200).json({ success: true, message: "Default prices updated" });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(500).json({ success: false, message: "เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์" });
   }
 });
 
@@ -49,7 +50,7 @@ const getassemblyCartPCBs = asyncHandler(async (req, res) => {
     );
     res.status(200).json({ success: true, data: rows });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(500).json({ success: false, message: "เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์" });
   }
 });
 
@@ -66,7 +67,7 @@ const getassemblyCartPCBById = asyncHandler(async (req, res) => {
         .json({ success: false, message: "Order not found" });
     res.status(200).json({ success: true, data: rows[0] });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(500).json({ success: false, message: "เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์" });
   }
 });
 
@@ -80,7 +81,7 @@ const getassemblyCartPCBByUserId = asyncHandler(async (req, res) => {
     );
     res.status(200).json({ success: true, count: rows.length, data: rows });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(500).json({ success: false, message: "เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์" });
   }
 });
 
@@ -92,7 +93,7 @@ const getassemblyCartPCBByaccepted = asyncHandler(async (req, res) => {
     );
     res.status(200).json({ success: true, count: rows.length, data: rows });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(500).json({ success: false, message: "เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์" });
   }
 });
 
@@ -226,7 +227,7 @@ const createassemblyCartPCB = asyncHandler(async (req, res) => {
       });
   } catch (error) {
     console.error("Create Assembly Error:", error);
-    res.status(500).json({ success: false, message: error.message });
+    res.status(500).json({ success: false, message: "เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์" });
   }
 });
 
@@ -308,7 +309,7 @@ const updateassemblyCartPCB = asyncHandler(async (req, res) => {
 
     res.json({ message: "Updated successfully" });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ message: "เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์" });
   }
 });
 
@@ -320,7 +321,7 @@ const updateAmountassemblyCartPCBById = asyncHandler(async (req, res) => {
     ]);
     res.status(200).json({ success: true, message: "Qty set to 0" });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(500).json({ success: false, message: "เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์" });
   }
 });
 
@@ -336,9 +337,14 @@ const updateStatusassemblyCartPCBById = asyncHandler(async (req, res) => {
       "UPDATE pcb_assembly_carts SET status=?, confirmed_price=?, confirmed_reason=?, updated_at=NOW() WHERE id=?",
       [status, confirmed_price, confirmed_reason, id],
     );
+
+    if (status === "accepted") {
+      automateQuotation("assembly", id).catch(err => console.error("Assembly automation error:", err));
+    }
+
     res.status(200).json({ success: true, message: "Status updated" });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(500).json({ success: false, message: "เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์" });
   }
 });
 
@@ -382,7 +388,7 @@ const updateShippingassemblyCartPCBById = asyncHandler(async (req, res) => {
     await pool.query(sql, values);
     res.status(200).json({ success: true, message: "Shipping info updated" });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(500).json({ success: false, message: "เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์" });
   }
 });
 
@@ -394,7 +400,7 @@ const deleteassemblyCartPCB = asyncHandler(async (req, res) => {
     ]);
     res.status(200).json({ success: true, message: "Deleted successfully" });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(500).json({ success: false, message: "เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์" });
   }
 });
 

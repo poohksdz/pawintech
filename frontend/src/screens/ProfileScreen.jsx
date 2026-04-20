@@ -22,6 +22,7 @@ import {
   FaIdCard,
   FaCog,
   FaReceipt,
+  FaFileInvoice,
 } from "react-icons/fa";
 
 const ProfileScreen = () => {
@@ -40,6 +41,12 @@ const ProfileScreen = () => {
   const [postalCode, setPostalCode] = useState("");
   const [country, setCountry] = useState("Thailand");
   const [taxId, setTaxId] = useState("");
+  const [companyName, setCompanyName] = useState("");
+  const [companyBranch, setCompanyBranch] = useState("");
+  const [companyAddress, setCompanyAddress] = useState("");
+  const [companyCity, setCompanyCity] = useState("");
+  const [companyPostalCode, setCompanyPostalCode] = useState("");
+  const [companyPhone, setCompanyPhone] = useState("");
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -68,6 +75,12 @@ const ProfileScreen = () => {
       setCountry(shipAddr.country || "Thailand");
 
       setTaxId(userInfo.billingAddress?.tax || "");
+      setCompanyName(userInfo.billingAddress?.companyName || "");
+      setCompanyBranch(userInfo.billingAddress?.branch || "");
+      setCompanyAddress(userInfo.billingAddress?.address || "");
+      setCompanyCity(userInfo.billingAddress?.city || "");
+      setCompanyPostalCode(userInfo.billingAddress?.postalCode || "");
+      setCompanyPhone(userInfo.billingAddress?.phone || "");
     }
     refetch();
   }, [userInfo, refetch]);
@@ -93,7 +106,16 @@ const ProfileScreen = () => {
           postalCode,
           country,
         },
-        billingAddress: { ...userInfo.billingAddress, tax: taxId },
+        billingAddress: {
+          ...userInfo.billingAddress,
+          tax: taxId,
+          companyName,
+          branch: companyBranch,
+          address: companyAddress,
+          city: companyCity,
+          postalCode: companyPostalCode,
+          phone: companyPhone
+        },
       };
 
       const res = await updateProfile(updatedData).unwrap();
@@ -137,19 +159,11 @@ const ProfileScreen = () => {
 
   const paidOrders = orders
     ? [...orders]
-        .filter(
-          (order) =>
-            order.isPaid ||
-            order.status === "paid" ||
-            order.status === "accepted" ||
-            order.status === "manufacturing" ||
-            (order.paymentSlip && order.paymentSlip.trim() !== ""),
-        )
-        .sort(
-          (a, b) =>
-            new Date(b.createdAt || b.created_at) -
-            new Date(a.createdAt || a.created_at),
-        )
+      .sort(
+        (a, b) =>
+          new Date(b.createdAt || b.created_at) -
+          new Date(a.createdAt || a.created_at),
+      )
     : [];
 
   const filteredOrders = paidOrders.filter((order) => {
@@ -169,11 +183,11 @@ const ProfileScreen = () => {
   return (
     <div className="bg-slate-50 min-h-screen pt-20 md:pt-32 pb-20 font-prompt text-slate-800 antialiased overflow-x-hidden selection:bg-black selection:text-white">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex flex-col lg:flex-row gap-8 lg:gap-10 items-start">
+        <div className="flex flex-col lg:flex-row gap-4 md:gap-8 lg:gap-10 items-start">
           {/*  SIDEBAR: แผงเมนูด้านซ้าย */}
-          <div className="w-full lg:w-1/4 flex flex-col gap-6 sticky top-22 z-10 self-start">
+          <div className="w-full lg:w-1/4 flex flex-col gap-4 md:gap-6 sticky top-22 z-10 self-start">
             {/* Profile Card */}
-            <div className="bg-white/80 backdrop-blur-xl rounded-[2.5rem] p-8 border border-white/50 shadow-[0_8px_30px_rgb(0,0,0,0.04)] flex flex-col items-center text-center relative overflow-hidden group w-full transition-all duration-500 hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)]">
+            <div className="bg-white/80 backdrop-blur-xl rounded-[2.5rem] p-4 md:p-8 border border-white/50 shadow-[0_8px_30px_rgb(0,0,0,0.04)] flex flex-col items-center text-center relative overflow-hidden group w-full transition-all duration-500 hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)]">
               <div className="absolute inset-0 bg-gradient-to-br from-blue-50/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
 
               <div className="relative w-24 h-24 rounded-full bg-slate-100 flex items-center justify-center text-slate-300 mb-5 shadow-inner border-4 border-white transform group-hover:scale-105 transition-transform duration-500">
@@ -196,11 +210,10 @@ const ProfileScreen = () => {
             <div className="bg-white/80 backdrop-blur-xl rounded-[1.5rem] md:rounded-[2rem] border border-white/50 shadow-[0_8px_30px_rgb(0,0,0,0.04)] flex flex-col p-2 gap-2 w-full sticky top-20 lg:static z-20">
               <button
                 onClick={() => setActiveTab("orders")}
-                className={`w-full flex items-center justify-center lg:justify-start gap-2.5 md:gap-3 px-4 md:px-5 py-3.5 md:py-4 rounded-[1.2rem] md:rounded-[1.5rem] transition-all duration-500 ease-out border ${
-                  activeTab === "orders"
-                    ? "bg-black text-white border-black shadow-lg transform scale-[1.02]"
-                    : "bg-transparent text-slate-500 border-transparent hover:bg-slate-50 hover:text-slate-800"
-                }`}
+                className={`w-full flex items-center justify-center lg:justify-start gap-2.5 md:gap-3 px-4 md:px-5 py-3.5 md:py-4 rounded-[1.2rem] md:rounded-[1.5rem] transition-all duration-500 ease-out border ${activeTab === "orders"
+                  ? "bg-black text-white border-black shadow-lg transform scale-[1.02]"
+                  : "bg-transparent text-slate-500 border-transparent hover:bg-slate-50 hover:text-slate-800"
+                  }`}
               >
                 <FaShoppingBag
                   className={`shrink-0 text-[18px] transition-transform duration-500 ${activeTab === "orders" ? "text-white scale-110" : "text-slate-400 group-hover:scale-110"}`}
@@ -211,11 +224,10 @@ const ProfileScreen = () => {
               </button>
               <button
                 onClick={() => setActiveTab("settings")}
-                className={`w-full flex items-center justify-center lg:justify-start gap-2.5 md:gap-3 px-4 md:px-5 py-3.5 md:py-4 rounded-[1.2rem] md:rounded-[1.5rem] transition-all duration-500 ease-out border ${
-                  activeTab === "settings"
-                    ? "bg-black text-white border-black shadow-lg transform scale-[1.02]"
-                    : "bg-transparent text-slate-500 border-transparent hover:bg-slate-50 hover:text-slate-800"
-                }`}
+                className={`w-full flex items-center justify-center lg:justify-start gap-2.5 md:gap-3 px-4 md:px-5 py-3.5 md:py-4 rounded-[1.2rem] md:rounded-[1.5rem] transition-all duration-500 ease-out border ${activeTab === "settings"
+                  ? "bg-black text-white border-black shadow-lg transform scale-[1.02]"
+                  : "bg-transparent text-slate-500 border-transparent hover:bg-slate-50 hover:text-slate-800"
+                  }`}
               >
                 <FaCog
                   className={`shrink-0 text-[18px] transition-transform duration-500 ${activeTab === "settings" ? "text-white rotate-90" : "text-slate-400 group-hover:rotate-90"}`}
@@ -350,13 +362,16 @@ const ProfileScreen = () => {
                                 delay: index * 0.05,
                               }}
                               key={`${order.orderType}-${order.id}`}
-                              onClick={() =>
-                                navigate(
-                                  order.orderType === "product"
-                                    ? `/order/${order.id}`
-                                    : `/orderpcbs/${order.id}`,
-                                )
-                              }
+                              onClick={() => {
+                                const routeMap = {
+                                  product: `/order/${order.id}`,
+                                  pcb: `/orderpcbs/${order.id}`,
+                                  custom: `/custompcb/${order.id}`,
+                                  copy: `/copypcb/${order.id}`,
+                                  assembly: `/assemblypcb/${order.id}`,
+                                };
+                                navigate(routeMap[order.orderType] || `/orderpcbs/${order.id}`);
+                              }}
                               className="bg-white rounded-[1.5rem] border border-slate-100 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 overflow-hidden flex flex-col cursor-pointer group/card"
                             >
                               {/* Card Header */}
@@ -400,21 +415,58 @@ const ProfileScreen = () => {
                                   <p className="text-[9px] text-slate-400 font-bold uppercase tracking-widest mb-0.5">
                                     ยอดสุทธิ
                                   </p>
-                                  <p className="text-base font-black text-black tracking-tight">
-                                    {order.amount
-                                      ? Number(order.amount).toLocaleString()
-                                      : "0"}{" "}
-                                    <span className="text-xs font-bold ml-0.5">
-                                      ฿
-                                    </span>
-                                  </p>
+                                  <div className="flex items-center justify-end gap-2">
+                                    <div className="flex gap-2">
+                                      {order.quotation_no && (
+                                        <a
+                                          href={`/${order.quotation_no}`}
+                                          target="_blank"
+                                          onClick={(e) => e.stopPropagation()}
+                                          className="p-1 px-2 text-slate-500 hover:bg-slate-100 rounded-lg transition-all border border-slate-200 flex items-center gap-1.5"
+                                          title="ดูใบเสนอราคา"
+                                        >
+                                          <FaReceipt size={10} />
+                                          <span className="text-[9px] font-black uppercase tracking-tighter">Quote</span>
+                                        </a>
+                                      )}
+
+                                      <div
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          const routeMap = {
+                                            product: `/order/${order.id}`,
+                                            pcb: `/orderpcbs/${order.id}`,
+                                            custom: `/custompcb/${order.id}`,
+                                            copy: `/copypcb/${order.id}`,
+                                            assembly: `/assemblypcb/${order.id}`,
+                                          };
+                                          navigate(routeMap[order.orderType] || `/orderpcbs/${order.id}`);
+                                        }}
+                                        className="p-1 px-2 text-indigo-600 bg-indigo-50/50 hover:bg-indigo-100 rounded-lg transition-all border border-indigo-100 flex items-center gap-1.5"
+                                        title="ดูรายละเอียดและใบแจ้งหนี้"
+                                      >
+                                        <FaFileInvoice size={10} />
+                                        <span className="text-[9px] font-black uppercase tracking-tighter">
+                                          {order.isPaid ? "Tax Inv." : "Invoice"}
+                                        </span>
+                                      </div>
+                                    </div>
+                                    <p className="text-base font-black text-black tracking-tight">
+                                      {order.amount
+                                        ? Number(order.amount).toLocaleString()
+                                        : "0"}{" "}
+                                      <span className="text-xs font-bold ml-0.5">
+                                        ฿
+                                      </span>
+                                    </p>
+                                  </div>
                                 </div>
                               </div>
 
                               {/*  แก้ไข Card Body (Items): ให้กะทัดรัด (Compact) อ่านง่าย ไม่รกตา */}
                               <div className="px-5 py-3 bg-white">
                                 {order.orderType === "product" &&
-                                Array.isArray(order.orderItems) ? (
+                                  Array.isArray(order.orderItems) ? (
                                   <div className="flex flex-col gap-2">
                                     {order.orderItems.map((item, idx) => (
                                       <div
@@ -541,7 +593,7 @@ const ProfileScreen = () => {
                   <div className="space-y-6 text-start">
                     <form onSubmit={submitHandler} className="space-y-6">
                       {/*  Section 1: ข้อมูลส่วนตัว */}
-                      <div className="bg-white/80 backdrop-blur-xl rounded-[2.5rem] border border-white/50 shadow-[0_8px_30px_rgb(0,0,0,0.04)] p-6 md:p-10 transition-all duration-500 hover:shadow-[0_8px_30px_rgb(0,0,0,0.06)]">
+                      <div className="bg-white/80 backdrop-blur-xl rounded-[2.5rem] border border-white/50 shadow-[0_8px_30px_rgb(0,0,0,0.04)] p-4 md:p-8 transition-all duration-500 hover:shadow-[0_8px_30px_rgb(0,0,0,0.06)]">
                         <div className="flex items-center gap-4 mb-6 md:mb-8 pb-5 border-b border-slate-100/80">
                           <div className="w-12 h-12 rounded-[1rem] bg-gradient-to-br from-blue-50 to-blue-100/50 text-blue-600 flex items-center justify-center border border-blue-200/50 shadow-inner">
                             <FaUser size={18} />
@@ -565,7 +617,8 @@ const ProfileScreen = () => {
                               type="text"
                               value={name}
                               onChange={(e) => setName(e.target.value)}
-                              className="w-full bg-transparent text-sm font-bold text-slate-800 outline-none"
+                              placeholder="ระบุชื่อจริง"
+                              className="w-full bg-transparent text-sm font-bold text-slate-800 outline-none placeholder:text-slate-300"
                             />
                           </div>
                           <div className="relative bg-slate-50/80 border border-slate-200 focus-within:border-black focus-within:ring-4 focus-within:ring-black/5 focus-within:bg-white rounded-[1.2rem] px-5 py-3.5 transition-all duration-300 group">
@@ -576,14 +629,15 @@ const ProfileScreen = () => {
                               type="email"
                               value={email}
                               onChange={(e) => setEmail(e.target.value)}
-                              className="w-full bg-transparent text-sm font-bold text-slate-800 outline-none"
+                              placeholder="example@gmail.com"
+                              className="w-full bg-transparent text-sm font-bold text-slate-800 outline-none placeholder:text-slate-300"
                             />
                           </div>
                         </div>
                       </div>
 
                       {/*  Section 2: ที่อยู่จัดส่งหลัก */}
-                      <div className="bg-white/80 backdrop-blur-xl rounded-[2.5rem] border border-white/50 shadow-[0_8px_30px_rgb(0,0,0,0.04)] p-6 md:p-10 transition-all duration-500 hover:shadow-[0_8px_30px_rgb(0,0,0,0.06)]">
+                      <div className="bg-white/80 backdrop-blur-xl rounded-[2.5rem] border border-white/50 shadow-[0_8px_30px_rgb(0,0,0,0.04)] p-4 md:p-8 transition-all duration-500 hover:shadow-[0_8px_30px_rgb(0,0,0,0.06)]">
                         <div className="flex items-center gap-4 mb-6 md:mb-8 pb-5 border-b border-slate-100/80">
                           <div className="w-12 h-12 rounded-[1rem] bg-gradient-to-br from-rose-50 to-rose-100/50 text-rose-500 flex items-center justify-center border border-rose-200/50 shadow-inner">
                             <FaMapMarkerAlt size={18} />
@@ -661,32 +715,113 @@ const ProfileScreen = () => {
                         </div>
                       </div>
 
-                      {/*  Section 3: ข้อมูลใบกำกับภาษี */}
-                      <div className="bg-white/80 backdrop-blur-xl rounded-[2.5rem] border border-white/50 shadow-[0_8px_30px_rgb(0,0,0,0.04)] p-6 md:p-10 transition-all duration-500 hover:shadow-[0_8px_30px_rgb(0,0,0,0.06)]">
+                      {/*  Section 3: ข้อมูลบริษัทและใบกำกับภาษี */}
+                      <div className="bg-white/80 backdrop-blur-xl rounded-[2.5rem] border border-white/50 shadow-[0_8px_30px_rgb(0,0,0,0.04)] p-4 md:p-8 transition-all duration-500 hover:shadow-[0_8px_30px_rgb(0,0,0,0.06)]">
                         <div className="flex items-center gap-4 mb-6 md:mb-8 pb-5 border-b border-slate-100/80">
                           <div className="w-12 h-12 rounded-[1rem] bg-gradient-to-br from-emerald-50 to-emerald-100/50 text-emerald-600 flex items-center justify-center border border-emerald-200/50 shadow-inner">
-                            <FaIdCard size={18} />
+                            <FaStore size={18} />
                           </div>
                           <div>
                             <h3 className="text-base font-black text-slate-900 uppercase tracking-wide">
-                              ข้อมูลใบกำกับภาษี
+                              ข้อมูลบริษัทและใบกำกับภาษี
                             </h3>
                             <p className="text-xs text-slate-400 font-medium mt-0.5">
-                              ระบุหากต้องการขอใบกำกับภาษีเต็มรูปแบบ
+                              จัดการข้อมูลบริษัทสำหรับออกเอกสารใบเสร็จ/ใบกำกับภาษี
                             </p>
                           </div>
                         </div>
-                        <div className="relative md:w-2/3 bg-slate-50/80 border border-slate-200 focus-within:border-black focus-within:ring-4 focus-within:ring-black/5 focus-within:bg-white rounded-[1.2rem] px-5 py-3.5 transition-all duration-300 group">
-                          <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1 group-focus-within:text-black transition-colors">
-                            เลขประจำตัวผู้เสียภาษี (Tax ID)
-                          </label>
-                          <input
-                            type="text"
-                            value={taxId}
-                            onChange={(e) => setTaxId(e.target.value)}
-                            placeholder="เลข 13 หลัก (เว้นว่างได้)"
-                            className="w-full bg-transparent text-sm font-bold text-slate-800 outline-none placeholder:text-slate-300 placeholder:font-medium"
-                          />
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5">
+                          <div className="relative bg-slate-50/80 border border-slate-200 focus-within:border-emerald-400 focus-within:ring-4 focus-within:ring-emerald-400/10 focus-within:bg-white rounded-[1.2rem] px-5 py-3.5 transition-all duration-300 group">
+                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1 group-focus-within:text-emerald-600 transition-colors">
+                              ชื่อบริษัท / องค์กร
+                            </label>
+                            <input
+                              type="text"
+                              value={companyName}
+                              onChange={(e) => setCompanyName(e.target.value)}
+                              placeholder="ระบุชื่อบริษัท"
+                              className="w-full bg-transparent text-sm font-bold text-slate-800 outline-none placeholder:text-slate-300 placeholder:font-medium"
+                            />
+                          </div>
+
+                          <div className="relative bg-slate-50/80 border border-slate-200 focus-within:border-emerald-400 focus-within:ring-4 focus-within:ring-emerald-400/10 focus-within:bg-white rounded-[1.2rem] px-5 py-3.5 transition-all duration-300 group">
+                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1 group-focus-within:text-emerald-600 transition-colors">
+                              สาขา (ถ้ามี)
+                            </label>
+                            <input
+                              type="text"
+                              value={companyBranch}
+                              onChange={(e) => setCompanyBranch(e.target.value)}
+                              placeholder="สำนักงานใหญ่ / สาขาที่..."
+                              className="w-full bg-transparent text-sm font-bold text-slate-800 outline-none placeholder:text-slate-300 placeholder:font-medium"
+                            />
+                          </div>
+
+                          <div className="relative bg-slate-50/80 border border-slate-200 focus-within:border-emerald-400 focus-within:ring-4 focus-within:ring-emerald-400/10 focus-within:bg-white rounded-[1.2rem] px-5 py-3.5 transition-all duration-300 group">
+                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1 group-focus-within:text-emerald-600 transition-colors">
+                              เลขประจำตัวผู้เสียภาษี (Tax ID)
+                            </label>
+                            <input
+                              type="text"
+                              value={taxId}
+                              onChange={(e) => setTaxId(e.target.value)}
+                              placeholder="เลข 13 หลัก"
+                              className="w-full bg-transparent text-sm font-bold text-slate-800 outline-none placeholder:text-slate-300 placeholder:font-medium"
+                            />
+                          </div>
+
+                          <div className="relative bg-slate-50/80 border border-slate-200 focus-within:border-emerald-400 focus-within:ring-4 focus-within:ring-emerald-400/10 focus-within:bg-white rounded-[1.2rem] px-5 py-3.5 transition-all duration-300 group">
+                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1 group-focus-within:text-emerald-600 transition-colors">
+                              เบอร์โทรศัพท์บริษัท
+                            </label>
+                            <input
+                              type="tel"
+                              value={companyPhone}
+                              onChange={(e) => setCompanyPhone(e.target.value)}
+                              placeholder="02-XXX-XXXX"
+                              className="w-full bg-transparent text-sm font-bold text-slate-800 outline-none placeholder:text-slate-300 placeholder:font-medium"
+                            />
+                          </div>
+
+                          <div className="md:col-span-2 relative bg-slate-50/80 border border-slate-200 focus-within:border-emerald-400 focus-within:ring-4 focus-within:ring-emerald-400/10 focus-within:bg-white rounded-[1.2rem] px-5 py-3.5 transition-all duration-300 group">
+                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1 group-focus-within:text-emerald-600 transition-colors">
+                              ที่อยู่ทางบัญชี (เลขที่, ถนน, ซอย)
+                            </label>
+                            <textarea
+                              rows="2"
+                              value={companyAddress}
+                              onChange={(e) => setCompanyAddress(e.target.value)}
+                              placeholder="รายละเอียดที่อยู่บริษัท..."
+                              className="w-full bg-transparent text-sm font-bold text-slate-800 outline-none resize-none placeholder:text-slate-300 placeholder:font-medium"
+                            ></textarea>
+                          </div>
+
+                          <div className="relative bg-slate-50/80 border border-slate-200 focus-within:border-emerald-400 focus-within:ring-4 focus-within:ring-emerald-400/10 focus-within:bg-white rounded-[1.2rem] px-5 py-3.5 transition-all duration-300 group">
+                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1 group-focus-within:text-emerald-600 transition-colors">
+                              จังหวัด / เขต
+                            </label>
+                            <input
+                              type="text"
+                              value={companyCity}
+                              onChange={(e) => setCompanyCity(e.target.value)}
+                              placeholder="กรุงเทพมหานคร"
+                              className="w-full bg-transparent text-sm font-bold text-slate-800 outline-none placeholder:text-slate-300 placeholder:font-medium"
+                            />
+                          </div>
+
+                          <div className="relative bg-slate-50/80 border border-slate-200 focus-within:border-emerald-400 focus-within:ring-4 focus-within:ring-emerald-400/10 focus-within:bg-white rounded-[1.2rem] px-5 py-3.5 transition-all duration-300 group">
+                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1 group-focus-within:text-emerald-600 transition-colors">
+                              รหัสไปรษณีย์
+                            </label>
+                            <input
+                              type="text"
+                              value={companyPostalCode}
+                              onChange={(e) => setCompanyPostalCode(e.target.value)}
+                              placeholder="10xxx"
+                              className="w-full bg-transparent text-sm font-bold text-slate-800 outline-none placeholder:text-slate-300 placeholder:font-medium"
+                            />
+                          </div>
                         </div>
                       </div>
 
@@ -695,7 +830,7 @@ const ProfileScreen = () => {
                         <button
                           type="submit"
                           disabled={loadingUpdateProfile}
-                          className="w-full md:w-auto px-10 py-4 md:py-5 rounded-[1.5rem] bg-black text-white font-black text-sm uppercase tracking-widest hover:bg-black/90 shadow-[0_10px_20px_rgba(0,0,0,0.1)] transition-all duration-500 active:scale-95 disabled:bg-slate-300 disabled:shadow-none flex items-center justify-center gap-3 transform hover:-translate-y-1"
+                          className="w-full md:w-auto px-4 md:px-10 py-4 md:py-5 rounded-[1.5rem] bg-black text-white font-black text-sm uppercase tracking-widest hover:bg-black/90 shadow-[0_10px_20px_rgba(0,0,0,0.1)] transition-all duration-500 active:scale-95 disabled:bg-slate-300 disabled:shadow-none flex items-center justify-center gap-3 transform hover:-translate-y-1"
                         >
                           {loadingUpdateProfile ? (
                             <Loader size={20} color="white" />
@@ -715,11 +850,11 @@ const ProfileScreen = () => {
         </div>
       </div>
 
-      <style>{`
+      <style dangerouslySetInnerHTML={{ __html: `
                 .hide-scrollbar::-webkit-scrollbar { display: none; }
                 .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
                 .animate-spin-slow { animation: spin 3s linear infinite; }
-            `}</style>
+            ` }} />
     </div>
   );
 };

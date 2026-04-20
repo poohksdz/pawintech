@@ -23,6 +23,9 @@ import { toast } from "react-toastify";
 import Loader from "../../components/Loader";
 import Message from "../../components/Message";
 import { useGetAssemblycartByIdQuery } from "../../slices/assemblypcbCartApiSlice";
+import { useGetDefaultInvoiceUsedQuery } from "../../slices/defaultInvoicesApiSlice";
+import FullTaxInvoiceA4 from "../../components/FullTaxInvoiceA4";
+import { FaPrint } from "react-icons/fa";
 import { BASE_URL as APP_BASE_URL } from "../../constants";
 
 const OrderassemblyCartDetailScreen = () => {
@@ -30,7 +33,10 @@ const OrderassemblyCartDetailScreen = () => {
   const { id } = useParams();
   const [zoomedImage, setZoomedImage] = useState(null);
   const { data, isLoading, isError, error } = useGetAssemblycartByIdQuery(id);
+  const { data: companyInfo } = useGetDefaultInvoiceUsedQuery();
+  const { userInfo } = useSelector((state) => state.auth);
   const { language } = useSelector((state) => state.language);
+
 
   const getFullUrl = (pathInput) => {
     if (!pathInput) return null;
@@ -157,7 +163,7 @@ const OrderassemblyCartDetailScreen = () => {
     );
   if (isError)
     return (
-      <div className="p-10">
+      <div className="p-4 md:p-8">
         <Message variant="danger">{error.message}</Message>
       </div>
     );
@@ -197,7 +203,7 @@ const OrderassemblyCartDetailScreen = () => {
     <div className="min-h-screen bg-[#f8fafc] py-12 px-4 md:px-8 font-prompt">
       <div className="max-w-6xl mx-auto space-y-12">
         {/* Header Section */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 md:gap-6">
           <div className="space-y-4">
             <Link
               to="/cart/assemblycart"
@@ -215,14 +221,14 @@ const OrderassemblyCartDetailScreen = () => {
           <div className="flex items-center gap-3">
             <button
               onClick={handleDownloadAll}
-              className="px-6 py-3 bg-slate-900 hover:bg-indigo-600 text-white rounded-2xl font-black text-[11px] uppercase tracking-widest transition-all shadow-xl shadow-slate-200 flex items-center gap-3 active:scale-95"
+              className="px-4 md:px-6 py-3 bg-slate-900 hover:bg-indigo-600 text-white rounded-2xl font-black text-[11px] uppercase tracking-widest transition-all shadow-xl shadow-slate-200 flex items-center gap-3 active:scale-95"
             >
               <FaDownload size={12} /> Download Project Package
             </button>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 md:gap-6 md:gap-10">
           {/* Main Content Areas */}
           <div className="lg:col-span-8 space-y-10">
             {/* Project Specs Grid */}
@@ -275,7 +281,7 @@ const OrderassemblyCartDetailScreen = () => {
               <h2 className="text-xl font-black text-slate-900 uppercase tracking-tight flex items-center gap-3">
                 Notes & Evaluation
               </h2>
-              <div className="bg-white rounded-[2rem] border border-slate-200/60 p-8 shadow-sm space-y-8">
+              <div className="bg-white rounded-[2rem] border border-slate-200/60 p-4 md:p-8 shadow-sm space-y-8">
                 <div>
                   <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-3">
                     Customer Note
@@ -289,7 +295,7 @@ const OrderassemblyCartDetailScreen = () => {
                     <h4 className="text-[10px] font-black text-indigo-400 uppercase tracking-[0.2em] mb-4">
                       Engineer's Response
                     </h4>
-                    <div className="p-6 bg-slate-50 border border-slate-100 rounded-2xl text-slate-700 font-bold whitespace-pre-wrap leading-relaxed text-[13px]">
+                    <div className="p-4 md:p-6 bg-slate-50 border border-slate-100 rounded-2xl text-slate-700 font-bold whitespace-pre-wrap leading-relaxed text-[13px]">
                       {order.confirmed_reason}
                     </div>
                   </div>
@@ -301,7 +307,7 @@ const OrderassemblyCartDetailScreen = () => {
           {/* Sidebar / Photo Gallery */}
           <div className="lg:col-span-4 space-y-10">
             {/* Status Summary Card */}
-            <div className="bg-slate-900 rounded-[2.5rem] p-8 text-white shadow-2xl shadow-slate-200/50 space-y-8">
+            <div className="bg-slate-900 rounded-[2.5rem] p-4 md:p-8 text-white shadow-2xl shadow-slate-200/50 space-y-8">
               <div className="space-y-1 border-b border-white/5 pb-4">
                 <h3 className="text-[11px] font-black uppercase tracking-[0.2em] text-indigo-400">
                   {t.Status}
@@ -375,7 +381,7 @@ const OrderassemblyCartDetailScreen = () => {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={() => setZoomedImage(null)}
-            className="fixed inset-0 z-[100] bg-slate-900/90 backdrop-blur-md flex items-center justify-center p-6 cursor-zoom-out"
+            className="fixed inset-0 z-[100] bg-slate-900/90 backdrop-blur-md flex items-center justify-center p-4 md:p-6 cursor-zoom-out"
           >
             <motion.img
               initial={{ scale: 0.9, opacity: 0 }}
@@ -395,9 +401,10 @@ const OrderassemblyCartDetailScreen = () => {
         )}
       </AnimatePresence>
 
-      <style>{`
+      <style dangerouslySetInnerHTML={{ __html: `
         .font-prompt { font-family: 'Prompt', sans-serif; }
-      `}</style>
+      ` }} />
+
     </div>
   );
 };

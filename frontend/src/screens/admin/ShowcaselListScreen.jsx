@@ -26,6 +26,7 @@ import { toast } from "react-toastify";
 
 const ShowcaselListScreen = () => {
   const { pageNumber } = useParams();
+  const { userInfo } = useSelector((state) => state.auth);
 
   const [showModal, setShowModal] = useState(false);
   const [showcaseToDelete, setShowcaseToDelete] = useState(null);
@@ -35,9 +36,7 @@ const ShowcaselListScreen = () => {
   const [newDisplayOrder, setNewDisplayOrder] = useState(0);
   const [selectedPresent, setSelectedPresent] = useState("");
 
-  const { data, isLoading, error, refetch } = useGetShowcasesQuery({
-    pageNumber,
-  });
+  const { data, isLoading, error, refetch } = useGetShowcasesQuery({ pageNumber }, { skip: !userInfo });
 
   const [deleteShowcase, { isLoading: loadingDelete }] =
     useDeleteShowcaseMutation();
@@ -102,7 +101,7 @@ const ShowcaselListScreen = () => {
           <h1>{t.showcasesLbl}</h1>
         </Col>
         <Col className="text-end">
-          <Button className="my-3" as={Link} to={`/admin/showcase/create`}>
+          <Button className="my-3" as={Link} to="/admin/showcase/create">
             <FaPlus /> {t.createShowcaseLbl}
           </Button>
         </Col>

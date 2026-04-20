@@ -1,5 +1,6 @@
 import React from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { useSelector } from "react-redux";
 import Message from "./Message";
 import { useGetShowcasesQuery } from "../slices/showcasesApiSlice";
 import { Swiper, SwiperSlide } from "swiper/react";
@@ -12,7 +13,8 @@ import "./swiper-custom.css";
 const ProductCarousel2 = () => {
   const { pageNumber } = useParams();
   const navigate = useNavigate();
-  const { data, isLoading, error } = useGetShowcasesQuery({ pageNumber });
+  const { userInfo } = useSelector((state) => state.auth);
+  const { data, isLoading, error } = useGetShowcasesQuery({ pageNumber }, { skip: !userInfo });
 
   const handleNavigateLinkChange = (navigateLink) => {
     if (navigateLink) navigate(`${navigateLink}`);

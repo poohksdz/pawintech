@@ -141,7 +141,7 @@ const StatCard = ({ title, count, amount, colorTheme }) => {
   const theme = themes[colorTheme] || themes.emerald;
 
   return (
-    <div className={`bg-white px-6 py-4 rounded-2xl border ${theme.border} shadow-sm relative overflow-hidden group min-w-[220px] transition-all hover:shadow-md`}>
+    <div className={`bg-white px-4 md:px-6 py-4 rounded-2xl border ${theme.border} shadow-sm relative overflow-hidden group min-w-[220px] transition-all hover:shadow-md`}>
       <div className={`absolute top-0 left-0 w-1 h-full ${theme.accent}`}></div>
       <div className="flex flex-col gap-1">
         <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
@@ -181,7 +181,7 @@ const PaymentTableRow = ({
       className="border-b border-slate-50 last:border-0 hover:bg-slate-50/50 transition-colors group"
     >
       {/* Column 1: Reference & Info */}
-      <td className="px-6 py-6 vertical-top align-top">
+      <td className="px-4 md:px-6 py-4 md:py-6 vertical-top align-top">
         <div className="flex flex-col gap-2 text-start">
           <div className="flex items-center gap-2">
             <span className={`px-2 py-0.5 rounded text-[10px] font-bold border uppercase ${item.orderType === "custom"
@@ -240,7 +240,7 @@ const PaymentTableRow = ({
       </td>
 
       {/* Column 2: Customer & Shipping */}
-      <td className="px-6 py-6 align-top">
+      <td className="px-4 md:px-6 py-4 md:py-6 align-top">
         <div className="flex flex-col gap-3 text-start">
           <div className="flex items-center justify-between">
             <div className={`flex items-center gap-2 font-bold text-[10px] uppercase tracking-wider ${isAtCompany ? "text-amber-600" : "text-blue-500"}`}>
@@ -276,7 +276,7 @@ const PaymentTableRow = ({
       </td>
 
       {/* Column 3: Status */}
-      <td className="px-6 py-6 align-middle text-center border-x border-slate-50">
+      <td className="px-4 md:px-6 py-4 md:py-6 align-middle text-center border-x border-slate-50">
         <div className="flex flex-col items-center justify-center min-w-[100px]">
           {isRejected ? (
             <div className="flex flex-col items-center text-rose-400 gap-1.5">
@@ -310,7 +310,7 @@ const PaymentTableRow = ({
       </td>
 
       {/* Column 4: Actions */}
-      <td className="px-6 py-6 align-middle">
+      <td className="px-4 md:px-6 py-4 md:py-6 align-middle">
         <div className="flex items-center justify-center">
           {isRejected ? (
             <div className="w-8 h-px bg-slate-100" />
@@ -454,8 +454,8 @@ const AdminPaymentListScreen = () => {
             );
             refetch();
           } else {
-            const errorData = await res.json();
-            toast.error(errorData.message || "ไม่สามารถอัปเดตข้อมูลได้");
+            const { message } = await res.json();
+            toast.error(message || "ไม่สามารถอัปเดตข้อมูลได้");
           }
         }
       } catch (err) {
@@ -562,12 +562,12 @@ const AdminPaymentListScreen = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50/50 py-8 px-4 md:px-10 font-['Prompt'] antialiased text-start">
-      <style>{`.hide-scrollbar::-webkit-scrollbar { display: none; } .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }`}</style>
+    <div className="min-h-screen bg-slate-50/50 py-4 md:py-8 px-4 md:px-10 font-['Prompt'] antialiased text-start">
+      <style dangerouslySetInnerHTML={{ __html: `.hide-scrollbar::-webkit-scrollbar { display: none; } .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }` }} />
 
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Header Section */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 md:gap-6 bg-white p-4 md:p-6 rounded-2xl border border-slate-200 shadow-sm">
           <div className="flex items-center gap-4">
             <div className="w-14 h-14 rounded-xl bg-slate-900 flex items-center justify-center text-white shadow-lg shrink-0">
               <FaFileInvoiceDollar size={28} />
@@ -684,7 +684,7 @@ const AdminPaymentListScreen = () => {
                 {/* 3. ปุ่มส่งออก */}
                 <button
                   onClick={handleExport}
-                  className="bg-slate-900 text-white px-6 py-3 rounded-xl font-bold text-sm hover:bg-slate-800 transition-all shadow-sm flex items-center justify-center gap-2 active:scale-95 shrink-0 whitespace-nowrap"
+                  className="bg-slate-900 text-white px-4 md:px-6 py-3 rounded-xl font-bold text-sm hover:bg-slate-800 transition-all shadow-sm flex items-center justify-center gap-2 active:scale-95 shrink-0 whitespace-nowrap"
                 >
                   <FaDownload size={14} /> <span>รายงาน</span>
                 </button>
@@ -715,16 +715,16 @@ const AdminPaymentListScreen = () => {
                   <table className="w-full border-collapse">
                     <thead>
                       <tr className="bg-slate-50 text-slate-500 border-b border-slate-200">
-                        <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-wider text-start">
+                        <th className="px-4 md:px-6 py-4 text-[10px] font-bold uppercase tracking-wider text-start">
                           ข้อมูลออเดอร์
                         </th>
-                        <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-wider text-start">
+                        <th className="px-4 md:px-6 py-4 text-[10px] font-bold uppercase tracking-wider text-start">
                           การจัดส่ง
                         </th>
-                        <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-wider text-center w-28">
+                        <th className="px-4 md:px-6 py-4 text-[10px] font-bold uppercase tracking-wider text-center w-28">
                           สถานะ
                         </th>
-                        <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-wider text-center">
+                        <th className="px-4 md:px-6 py-4 text-[10px] font-bold uppercase tracking-wider text-center">
                           จัดการรายการ
                         </th>
                       </tr>
@@ -772,7 +772,7 @@ const AdminPaymentListScreen = () => {
                   initial={{ scale: 0.95, y: 10 }}
                   animate={{ scale: 1, y: 0 }}
                   exit={{ scale: 0.95, y: 10 }}
-                  className="bg-white rounded-2xl p-6 max-w-lg w-full relative shadow-2xl"
+                  className="bg-white rounded-2xl p-4 md:p-6 max-w-lg w-full relative shadow-2xl"
                   onClick={(e) => e.stopPropagation()}
                 >
                   <div className="flex justify-between items-center mb-6">

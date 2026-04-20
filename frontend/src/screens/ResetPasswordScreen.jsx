@@ -110,7 +110,7 @@ const ResetPasswordScreen = () => {
   return (
     <div className="min-h-screen flex items-center justify-center py-12 px-4 bg-[#F1F5F9] font-['Prompt'] antialiased">
       <div className="max-w-md w-full animate__animated animate__fadeInUp">
-        <div className="bg-white shadow-2xl shadow-indigo-200/40 rounded-[2.5rem] p-10 md:p-12 border border-white">
+        <div className="bg-white shadow-2xl shadow-indigo-200/40 rounded-[2.5rem] p-4 md:p-8 md:p-12 border border-white">
           {/* Header & Logo */}
           <div className="text-center mb-10">
             <div className="w-20 h-20 bg-indigo-50 text-indigo-600 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-inner animate-pulse">

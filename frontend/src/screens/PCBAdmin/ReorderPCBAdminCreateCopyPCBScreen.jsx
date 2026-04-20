@@ -149,8 +149,8 @@ const ReorderCopyPCBToCartScreen = () => {
 
       toast.success("Reorder added to cart");
       navigate("/cart/copypcbcart");
-    } catch {
-      toast.error("Failed to reorder");
+    } catch (error) {
+      toast.error(error?.data?.message || "Failed to reorder");
     }
   };
 

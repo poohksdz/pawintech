@@ -10,6 +10,7 @@ import {
   FaBoxOpen,
   FaRobot,
   FaDownload,
+  FaReceipt,
 } from "react-icons/fa";
 import { Link, useNavigate } from "react-router-dom";
 import Loader from "../../components/Loader";
@@ -19,8 +20,11 @@ import {
   useGetAssemblyCartByUserIDQuery,
   useDeleteAssemblycartMutation,
 } from "../../slices/assemblypcbCartApiSlice";
+import { useGetDefaultInvoiceUsedQuery } from "../../slices/defaultInvoicesApiSlice";
+import FullTaxInvoiceA4 from "../../components/FullTaxInvoiceA4";
 import { toast } from "react-toastify";
 import { BASE_URL as APP_BASE_URL } from "../../constants";
+import { FaPrint } from "react-icons/fa";
 
 const OrderAssemblyCartScreen = () => {
   const navigate = useNavigate();
@@ -195,7 +199,7 @@ const OrderAssemblyCartScreen = () => {
     );
   if (error && error.status !== 404)
     return (
-      <div className="max-w-4xl mx-auto p-10">
+      <div className="max-w-4xl mx-auto p-4 md:p-8">
         <Message variant="danger">
           {error?.data?.message || error.error}
         </Message>
@@ -207,7 +211,8 @@ const OrderAssemblyCartScreen = () => {
       <div className="w-full flex flex-col lg:flex-row gap-0 overflow-hidden">
         {/*  Left Column: Cart Items */}
         <div className="flex-1 p-0 md:p-6 bg-white text-start">
-          <div className="hidden md:grid grid-cols-12 py-5 mb-8 border-b border-slate-200 text-[11px] font-black uppercase tracking-[0.2em] text-slate-400">
+          {/* DESKTOP HEADER (Premium Black) */}
+          <div className="hidden md:grid grid-cols-12 py-5 mb-8 bg-black text-[11px] font-black uppercase tracking-[0.2em] text-white rounded-t-[2rem] shadow-lg border-b border-white/10">
             <div className="col-span-1 flex items-center justify-center">
               <CustomCheckbox
                 checked={
@@ -215,22 +220,23 @@ const OrderAssemblyCartScreen = () => {
                   selectedIds.length === validOrders.length
                 }
                 onChange={toggleSelectAll}
+                variant="white"
               />
             </div>
             <div className="col-span-11 grid grid-cols-11 pl-4 gap-3 md:gap-4">
-              <div className="col-span-1 md:col-span-4 font-semibold text-slate-900">
+              <div className="col-span-1 md:col-span-4 flex items-center text-white/90 uppercase tracking-wider whitespace-nowrap">
                 {language === "thai"
-                  ? "รายการประกอบแผงวงจร"
-                  : "Assembly Project"}
+                  ? "รายการประกอบแผงวงจร / PROJECT"
+                  : "ASSEMBLY PROJECT"}
               </div>
-              <div className="col-span-1 md:col-span-1 text-right font-semibold pr-4 text-slate-900">
-                {language === "thai" ? "จำนวน" : "Qty"}
+              <div className="col-span-1 md:col-span-1 text-right font-black pr-4 text-white/90 uppercase tracking-wider whitespace-nowrap">
+                {language === "thai" ? "จำนวน / QTY" : "QTY"}
               </div>
-              <div className="col-span-1 md:col-span-3 text-center font-semibold text-slate-900">
-                {language === "thai" ? "สถานะ" : "Status"}
+              <div className="col-span-1 md:col-span-3 text-center font-black text-white/90 uppercase tracking-wider whitespace-nowrap">
+                {language === "thai" ? "สถานะ / STATUS" : "STATUS"}
               </div>
-              <div className="col-span-1 md:col-span-3 text-right flex items-center justify-end gap-3 pr-2 md:pr-10">
-                {language === "thai" ? "ราคา" : "Price"}
+              <div className="col-span-1 md:col-span-3 text-right flex items-center justify-end gap-3 pr-2 md:pr-10 uppercase tracking-wider">
+                {language === "thai" ? "ราคาประเมิน / PRICE" : "PRICE"}
               </div>
             </div>
           </div>
@@ -268,7 +274,94 @@ const OrderAssemblyCartScreen = () => {
                     key={order.id}
                     className="border-b border-slate-100 pb-4 md:pb-6 relative group"
                   >
-                    <div className="flex md:grid md:grid-cols-12 gap-3 md:gap-4 items-start md:items-center w-full px-2 md:px-0">
+                    {/* --- MOBILE VIEW: REFINED COMPACT WHITE CARD --- */}
+                    <div className="md:hidden flex flex-col w-full bg-white border border-slate-200 p-4 rounded-3xl shadow-sm mb-4 relative group active:scale-[0.98] transition-all duration-300">
+                      {/* Selection and Status Row */}
+                      <div className="flex justify-between items-start mb-3">
+                        <CustomCheckbox
+                          checked={selectedIds.includes(order.id)}
+                          onChange={() => toggleSelect(order.id)}
+                        />
+                        <div className="flex gap-2 items-center">
+                          {getStatusBadge(order.status)}
+                          {order.status !== "paid" && (
+                            <button
+                              onClick={() => { setCancelTargetId(order.id); setShowConfirmModal(true); }}
+                              className="text-slate-400 hover:text-rose-500 transition-colors p-1"
+                            >
+                              <FaTrashAlt size={14} />
+                            </button>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="flex gap-4 items-center">
+                        {/* Image section */}
+                        <div className="w-24 h-24 shrink-0 bg-slate-50 flex items-center justify-center overflow-hidden border border-slate-100 rounded-[1.25rem]">
+                          {order.image_top_1 ? (
+                            <img src={getFullUrl(order.image_top_1)} alt="thumbnail" className="w-full h-full object-contain p-2" />
+                          ) : (
+                            <FaRobot size={32} className="text-slate-300" />
+                          )}
+                        </div>
+
+                        {/* Details Section */}
+                        <div className="flex flex-col flex-1 min-w-0">
+                          <Link to={`/${order.id}`} className="text-sm font-bold text-slate-800 uppercase tracking-tight leading-snug mb-0.5 line-clamp-2">
+                            {order.projectname || "Untitled Project"}
+                          </Link>
+                          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">
+                            ID: {order.id} • ASSEMBLY SERVICE
+                          </span>
+
+                          {/* Price and Row */}
+                          <div className="flex justify-between items-end mt-auto">
+                            <div className="flex flex-col">
+                              <span className="text-[15px] font-black text-blue-600">
+                                {order.status === "accepted" ? formatPrice(order.confirmed_price, order.status) : formatPrice(order.estimatedCost, order.status)}
+                              </span>
+                              <span className="text-[10px] font-bold text-slate-400">
+                                {order.pcs_qty || order.qty || 0} PCS {order.status !== "accepted" && "• Estimate"}
+                              </span>
+                            </div>
+
+                            <div className="flex items-center gap-2">
+                              {order.gerber_zip && (
+                                <a
+                                  href={getFullUrl(order.gerber_zip)}
+                                  download
+                                  className="w-8 h-8 bg-slate-50 border border-slate-200 text-blue-500 flex items-center justify-center rounded-xl hover:bg-white transition-all shadow-sm"
+                                >
+                                  <FaDownload size={14} />
+                                </a>
+                              )}
+                              {order.quotation_no && (
+                                <Link
+                                  to={`/${order.quotation_no}`}
+                                  target="_blank"
+                                  className="w-8 h-8 bg-blue-50 border border-blue-100 text-blue-500 flex items-center justify-center rounded-xl hover:bg-white transition-all shadow-sm"
+                                  title="View Quotation"
+                                >
+                                  <FaReceipt size={14} />
+                                </Link>
+                              )}
+                              <button
+                                onClick={() => {
+                                  setCancelTargetId(order.id);
+                                  setShowConfirmModal(true);
+                                }}
+                                className="w-8 h-8 bg-rose-50 border border-rose-100 text-rose-500 flex items-center justify-center rounded-xl hover:bg-white transition-all shadow-sm"
+                              >
+                                <FaTrashAlt size={14} />
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* --- DESKTOP VIEW (Original Style) --- */}
+                    <div className="hidden md:grid md:grid-cols-12 gap-3 md:gap-4 items-start md:items-center w-full px-2 md:px-0">
                       {/* Checkbox */}
                       <div className="col-span-1 flex items-center justify-center shrink-0 pt-1 md:pt-0">
                         <CustomCheckbox
@@ -293,24 +386,16 @@ const OrderAssemblyCartScreen = () => {
                                 />
                               ) : (
                                 <FaRobot
-                                  size={24}
-                                  className="text-gray-400 md:hidden"
+                                  size={36}
+                                  className="text-gray-400"
                                 />
                               )}
-                              <div className="hidden md:block">
-                                {!order.image_top_1 && (
-                                  <FaRobot
-                                    size={36}
-                                    className="text-gray-400"
-                                  />
-                                )}
-                              </div>
                             </div>
 
                             {/* Details Context */}
                             <div className="flex flex-col flex-1 min-w-0 py-0.5 md:py-0 text-start md:pr-6 relative">
                               <Link
-                                to={`/assemblycartpcb/${order.id}`}
+                                to={`/${order.id}`}
                                 className="text-[13px] md:text-[14px] font-black text-slate-900 uppercase hover:text-blue-600 transition-colors leading-snug mb-0.5 truncate block w-full pr-6 md:pr-0"
                               >
                                 {order.projectname || "Untitled Project"}
@@ -318,63 +403,6 @@ const OrderAssemblyCartScreen = () => {
                               <span className="text-[9px] md:text-[10px] text-slate-400 font-bold uppercase tracking-widest truncate block w-full">
                                 ID: {order.id} • ASSEMBLY SERVICE
                               </span>
-                            </div>
-                          </div>
-
-                          {/* --- MOBILE ONLY ACTION BOX (separate row) --- */}
-                          <div className="flex md:hidden items-center justify-between w-full bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-xl">
-                            <div className="flex flex-col min-w-0">
-                              <span className="text-[8px] font-black tracking-[0.15em] uppercase text-slate-400 mb-0.5">
-                                {order.status === "accepted"
-                                  ? language === "thai"
-                                    ? "ยอดที่อนุมัติ"
-                                    : "Confirmed"
-                                  : language === "thai"
-                                    ? "ประมาณการ"
-                                    : "Estimate"}
-                              </span>
-                              <div className="flex items-center gap-1.5">
-                                <span className="font-bold text-[14px] text-slate-900 leading-none">
-                                  {order.status === "accepted"
-                                    ? formatPrice(
-                                      order.confirmed_price,
-                                      order.status,
-                                    )
-                                    : formatPrice(
-                                      order.estimatedCost,
-                                      order.status,
-                                    )}
-                                </span>
-                                <span className="text-[9px] font-bold text-slate-400">
-                                  / {order.pcs_qty || order.qty || 0} PCS
-                                </span>
-                              </div>
-                            </div>
-
-                            <div className="flex items-center gap-2">
-                              <div className="flex-shrink-0 scale-90 origin-right">
-                                {getStatusBadge(order.status)}
-                              </div>
-                              {order.gerber_zip && (
-                                <a
-                                  href={getFullUrl(order.gerber_zip)}
-                                  download
-                                  className="w-8 h-8 flex items-center justify-center text-blue-500 bg-blue-50 rounded-lg border border-blue-100 active:bg-blue-100 transition-colors"
-                                >
-                                  <FaDownload size={11} />
-                                </a>
-                              )}
-                              {order.status !== "paid" && (
-                                <button
-                                  onClick={() => {
-                                    setCancelTargetId(order.id);
-                                    setShowConfirmModal(true);
-                                  }}
-                                  className="w-8 h-8 flex items-center justify-center text-rose-500 bg-rose-50 rounded-lg border border-rose-100 active:bg-rose-100 transition-colors"
-                                >
-                                  <FaTrashAlt size={11} />
-                                </button>
-                              )}
                             </div>
                           </div>
                         </div>
@@ -401,7 +429,7 @@ const OrderAssemblyCartScreen = () => {
                                 : formatPrice(
                                   order.estimatedCost,
                                   order.status,
-                                )}
+                                ) || "0.00"}
                             </span>
                             <span className="text-[9px] text-gray-400 font-bold uppercase tracking-tighter mt-0.5">
                               {order.status === "accepted"
@@ -409,6 +437,16 @@ const OrderAssemblyCartScreen = () => {
                                 : "Estimate"}
                             </span>
                           </div>
+                          {order.quotation_no && (
+                            <Link
+                              to={`/${order.quotation_no}`}
+                              target="_blank"
+                              className="p-2 text-blue-400 hover:text-blue-600 hover:bg-blue-50 rounded-full transition-all duration-200"
+                              title="View Quotation"
+                            >
+                              <FaReceipt size={14} />
+                            </Link>
+                          )}
                           {order.gerber_zip && (
                             <a
                               href={getFullUrl(order.gerber_zip)}
@@ -451,7 +489,7 @@ const OrderAssemblyCartScreen = () => {
         </div>
 
         {/*  Right Column: Summary */}
-        <div className="w-full lg:w-[350px] bg-white p-6 lg:p-8 shrink-0 flex flex-col text-start border-l border-slate-100">
+        <div className="w-full lg:w-[350px] bg-white p-4 md:p-6 lg:p-8 shrink-0 flex flex-col text-start border-l border-slate-100">
           <h2 className="text-[14px] font-bold text-gray-900 uppercase tracking-wide mb-8">
             Summary
           </h2>
@@ -474,8 +512,8 @@ const OrderAssemblyCartScreen = () => {
               <button
                 onClick={checkoutHandler}
                 disabled={selectedIds.length === 0}
-                className={`w-full py-3 rounded-none text-[13px] font-bold tracking-widest uppercase transition-all shadow-md mb-8 ${selectedIds.length > 0 && acceptedItemsCount > 0
-                  ? "bg-black text-white hover:bg-slate-900"
+                className={`w-full py-4 rounded-xl text-[13px] font-black tracking-widest uppercase transition-all shadow-xl mb-4 ${selectedIds.length > 0 && acceptedItemsCount > 0
+                  ? "bg-black text-white hover:bg-slate-900 active:scale-95"
                   : "bg-gray-300 text-gray-500 cursor-not-allowed"
                   }`}
               >
@@ -484,7 +522,8 @@ const OrderAssemblyCartScreen = () => {
                   : "Checkout Selected"}
               </button>
 
-              <div className="bg-gray-50 border border-dashed border-gray-200 rounded p-6 mb-6">
+
+              <div className="bg-gray-50 border border-dashed border-gray-200 rounded p-4 md:p-6 mb-6">
                 <p className="text-[11px] text-gray-500 font-medium leading-relaxed mb-4">
                   <strong className="text-gray-900 uppercase tracking-widest block mb-1 text-[10px]">
                     Assembly evaluation
@@ -529,7 +568,7 @@ const OrderAssemblyCartScreen = () => {
                 initial={{ scale: 0.95, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 exit={{ scale: 0.95, opacity: 0 }}
-                className="relative bg-white rounded shadow-2xl w-full max-w-sm p-8 text-center border-t-4 border-black font-sans z-10"
+                className="relative bg-white rounded shadow-2xl w-full max-w-sm p-4 md:p-8 text-center border-t-4 border-black font-sans z-10"
               >
                 <h3 className="text-[16px] font-bold text-gray-900 mb-2 uppercase tracking-tight">
                   Remove Assembly?
@@ -557,6 +596,7 @@ const OrderAssemblyCartScreen = () => {
             document.body,
           )}
       </div>
+
     </div>
   );
 };

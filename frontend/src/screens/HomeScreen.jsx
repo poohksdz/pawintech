@@ -31,11 +31,12 @@ const HomeScreen = () => {
     isLoading: productLoading,
     error: productError,
   } = useGetProductsQuery({ keyword, pageNumber });
+  const { userInfo } = useSelector((state) => state.auth);
   const {
     data: blogData,
     isLoading: blogLoading,
     error: blogError,
-  } = useGetBlogsQuery({ pageNumber });
+  } = useGetBlogsQuery({ pageNumber }, { skip: !userInfo });
   const {
     data: serviceData,
     isLoading: serviceLoading,
@@ -50,7 +51,7 @@ const HomeScreen = () => {
     data: showcaseData,
     isLoading: showcaseLoading,
     error: showcaseError,
-  } = useGetShowcasesQuery({ pageNumber });
+  } = useGetShowcasesQuery({ pageNumber }, { skip: !userInfo });
 
   const shouldShowCarousel = (presentType) => {
     if (showcaseLoading || showcaseError || !showcaseData) return false;
@@ -128,7 +129,7 @@ const HomeScreen = () => {
       <section className={`py-12 md:py-20 lg:py-32 ${bgClass}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Section Header */}
-          <div className="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-6 border-b border-slate-100 dark:border-zinc-800/50 pb-10 transition-colors duration-500">
+          <div className="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-4 md:gap-6 border-b border-slate-100 dark:border-zinc-800/50 pb-10 transition-colors duration-500">
             <div className="space-y-2">
               {/* Subtitle: ปรับให้ดูพรีเมียมด้วยการเพิ่ม letter-spacing และสีที่นุ่มขึ้น */}
               <span className="text-black/60 text-[11px] md:text-xs font-bold uppercase tracking-[0.25em] block pl-1">
@@ -201,8 +202,8 @@ const HomeScreen = () => {
                             className="absolute inset-0 w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700 ease-out"
                             loading="lazy"
                             onError={(e) => {
-                              e.target.src =
-                                "https://via.placeholder.com/400?text=No+Image";
+                              e.target.onerror = null;
+                              e.target.src = "/images/sample.jpg";
                             }}
                           />
                           <div className="absolute inset-0 bg-gradient-to-t from-slate-900/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />

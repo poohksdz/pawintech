@@ -199,7 +199,7 @@ const ProductScreen = () => {
         <div className="bg-white dark:bg-black rounded-3xl shadow-sm border border-slate-100 dark:border-zinc-800 overflow-hidden mb-12 transition-colors duration-500">
           <div className="grid grid-cols-1 lg:grid-cols-2">
             {/* Left: Product Image */}
-            <div className="p-6 md:p-12 border-b lg:border-b-0 lg:border-r border-slate-100 dark:border-zinc-800 bg-white dark:bg-black flex flex-col items-center justify-center min-h-[300px] sm:min-h-[400px] lg:min-h-[600px] group relative transition-colors duration-500">
+            <div className="p-4 md:p-8 md:p-12 border-b lg:border-b-0 lg:border-r border-slate-100 dark:border-zinc-800 bg-white dark:bg-black flex flex-col items-center justify-center min-h-[300px] sm:min-h-[400px] lg:min-h-[600px] group relative transition-colors duration-500">
               <div className="relative w-full h-full flex items-center justify-center flex-1">
                 <img
                   src={activeImage || product?.image}
@@ -229,7 +229,7 @@ const ProductScreen = () => {
             </div>
 
             {/* Right: Product Details & Actions */}
-            <div className="p-8 md:p-12 flex flex-col justify-center">
+            <div className="p-4 md:p-8 md:p-12 flex flex-col justify-center">
               <div className="flex flex-wrap justify-between items-center gap-4 mb-6">
                 <span className="inline-block px-4 py-1.5 rounded-full bg-black text-white text-[10px] font-black uppercase tracking-widest">
                   {getText(product?.category, product?.categoryThai) ||
@@ -267,7 +267,7 @@ const ProductScreen = () => {
               </div>
 
               {/* Action Area (Quantity & Cart) */}
-              <div className="bg-slate-50 dark:bg-black p-6 rounded-2xl border border-slate-100 dark:border-zinc-800 transition-colors duration-500">
+              <div className="bg-slate-50 dark:bg-black p-4 md:p-6 rounded-2xl border border-slate-100 dark:border-zinc-800 transition-colors duration-500">
                 {product.countInStock > 0 ? (
                   <div className="flex flex-wrap gap-4">
                     <div className="w-24">
@@ -313,7 +313,7 @@ const ProductScreen = () => {
                 )}
 
                 {/* Trust Badges */}
-                <div className="flex justify-center gap-6 mt-6 pt-6 border-t border-slate-200/60 dark:border-zinc-800/60 text-xs font-bold text-slate-500 dark:text-white transition-colors duration-500">
+                <div className="flex justify-center gap-4 md:gap-6 mt-6 pt-6 border-t border-slate-200/60 dark:border-zinc-800/60 text-xs font-bold text-slate-500 dark:text-white transition-colors duration-500">
                   <span className="flex items-center gap-2">
                     <FaTruck className="text-black dark:text-white text-base transition-colors duration-500" />{" "}
                     {language === "thai" ? "จัดส่งรวดเร็ว" : "Fast Shipping"}
@@ -369,7 +369,7 @@ const ProductScreen = () => {
 
         {/* --- Product Detailed Description (Full Width) --- */}
         {product?.description && product.description !== "<p>--</p>" && (
-          <div className="bg-white dark:bg-black rounded-[2.5rem] shadow-sm border border-slate-100 dark:border-zinc-800 overflow-hidden mb-12 p-8 md:p-12 lg:p-16 transition-colors duration-500">
+          <div className="bg-white dark:bg-black rounded-[2.5rem] shadow-sm border border-slate-100 dark:border-zinc-800 overflow-hidden mb-12 p-4 md:p-8 md:p-12 lg:p-16 transition-colors duration-500">
             <div className="max-w-5xl mx-auto">
               <div className="flex items-center gap-4 mb-8">
                 <div className="w-1.5 h-6 bg-indigo-600 rounded-full shadow-[0_0_10px_rgba(79,70,229,0.5)]"></div>
@@ -391,7 +391,7 @@ const ProductScreen = () => {
 
         {/* --- YouTube Video Section --- */}
         {videoId && (
-          <div className="bg-white dark:bg-black rounded-[2.5rem] shadow-sm border border-slate-100 dark:border-zinc-800 overflow-hidden mb-12 p-6 md:p-10 transition-colors duration-500">
+          <div className="bg-white dark:bg-black rounded-[2.5rem] shadow-sm border border-slate-100 dark:border-zinc-800 overflow-hidden mb-12 p-4 md:p-8 transition-colors duration-500">
             <div className="flex items-center gap-4 mb-8">
               <div className="w-1.5 h-6 bg-red-600 rounded-full shadow-[0_0_10px_rgba(220,38,38,0.5)]"></div>
               <h3 className="text-xl md:text-2xl font-black text-slate-900 dark:text-white uppercase tracking-tight transition-colors duration-500">
@@ -412,11 +412,11 @@ const ProductScreen = () => {
         )}
 
         {/* --- Reviews Section --- */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 md:gap-8 lg:gap-12">
           {/* Reviews List */}
           <div className="lg:col-span-7">
             <div className="bg-white dark:bg-black rounded-3xl shadow-sm border border-slate-100 dark:border-zinc-800 h-full overflow-hidden transition-colors duration-500">
-              <div className="p-6 border-b border-slate-100 dark:border-zinc-800 flex items-center gap-4 bg-slate-50/50 dark:bg-black transition-colors duration-500">
+              <div className="p-4 md:p-6 border-b border-slate-100 dark:border-zinc-800 flex items-center gap-4 bg-slate-50/50 dark:bg-black transition-colors duration-500">
                 <div className="w-1.5 h-6 bg-black dark:bg-white rounded-full"></div>
                 <h4 className="text-xl font-black text-slate-900 dark:text-white m-0 flex items-center gap-2 transition-colors duration-500">
                   {t.reviews}{" "}
@@ -426,7 +426,7 @@ const ProductScreen = () => {
                 </h4>
               </div>
 
-              <div className="p-6 md:p-8">
+              <div className="p-4 md:p-8">
                 {reviewsSafe.length === 0 ? (
                   <div className="text-center py-16 bg-slate-50 dark:bg-black rounded-2xl border border-dashed border-slate-200 dark:border-zinc-800 transition-colors duration-500">
                     <p className="text-slate-500 font-medium">{t.noReviews}</p>
@@ -436,7 +436,7 @@ const ProductScreen = () => {
                     {reviewsSafe.map((review) => (
                       <li
                         key={review._id}
-                        className="py-6 first:pt-0 last:pb-0"
+                        className="py-4 md:py-6 first:pt-0 last:pb-0"
                       >
                         <div className="flex justify-between items-start mb-4">
                           <div className="flex items-center gap-4">
@@ -471,14 +471,14 @@ const ProductScreen = () => {
           {/* Write Review Form */}
           <div className="lg:col-span-5">
             <div className="bg-white rounded-3xl shadow-sm border border-slate-100 sticky top-[100px]">
-              <div className="p-6 border-b border-slate-100 flex items-center gap-3 bg-slate-50/50">
+              <div className="p-4 md:p-6 border-b border-slate-100 flex items-center gap-3 bg-slate-50/50">
                 <FaPen className="text-black" />
                 <h5 className="text-lg font-black text-slate-900 m-0">
                   {t.writeReview}
                 </h5>
               </div>
 
-              <div className="p-6 md:p-8">
+              <div className="p-4 md:p-8">
                 {userInfo ? (
                   <form onSubmit={submitHandler}>
                     <div className="mb-6">
@@ -531,13 +531,13 @@ const ProductScreen = () => {
                     </button>
                   </form>
                 ) : (
-                  <div className="text-center py-10 bg-slate-50 dark:bg-black rounded-2xl border border-dashed border-slate-200 dark:border-zinc-800 px-6 transition-colors duration-500">
+                  <div className="text-center py-4 md:py-6 md:py-10 bg-slate-50 dark:bg-black rounded-2xl border border-dashed border-slate-200 dark:border-zinc-800 px-4 md:px-6 transition-colors duration-500">
                     <p className="text-slate-500 dark:text-white mb-6 font-medium transition-colors duration-500">
                       {t.loginReq}
                     </p>
                     <Link
                       to="/login"
-                      className="inline-block bg-black dark:bg-white hover:bg-black/90 dark:hover:bg-slate-200 text-white dark:text-black font-bold py-3 px-8 rounded-full shadow-md transition-colors"
+                      className="inline-block bg-black dark:bg-white hover:bg-black/90 dark:hover:bg-slate-200 text-white dark:text-black font-bold py-3 px-4 md:px-8 rounded-full shadow-md transition-colors"
                     >
                       {language === "thai"
                         ? "เข้าสู่ระบบเพื่อเขียนรีวิว"

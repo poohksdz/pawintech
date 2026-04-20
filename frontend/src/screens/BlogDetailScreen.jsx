@@ -20,14 +20,15 @@ const BlogDetailScreen = () => {
   const { id: blogId } = useParams();
   const navigate = useNavigate();
   const { language } = useSelector((state) => state.language);
+  const { userInfo } = useSelector((state) => state.auth);
   const isThai = language === "thai";
 
   // Reading Progress Bar
   const { scrollYProgress } = useScroll();
   const scaleX = useSpring(scrollYProgress, { stiffness: 100, damping: 30 });
 
-  const { data: blog, isLoading, error } = useGetBlogDetailsQuery(blogId);
-  const { data: allBlogs } = useGetBlogsQuery({ pageNumber: 1 });
+  const { data: blog, isLoading, error } = useGetBlogDetailsQuery(blogId, { skip: !userInfo });
+  const { data: allBlogs } = useGetBlogsQuery({ pageNumber: 1 }, { skip: !userInfo });
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -103,7 +104,7 @@ const BlogDetailScreen = () => {
       />
 
       {/* --- Breadcrumb Navigation --- */}
-      <nav className="max-w-6xl mx-auto px-4 pt-10 pb-6 flex items-center gap-6">
+      <nav className="max-w-6xl mx-auto px-4 pt-10 pb-6 flex items-center gap-4 md:gap-6">
         <button
           onClick={() => navigate(-1)}
           className="flex items-center gap-2 px-4 py-2 rounded-full bg-slate-100 dark:bg-zinc-900 hover:bg-slate-200 dark:hover:bg-zinc-800 text-slate-600 dark:text-slate-400 transition-all duration-300 active:scale-95 group shrink-0"
@@ -142,7 +143,7 @@ const BlogDetailScreen = () => {
             {title}
           </motion.h1>
 
-          <div className="flex items-center gap-6 border-y border-slate-100 dark:border-zinc-800 py-5">
+          <div className="flex items-center gap-4 md:gap-6 border-y border-slate-100 dark:border-zinc-800 py-5">
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 rounded-full bg-indigo-50 dark:bg-zinc-800 flex items-center justify-center text-indigo-600">
                 <FaUserCircle size={24} />
@@ -192,7 +193,7 @@ const BlogDetailScreen = () => {
               prose-p:text-slate-600 dark:prose-p:text-slate-400 prose-p:leading-[1.9] prose-p:mb-8
               prose-headings:text-slate-900 dark:prose-headings:text-white prose-headings:font-extrabold prose-headings:tracking-tight
               prose-strong:text-slate-900 dark:prose-strong:text-white
-              prose-blockquote:border-l-4 prose-blockquote:border-indigo-600 prose-blockquote:bg-slate-50 dark:prose-blockquote:bg-zinc-900 prose-blockquote:py-4 prose-blockquote:px-6 prose-blockquote:rounded-r-2xl prose-blockquote:not-italic prose-blockquote:text-slate-700 dark:prose-blockquote:text-slate-300
+              prose-blockquote:border-l-4 prose-blockquote:border-indigo-600 prose-blockquote:bg-slate-50 dark:prose-blockquote:bg-zinc-900 prose-blockquote:py-4 prose-blockquote:px-4 md:px-6 prose-blockquote:rounded-r-2xl prose-blockquote:not-italic prose-blockquote:text-slate-700 dark:prose-blockquote:text-slate-300
               prose-a:text-indigo-600 dark:prose-a:text-indigo-400 prose-a:font-bold prose-a:no-underline hover:prose-a:underline"
               dangerouslySetInnerHTML={{ __html: processContent(content) }}
             />
@@ -201,7 +202,7 @@ const BlogDetailScreen = () => {
           {/* Sidebar (Right) */}
           <aside className="lg:col-span-4">
             <div className="sticky top-24">
-              <section className="bg-white dark:bg-zinc-900/40 rounded-[2rem] border border-slate-100 dark:border-zinc-800 p-8 shadow-sm">
+              <section className="bg-white dark:bg-zinc-900/40 rounded-[2rem] border border-slate-100 dark:border-zinc-800 p-4 md:p-8 shadow-sm">
                 <h3 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-widest border-l-4 border-indigo-600 pl-4 mb-8">
                   {t.related}
                 </h3>
@@ -213,7 +214,7 @@ const BlogDetailScreen = () => {
                     .map((item, idx) => (
                       <Link
                         key={item._id}
-                        to={`/blogs/${item._id || item.id}`}
+                        to={`/${item._id || item.id}`}
                         className="group flex items-start gap-5 no-underline"
                       >
                         <span className="text-3xl font-black text-slate-100 dark:text-zinc-800 group-hover:text-indigo-200 dark:group-hover:text-indigo-900 transition-colors leading-none">
@@ -249,12 +250,12 @@ const BlogDetailScreen = () => {
       </footer>
 
       {/* --- Custom Editor Styles --- */}
-      <style>{`
+        <style dangerouslySetInnerHTML={{ __html: `
         .news-content h2 { font-size: 1.875rem !important; margin-top: 3rem !important; margin-bottom: 1.5rem !important; }
         .news-content h3 { font-size: 1.5rem !important; margin-top: 2.5rem !important; margin-bottom: 1rem !important; }
         .news-content p { font-size: 1.125rem !important; }
         .news-content ul li::marker { color: #4f46e5; }
-      `}</style>
+      `}} />
     </div>
   );
 };

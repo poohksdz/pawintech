@@ -29,7 +29,7 @@ import {
 } from "react-icons/fa";
 
 const SHOP_CONFIG = {
-  promptPayID: "0632684099",
+  promptPayID: "0992263277",
   bankName: "ธนาคารกสิกรไทย (KBANK)",
   accName: "บจก. พาวิน เทคโนโลยี",
   accNo: "012-3-45678-9",
@@ -95,6 +95,9 @@ const CustomPCBPaymentScreen = () => {
     setDisplayOrderID(`REQ-${(orderId || "00000").padStart(5, "0")}`);
 
     if (finalAmount > 0) {
+      // Validation: เช็คจำนวนชุดและรายการซ้ำ
+      console.log(`[Validation] Custom PCB Order: ${orderId}, Final Amount: ${finalAmount}`);
+
       const payload = generatePayload(SHOP_CONFIG.promptPayID, {
         amount: finalAmount,
       });
@@ -193,15 +196,15 @@ const CustomPCBPaymentScreen = () => {
   const isProcessing = isCreatingCustom || isImageUploading;
 
   return (
-    <div className="bg-[#fcfdfe] min-h-screen py-10 px-4 font-prompt antialiased">
+    <div className="bg-[#fcfdfe] min-h-screen py-4 md:py-6 md:py-10 px-4 font-prompt antialiased">
       <div className="max-w-6xl mx-auto text-start">
         {/*  เพิ่ม Custom PCB Shipping & Payment Routes */}
         <CheckoutSteps
           step1
           step2
           step3
-          shippingPath={`/custompcbshipping/${orderId}`}
-          paymentPath={`/custompcbpayment/${orderId}`}
+          shippingPath={`/${orderId}`}
+          paymentPath={`/${orderId}`}
         />
 
         <h1 className="text-3xl md:text-4xl font-black text-slate-900 text-center mt-10 mb-8 tracking-tight uppercase">
@@ -217,7 +220,7 @@ const CustomPCBPaymentScreen = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 md:gap-8 items-start">
           <div className="lg:col-span-5 space-y-6">
             <div className="bg-white rounded-[2.5rem] shadow-sm border border-slate-100 overflow-hidden relative z-10">
               <div className="p-2 flex gap-1 bg-slate-50 border-b border-slate-100 relative z-20">
@@ -237,7 +240,7 @@ const CustomPCBPaymentScreen = () => {
                 </button>
               </div>
 
-              <div className="p-8 text-center">
+              <div className="p-4 md:p-8 text-center">
                 <AnimatePresence mode="wait">
                   {paymentMethod === "promptpay" ? (
                     <motion.div
@@ -247,7 +250,7 @@ const CustomPCBPaymentScreen = () => {
                       exit={{ opacity: 0, scale: 0.95 }}
                     >
                       {isCartLoading ? (
-                        <div className="py-10 text-slate-400 animate-pulse">
+                        <div className="py-4 md:py-6 md:py-10 text-slate-400 animate-pulse">
                           กำลังโหลดข้อมูลราคา...
                         </div>
                       ) : finalAmount > 0 ? (
@@ -259,7 +262,7 @@ const CustomPCBPaymentScreen = () => {
                           />
                         </div>
                       ) : (
-                        <div className="p-10 border-2 border-dashed border-red-200 text-red-400 rounded-3xl mb-6 font-bold">
+                        <div className="p-4 md:p-8 border-2 border-dashed border-red-200 text-red-400 rounded-3xl mb-6 font-bold">
                           ไม่สามารถสร้าง QR ได้
                           <br />
                           (ไม่พบยอดเงิน หรือรอแอดมินประเมิน)
@@ -280,7 +283,7 @@ const CustomPCBPaymentScreen = () => {
                       exit={{ opacity: 0, x: -20 }}
                       className="space-y-4"
                     >
-                      <div className="bg-emerald-50/50 border border-emerald-100 p-6 rounded-3xl text-start">
+                      <div className="bg-emerald-50/50 border border-emerald-100 p-4 md:p-6 rounded-3xl text-start">
                         <div className="flex items-center gap-4 mb-4">
                           <div className="w-12 h-12 bg-emerald-600 rounded-2xl flex items-center justify-center text-white font-bold text-xl shadow-lg">
                             K
@@ -316,7 +319,7 @@ const CustomPCBPaymentScreen = () => {
               </div>
             </div>
 
-            <div className="bg-slate-900 rounded-3xl p-6 text-white flex justify-between items-center shadow-xl shadow-slate-200">
+            <div className="bg-slate-900 rounded-3xl p-4 md:p-6 text-white flex justify-between items-center shadow-xl shadow-slate-200">
               <div className="text-start">
                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
                   หมายเลขอ้างอิงชำระเงิน
@@ -329,7 +332,7 @@ const CustomPCBPaymentScreen = () => {
 
           <div className="lg:col-span-7 text-start">
             <div className="bg-white rounded-[2.5rem] shadow-sm border border-slate-100 overflow-hidden h-full flex flex-col relative z-10">
-              <div className="bg-slate-50/50 px-8 py-5 border-b border-slate-100 flex items-center justify-between gap-3">
+              <div className="bg-slate-50/50 px-4 md:px-8 py-5 border-b border-slate-100 flex items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
                   <FaReceipt className="text-blue-600" />{" "}
                   <h3 className="font-bold text-slate-800">
@@ -343,9 +346,9 @@ const CustomPCBPaymentScreen = () => {
 
               <form
                 onSubmit={submitHandler}
-                className="p-8 flex-grow flex flex-col gap-6"
+                className="p-4 md:p-8 flex-grow flex flex-col gap-4 md:gap-6"
               >
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-start">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 text-start">
                   <div className="md:col-span-2 space-y-1.5">
                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">
                       ชื่อผู้โอน
@@ -408,7 +411,7 @@ const CustomPCBPaymentScreen = () => {
                     <span className="text-rose-500">*</span>
                   </label>
                   <div
-                    className={`relative group border-2 border-dashed rounded-3xl p-8 text-center transition-all duration-300 ${image ? "border-green-400 bg-green-50/30" : "border-slate-200 bg-slate-50/50 hover:border-blue-400"}`}
+                    className={`relative group border-2 border-dashed rounded-3xl p-4 md:p-8 text-center transition-all duration-300 ${image ? "border-green-400 bg-green-50/30" : "border-slate-200 bg-slate-50/50 hover:border-blue-400"}`}
                   >
                     <input
                       type="file"

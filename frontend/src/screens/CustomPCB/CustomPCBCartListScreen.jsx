@@ -307,14 +307,14 @@ const CustomPCBCartListScreen = () => {
 
   return (
     <div className="min-h-screen bg-[#fcfdfe] pb-24 font-prompt antialiased">
-      <div className="px-4 lg:px-12 py-10 max-w-[1600px] mx-auto">
+      <div className="px-4 lg:px-12 py-4 md:py-6 md:py-10 max-w-[1600px] mx-auto">
         {/* Premium Header Container */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mb-14 flex flex-col md:flex-row md:items-end md:justify-between gap-10"
+          className="mb-14 flex flex-col md:flex-row md:items-end md:justify-between gap-4 md:gap-6 md:gap-10"
         >
-          <div className="flex items-center gap-6 text-start">
+          <div className="flex items-center gap-4 md:gap-6 text-start">
             <div className="w-16 h-16 rounded-3xl bg-black flex items-center justify-center text-white shadow-2xl rotate-3">
               <FaMicrochip size={24} />
             </div>
@@ -398,25 +398,25 @@ const CustomPCBCartListScreen = () => {
               <table className="w-full border-collapse">
                 <thead>
                   <tr className="bg-slate-50/80 border-b border-slate-100">
-                    <th className="py-8 px-10 text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] text-center w-24">
+                    <th className="py-4 md:py-8 px-4 md:px-10 text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] text-center w-24">
                       #
                     </th>
-                    <th className="py-8 px-6 text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">
+                    <th className="py-4 md:py-8 px-4 md:px-6 text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">
                       {t.headers.project}
                     </th>
-                    <th className="py-8 px-6 text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] text-center">
+                    <th className="py-4 md:py-8 px-4 md:px-6 text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] text-center">
                       {t.headers.qty}
                     </th>
-                    <th className="py-8 px-6 text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] text-right">
+                    <th className="py-4 md:py-8 px-4 md:px-6 text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] text-right">
                       {t.headers.price}
                     </th>
-                    <th className="py-8 px-6 text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] text-center">
+                    <th className="py-4 md:py-8 px-4 md:px-6 text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] text-center">
                       {t.headers.date}
                     </th>
-                    <th className="py-8 px-6 text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] text-center">
+                    <th className="py-4 md:py-8 px-4 md:px-6 text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] text-center">
                       {t.headers.status}
                     </th>
-                    <th className="py-8 px-10 text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] text-center">
+                    <th className="py-4 md:py-8 px-4 md:px-10 text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] text-center">
                       {t.headers.actions}
                     </th>
                   </tr>
@@ -433,12 +433,12 @@ const CustomPCBCartListScreen = () => {
                       variants={itemVariants}
                       className="group hover:bg-slate-50/50 transition-all"
                     >
-                      <td className="py-8 px-10 text-center">
+                      <td className="py-4 md:py-8 px-4 md:px-10 text-center">
                         <span className="text-xs font-black text-slate-300 group-hover:text-black transition-colors tracking-widest">
                           {(idx + 1).toString().padStart(2, "0")}
                         </span>
                       </td>
-                      <td className="py-8 px-6">
+                      <td className="py-4 md:py-8 px-4 md:px-6">
                         <div className="flex flex-col">
                           <span className="text-[17px] font-black text-slate-900 group-hover:text-blue-600 transition-colors uppercase leading-tight mb-2">
                             {order.projectname}
@@ -453,7 +453,7 @@ const CustomPCBCartListScreen = () => {
                           </div>
                         </div>
                       </td>
-                      <td className="py-8 px-6 text-center">
+                      <td className="py-4 md:py-8 px-4 md:px-6 text-center">
                         <div className="inline-flex flex-col items-center">
                           <span className="text-lg font-black text-slate-900 leading-none mb-1">
                             {order.pcb_qty || order.qty || 0}
@@ -463,7 +463,7 @@ const CustomPCBCartListScreen = () => {
                           </span>
                         </div>
                       </td>
-                      <td className="py-8 px-6 text-right">
+                      <td className="py-4 md:py-8 px-4 md:px-6 text-right">
                         <div className="flex flex-col items-end">
                           <span
                             className={`text-[19px] font-black leading-none ${order.status === "accepted" ? "text-emerald-600" : "text-slate-300"}`}
@@ -477,7 +477,7 @@ const CustomPCBCartListScreen = () => {
                           )}
                         </div>
                       </td>
-                      <td className="py-8 px-6 text-center">
+                      <td className="py-4 md:py-8 px-4 md:px-6 text-center">
                         <div className="flex flex-col items-center">
                           <span className="text-[13px] font-black text-slate-600 leading-none mb-1">
                             {new Date(
@@ -494,10 +494,10 @@ const CustomPCBCartListScreen = () => {
                           </span>
                         </div>
                       </td>
-                      <td className="py-8 px-6 text-center">
+                      <td className="py-4 md:py-8 px-4 md:px-6 text-center">
                         <StatusBadge status={order.status} />
                       </td>
-                      <td className="py-8 px-10 text-center">
+                      <td className="py-4 md:py-8 px-4 md:px-10 text-center">
                         <div className="flex items-center justify-center gap-3">
                           <AnimatePresence mode="wait">
                             {order.status === "pending" && (
@@ -594,7 +594,7 @@ const CustomPCBCartListScreen = () => {
                 {t.approveDesc}
               </p>
 
-              <div className="bg-slate-50/80 rounded-[2.5rem] p-10 border border-slate-100 mb-12 text-start">
+              <div className="bg-slate-50/80 rounded-[2.5rem] p-4 md:p-8 border border-slate-100 mb-12 text-start">
                 <label className="text-[11px] font-black text-slate-400 uppercase tracking-[0.3em] block mb-6 px-1">
                   {t.form.priceLabel}
                 </label>
@@ -604,7 +604,7 @@ const CustomPCBCartListScreen = () => {
                   </span>
                   <input
                     type="number"
-                    className="w-full bg-white border-none rounded-[1.5rem] py-6 pl-14 pr-8 font-black text-3xl text-slate-900 shadow-inner focus:ring-[8px] focus:ring-black/5 transition-all outline-none"
+                    className="w-full bg-white border-none rounded-[1.5rem] py-4 md:py-6 pl-14 pr-8 font-black text-3xl text-slate-900 shadow-inner focus:ring-[8px] focus:ring-black/5 transition-all outline-none"
                     value={approvePrice}
                     onChange={(e) => setApprovePrice(e.target.value)}
                   />
@@ -668,7 +668,7 @@ const CustomPCBCartListScreen = () => {
                   : "ADJUST PRICE FOR THIS REQUEST"}
               </p>
 
-              <div className="bg-slate-50/80 rounded-[2.5rem] p-10 border border-slate-100 mb-12 text-start">
+              <div className="bg-slate-50/80 rounded-[2.5rem] p-4 md:p-8 border border-slate-100 mb-12 text-start">
                 <label className="text-[11px] font-black text-slate-400 uppercase tracking-[0.3em] block mb-6 px-1">
                   {t.form.priceLabel}
                 </label>
@@ -678,7 +678,7 @@ const CustomPCBCartListScreen = () => {
                   </span>
                   <input
                     type="number"
-                    className="w-full bg-white border-none rounded-[1.5rem] py-6 pl-14 pr-8 font-black text-3xl text-slate-900 shadow-inner focus:ring-[8px] focus:ring-black/5 transition-all outline-none"
+                    className="w-full bg-white border-none rounded-[1.5rem] py-4 md:py-6 pl-14 pr-8 font-black text-3xl text-slate-900 shadow-inner focus:ring-[8px] focus:ring-black/5 transition-all outline-none"
                     value={editFormData.confirmed_price}
                     onChange={(e) =>
                       setEditFormData({

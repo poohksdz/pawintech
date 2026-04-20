@@ -3,7 +3,7 @@ import {
   Row,
   Col,
   Form,
-  Button as BootstrapButton,
+  Button,
 } from "react-bootstrap";
 import { toast } from "react-toastify";
 import { useSelector } from "react-redux";
@@ -45,7 +45,6 @@ const ReorderPCBAdminCreateAssemblyPCBScreen = () => {
   const [topImages, setTopImages] = useState([]);
   const [bottomImages, setBottomImages] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
 
   const [formData, setFormData] = useState({
     projectname: "",
@@ -354,7 +353,7 @@ const ReorderPCBAdminCreateAssemblyPCBScreen = () => {
 
   return (
     <div className="min-h-screen bg-[#f8f9fb] dark:bg-black p-4 font-sans transition-colors duration-500 md:p-10 lg:p-12">
-      <style>{`
+      <style dangerouslySetInnerHTML={{ __html: `
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Outfit:wght@400;500;600;700;800;900&family=Prompt:wght@400;500;600;700;800;900&display=swap');
         .font-display { font-family: 'Outfit', 'Prompt', sans-serif; }
         .font-sans { font-family: 'Inter', 'Prompt', sans-serif; }
@@ -407,12 +406,12 @@ const ReorderPCBAdminCreateAssemblyPCBScreen = () => {
           position: sticky;
           top: 2rem;
         }
-      `}</style>
+      ` }} />
 
       <div className="mx-auto max-w-7xl">
         {/* --- HEADER --- */}
         <header className="mb-12 flex items-center justify-between">
-          <div className="flex items-center gap-6">
+          <div className="flex items-center gap-4 md:gap-6">
             <button
               onClick={() => navigate(-1)}
               className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white dark:bg-zinc-900 shadow-sm ring-1 ring-slate-100 dark:ring-zinc-800 text-slate-400 hover:text-slate-950 dark:hover:text-white transition-all"
@@ -454,7 +453,7 @@ const ReorderPCBAdminCreateAssemblyPCBScreen = () => {
                   <h2 className="font-display text-xl font-black text-slate-950 dark:text-white">{t.BasicInfo}</h2>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8">
                   <div className="flex flex-col">
                     <label className="form-label-premium">Project Identifier</label>
                     <input
@@ -525,7 +524,7 @@ const ReorderPCBAdminCreateAssemblyPCBScreen = () => {
                   </div>
                   <h2 className="font-display text-xl font-black text-slate-950 dark:text-white">{t.PCBDetails}</h2>
                 </div>
-                <div className="grid grid-cols-2 gap-8 text-slate-400">
+                <div className="grid grid-cols-2 gap-4 md:gap-8 text-slate-400">
                   <div className="flex flex-col">
                     <label className="form-label-premium">Width (mm)</label>
                     <input name="width_mm" value={formData.width_mm} onChange={handleChange} className="form-input-premium" placeholder="100.00" />
@@ -555,7 +554,7 @@ const ReorderPCBAdminCreateAssemblyPCBScreen = () => {
                   <h2 className="font-display text-xl font-black text-slate-950 dark:text-white">{t.SMDSetup}</h2>
                 </div>
                 {showSMDFields && (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8">
                     <div className="flex flex-col">
                       <label className="form-label-premium">SMD Side</label>
                       <div className="flex gap-2 p-1 bg-slate-50 dark:bg-zinc-900 rounded-2xl">
@@ -607,7 +606,7 @@ const ReorderPCBAdminCreateAssemblyPCBScreen = () => {
                   <h2 className="font-display text-xl font-black text-slate-950 dark:text-white">{t.THTSetup}</h2>
                 </div>
                 {showTHTFields && (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8">
                     <div className="flex flex-col">
                       <label className="form-label-premium">THT Side</label>
                       <div className="flex gap-2 p-1 bg-slate-50 dark:bg-zinc-900 rounded-2xl">
@@ -657,7 +656,7 @@ const ReorderPCBAdminCreateAssemblyPCBScreen = () => {
                     onRemove={(i) => removeImage(i, 'bottom')}
                   />
 
-                  <div className="flex flex-col p-8 rounded-[2rem] bg-slate-50 dark:bg-zinc-950/40 border border-dashed border-slate-200 dark:border-zinc-800">
+                  <div className="flex flex-col p-4 md:p-8 rounded-[2rem] bg-slate-50 dark:bg-zinc-950/40 border border-dashed border-slate-200 dark:border-zinc-800">
                     <div className="flex items-center gap-4 mb-6">
                       <FaPaperclip className="text-emerald-500 rotate-45" />
                       <h4 className="text-sm font-black uppercase tracking-widest text-slate-400">Gerber Archive</h4>
@@ -710,7 +709,7 @@ const ReorderPCBAdminCreateAssemblyPCBScreen = () => {
                     </div>
                   </div>
 
-                  <div className="bg-white/5 rounded-[2rem] p-8 border border-white/10 space-y-8">
+                  <div className="bg-white/5 rounded-[2rem] p-4 md:p-8 border border-white/10 space-y-8">
                     <div>
                       <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-3 block">Final Negotiated Price</label>
                       <div className="relative">
@@ -719,7 +718,7 @@ const ReorderPCBAdminCreateAssemblyPCBScreen = () => {
                           type="number"
                           value={formData.confirmed_price}
                           onChange={handleChange}
-                          className="w-full h-20 rounded-2xl bg-white text-slate-950 text-3xl font-display font-black px-10 focus:ring-4 focus:ring-emerald-500/50 outline-none transition-all"
+                          className="w-full h-20 rounded-2xl bg-white text-slate-950 text-3xl font-display font-black px-4 md:px-10 focus:ring-4 focus:ring-emerald-500/50 outline-none transition-all"
                           placeholder="0"
                         />
                         <span className="absolute right-8 top-1/2 -translate-y-1/2 text-2xl font-black text-slate-300">฿</span>
@@ -732,7 +731,7 @@ const ReorderPCBAdminCreateAssemblyPCBScreen = () => {
                         name="confirmed_reason"
                         value={formData.confirmed_reason}
                         onChange={handleChange}
-                        className="w-full rounded-2xl bg-white/5 border border-white/10 p-6 text-white text-sm font-semibold placeholder:text-zinc-600 outline-none focus:border-emerald-500/50 transition-all"
+                        className="w-full rounded-2xl bg-white/5 border border-white/10 p-4 md:p-6 text-white text-sm font-semibold placeholder:text-zinc-600 outline-none focus:border-emerald-500/50 transition-all"
                         rows={4}
                         placeholder="Provide reason for price override..."
                       />

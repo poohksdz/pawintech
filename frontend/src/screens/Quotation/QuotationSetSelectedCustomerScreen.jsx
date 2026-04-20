@@ -4,7 +4,6 @@ import { useGetDefaultQuotationUsedQuery } from "../../slices/quotationDefaultAp
 import {
   useCreateQuotationMutation,
   useGetQuotationDetailsQuery,
-  useUploadQuotationImageMutation,
   useUpdateQuotationByQuotationNoMutation,
   useUploadQuotationPDFMutation,
   useGetQuotationByQuotationNoQuery,
@@ -23,8 +22,6 @@ const QuotationSetSelectedCustomerScreen = () => {
   const {
     data,
     isLoading: isLoadingData,
-    isError: isErrorData,
-    error: errorData,
   } = useGetQuotationDetailsQuery(id);
 
   const customerInfo = data?.quotation || null;
@@ -62,27 +59,15 @@ const QuotationSetSelectedCustomerScreen = () => {
 
   const [
     createQuotation,
-    {
-      isLoading: isLoadingCreateQuotation,
-      isError: isErrorCreateQuotation,
-      error: errorCreateQuotation,
-    },
+    { isLoading: isLoadingCreateQuotation },
   ] = useCreateQuotationMutation();
   const [
     uploadQuotationPDF,
-    {
-      isLoading: isLoadingUploadQuotationPDF,
-      isError: isErrorUploadQuotationPDF,
-      error: errorUploadQuotationPDF,
-    },
+    { isLoading: isLoadingUploadQuotationPDF },
   ] = useUploadQuotationPDFMutation();
   const [
     updateQuotationByQuotationNo,
-    {
-      isLoading: isLoadingUpdateQuotationByQuotationNo,
-      isError: isErrorUpdateQuotationByQuotationNo,
-      error: errorUpdateQuotationByQuotationNo,
-    },
+    { isLoading: isLoadingUpdateQuotationByQuotationNo },
   ] = useUpdateQuotationByQuotationNoMutation();
 
   const [numRows, setNumRows] = useState(10); // default 10 rows
