@@ -363,9 +363,24 @@ const updateDeliveryCustomPCBById = asyncHandler(async (req, res) => {
       `UPDATE pcb_custom_orders SET isDelivered = 1, deliveryOn = NOW(), deliveryID = ?, transferedNumber = ?, updated_at = NOW() WHERE id = ?`,
       [transferedNumber, transferedNumber, id],
     );
-    res.json({ success: true, message: "แจ้งจัดส่งสำเร็จ" });
+    return res.status(200).json({ success: true, message: "แจ้งจัดส่งสำเร็จ" });
   } catch (error) {
-    res.status(500).json({ success: false, message: "เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์" });
+    return res.status(500).json({ success: false, message: "เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์" });
+  }
+});
+
+// @desc    อัปเดตเลขที่ใบสั่งผลิต
+const updatePCBManufacture = asyncHandler(async (req, res) => {
+  try {
+    const { pcborderId } = req.params;
+    const { manufactureOrderNumber } = req.body;
+    await pool.query(
+      `UPDATE pcb_custom_orders SET manufactureOrderNumber = ?, updated_at = NOW() WHERE id = ?`,
+      [manufactureOrderNumber || null, pcborderId],
+    );
+    return res.status(200).json({ success: true, message: "อัปเดตใบสั่งผลิตสำเร็จ" });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: "เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์" });
   }
 });
 
@@ -384,9 +399,9 @@ const updatePaymentCustomPCBById = asyncHandler(async (req, res) => {
       `UPDATE pcb_custom_orders SET status = ?, updated_at = NOW() WHERE id = ?`,
       [dbStatus, id],
     );
-    res.status(200).json({ success: true, message: `อัปเดตสำเร็จ` });
+    return res.status(200).json({ success: true, message: `อัปเดตสำเร็จ` });
   } catch (error) {
-    res.status(500).json({ success: false, message: "เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์" });
+    return res.status(500).json({ success: false, message: "เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์" });
   }
 });
 
@@ -395,9 +410,9 @@ const getCustomPCBs = asyncHandler(async (req, res) => {
     const [rows] = await pool.query(
       "SELECT * FROM pcb_custom_orders ORDER BY created_at DESC",
     );
-    res.status(200).json({ success: true, data: rows });
+    return res.status(200).json({ success: true, data: rows });
   } catch (error) {
-    res.status(500).json({ success: false, message: "เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์" });
+    return res.status(500).json({ success: false, message: "เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์" });
   }
 });
 
@@ -409,9 +424,9 @@ const getCustomPCBById = asyncHandler(async (req, res) => {
     );
     if (rows.length === 0)
       return res.status(404).json({ success: false, message: "Not found" });
-    res.status(200).json({ success: true, data: rows[0] });
+    return res.status(200).json({ success: true, data: rows[0] });
   } catch (error) {
-    res.status(500).json({ success: false, message: "เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์" });
+    return res.status(500).json({ success: false, message: "เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์" });
   }
 });
 
@@ -421,9 +436,9 @@ const getCustomPCBByUserId = asyncHandler(async (req, res) => {
       "SELECT * FROM pcb_custom_orders WHERE user_id = ? ORDER BY created_at DESC",
       [req.params.userId],
     );
-    res.status(200).json({ success: true, data: rows });
+    return res.status(200).json({ success: true, data: rows });
   } catch (error) {
-    res.status(500).json({ success: false, message: "เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์" });
+    return res.status(500).json({ success: false, message: "เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์" });
   }
 });
 
@@ -433,9 +448,9 @@ const getCustomPCBByOrderId = asyncHandler(async (req, res) => {
       "SELECT * FROM pcb_custom_orders WHERE orderID = ?",
       [req.params.orderID],
     );
-    res.status(200).json({ success: true, data: rows });
+    return res.status(200).json({ success: true, data: rows });
   } catch (error) {
-    res.status(500).json({ success: false, message: "เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์" });
+    return res.status(500).json({ success: false, message: "เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์" });
   }
 });
 
@@ -465,9 +480,9 @@ const deleteCustomPCB = asyncHandler(async (req, res) => {
       return res
         .status(404)
         .json({ success: false, message: "Order not found" });
-    res.status(200).json({ success: true, message: "ลบสำเร็จ" });
+    return res.status(200).json({ success: true, message: "ลบสำเร็จ" });
   } catch (error) {
-    res.status(500).json({ success: false, message: "เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์" });
+    return res.status(500).json({ success: false, message: "เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์" });
   }
 });
 
@@ -505,6 +520,7 @@ const updateCustomPCBById = asyncHandler(async (req, res) => {
       slot_quo_buyer,
       slot_quo_sales,
       slot_quo_manager,
+      status,
     } = data;
 
     // 1. Prepare base update fields
@@ -591,6 +607,12 @@ const updateCustomPCBById = asyncHandler(async (req, res) => {
       queryParams.push(confirmed_price);
     }
 
+    // Handle status
+    if (status !== undefined) {
+      updateFields.push("status = ?");
+      queryParams.push(status);
+    }
+
     // 3. Handle Images (up to 10)
     if (Array.isArray(diagramImages)) {
       for (let i = 1; i <= 10; i++) {
@@ -604,10 +626,10 @@ const updateCustomPCBById = asyncHandler(async (req, res) => {
     queryParams.push(id);
 
     await pool.query(sql, queryParams);
-    res.json({ success: true, message: "อัปเดตสำเร็จ" });
+    return res.status(200).json({ success: true, message: "อัปเดตสำเร็จ" });
   } catch (error) {
     console.error("🔥 Update Error:", error);
-    res.status(500).json({ success: false, message: "เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์" });
+    return res.status(500).json({ success: false, message: "เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์" });
   }
 });
 
@@ -620,6 +642,7 @@ module.exports = {
   updateCustomPCBById,
   updateDeliveryCustomPCBById,
   updatePaymentCustomPCBById,
+  updatePCBManufacture,
   deleteCustomPCB,
   createCustomPCBbyAdmin,
 };

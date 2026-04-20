@@ -37,6 +37,9 @@ router.put("/:id", protect, updateCustomPCBById);
 // Update delivery
 router.put("/delivery/:id", protect, updateDeliveryCustomPCBById);
 
+// Update manufacture order
+router.put("/:pcborderId/pcbmaunufacture", protect, updatePCBManufacture);
+
 // Update payment status (Admin)
 router.put("/paymentrates/:id", protect, admin, updatePaymentCustomPCBById);
 

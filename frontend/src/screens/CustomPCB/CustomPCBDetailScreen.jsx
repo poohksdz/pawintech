@@ -8,11 +8,9 @@ import {
   FaFileInvoice,
   FaReceipt,
   FaArrowLeft,
-  FaBoxOpen,
   FaMicrochip,
   FaMapMarkerAlt,
   FaCheckCircle,
-  FaTimesCircle,
   FaSearchPlus,
   FaDownload,
   FaClock,
@@ -21,9 +19,12 @@ import {
   FaTrash,
   FaChevronDown,
   FaUpload,
+  FaShippingFast,
+  FaTools,
 } from "react-icons/fa";
-import { useGetCustomPCBByIdQuery, useUpdateCustomPCBMutation } from "../../slices/custompcbApiSlice";
+import { useGetCustomPCBByIdQuery, useUpdateCustomPCBMutation, useUpdateDeliveryCustomPCBMutation, useUpdatePCBManufactureMutation } from "../../slices/custompcbApiSlice";
 import { useGetDefaultInvoiceUsedQuery } from "../../slices/defaultInvoicesApiSlice";
+import { toast } from "react-toastify";
 import {
   useGetSignaturesQuery,
   useCreateSignatureMutation,
@@ -48,6 +49,8 @@ const CustomPCBDetailScreen = () => {
   const { data: companyInfo } = useGetDefaultInvoiceUsedQuery();
   const { data: signaturesData, refetch: refetchSignatures } = useGetSignaturesQuery();
   const [updateCustomPCB] = useUpdateCustomPCBMutation();
+  const [updateDeliveryCustomPCB] = useUpdateDeliveryCustomPCBMutation();
+  const [updatePCBManufacture] = useUpdatePCBManufactureMutation();
   const [createSignature] = useCreateSignatureMutation();
   const [deleteSignature] = useDeleteSignatureMutation();
   const [updateSignature] = useUpdateSignatureMutation();
@@ -72,6 +75,15 @@ const CustomPCBDetailScreen = () => {
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
   const [savingSlots, setSavingSlots] = useState(false);
   const [uploadingSig, setUploadingSig] = useState(false);
+
+  // Admin management state
+  const [showAdminPanel, setShowAdminPanel] = useState(false);
+  const [adminStatus, setAdminStatus] = useState("");
+  const [adminPrice, setAdminPrice] = useState("");
+  const [deliveryTracking, setDeliveryTracking] = useState("");
+  const [manufactureNumber, setManufactureNumber] = useState("");
+  const [savingAdmin, setSavingAdmin] = useState(false);
+
   const fileInputRef = useRef(null);
 
   useEffect(() => {
@@ -85,6 +97,11 @@ const CustomPCBDetailScreen = () => {
         slot_quo_sales: orderData.slot_quo_sales || null,
         slot_quo_manager: orderData.slot_quo_manager || null,
       });
+      // Sync admin fields
+      setAdminStatus(orderData.status || "");
+      setAdminPrice(orderData.confirmed_price || "");
+      setDeliveryTracking(orderData.transferedNumber || orderData.deliveryID || "");
+      setManufactureNumber(orderData.manufactureOrderNumber || "");
     }
   }, [orderData]);
 
@@ -96,6 +113,55 @@ const CustomPCBDetailScreen = () => {
       console.error("Failed to save signature slots:", err);
     } finally {
       setSavingSlots(false);
+    }
+  };
+
+  // Admin: Save order info (price, status, delivery tracking)
+  const handleSaveAdminInfo = async () => {
+    try {
+      setSavingAdmin(true);
+      if (adminPrice !== String(orderData.confirmed_price || "")) {
+        await updateCustomPCB({ id, updatedData: { confirmed_price: Number(adminPrice) } });
+      }
+      if (adminStatus !== (orderData.status || "")) {
+        await updateCustomPCB({ id, updatedData: { status: adminStatus } });
+      }
+      toast.success(language === "thai" ? "อัปเดตข้อมูลสำเร็จ" : "Order info updated");
+    } catch (err) {
+      toast.error(err?.data?.message || err.error || "Update failed");
+    } finally {
+      setSavingAdmin(false);
+    }
+  };
+
+  // Admin: Mark as delivered
+  const handleMarkDelivered = async () => {
+    if (!deliveryTracking.trim()) {
+      toast.error(language === "thai" ? "กรุณาใส่เลขพัสดุ" : "Please enter tracking number");
+      return;
+    }
+    try {
+      setSavingAdmin(true);
+      await updateDeliveryCustomPCB({ pcborderId: id, transferedNumber: deliveryTracking.trim() });
+      setShowAdminPanel(false);
+      toast.success(language === "thai" ? "จัดส่งสำเร็จแล้ว" : "Marked as delivered");
+    } catch (err) {
+      toast.error(err?.data?.message || err.error || "Update failed");
+    } finally {
+      setSavingAdmin(false);
+    }
+  };
+
+  // Admin: Update manufacture order number
+  const handleSaveManufacture = async () => {
+    try {
+      setSavingAdmin(true);
+      await updatePCBManufacture({ pcborderId: id, manufactureOrderNumber: manufactureNumber.trim() });
+      toast.success(language === "thai" ? "เลขที่ใบสั่งผลิตอัปเดตแล้ว" : "Manufacture order updated");
+    } catch (err) {
+      toast.error(err?.data?.message || err.error || "Update failed");
+    } finally {
+      setSavingAdmin(false);
     }
   };
 
@@ -156,11 +222,7 @@ const CustomPCBDetailScreen = () => {
   };
 
   const getSignatureList = () => {
-    if (!signaturesData) {
-      console.log("No signatures data yet");
-      return [];
-    }
-    console.log("Raw signatures data:", signaturesData);
+    if (!signaturesData) return [];
     return signaturesData.map((sig) => ({
       id: sig._id,
       name: sig.name,
@@ -393,45 +455,6 @@ const CustomPCBDetailScreen = () => {
     );
   if (!orderData) return <Message variant="info">No data found</Message>;
 
-  const downloadAllImages = async (e) => {
-    e.preventDefault();
-    const zip = new JSZip();
-    const folder = zip.folder(orderData.projectname || "images");
-
-    const fields = imageFields
-      .map(
-        (key, i) =>
-          orderData[key] && {
-            file: orderData[key],
-            name: `diagram-${i + 1}.jpg`,
-          },
-      )
-      .filter(Boolean);
-
-    if (!fields.length) {
-      alert("No images found to download.");
-      return;
-    }
-
-    for (const { file, name } of fields) {
-      const url = getFullUrl(file);
-      try {
-        const response = await fetch(url);
-        if (!response.ok) throw new Error("File not found");
-        const blob = await response.blob();
-        folder.file(name, blob);
-      } catch (err) {
-        console.error(`Failed to fetch ${url}`, err);
-      }
-    }
-
-    const content = await zip.generateAsync({ type: "blob" });
-    saveAs(
-      content,
-      `${orderData.projectname || "images"}-images-pawin-tech.zip`,
-    );
-  };
-
   const handleDownloadAll = async () => {
     const zip = new JSZip();
 
@@ -589,6 +612,14 @@ const CustomPCBDetailScreen = () => {
           </Link>
 
           <div className="flex flex-wrap gap-3">
+            {userInfo?.isAdmin && (
+              <button
+                onClick={() => setShowAdminPanel(!showAdminPanel)}
+                className="inline-flex items-center gap-2 px-6 py-2.5 bg-indigo-600 text-white rounded-full font-bold shadow-lg hover:bg-indigo-700 transition-all active:scale-95 text-xs uppercase tracking-widest"
+              >
+                <FaTools /> {language === "thai" ? "จัดการออเดอร์" : "Admin Panel"}
+              </button>
+            )}
             {(userInfo?.isAdmin || (orderData.billingTax && orderData.billingTax !== "N/A")) && (
               <div className="flex gap-2">
                 <button
@@ -846,6 +877,152 @@ const CustomPCBDetailScreen = () => {
             </div>
           </div>
         </div>
+
+        {/* Admin Management Panel */}
+        {userInfo?.isAdmin && (
+          <div className="mt-8 no-print">
+            <div className="bg-white rounded-[2rem] shadow-sm border border-indigo-200 overflow-hidden">
+              <button
+                onClick={() => setShowAdminPanel(!showAdminPanel)}
+                className="w-full flex items-center justify-between p-6 md:p-8 hover:bg-indigo-50/50 transition-colors"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center border border-indigo-100">
+                    <FaTools size={18} />
+                  </div>
+                  <h3 className="font-black text-slate-800 uppercase tracking-widest text-start">
+                    {language === "thai" ? "จัดการออเดอร์ (Admin)" : "Order Management (Admin)"}
+                  </h3>
+                </div>
+                <FaChevronDown className={`text-slate-400 transition-transform ${showAdminPanel ? "rotate-180" : ""}`} />
+              </button>
+
+              <AnimatePresence>
+                {showAdminPanel && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: "auto", opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.3 }}
+                    className="overflow-hidden"
+                  >
+                    <div className="p-6 md:p-8 border-t border-indigo-100 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+
+                      {/* Status & Price */}
+                      <div className="space-y-4">
+                        <h4 className="font-black text-slate-700 text-sm uppercase tracking-widest">
+                          {language === "thai" ? "สถานะ & ราคา" : "Status & Price"}
+                        </h4>
+                        <div>
+                          <label className="text-xs font-bold text-slate-500 uppercase tracking-wider block mb-1">
+                            {language === "thai" ? "สถานะ" : "Status"}
+                          </label>
+                          <select
+                            value={adminStatus}
+                            onChange={(e) => setAdminStatus(e.target.value)}
+                            className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-300"
+                          >
+                            <option value="pending">Pending</option>
+                            <option value="paid">Paid</option>
+                            <option value="accepted">Accepted</option>
+                            <option value="rejected">Rejected</option>
+                          </select>
+                        </div>
+                        <div>
+                          <label className="text-xs font-bold text-slate-500 uppercase tracking-wider block mb-1">
+                            {language === "thai" ? "ราคาที่ยืนยัน (บาท)" : "Confirmed Price (THB)"}
+                          </label>
+                          <input
+                            type="number"
+                            value={adminPrice}
+                            onChange={(e) => setAdminPrice(e.target.value)}
+                            className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-300"
+                            min={0}
+                          />
+                        </div>
+                        <button
+                          onClick={handleSaveAdminInfo}
+                          disabled={savingAdmin}
+                          className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 disabled:opacity-50 transition-colors text-sm"
+                        >
+                          <FaCheckCircle /> {savingAdmin ? (language === "thai" ? "กำลังบันทึก..." : "Saving...") : (language === "thai" ? "บันทึกข้อมูล" : "Save Info")}
+                        </button>
+                      </div>
+
+                      {/* Delivery */}
+                      <div className="space-y-4">
+                        <h4 className="font-black text-slate-700 text-sm uppercase tracking-widest">
+                          <FaShippingFast className="inline mr-2" />
+                          {language === "thai" ? "ข้อมูลจัดส่ง" : "Delivery Info"}
+                        </h4>
+                        <div>
+                          <label className="text-xs font-bold text-slate-500 uppercase tracking-wider block mb-1">
+                            {language === "thai" ? "เลขพัสดุ / Tracking Number" : "Tracking Number"}
+                          </label>
+                          <input
+                            type="text"
+                            value={deliveryTracking}
+                            onChange={(e) => setDeliveryTracking(e.target.value)}
+                            placeholder={language === "thai" ? "กรอกเลขพัสดุ..." : "Enter tracking number..."}
+                            className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-300"
+                          />
+                        </div>
+                        <div className="flex items-center gap-2 text-xs text-slate-500">
+                          {orderData.isDelivered ? (
+                            <span className="inline-flex items-center gap-1 text-emerald-600 font-bold">
+                              <FaCheckCircle /> {language === "thai" ? "จัดส่งแล้ว" : "Delivered"}: {orderData.deliveryOn ? format(new Date(orderData.deliveryOn), "PP p") : ""}
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 text-amber-600 font-bold">
+                              <FaClock className="animate-pulse" /> {language === "thai" ? "ยังไม่ได้จัดส่ง" : "Not delivered"}
+                            </span>
+                          )}
+                        </div>
+                        <button
+                          onClick={handleMarkDelivered}
+                          disabled={savingAdmin || orderData.isDelivered}
+                          className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-emerald-600 text-white rounded-xl font-bold hover:bg-emerald-700 disabled:opacity-50 transition-colors text-sm"
+                        >
+                          <FaShippingFast /> {language === "thai" ? "ยืนยันจัดส่ง" : "Mark as Delivered"}
+                        </button>
+                      </div>
+
+                      {/* Manufacture Order */}
+                      <div className="space-y-4">
+                        <h4 className="font-black text-slate-700 text-sm uppercase tracking-widest">
+                          <FaTools className="inline mr-2" />
+                          {language === "thai" ? "ใบสั่งผลิต" : "Manufacture Order"}
+                        </h4>
+                        <div>
+                          <label className="text-xs font-bold text-slate-500 uppercase tracking-wider block mb-1">
+                            {language === "thai" ? "เลขที่ใบสั่งผลิต" : "Manufacture Order Number"}
+                          </label>
+                          <input
+                            type="text"
+                            value={manufactureNumber}
+                            onChange={(e) => setManufactureNumber(e.target.value)}
+                            placeholder={language === "thai" ? "กรอกเลขที่ใบสั่งผลิต..." : "Enter manufacture order number..."}
+                            className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-300"
+                          />
+                        </div>
+                        <div className="flex items-center gap-2 text-xs text-slate-400">
+                          <FaClock /> {language === "thai" ? "ใช้สำหรับติดตามการผลิต" : "For internal production tracking"}
+                        </div>
+                        <button
+                          onClick={handleSaveManufacture}
+                          disabled={savingAdmin}
+                          className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-slate-700 text-white rounded-xl font-bold hover:bg-slate-800 disabled:opacity-50 transition-colors text-sm"
+                        >
+                          <FaCheckCircle /> {language === "thai" ? "บันทึกใบสั่งผลิต" : "Save Manufacture Order"}
+                        </button>
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          </div>
+        )}
 
         {/* Signature Management */}
         <div className="mt-12 no-print">

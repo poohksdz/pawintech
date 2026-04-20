@@ -59,7 +59,7 @@ export const custompcbApiSlice = apiSlice.injectEndpoints({
     }),
     updateDeliveryCustomPCB: builder.mutation({
       query: ({ pcborderId, transferedNumber }) => ({
-        url: `${CUSTOMPCBS_URL}/delivered/${pcborderId}`,
+        url: `${CUSTOMPCBS_URL}/delivery/${pcborderId}`,
         method: "PUT",
         body: { transferedNumber },
       }),
