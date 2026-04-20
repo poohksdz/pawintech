@@ -11,6 +11,7 @@ const {
   deleteCustomPCB,
   createCustomPCBbyAdmin,
   getCustomPCBByOrderId,
+  updatePCBManufacture,
 } = require("../controllers/custompcbController.js");
 const { protect, admin } = require("../middleware/authMiddleware.js");
 

@@ -7,6 +7,8 @@ const {
   getcopyPCBByUserId,
   updatecopyPCBById,
   updateDeliverycopyPCBById,
+  updatePaymentcopyPCBById,
+  updatePCBManufacture,
   deletecopyPCB,
   createcopyPCBbyAdmin,
   getcopyPCBByOrderId,
@@ -35,6 +37,12 @@ router.put("/:id", protect, updatecopyPCBById);
 
 //  ทำให้เหมือน custompcb
 router.put("/delivery/:id", protect, updateDeliverycopyPCBById);
+
+// Update payment status (Admin)
+router.put("/paymentrates/:id", protect, admin, updatePaymentcopyPCBById);
+
+// Update manufacture order
+router.put("/:pcborderId/pcbmanufacture", protect, updatePCBManufacture);
 
 // Get by ID (ต้องอยู่ล่างสุดของ GET dynamic)
 router.get("/:id", protect, getcopyPCBById);

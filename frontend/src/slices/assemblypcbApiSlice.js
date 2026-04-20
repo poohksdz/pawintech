@@ -93,6 +93,24 @@ export const assemblypcbApiSlice = apiSlice.injectEndpoints({
         body: formData,
       }),
     }),
+
+    updatePCBManufactureAssembly: builder.mutation({
+      query: ({ pcborderId, manufactureOrderNumber }) => ({
+        url: `${ORDERASSEMBLYS_URL}/${pcborderId}/pcbmanufacture`,
+        method: "PUT",
+        body: { manufactureOrderNumber },
+      }),
+      invalidatesTags: ["AssemblyPCB"],
+    }),
+
+    updatePaymentassemblyPCB: builder.mutation({
+      query: ({ id, status }) => ({
+        url: `${ORDERASSEMBLYS_URL}/paymentrates/${id}`,
+        method: "PUT",
+        body: { status },
+      }),
+      invalidatesTags: ["AssemblyPCB"],
+    }),
   }),
 });
 
@@ -110,4 +128,6 @@ export const {
   useCreateAssemblyPCBbyAdminMutation,
   useUploadGerberAssemblyZipMutation,
   useUploadAssemblyMultipleImagesMutation,
+  useUpdatePCBManufactureAssemblyMutation,
+  useUpdatePaymentassemblyPCBMutation,
 } = assemblypcbApiSlice;

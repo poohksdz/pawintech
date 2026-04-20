@@ -639,98 +639,14 @@ const createcopyPCBbyAdmin = asyncHandler(async (req, res) => {
 // @route   PUT /api/copypcbs/:id
 // @access  Protected (admin or owner)
 const updatecopyPCBById = asyncHandler(async (req, res) => {
-  const { id } = req.params;
-
-  const {
-    projectname,
-    pcbQty,
-    notes,
-    copypcb_zip,
-    billingName,
-    billingPhone,
-    billinggAddress,
-    billingCity,
-    billingPostalCode,
-    billingCountry,
-    billingTax,
-    shippingName,
-    shippingPhone,
-    shippingAddress,
-    shippingCity,
-    shippingPostalCode,
-    shippingCountry,
-    receivePlace,
-    userName,
-    userEmail,
-    copypcbFrontImages = [],
-    copypcbBackImages = [],
-    custom_price,
-  } = req.body;
-
-  if (!custom_price || custom_price === "" || custom_price === 0) {
-    res.status(400);
-    throw new Error("Please provide a custom price");
-  }
-
-  const confirmed_price = custom_price;
-
   try {
-    const [orderRows] = await db.query(
-      `SELECT * FROM pcb_copy_orders WHERE id = ?`,
-      [id],
-    );
-
-    if (orderRows.length === 0) {
-      res.status(404);
-      throw new Error("Order not found");
-    }
-
-    const getFrontImage = (index) => {
-      let img = copypcbFrontImages[index] || null;
-      if (img && typeof img === "object") img = img.path || img.url;
-      if (img && typeof img === "string" && !img.startsWith("/"))
-        return "/" + img;
-      return img;
-    };
-
-    const getBackImage = (index) => {
-      let img = copypcbBackImages[index] || null;
-      if (img && typeof img === "object") img = img.path || img.url;
-      if (img && typeof img === "string" && !img.startsWith("/"))
-        return "/" + img;
-      return img;
-    };
-
-    const frontImages = [];
-    const backImages = [];
-    for (let i = 0; i < 10; i++) {
-      frontImages.push(getFrontImage(i));
-      backImages.push(getBackImage(i));
-    }
-
-    const updatedAt = new Date();
-
-    const sql = `
-      UPDATE pcb_copy_orders SET
-        projectname = ?, pcb_qty = ?, notes = ?, copypcb_zip = ?, confirmed_price = ?,
-        front_image_1 = ?, front_image_2 = ?, front_image_3 = ?, front_image_4 = ?, front_image_5 = ?,
-        front_image_6 = ?, front_image_7 = ?, front_image_8 = ?, front_image_9 = ?, front_image_10 = ?,
-        back_image_1 = ?, back_image_2 = ?, back_image_3 = ?, back_image_4 = ?, back_image_5 = ?,
-        back_image_6 = ?, back_image_7 = ?, back_image_8 = ?, back_image_9 = ?, back_image_10 = ?,
-        billingName = ?, billingPhone = ?, billinggAddress = ?, billingCity = ?, billingPostalCode = ?, billingCountry = ?, billingTax = ?,
-        shippingName = ?, shippingPhone = ?, shippingAddress = ?, shippingCity = ?, shippingPostalCode = ?, shippingCountry = ?, receivePlace = ?,
-        userName = ?, userEmail = ?, updated_at = ?
-      WHERE id = ?
-    `;
-
-    const values = [
+    const { id } = req.params;
+    const data = req.body.updatedData || req.body;
+    const {
       projectname,
       pcbQty,
       notes,
       copypcb_zip,
-      confirmed_price,
-      ...frontImages,
-      ...backImages,
       billingName,
       billingPhone,
       billinggAddress,
@@ -747,11 +663,115 @@ const updatecopyPCBById = asyncHandler(async (req, res) => {
       receivePlace,
       userName,
       userEmail,
-      updatedAt,
-      id,
-    ];
+      copypcbFrontImages = [],
+      copypcbBackImages = [],
+      confirmed_price,
+      status,
+      transferedNumber,
+      isDelivered,
+      manufactureOrderNumber,
+      slot_buyer,
+      slot_cashier,
+      slot_manager,
+      slot_sender,
+      slot_quo_buyer,
+      slot_quo_sales,
+      slot_quo_manager,
+    } = data;
 
-    await db.query(sql, values);
+    const [orderRows] = await db.query(
+      `SELECT * FROM pcb_copy_orders WHERE id = ?`,
+      [id],
+    );
+
+    if (orderRows.length === 0) {
+      res.status(404);
+      throw new Error("Order not found");
+    }
+
+    let updateFields = [];
+    let queryParams = [];
+
+    // Build dynamic update fields
+    const addField = (name, value) => {
+      if (value !== undefined && value !== null) {
+        updateFields.push(`${name} = ?`);
+        queryParams.push(value);
+      }
+    };
+
+    addField("projectname", projectname);
+    addField("pcb_qty", pcbQty);
+    addField("notes", notes);
+    addField("copypcb_zip", copypcb_zip);
+    addField("confirmed_price", confirmed_price);
+    addField("userName", userName);
+    addField("userEmail", userEmail);
+    addField("receivePlace", receivePlace);
+    addField("shippingName", shippingName);
+    addField("shippingPhone", shippingPhone);
+    addField("shippingAddress", shippingAddress);
+    addField("shippingCity", shippingCity);
+    addField("shippingPostalCode", shippingPostalCode);
+    addField("shippingCountry", shippingCountry);
+    addField("billingName", billingName);
+    addField("billingPhone", billingPhone);
+    addField("billinggAddress", billinggAddress);
+    addField("billingCity", billingCity);
+    addField("billingPostalCode", billingPostalCode);
+    addField("billingCountry", billingCountry);
+    addField("billingTax", billingTax);
+    addField("status", status);
+    addField("transferedNumber", transferedNumber);
+    addField("isDelivered", isDelivered);
+    addField("manufactureOrderNumber", manufactureOrderNumber);
+
+    // Signature slots
+    addField("slot_buyer", slot_buyer);
+    addField("slot_cashier", slot_cashier);
+    addField("slot_manager", slot_manager);
+    addField("slot_sender", slot_sender);
+    addField("slot_quo_buyer", slot_quo_buyer);
+    addField("slot_quo_sales", slot_quo_sales);
+    addField("slot_quo_manager", slot_quo_manager);
+
+    // Handle images
+    const getFrontImage = (index) => {
+      let img = copypcbFrontImages?.[index] || null;
+      if (img && typeof img === "object") img = img.path || img.url;
+      if (img && typeof img === "string" && !img.startsWith("/")) return "/" + img;
+      return img;
+    };
+    const getBackImage = (index) => {
+      let img = copypcbBackImages?.[index] || null;
+      if (img && typeof img === "object") img = img.path || img.url;
+      if (img && typeof img === "string" && !img.startsWith("/")) return "/" + img;
+      return img;
+    };
+
+    for (let i = 1; i <= 10; i++) {
+      const frontImg = getFrontImage(i - 1);
+      if (frontImg !== null) {
+        updateFields.push(`front_image_${i} = ?`);
+        queryParams.push(frontImg);
+      }
+      const backImg = getBackImage(i - 1);
+      if (backImg !== null) {
+        updateFields.push(`back_image_${i} = ?`);
+        queryParams.push(backImg);
+      }
+    }
+
+    if (updateFields.length === 0) {
+      res.status(400);
+      throw new Error("No fields to update");
+    }
+
+    updateFields.push("updated_at = NOW()");
+    queryParams.push(id);
+
+    const sql = `UPDATE pcb_copy_orders SET ${updateFields.join(", ")} WHERE id = ?`;
+    await db.query(sql, queryParams);
 
     res.json({ message: "Order updated successfully" });
   } catch (err) {
@@ -813,6 +833,33 @@ const updatePaymentcopyPCBById = asyncHandler(async (req, res) => {
   res.status(200).json({ success: true, message: `อัปเดตสำเร็จ` });
 });
 
+// @desc    Update PCB Manufacture Order Number
+// @route   PUT /api/copypcbs/:pcborderId/pcbmanufacture
+// @access  Protected (admin)
+const updatePCBManufacture = asyncHandler(async (req, res) => {
+  const { pcborderId } = req.params;
+  const { manufactureOrderNumber } = req.body;
+
+  try {
+    const [orderRows] = await db.query(
+      `SELECT * FROM pcb_copy_orders WHERE id = ?`,
+      [pcborderId],
+    );
+    if (orderRows.length === 0) {
+      res.status(404);
+      throw new Error("Order not found");
+    }
+    await db.query(
+      `UPDATE pcb_copy_orders SET manufactureOrderNumber = ?, updated_at = NOW() WHERE id = ?`,
+      [manufactureOrderNumber, pcborderId],
+    );
+    res.json({ message: "Manufacture order number updated" });
+  } catch (err) {
+    console.error("Error during manufacture update:", err);
+    res.status(500).json({ message: err.message });
+  }
+});
+
 // @desc    Delete a PCB copy  Order by ID
 // @route   DELETE /api/copypcbs/:id
 // @access  Protected (admin or owner)
@@ -863,6 +910,7 @@ module.exports = {
   updatecopyPCBById,
   updateDeliverycopyPCBById,
   updatePaymentcopyPCBById,
+  updatePCBManufacture,
   deletecopyPCB,
   createcopyPCBbyAdmin,
 };

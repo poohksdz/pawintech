@@ -19,26 +19,33 @@ const getNotifications = asyncHandler(async (req, res) => {
     if (Number(req.user?.isPCBAdmin) === 1) roles.push("isPCBAdmin");
 
     // 1. Get Personal Notifications
-    const [personalNotis] = await pool.query(
-      `SELECT n.id, n.message, n.type, n.isRead, COALESCE(n.created_at, n.createdAt, NOW()) AS created_at, p.img AS product_img, 'personal' AS scope
-       FROM tbl_notifications n
-       LEFT JOIN tbl_product p ON n.related_id = p.ID
-       WHERE n.user_id = ?
-       ORDER BY n.id DESC LIMIT 50`,
-      [userId],
-    );
+    let personalNotis = [];
+    try {
+      [personalNotis] = await pool.query(
+        `SELECT n.id, n.message, n.type, n.isRead, COALESCE(n.createdAt, n.created_at, NOW()) AS created_at, 'personal' AS scope
+         FROM tbl_notifications n
+         WHERE n.user_id = ?
+         ORDER BY n.id DESC LIMIT 50`,
+        [userId],
+      );
+    } catch (e) {
+      console.error("Personal notifications query failed:", e);
+    }
 
-    // 2. Get Global Announcements
-    const [globalNotis] = await pool.query(
-      `SELECT g.id, g.message, g.type, g.created_at, 'global' AS scope,
-              IF(r.announcement_id IS NOT NULL, TRUE, FALSE) AS isRead
-       FROM tbl_global_announcements g
-       LEFT JOIN tbl_user_read_announcements r ON g.id = r.announcement_id AND r.user_id = ?
-       WHERE g.targetRole IN (?)
-       AND (r.is_deleted IS NULL OR r.is_deleted = FALSE)
-       ORDER BY g.id DESC LIMIT 50`,
-      [userId, roles],
-    );
+    const rolesStr = roles.map((r) => r.replace(/[^a-zA-Z0-9_]/g, "")).filter(Boolean).join("','");
+    let globalNotis = [];
+    if (rolesStr) {
+      [globalNotis] = await pool.query(
+        `SELECT g.id, g.message, g.type, g.created_at, 'global' AS scope,
+                IF(r.announcement_id IS NOT NULL, TRUE, FALSE) AS isRead
+         FROM tbl_global_announcements g
+         LEFT JOIN tbl_user_read_announcements r ON g.id = r.announcement_id AND r.user_id = ?
+         WHERE g.targetRole IN ('${rolesStr}')
+         AND (r.is_deleted IS NULL OR r.is_deleted = FALSE)
+         ORDER BY g.id DESC LIMIT 50`,
+        [userId],
+      );
+    }
 
     // Combine and sort by date descending
     const allNotifications = [...personalNotis, ...globalNotis]
@@ -97,17 +104,17 @@ const markAllAsRead = asyncHandler(async (req, res) => {
       [userId],
     );
 
-    // 2. Mark all eligible Global as read
-    const roles = ["all"];
-    if (Number(req.user?.isAdmin) === 1) roles.push("isAdmin");
-    if (Number(req.user?.isStore) === 1) roles.push("isStore");
-    if (Number(req.user?.isPCBAdmin) === 1) roles.push("isPCBAdmin");
+    const roles2 = ["all"];
+    if (Number(req.user?.isAdmin) === 1) roles2.push("isAdmin");
+    if (Number(req.user?.isStore) === 1) roles2.push("isStore");
+    if (Number(req.user?.isPCBAdmin) === 1) roles2.push("isPCBAdmin");
+    const rolesStr2 = roles2.map((r) => r.replace(/[^a-zA-Z0-9_]/g, "")).filter(Boolean).join("','");
 
     await pool.query(
       `INSERT IGNORE INTO tbl_user_read_announcements (user_id, announcement_id, isRead)
        SELECT ?, id, TRUE FROM tbl_global_announcements
-       WHERE targetRole IN (?)`,
-      [userId, roles],
+       WHERE targetRole IN ('${rolesStr2}')`,
+      [userId],
     );
 
     res.json({ message: "All marked as read" });
@@ -159,17 +166,18 @@ const deleteAllNotifications = asyncHandler(async (req, res) => {
     ]);
 
     // 2. Mark all Global as deleted
-    const roles = ["all"];
-    if (Number(req.user?.isAdmin) === 1) roles.push("isAdmin");
-    if (Number(req.user?.isStore) === 1) roles.push("isStore");
-    if (Number(req.user?.isPCBAdmin) === 1) roles.push("isPCBAdmin");
+    const roles3 = ["all"];
+    if (Number(req.user?.isAdmin) === 1) roles3.push("isAdmin");
+    if (Number(req.user?.isStore) === 1) roles3.push("isStore");
+    if (Number(req.user?.isPCBAdmin) === 1) roles3.push("isPCBAdmin");
+    const rolesStr3 = roles3.map((r) => r.replace(/[^a-zA-Z0-9_]/g, "")).filter(Boolean).join("','");
 
     await pool.query(
       `INSERT INTO tbl_user_read_announcements (user_id, announcement_id, is_deleted)
        SELECT ?, id, TRUE FROM tbl_global_announcements
-       WHERE targetRole IN (?)
+       WHERE targetRole IN ('${rolesStr3}')
        ON DUPLICATE KEY UPDATE is_deleted = TRUE`,
-      [userId, roles],
+      [userId],
     );
 
     res.json({ message: "All notifications deleted" });

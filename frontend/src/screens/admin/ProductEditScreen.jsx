@@ -175,7 +175,7 @@ const ProductEditScreen = () => {
     >
       <div className="flex items-center gap-3 mb-8">
         <div
-          className={`w-10 h-10 rounded-2xl ${colorClass}`} bg-opacity-10 flex items-center justify-center text-lg
+          className={`w-10 h-10 rounded-2xl ${colorClass} bg-opacity-10 flex items-center justify-center text-lg`}
         >
           <Icon className={colorClass.replace("bg-", "text-")} />
         </div>

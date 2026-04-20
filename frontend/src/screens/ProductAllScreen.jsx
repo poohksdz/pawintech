@@ -221,7 +221,7 @@ const ProductAllScreen = () => {
                             }`}
                         >
                           <Link
-                            to={`/${product._id}`}
+                            to={`/product/${product._id}`}
                             className="block group no-underline flex flex-col h-full"
                           >
                             {/* 1. กล่องรูปภาพ */}

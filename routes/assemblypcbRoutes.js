@@ -7,10 +7,13 @@ const {
   getassemblyPCBByUserId,
   updateassemblyPCBById,
   updateDeliveryassemblyPCBById,
+  updatePaymentassemblyPCBById,
+  updatePCBManufactureAssembly,
   deleteassemblyPCB,
   createassemblyPCBbyAdmin,
   getassemblyPCBByOrderId,
 } = require("../controllers/assemblypcbController.js");
+const { protect, admin } = require("../middleware/authMiddleware.js");
 
 // ==========================
 // Routes
@@ -34,6 +37,12 @@ router.put("/:id", updateassemblyPCBById);
 
 //  ทำให้เหมือน custompcb/copypcb
 router.put("/delivery/:id", updateDeliveryassemblyPCBById);
+
+// Update payment status (Admin)
+router.put("/paymentrates/:id", updatePaymentassemblyPCBById);
+
+// Update manufacture order
+router.put("/:pcborderId/pcbmanufacture", updatePCBManufactureAssembly);
 
 // Get by ID (ต้องอยู่ล่างสุดของ GET dynamic)
 router.get("/:id", getassemblyPCBById);

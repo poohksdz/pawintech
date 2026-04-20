@@ -1284,9 +1284,9 @@ const CustomPCBDetailScreen = () => {
               items: [
                 {
                   product_id: orderData.id || orderData._id,
-                  name: `Custom PCB: ${orderData.projectname}`,
-                  qty: orderData.pcb_qty,
-                  price: (Number(orderData.confirmed_price || 0) / 1.07) / orderData.pcb_qty,
+                  name: `Custom PCB: ${orderData.projectname || 'Untitled Project'}`,
+                  qty: orderData.pcb_qty || 1,
+                  price: (Number(orderData.confirmed_price || 0) / 1.07) / (orderData.pcb_qty || 1),
                 }
               ],
               itemsPrice: Number(orderData.confirmed_price || 0) / 1.07,
@@ -1330,9 +1330,9 @@ const CustomPCBDetailScreen = () => {
               items: [
                 {
                   product_id: orderData.id || orderData._id,
-                  name: `Custom PCB: ${orderData.projectname}`,
-                  qty: orderData.pcb_qty,
-                  price: (Number(orderData.confirmed_price || 0) / 1.07) / orderData.pcb_qty,
+                  name: `Custom PCB: ${orderData.projectname || 'Untitled Project'}`,
+                  qty: orderData.pcb_qty || 1,
+                  price: (Number(orderData.confirmed_price || 0) / 1.07) / (orderData.pcb_qty || 1),
                 }
               ],
               itemsPrice: Number(orderData.confirmed_price || 0) / 1.07,
@@ -1356,7 +1356,8 @@ const CustomPCBDetailScreen = () => {
           />
         </div>
 
-        <style dangerouslySetInnerHTML={{ __html: `
+        <style dangerouslySetInnerHTML={{
+          __html: `
         @media print {
           .no-print { display: none !important; }
           .print-only { display: block !important; }

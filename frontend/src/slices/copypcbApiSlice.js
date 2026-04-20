@@ -91,6 +91,15 @@ export const copypcbApiSlice = apiSlice.injectEndpoints({
       invalidatesTags: ["CopyPCB"],
     }),
 
+    updatePaymentcopyPCB: builder.mutation({
+      query: ({ id, status }) => ({
+        url: `${COPYPCBS_URL}/paymentrates/${id}`,
+        method: "PUT",
+        body: { status },
+      }),
+      invalidatesTags: ["CopyPCB"],
+    }),
+
     getShippingRates: builder.query({
       query: () => ({
         url: `${COPYPCBS_URL}/getshippingrates`,
@@ -148,4 +157,5 @@ export const {
   useUploadcopypcbZipMutation,
   useUploadMultipleCopyPCBImagesMutation,
   useCreatecopyPCBbyAdminMutation,
+  useUpdatePaymentcopyPCBMutation,
 } = copypcbApiSlice;

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { motion, AnimatePresence } from "framer-motion";
@@ -16,9 +16,24 @@ import {
   FaMicrochip,
   FaSearchPlus,
   FaClock,
+  FaPenNib,
+  FaPlus,
+  FaTrash,
+  FaChevronDown,
+  FaUpload,
+  FaTools,
+  FaShippingFast,
 } from "react-icons/fa";
-import { useGetAssemblyPCBByIdQuery } from "../../slices/assemblypcbApiSlice";
+import { useGetAssemblyPCBByIdQuery, useUpdateAssemblyPCBMutation, useUpdatePCBManufactureAssemblyMutation } from "../../slices/assemblypcbApiSlice";
 import { useGetDefaultInvoiceUsedQuery } from "../../slices/defaultInvoicesApiSlice";
+import {
+  useGetSignaturesQuery,
+  useCreateSignatureMutation,
+  useUpdateSignatureMutation,
+  useDeleteSignatureMutation,
+  uploadSignatureImage,
+} from "../../slices/signatureApiSlice";
+import { toast } from "react-toastify";
 import Loader from "../../components/Loader";
 import Message from "../../components/Message";
 import FullTaxInvoiceA4 from "../../components/FullTaxInvoiceA4";
@@ -32,8 +47,15 @@ const OrderassemblyDetailScreen = () => {
   const navigate = useNavigate();
   const { id } = useParams();
   const { language } = useSelector((state) => state.language);
-  const { data: order, isLoading, error } = useGetAssemblyPCBByIdQuery(id);
+  const { userInfo } = useSelector((state) => state.auth);
+  const { data: order, isLoading, error, refetch } = useGetAssemblyPCBByIdQuery(id);
+  const [updateAssemblyPCB] = useUpdateAssemblyPCBMutation();
+  const [updatePCBManufactureAssembly] = useUpdatePCBManufactureAssemblyMutation();
   const { data: companyInfo } = useGetDefaultInvoiceUsedQuery();
+  const { data: signaturesData, refetch: refetchSignatures } = useGetSignaturesQuery();
+  const [createSignature] = useCreateSignatureMutation();
+  const [deleteSignature] = useDeleteSignatureMutation();
+  const [updateSignature] = useUpdateSignatureMutation();
 
   const orderData = order?.data;
 
@@ -41,19 +63,98 @@ const OrderassemblyDetailScreen = () => {
   const [printMode, setPrintMode] = useState(null);
   const [topImages, setTopImages] = useState([]);
   const [bottomImages, setBottomImages] = useState([]);
+  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
+
+  // Signature management
+  const [showSignaturePanel, setShowSignaturePanel] = useState(false);
+  const [selectedSlots, setSelectedSlots] = useState({
+    slot_buyer: null, slot_cashier: null, slot_manager: null, slot_sender: null,
+    slot_quo_buyer: null, slot_quo_sales: null, slot_quo_manager: null,
+  });
+  const [savingSlots, setSavingSlots] = useState(false);
+  const [uploadingSig, setUploadingSig] = useState(false);
+  const fileInputRef = useRef(null);
+
+  // Admin panel
+  const [showAdminPanel, setShowAdminPanel] = useState(false);
+  const [adminStatus, setAdminStatus] = useState("");
+  const [adminPrice, setAdminPrice] = useState("");
+  const [deliveryTracking, setDeliveryTracking] = useState("");
+  const [manufactureNumber, setManufactureNumber] = useState("");
+  const [savingAdmin, setSavingAdmin] = useState(false);
+
+  useEffect(() => {
+    if (orderData) {
+      const top = [], bottom = [];
+      for (let i = 1; i <= 10; i++) {
+        if (orderData[`image_top_${i}`]) top.push({ url: getFullUrl(orderData[`image_top_${i}`]) });
+        if (orderData[`image_bottom_${i}`]) bottom.push({ url: getFullUrl(orderData[`image_bottom_${i}`]) });
+      }
+      setTopImages(top);
+      setBottomImages(bottom);
+      setAdminStatus(orderData.status || "");
+      setAdminPrice(orderData.confirmed_price || "");
+      setDeliveryTracking(orderData.transferedNumber || orderData.deliveryID || "");
+      setManufactureNumber(orderData.manufactureOrderNumber || "");
+      setSelectedSlots({
+        slot_buyer: orderData.slot_buyer || null,
+        slot_cashier: orderData.slot_cashier || null,
+        slot_manager: orderData.slot_manager || null,
+        slot_sender: orderData.slot_sender || null,
+        slot_quo_buyer: orderData.slot_quo_buyer || null,
+        slot_quo_sales: orderData.slot_quo_sales || null,
+        slot_quo_manager: orderData.slot_quo_manager || null,
+      });
+    }
+  }, [orderData]);
+
+  const handleSaveSlots = async () => {
+    try { setSavingSlots(true); await updateAssemblyPCB({ id, updatedData: selectedSlots }); toast.success(language === "thai" ? "บันทึกลายเซ็นสำเร็จ" : "Signatures saved"); }
+    catch (err) { toast.error(err?.data?.message || err.error); } finally { setSavingSlots(false); }
+  };
+
+  const getSignatureList = () => { if (!signaturesData) return []; return signaturesData.map((sig) => ({ id: sig._id, name: sig.name, image_path: sig.image_path })); };
+  const getSignatureUrl = (sigId) => { if (!sigId) return null; const found = getSignatureList().find((s) => String(s.id) === String(sigId)); return found ? getFullUrl(found.image_path) : null; };
+
+  const handleUploadSignature = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const sigName = window.prompt("ตั้งชื่อลายเซ็น:", file.name.split(".")[0]);
+    if (!sigName?.trim()) return;
+    try { setUploadingSig(true); const result = await uploadSignatureImage(file); if (result.image_path) { await createSignature({ name: sigName.trim(), image_path: result.image_path }); refetchSignatures(); } }
+    catch (err) { alert("อัปโหลดล้มเหลว: " + (err.message || "ไม่ทราบสาเหตุ")); } finally { setUploadingSig(false); }
+  };
+
+  const handleDeleteSignature = async (sigId) => {
+    if (!window.confirm("ลบลายเซ็นนี้?")) return;
+    try { await deleteSignature(sigId); refetchSignatures(); const newSlots = { ...selectedSlots }; Object.keys(newSlots).forEach((key) => { if (newSlots[key] === sigId) newSlots[key] = null; }); setSelectedSlots(newSlots); }
+    catch (err) { console.error(err); }
+  };
+
+  const handleRenameSignature = async (sigId, currentName) => {
+    const newName = window.prompt("แก้ไขชื่อลายเซ็น:", currentName);
+    if (!newName?.trim() || newName === currentName) return;
+    try { await updateSignature({ id: sigId, name: newName.trim() }); refetchSignatures(); } catch (err) { console.error(err); }
+  };
+
+  const slotLabels = {
+    slot_buyer: "ผู้ซื้อ (Invoice/Receipt)", slot_cashier: "ผู้รับเงิน (Cashier)", slot_manager: "ผู้มีอำนาจ (Manager)",
+    slot_sender: "ผู้ส่งสินค้า (Sender)", slot_quo_buyer: "ผู้ขอซื้อ (Quotation Buyer)", slot_quo_sales: "ผู้ขาย (Quotation Sales)", slot_quo_manager: "ผู้จัดการฝ่ายขาย (Quotation Manager)",
+  };
 
   const handlePrint = (mode) => {
     setPrintMode(mode);
+    setIsGeneratingPDF(true);
     setTimeout(() => {
-      const originalTitle = document.title;
-      const invoiceNo = orderData?.paymentComfirmID || orderData?.orderID || orderData?.id;
-      document.title = `${mode === "full" ? "Tax_Invoice" : "Short_Receipt"}_${invoiceNo}`;
-      window.print();
-      setTimeout(() => {
-        setPrintMode(null);
-        document.title = originalTitle;
-      }, 1000);
-    }, 100);
+      import("html2pdf.js").then(({ default: html2pdf }) => {
+        const container = document.getElementById(mode === "full" ? "full-tax-invoice-container" : "short-tax-invoice-container");
+        const element = container?.firstElementChild;
+        if (element) {
+          const opt = { margin: 0, filename: `${mode === "full" ? "TaxInvoice" : "Receipt"}_${orderData?.paymentComfirmID || orderData?.orderID || "Doc"}.pdf`, image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2, useCORS: true, logging: false }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }, pagebreak: { mode: ['css', 'legacy'] } };
+          html2pdf().set(opt).from(element).save().then(() => { setPrintMode(null); setIsGeneratingPDF(false); }).catch(() => { setPrintMode(null); setIsGeneratingPDF(false); });
+        } else { setPrintMode(null); setIsGeneratingPDF(false); }
+      });
+    }, 500);
   };
 
   const getFullUrl = (pathInput) => {
@@ -171,6 +272,12 @@ const OrderassemblyDetailScreen = () => {
           </Link>
 
           <div className="flex flex-wrap gap-3">
+            {userInfo?.isAdmin && (
+              <button onClick={() => setShowAdminPanel(!showAdminPanel)}
+                className="inline-flex items-center gap-2 px-6 py-2.5 bg-indigo-600 text-white rounded-full font-bold shadow-lg hover:bg-indigo-700 transition-all active:scale-95 text-xs uppercase tracking-widest">
+                <FaTools /> {language === "thai" ? "จัดการออเดอร์" : "Admin Panel"}
+              </button>
+            )}
             {orderData.status === "paid" && orderData.billingTax && orderData.billingTax !== "N/A" && (
               <div className="flex gap-2">
                 <button
@@ -420,6 +527,154 @@ const OrderassemblyDetailScreen = () => {
         </div>
       </div>
 
+      {/* Admin Management Panel */}
+      {userInfo?.isAdmin && (
+        <div className="mt-8 no-print">
+          <div className="bg-white rounded-[2rem] shadow-sm border border-indigo-200 overflow-hidden">
+            <button onClick={() => setShowAdminPanel(!showAdminPanel)} className="w-full flex items-center justify-between p-6 md:p-8 hover:bg-indigo-50/50 transition-colors">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center border border-indigo-100"><FaTools size={18} /></div>
+                <h3 className="font-black text-slate-800 uppercase tracking-widest text-start">{language === "thai" ? "จัดการออเดอร์ (Admin)" : "Order Management (Admin)"}</h3>
+              </div>
+              <FaChevronDown className={`text-slate-400 transition-transform ${showAdminPanel ? "rotate-180" : ""}`} />
+            </button>
+            <AnimatePresence>
+              {showAdminPanel && (
+                <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.3 }} className="overflow-hidden">
+                  <div className="p-6 md:p-8 border-t border-indigo-100 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div className="space-y-4">
+                      <h4 className="font-black text-slate-700 text-sm uppercase tracking-widest">{language === "thai" ? "สถานะ & ราคา" : "Status & Price"}</h4>
+                      <select value={adminStatus} onChange={(e) => setAdminStatus(e.target.value)} className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300">
+                        <option value="pending">Pending</option><option value="paid">Paid</option><option value="accepted">Accepted</option><option value="rejected">Rejected</option>
+                      </select>
+                      <input type="number" value={adminPrice} onChange={(e) => setAdminPrice(e.target.value)} className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300" placeholder="ราคา (บาท)" />
+                      <button onClick={async () => { try { setSavingAdmin(true); if (adminPrice !== String(orderData.confirmed_price || "")) await updateAssemblyPCB({ id, updatedData: { confirmed_price: Number(adminPrice) } }); if (adminStatus !== (orderData.status || "")) await updateAssemblyPCB({ id, updatedData: { status: adminStatus } }); refetch(); toast.success(language === "thai" ? "อัปเดตสำเร็จ" : "Updated"); } catch (err) { toast.error(err?.data?.message || err.error); } finally { setSavingAdmin(false); } }} disabled={savingAdmin} className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 disabled:opacity-50 text-sm">
+                        <FaCheckCircle /> {savingAdmin ? (language === "thai" ? "กำลังบันทึก..." : "Saving...") : (language === "thai" ? "บันทึก" : "Save")}
+                      </button>
+                    </div>
+                    <div className="space-y-4">
+                      <h4 className="font-black text-slate-700 text-sm uppercase tracking-widest"><FaShippingFast className="inline mr-2" />{language === "thai" ? "ข้อมูลจัดส่ง" : "Delivery Info"}</h4>
+                      <input type="text" value={deliveryTracking} onChange={(e) => setDeliveryTracking(e.target.value)} placeholder={language === "thai" ? "เลขพัสดุ..." : "Tracking number..."} className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300" />
+                      <button onClick={async () => { try { setSavingAdmin(true); await updateAssemblyPCB({ id, updatedData: { transferedNumber: deliveryTracking.trim(), isDelivered: 1 } }); refetch(); toast.success(language === "thai" ? "จัดส่งสำเร็จ" : "Delivered"); } catch (err) { toast.error(err?.data?.message || err.error); } finally { setSavingAdmin(false); } }} disabled={savingAdmin} className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-emerald-600 text-white rounded-xl font-bold hover:bg-emerald-700 disabled:opacity-50 text-sm">
+                        <FaShippingFast /> {language === "thai" ? "ยืนยันจัดส่ง" : "Mark Delivered"}
+                      </button>
+                    </div>
+                    <div className="space-y-4">
+                      <h4 className="font-black text-slate-700 text-sm uppercase tracking-widest"><FaTools className="inline mr-2" />{language === "thai" ? "ใบสั่งผลิต" : "Manufacture Order"}</h4>
+                      <input type="text" value={manufactureNumber} onChange={(e) => setManufactureNumber(e.target.value)} placeholder={language === "thai" ? "เลขที่ใบสั่งผลิต..." : "Manufacture order..."} className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300" />
+                      <button onClick={async () => { try { setSavingAdmin(true); await updatePCBManufactureAssembly({ pcborderId: id, manufactureOrderNumber: manufactureNumber.trim() }); refetch(); toast.success(language === "thai" ? "บันทึกสำเร็จ" : "Saved"); } catch (err) { toast.error(err?.data?.message || err.error); } finally { setSavingAdmin(false); } }} disabled={savingAdmin} className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-slate-700 text-white rounded-xl font-bold hover:bg-slate-800 disabled:opacity-50 text-sm">
+                        <FaCheckCircle /> {language === "thai" ? "บันทึก" : "Save"}
+                      </button>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+        </div>
+      )}
+
+      {/* Signature Management */}
+      <div className="mt-8 no-print">
+        <div className="bg-white rounded-[2rem] shadow-sm border border-slate-200 overflow-hidden">
+          <button onClick={() => setShowSignaturePanel(!showSignaturePanel)} className="w-full flex items-center justify-between p-6 md:p-8 hover:bg-slate-50 transition-colors">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center border border-purple-100"><FaPenNib size={18} /></div>
+              <h3 className="font-black text-slate-800 uppercase tracking-widest text-start">{language === "thai" ? "จัดการลายเซ็น & ช่องเซ็น" : "Manage Signatures & Slots"}</h3>
+            </div>
+            <FaChevronDown className={`text-slate-400 transition-transform ${showSignaturePanel ? "rotate-180" : ""}`} />
+          </button>
+          <AnimatePresence>
+            {showSignaturePanel && (
+              <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.3 }} className="overflow-hidden">
+                <div className="p-6 md:p-8 border-t border-slate-100">
+                  <div className="mb-8">
+                    <div className="flex items-center justify-between mb-4">
+                      <h4 className="font-bold text-slate-700">{language === "thai" ? "คลังลายเซ็น" : "Signature Library"}</h4>
+                      <div className="flex items-center gap-2">
+                        <input type="file" ref={fileInputRef} accept="image/jpeg,image/png,image/webp" onChange={handleUploadSignature} className="hidden" />
+                        <button onClick={() => fileInputRef.current?.click()} disabled={uploadingSig} className="inline-flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-full text-sm font-bold hover:bg-purple-700 disabled:opacity-50">
+                          <FaPlus /> {uploadingSig ? (language === "thai" ? "กำลังอัปโหลด..." : "Uploading...") : (language === "thai" ? "เพิ่มลายเซ็น" : "Add Signature")}
+                        </button>
+                      </div>
+                    </div>
+                    <div className="flex flex-wrap gap-4">
+                      {getSignatureList().map((sig) => (
+                        <div key={sig.id} className="relative group w-32">
+                          <div onClick={() => setZoomedImage(getFullUrl(sig.image_path))} className="w-32 h-20 rounded-xl border-2 border-slate-200 bg-white overflow-hidden cursor-zoom-in flex items-center justify-center hover:border-purple-300 transition-colors shadow-sm">
+                            <img src={getFullUrl(sig.image_path)} alt={sig.name} className="max-h-16 max-w-full object-contain p-1" />
+                          </div>
+                          <p className="text-xs text-center text-slate-500 mt-1 truncate px-1">{sig.name}</p>
+                          <div className="absolute -top-2 -right-2 flex gap-1 opacity-100 lg:opacity-0 lg:group-hover:opacity-100">
+                            <button onClick={() => handleRenameSignature(sig.id, sig.name)} className="w-6 h-6 bg-amber-500 text-white rounded-full flex items-center justify-center hover:bg-amber-600 shadow-sm text-xs">✎</button>
+                            <button onClick={() => handleDeleteSignature(sig.id)} className="w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 shadow-sm"><FaTrash size={10} /></button>
+                          </div>
+                        </div>
+                      ))}
+                      {(!signaturesData || signaturesData.length === 0) && (
+                        <div className="w-full py-8 text-center text-slate-400 border-2 border-dashed border-slate-200 rounded-xl">
+                          <FaUpload size={24} className="mx-auto mb-2 opacity-50" />
+                          <p className="text-sm">{language === "thai" ? "ยังไม่มีลายเซ็น" : "No signatures yet"}</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  <div className="mb-6">
+                    <h4 className="font-bold text-slate-700 mb-4">{language === "thai" ? "เลือกช่องลายเซ็น" : "Select Signature Slots"}</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {Object.keys(slotLabels).map((slotKey) => (
+                        <div key={slotKey} className="flex items-center gap-3">
+                          <label className="text-sm font-medium text-slate-600 min-w-[150px]">{slotLabels[slotKey]}</label>
+                          <select value={selectedSlots[slotKey] || ""} onChange={(e) => setSelectedSlots((prev) => ({ ...prev, [slotKey]: e.target.value ? Number(e.target.value) : null }))} className="flex-1 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-300">
+                            <option value="">— {language === "thai" ? "ไม่ใส่ลายเซ็น" : "No signature"} —</option>
+                            {getSignatureList().map((sig) => (<option key={sig.id} value={sig.id}>{sig.name}</option>))}
+                          </select>
+                          {selectedSlots[slotKey] && (
+                            <div className="w-16 h-10 rounded-lg border border-slate-200 bg-white overflow-hidden flex items-center justify-center flex-shrink-0">
+                              <img src={getSignatureUrl(selectedSlots[slotKey])} alt="Preview" className="max-h-8 max-w-full object-contain" />
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                    <button onClick={handleSaveSlots} disabled={savingSlots} className="mt-6 inline-flex items-center gap-2 px-6 py-2.5 bg-black text-white rounded-full font-bold shadow-lg hover:bg-slate-800 disabled:opacity-50 text-sm">
+                      <FaCheckCircle /> {savingSlots ? (language === "thai" ? "กำลังบันทึก..." : "Saving...") : (language === "thai" ? "บันทึกการตั้งค่าช่องเซ็น" : "Save Signature Settings")}
+                    </button>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      </div>
+
+      {/* Document Preview */}
+      <div className="mt-12 no-print">
+        <div className="flex items-center gap-3 mb-6">
+          <div className="w-10 h-10 rounded-xl bg-[#5F9EA0]/10 text-[#5F9EA0] flex items-center justify-center border border-[#5F9EA0]/20"><FaFileInvoice size={18} /></div>
+          <h3 className="font-black text-slate-800 uppercase tracking-widest m-0">Document Preview</h3>
+        </div>
+        <div className="flex justify-center w-full bg-slate-200 py-8 rounded-[2.5rem] border border-slate-300 overflow-visible shadow-inner">
+          <FullTaxInvoiceA4
+            order={orderData ? { id: orderData.id || orderData._id, status: orderData.status, createdAt: orderData.created_at || orderData.createdAt, paymentMethod: "Bank Transfer",
+              billingName: orderData.billingName, billinggAddress: orderData.billinggAddress || orderData.billingAddress, billingCity: orderData.billingCity, billingPostalCode: orderData.billingPostalCode, billingTax: orderData.billingTax, billingBranch: orderData.billingBranch,
+              shippingName: orderData.shippingName, shippingPhone: orderData.shippingPhone,
+              items: [{ name: `Assembly PCB: ${orderData.projectname}`, qty: orderData.pcb_qty, price: (Number(orderData.confirmed_price || 0) / 1.07) / orderData.pcb_qty }],
+              itemsPrice: Number(orderData.confirmed_price || 0) / 1.07, vatPrice: Number(orderData.confirmed_price || 0) * 0.07 / 1.07, shippingPrice: 0, totalPrice: Number(orderData.confirmed_price || 0), paymentComfirmID: orderData.paymentComfirmID || orderData.orderID, isPaid: orderData.status === 'paid' } : null}
+            companyInfo={companyInfo} printMode={printMode}
+            slotSignatures={{ buyer: getSignatureUrl(selectedSlots.slot_buyer), cashier: getSignatureUrl(selectedSlots.slot_cashier), manager: getSignatureUrl(selectedSlots.slot_manager), sender: getSignatureUrl(selectedSlots.slot_sender), quoBuyer: getSignatureUrl(selectedSlots.slot_quo_buyer), quoSales: getSignatureUrl(selectedSlots.slot_quo_sales), quoManager: getSignatureUrl(selectedSlots.slot_quo_manager) }}
+          />
+          <AbbreviatedTaxInvoice
+            order={orderData ? { id: orderData.id || orderData._id, createdAt: orderData.created_at || orderData.createdAt, paymentMethod: "Bank Transfer",
+              billingName: orderData.billingName, billinggAddress: orderData.billinggAddress || orderData.billingAddress, billingCity: orderData.billingCity, billingPostalCode: orderData.billingPostalCode, billingTax: orderData.billingTax,
+              shippingName: orderData.shippingName, shippingPhone: orderData.shippingPhone,
+              items: [{ name: `Assembly PCB: ${orderData.projectname}`, qty: orderData.pcb_qty, price: (Number(orderData.confirmed_price || 0) / 1.07) / orderData.pcb_qty }],
+              itemsPrice: Number(orderData.confirmed_price || 0) / 1.07, vatPrice: Number(orderData.confirmed_price || 0) * 0.07 / 1.07, shippingPrice: 0, totalPrice: Number(orderData.confirmed_price || 0), paymentComfirmID: orderData.paymentComfirmID || orderData.orderID } : null}
+            companyInfo={companyInfo} printMode={printMode}
+          />
+        </div>
+      </div>
+
       <AnimatePresence>
         {zoomedImage && (
           <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
@@ -453,70 +708,30 @@ const OrderassemblyDetailScreen = () => {
         )}
       </AnimatePresence>
 
-      <FullTaxInvoiceA4
-        order={orderData ? {
-          id: orderData.id || orderData._id,
-          createdAt: orderData.created_at || orderData.createdAt,
-          paymentMethod: "Bank Transfer",
-          billingAddress: {
-            billingName: orderData.billingName,
-            billinggAddress: orderData.billinggAddress,
-            billingCity: orderData.billingCity,
-            billingPostalCode: orderData.billingPostalCode,
-            tax: orderData.billingTax,
-          },
-          shippingAddress: {
-            shippingname: orderData.shippingName,
-            phone: orderData.shippingPhone,
-          },
-          items: [
-            {
-              name: `Assembly PCB: ${orderData.projectname}`,
-              qty: orderData.pcb_qty,
-              price: (Number(orderData.confirmed_price || 0) / 1.07) / orderData.pcb_qty,
-            }
-          ],
-          itemsPrice: Number(orderData.confirmed_price || 0) / 1.07,
-          vatPrice: Number(orderData.confirmed_price || 0) * 0.07 / 1.07,
-          shippingPrice: 0,
-          totalPrice: Number(orderData.confirmed_price || 0),
-          paymentComfirmID: orderData.paymentComfirmID || orderData.orderID,
-        } : null}
-        companyInfo={companyInfo}
-        printMode={printMode}
-      />
-      <AbbreviatedTaxInvoice
-        order={orderData ? {
-          id: orderData.id || orderData._id,
-          createdAt: orderData.created_at || orderData.createdAt,
-          paymentMethod: "Bank Transfer",
-          billingAddress: {
-            billingName: orderData.billingName,
-            billinggAddress: orderData.billinggAddress,
-            billingCity: orderData.billingCity,
-            billingPostalCode: orderData.billingPostalCode,
-            tax: orderData.billingTax,
-          },
-          shippingAddress: {
-            shippingname: orderData.shippingName,
-            phone: orderData.shippingPhone,
-          },
-          items: [
-            {
-              name: `Assembly PCB: ${orderData.projectname}`,
-              qty: orderData.pcb_qty,
-              price: (Number(orderData.confirmed_price || 0) / 1.07) / orderData.pcb_qty,
-            }
-          ],
-          itemsPrice: Number(orderData.confirmed_price || 0) / 1.07,
-          vatPrice: Number(orderData.confirmed_price || 0) * 0.07 / 1.07,
-          shippingPrice: 0,
-          totalPrice: Number(orderData.confirmed_price || 0),
-          paymentComfirmID: orderData.paymentComfirmID || orderData.orderID,
-        } : null}
-        companyInfo={companyInfo}
-        printMode={printMode}
-      />
+      {/* Print containers for PDF generation */}
+      <div className={isGeneratingPDF ? "fixed -left-[9999px] top-0 w-[210mm] bg-white z-[0]" : "hidden"}>
+        <div id="full-tax-invoice-container" className={printMode === "full" ? "block" : "hidden"}>
+          <FullTaxInvoiceA4
+            order={orderData ? { id: orderData.id || orderData._id, status: orderData.status, createdAt: orderData.created_at || orderData.createdAt, paymentMethod: "Bank Transfer",
+              billingName: orderData.billingName, billinggAddress: orderData.billinggAddress || orderData.billingAddress, billingCity: orderData.billingCity, billingPostalCode: orderData.billingPostalCode, billingTax: orderData.billingTax, billingBranch: orderData.billingBranch,
+              shippingName: orderData.shippingName, shippingPhone: orderData.shippingPhone,
+              items: [{ name: `Assembly PCB: ${orderData.projectname}`, qty: orderData.pcb_qty, price: (Number(orderData.confirmed_price || 0) / 1.07) / orderData.pcb_qty }],
+              itemsPrice: Number(orderData.confirmed_price || 0) / 1.07, vatPrice: Number(orderData.confirmed_price || 0) * 0.07 / 1.07, shippingPrice: 0, totalPrice: Number(orderData.confirmed_price || 0), paymentComfirmID: orderData.paymentComfirmID || orderData.orderID, isPaid: orderData.status === 'paid' } : null}
+            companyInfo={companyInfo} printMode={printMode}
+            slotSignatures={{ buyer: getSignatureUrl(selectedSlots.slot_buyer), cashier: getSignatureUrl(selectedSlots.slot_cashier), manager: getSignatureUrl(selectedSlots.slot_manager), sender: getSignatureUrl(selectedSlots.slot_sender), quoBuyer: getSignatureUrl(selectedSlots.slot_quo_buyer), quoSales: getSignatureUrl(selectedSlots.slot_quo_sales), quoManager: getSignatureUrl(selectedSlots.slot_quo_manager) }}
+          />
+        </div>
+        <div id="short-tax-invoice-container" className={printMode === "short" ? "block" : "hidden"}>
+          <AbbreviatedTaxInvoice
+            order={orderData ? { id: orderData.id || orderData._id, createdAt: orderData.created_at || orderData.createdAt, paymentMethod: "Bank Transfer",
+              billingName: orderData.billingName, billinggAddress: orderData.billinggAddress || orderData.billingAddress, billingCity: orderData.billingCity, billingPostalCode: orderData.billingPostalCode, billingTax: orderData.billingTax,
+              shippingName: orderData.shippingName, shippingPhone: orderData.shippingPhone,
+              items: [{ name: `Assembly PCB: ${orderData.projectname}`, qty: orderData.pcb_qty, price: (Number(orderData.confirmed_price || 0) / 1.07) / orderData.pcb_qty }],
+              itemsPrice: Number(orderData.confirmed_price || 0) / 1.07, vatPrice: Number(orderData.confirmed_price || 0) * 0.07 / 1.07, shippingPrice: 0, totalPrice: Number(orderData.confirmed_price || 0), paymentComfirmID: orderData.paymentComfirmID || orderData.orderID } : null}
+            companyInfo={companyInfo} printMode={printMode}
+          />
+        </div>
+      </div>
 
       <style dangerouslySetInnerHTML={{ __html: `
         @media print {
