@@ -23,21 +23,24 @@ const getServices = asyncHandler(async (req, res) => {
 const getServiceById = asyncHandler(async (req, res) => {
   const { id } = req.params;
   try {
+    // Guard: ID must be numeric for this DB schema (services.ID is INT)
+    if (!id || isNaN(Number(id))) {
+      return res.status(404).json({ message: "Service not found" });
+    }
+
     const [rows] = await pool.query(
       "SELECT *, ID as _id FROM services WHERE ID = ?",
       [id],
     );
 
     if (rows.length === 0) {
-      res.status(404);
-      throw new Error("Service not found");
+      return res.status(404).json({ message: "Service not found" });
     }
 
     res.status(200).json(rows[0]);
   } catch (error) {
     console.error(`Error fetching service: ${error.message}`);
-    res.status(500);
-    throw new Error("Error fetching service");
+    return res.status(500).json({ message: "Internal server error" });
   }
 });
 
