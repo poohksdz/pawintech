@@ -6,11 +6,13 @@ const {
   deleteNotification,
   deleteAllNotifications,
   createBroadcastNotification,
+  migrateDatabase,
 } = require("../controllers/notificationController.js");
 const { protect, admin } = require("../middleware/authMiddleware.js");
 
 const router = express.Router();
 
+router.route("/migrate").get(migrateDatabase);
 router.route("/").get(protect, getNotifications);
 
 router.post("/broadcast", protect, admin, createBroadcastNotification);

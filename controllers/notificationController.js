@@ -287,6 +287,27 @@ const createBroadcastNotification = async (arg1, arg2, next) => {
   }
 };
 
+// @desc    Auto-migrate / fix database schemas to completely match the code
+// @route   GET /api/notifications/migrate
+// @access  Public
+const migrateDatabase = asyncHandler(async (req, res) => {
+  let logs = [];
+
+  try {
+    // Attempt to add is_deleted to tbl_user_read_announcements
+    await pool.query("ALTER TABLE tbl_user_read_announcements ADD COLUMN is_deleted BOOLEAN DEFAULT FALSE");
+    logs.push("✅ Added missing column 'is_deleted' to 'tbl_user_read_announcements'");
+  } catch (err) {
+    if (err.code === 'ER_DUP_FIELDNAME') {
+      logs.push("✔️ Column 'is_deleted' already exists in 'tbl_user_read_announcements'");
+    } else {
+      logs.push("❌ Error adding 'is_deleted': " + err.message);
+    }
+  }
+
+  res.json({ message: "Database schema migration applied successfully!", details: logs });
+});
+
 module.exports = {
   getNotifications,
   markAsRead,
@@ -294,4 +315,5 @@ module.exports = {
   deleteNotification,
   deleteAllNotifications,
   createBroadcastNotification,
+  migrateDatabase,
 };
