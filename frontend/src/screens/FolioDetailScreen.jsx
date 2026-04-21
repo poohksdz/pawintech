@@ -62,6 +62,16 @@ const FolioDetailScreen = () => {
       </div>
     );
 
+  const getImageUrl = (img) => {
+    if (!img) return "/images/sample.jpg";
+    if (typeof img === "string") {
+      if (img.startsWith("http")) return img;
+      const baseUrl = process.env.NODE_ENV === "development" ? "http://localhost:5000" : "";
+      return img.startsWith("/") ? `${baseUrl}${img}` : `${baseUrl}/${img}`;
+    }
+    return img?.image || img?.path || img?.url || "/images/sample.jpg";
+  };
+
   const images = [folio?.imageOne, folio?.imageTwo, folio?.imageThree].filter(
     Boolean,
   );
@@ -90,14 +100,8 @@ const FolioDetailScreen = () => {
           <div className="lg:col-span-7 space-y-6">
             {images.map((img, idx) => (
               <img
-                src={
-                  typeof img === "string"
-                    ? img
-                    : img?.image ||
-                    img?.path ||
-                    img?.url ||
-                    "/images/sample.jpg"
-                }
+                key={`folio-img-${idx}`}
+                src={getImageUrl(img)}
                 alt={`Work detail ${idx + 1}`}
                 className="w-full h-auto object-cover"
               />
@@ -149,14 +153,7 @@ const FolioDetailScreen = () => {
                   className="group bg-white dark:bg-zinc-900 rounded-lg overflow-hidden border border-slate-200 dark:border-zinc-800 shadow-sm transition-colors"
                 >
                   <img
-                    src={
-                      typeof f.imageOne === "string"
-                        ? f.imageOne
-                        : f.imageOne?.image ||
-                        f.imageOne?.path ||
-                        f.imageOne?.url ||
-                        "/images/sample.jpg"
-                    }
+                    src={getImageUrl(f.imageOne)}
                     alt="Related project"
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform"
                   />
