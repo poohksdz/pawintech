@@ -72,7 +72,13 @@ const createOrderPCB = asyncHandler(async (req, res) => {
   let cleanPaymentSlip = paymentSlip.replace(/\\/g, "/");
   if (!cleanPaymentSlip.startsWith("/"))
     cleanPaymentSlip = "/" + cleanPaymentSlip;
-  const absoluteFilePath = path.join(__dirname, "..", cleanPaymentSlip);
+  const absoluteFilePath = resolvePaymentSlipPath(cleanPaymentSlip);
+  if (!absoluteFilePath) {
+    return res.status(400).json({
+      success: false,
+      message: "⚠️ Path ของไฟล์สลิปไม่ถูกต้อง",
+    });
+  }
 
   const isValidQR = await checkSlipQR(absoluteFilePath);
   if (!isValidQR) {

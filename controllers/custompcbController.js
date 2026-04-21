@@ -1,6 +1,7 @@
 const asyncHandler = require("../middleware/asyncHandler");
 const { pool } = require("../config/db.js");
 const deleteFile = require("../utils/fileUtils");
+const { resolvePaymentSlipPath } = require("../utils/pathUtils.js");
 const fs = require("fs");
 const path = require("path");
 const jsQR = require("jsqr");
@@ -21,19 +22,21 @@ const getTimestamp = () => {
 // Helper: สร้าง ID อ้างอิงการชำระเงิน
 const generateUniquePaymentConfirmID = async () => {
   const base = getTimestamp();
-  let counter = 1,
-    uniqueID,
-    isUnique = false;
-  while (!isUnique) {
-    uniqueID = `PIDP-${base}${String(counter).padStart(3, "0")}`;
+  let counter = 1;
+  const maxTries = 10000;
+  while (counter < maxTries) {
+    const suffix = String(counter).padStart(3, "0");
+    const uniqueID = `PIDP-${base}${suffix}`;
     const [rows] = await pool.query(
       "SELECT id FROM pcb_custom_orders WHERE paymentComfirmID = ?",
       [uniqueID],
     );
-    if (rows.length === 0) isUnique = true;
-    else counter++;
+    if (rows.length === 0) return uniqueID;
+    counter++;
   }
-  return uniqueID;
+  // Fallback: append random suffix if we somehow exhaust 9999
+  const fallback = `-${Date.now().toString(36)}`;
+  return `PIDP-${base}${fallback}`;
 };
 
 // Helper: ตรวจสอบหา QR Code ในรูปภาพ
@@ -119,15 +122,17 @@ const createCustomPCB = asyncHandler(async (req, res) => {
         });
     const cart = cartRows[0];
 
-    // 2. จัดการ Path สลิป
+    // 2. จัดการ Path สลิป — ใช้ safe resolver ป้องกัน path traversal
     let cleanPaymentSlip = paymentSlip.replace(/\\/g, "/");
-    if (!cleanPaymentSlip.startsWith("/"))
-      cleanPaymentSlip = "/" + cleanPaymentSlip;
+    if (!cleanPaymentSlip.startsWith("/")) cleanPaymentSlip = "/" + cleanPaymentSlip;
 
-    // --------------------------------------------------------------------------
-    //  ตรวจสอบความถูกต้องของสลิปและยอดเงิน
-    // --------------------------------------------------------------------------
-    const absoluteFilePath = path.join(__dirname, "..", cleanPaymentSlip);
+    const absoluteFilePath = resolvePaymentSlipPath(cleanPaymentSlip);
+    if (!absoluteFilePath) {
+      return res.status(400).json({
+        success: false,
+        message: "⚠️ Path ของไฟล์สลิปไม่ถูกต้อง",
+      });
+    }
 
     // 2.1 ตรวจสอบยอดเงิน (เผื่อกรณีมี estimatedCost ด้วย)
     const targetPrice =
@@ -158,19 +163,20 @@ const createCustomPCB = asyncHandler(async (req, res) => {
     }
     // --------------------------------------------------------------------------
 
-    // 3. สร้าง OrderID
-    let count = 1,
-      orderID = "",
-      isUnique = false;
+    // 3. สร้าง OrderID — มี cap ป้องกัน infinite loop
     const targetUserId = userId || cart.user_id || 0;
-    while (!isUnique) {
-      orderID = `${parseInt(targetUserId) + 1000}PID${String(count).padStart(3, "0")}`;
+    const userPrefix = parseInt(targetUserId) + 1000;
+    let count = 1;
+    const maxTries = 10000;
+    let orderID = "";
+    while (count < maxTries) {
+      orderID = `${userPrefix}PID${String(count).padStart(3, "0")}`;
       const [existing] = await pool.query(
         `SELECT id FROM pcb_custom_orders WHERE orderID = ?`,
         [orderID],
       );
-      if (existing.length === 0) isUnique = true;
-      else count++;
+      if (existing.length === 0) break;
+      count++;
     }
 
     const paymentComfirmID = await generateUniquePaymentConfirmID();
@@ -285,18 +291,18 @@ const createCustomPCBbyAdmin = asyncHandler(async (req, res) => {
     const userEmail = customerInfo.customerEmailAddress ?? "";
 
     const uidNum = Number(user_id);
-    const userPrefix = Number.isFinite(uidNum) ? String(uidNum + 1000) : "1000";
-    let count = 1,
-      orderID = "",
-      isUnique = false;
-    while (!isUnique) {
+    const userPrefix = Number.isFinite(uidNum) ? uidNum + 1000 : 1000;
+    let count = 1;
+    const maxTries = 10000;
+    let orderID = "";
+    while (count < maxTries) {
       orderID = `${userPrefix}PID${String(count).padStart(3, "0")}`;
       const [rows] = await pool.query(
         `SELECT id FROM pcb_custom_orders WHERE orderID = ? LIMIT 1`,
         [orderID],
       );
-      if (!rows || rows.length === 0) isUnique = true;
-      else count++;
+      if (!rows || rows.length === 0) break;
+      count++;
     }
 
     const paymentComfirmID = await generateUniquePaymentConfirmID();

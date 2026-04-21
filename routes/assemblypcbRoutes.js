@@ -19,35 +19,37 @@ const { protect, admin } = require("../middleware/authMiddleware.js");
 // Routes
 // ==========================
 
-// Create
-router.post("/", createassemblyPCB);
-router.post("/createassemblypcbbyadmin", createassemblyPCBbyAdmin);
+// Create — user must be logged in
+router.post("/", protect, createassemblyPCB);
 
-// Get all
-router.get("/", getassemblyPCBs);
+// Admin creates order for customer
+router.post("/createassemblypcbbyadmin", protect, admin, createassemblyPCBbyAdmin);
 
-// Get by user
-router.get("/user/:userId", getassemblyPCBByUserId);
+// Get all — user must be logged in (admin sees all, others see their own via query)
+router.get("/", protect, getassemblyPCBs);
 
-// Get by orderID (ทำให้เหมือน custompcb/copypcb)
-router.get("/byorderid/:orderID", getassemblyPCBByOrderId);
+// Get by user — only the specified user's orders (or admin sees all)
+router.get("/user/:userId", protect, getassemblyPCBByUserId);
 
-// Update order
-router.put("/:id", updateassemblyPCBById);
+// Get by orderID
+router.get("/byorderid/:orderID", protect, getassemblyPCBByOrderId);
 
-//  ทำให้เหมือน custompcb/copypcb
-router.put("/delivery/:id", updateDeliveryassemblyPCBById);
+// Update order — any authenticated user (ownership checked in controller)
+router.put("/:id", protect, updateassemblyPCBById);
 
-// Update payment status (Admin)
-router.put("/paymentrates/:id", updatePaymentassemblyPCBById);
+// Update delivery — authenticated user (ownership checked in controller)
+router.put("/delivery/:id", protect, updateDeliveryassemblyPCBById);
 
-// Update manufacture order
-router.put("/:pcborderId/pcbmanufacture", updatePCBManufactureAssembly);
+// Update payment status — Admin only
+router.put("/paymentrates/:id", protect, admin, updatePaymentassemblyPCBById);
 
-// Get by ID (ต้องอยู่ล่างสุดของ GET dynamic)
-router.get("/:id", getassemblyPCBById);
+// Update manufacture order — any authenticated user (ownership checked in controller)
+router.put("/:pcborderId/pcbmanufacture", protect, updatePCBManufactureAssembly);
 
-// Delete
-router.delete("/:id", deleteassemblyPCB);
+// Get by ID — must be logged in
+router.get("/:id", protect, getassemblyPCBById);
+
+// Delete — Admin only
+router.delete("/:id", protect, admin, deleteassemblyPCB);
 
 module.exports = router;

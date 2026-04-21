@@ -1,6 +1,7 @@
 const asyncHandler = require("../middleware/asyncHandler");
 const { pool: db } = require("../config/db.js");
 const deleteFile = require("../utils/fileUtils");
+const { resolvePaymentSlipPath } = require("../utils/pathUtils.js");
 const fs = require("fs");
 const path = require("path");
 const jsQR = require("jsqr");
@@ -21,27 +22,20 @@ const getTimestamp = () => {
 // Utility: Generate unique payment confirm ID
 const generateUniquePaymentConfirmID = async () => {
   const base = getTimestamp();
+  const maxTries = 10000;
   let counter = 1;
-  let uniqueID;
-  let isUnique = false;
-
-  while (!isUnique) {
+  while (counter < maxTries) {
     const suffix = String(counter).padStart(3, "0");
-    uniqueID = `PCPP-${base}${suffix}`;
-
+    const uniqueID = `PCPP-${base}${suffix}`;
     const [rows] = await db.execute(
       "SELECT id FROM pcb_copy_orders WHERE paymentComfirmID = ?",
       [uniqueID],
     );
-
-    if (rows.length === 0) {
-      isUnique = true;
-    } else {
-      counter++;
-    }
+    if (rows.length === 0) return uniqueID;
+    counter++;
   }
-
-  return uniqueID;
+  const fallback = `-${Date.now().toString(36)}`;
+  return `PCPP-${base}${fallback}`;
 };
 
 // Helper: ตรวจสอบหา QR Code ในรูปภาพ
@@ -247,15 +241,16 @@ const createcopyPCB = asyncHandler(async (req, res) => {
         });
     }
 
-    // 2. จัดการ Path สลิป
+    // 2. จัดการ Path สลิป — safe resolver ป้องกัน path traversal
     let cleanPaymentSlip = paymentSlip.replace(/\\/g, "/");
-    if (!cleanPaymentSlip.startsWith("/"))
-      cleanPaymentSlip = "/" + cleanPaymentSlip;
-
-    // --------------------------------------------------------------------------
-    //  ตรวจสอบความถูกต้องของสลิปและยอดเงิน
-    // --------------------------------------------------------------------------
-    const absoluteFilePath = path.join(__dirname, "..", cleanPaymentSlip);
+    if (!cleanPaymentSlip.startsWith("/")) cleanPaymentSlip = "/" + cleanPaymentSlip;
+    const absoluteFilePath = resolvePaymentSlipPath(cleanPaymentSlip);
+    if (!absoluteFilePath) {
+      return res.status(400).json({
+        success: false,
+        message: "⚠️ Path ของไฟล์สลิปไม่ถูกต้อง",
+      });
+    }
 
     // 2.1 ตรวจสอบยอดเงิน
     const targetPrice = Number(cart.confirmed_price);
@@ -282,18 +277,19 @@ const createcopyPCB = asyncHandler(async (req, res) => {
     // --------------------------------------------------------------------------
 
     // 3. สร้าง OrderID
-    let count = 1,
-      orderID = "",
-      isUnique = false;
     const targetUserId = userId || cart.user_id || 0;
-    while (!isUnique) {
-      orderID = `${parseInt(targetUserId) + 1000}PCP${count}`;
+    const userPrefix = parseInt(targetUserId) + 1000;
+    let count = 1;
+    const maxTries = 10000;
+    let orderID = "";
+    while (count < maxTries) {
+      orderID = `${userPrefix}PCP${count}`;
       const [existing] = await db.execute(
         `SELECT id FROM pcb_copy_orders WHERE orderID = ?`,
         [orderID],
       );
-      if (existing.length === 0) isUnique = true;
-      else count++;
+      if (existing.length === 0) break;
+      count++;
     }
 
     const paymentComfirmID = await generateUniquePaymentConfirmID();
@@ -435,20 +431,18 @@ const createcopyPCBbyAdmin = asyncHandler(async (req, res) => {
     );
     const backCols = Array.from({ length: 10 }, (_, i) => backImages[i] || "");
 
+    const userPrefix = parseInt(useId) + 1000;
     let count = 1;
+    const maxTries = 10000;
     let orderID;
-    let isUnique = false;
-    while (!isUnique) {
-      orderID = `${parseInt(useId) + 1000}PCP${count}`;
+    while (count < maxTries) {
+      orderID = `${userPrefix}PCP${count}`;
       const [existing] = await db.execute(
         `SELECT id FROM pcb_copy_orders WHERE orderID = ?`,
         [orderID],
       );
-      if (existing.length === 0) {
-        isUnique = true;
-      } else {
-        count++;
-      }
+      if (existing.length === 0) break;
+      count++;
     }
 
     const paymentComfirmID = await generateUniquePaymentConfirmID();
