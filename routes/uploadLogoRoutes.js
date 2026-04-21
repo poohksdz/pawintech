@@ -1,11 +1,3 @@
-import React from "react";
-
-const uploadLogoRoutes = () => {
-  return <div>uploadLogoRoutes</div>;
-};
-
-export default uploadLogoRoutes;
-
 const express = require("express");
 const { protect } = require("../middleware/authMiddleware.js");
 const multer = require("multer");

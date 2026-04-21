@@ -1,247 +1,69 @@
 const asyncHandler = require("../middleware/asyncHandler.js");
 const { pool } = require("../config/db.js");
 
-// Helper: build safe role list for SQL IN-clause (no injection risk)
 const buildRoleList = (user) => {
   const roles = ["all"];
   if (Number(user?.isAdmin) === 1) roles.push("isAdmin");
   if (Number(user?.isStore) === 1) roles.push("isStore");
   if (Number(user?.isPCBAdmin) === 1) roles.push("isPCBAdmin");
-  // Only allow known safe role names
-  return roles
-    .filter((r) => /^[a-zA-Z0-9_]+$/.test(r))
-    .map((r) => r.replace(/[^a-zA-Z0-9_]/g, ""))
-    .filter(Boolean);
+  return roles.filter((r) => /^[a-zA-Z0-9_]+$/.test(r)).map((r) => r.replace(/[^a-zA-Z0-9_]/g, "")).filter(Boolean);
 };
 
-// @desc    Get user notifications (Personal + Global)
-// @route   GET /api/notifications
-// @access  Private
 const getNotifications = asyncHandler(async (req, res) => {
-  const userId = req.user?._id || req.user?.id;
-  if (!userId) {
-    return res.status(401).json({ message: "User ID not found" });
+  try {
+    const userId = req.user?._id || req.user?.id;
+    if (!userId) return res.status(401).json({ message: "User ID not found" });
+
+    const safeRoles = buildRoleList(req.user);
+    const placeholders = safeRoles.map(() => "?").join(", ");
+    const roleParams = [userId, ...safeRoles];
+
+    let [personalNotis] = await pool.query(
+      `SELECT n.id, n.message, n.type, n.isRead, COALESCE(n.createdAt, n.created_at, NOW()) AS created_at, 'personal' AS scope
+       FROM tbl_notifications n WHERE n.user_id = ? ORDER BY n.id DESC LIMIT 50`, [userId]
+    ).catch(() => [[]]);
+
+    let [globalNotis] = safeRoles.length > 0 ? await pool.query(
+      `SELECT g.id, g.message, g.type, g.created_at, 'global' AS scope,
+              IF(r.announcement_id IS NOT NULL, TRUE, FALSE) AS isRead
+       FROM tbl_global_announcements g
+       LEFT JOIN tbl_user_read_announcements r ON g.id = r.announcement_id AND r.user_id = ?
+       WHERE g.targetRole IN (${placeholders}) AND (r.is_deleted IS NULL OR r.is_deleted = FALSE)
+       ORDER BY g.id DESC LIMIT 50`, roleParams
+    ) : [[]];
+
+    const allNotifications = [...(personalNotis[0] || []), ...(globalNotis[0] || [])]
+      .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+      .slice(0, 50)
+      .map((n) => ({ ...n, createdAt: n.created_at }));
+
+    res.json(allNotifications);
+  } catch (error) {
+    console.error("Error in getNotifications:", error);
+    res.status(500).json({ message: "Failed to fetch notifications" });
   }
-
-  const safeRoles = buildRoleList(req.user);
-  const placeholders = safeRoles.map(() => "?").join(", ");
-  const roleParams = [userId, ...safeRoles];
-
-  // Fetch both in parallel for speed
-  const [personalRows, globalRows] = await Promise.all([
-    pool.query(
-      `SELECT id, message, type, isRead,
-              COALESCE(createdAt, created_at, NOW()) AS created_at,
-              'personal' AS scope
-       FROM tbl_notifications
-       WHERE user_id = ?
-       ORDER BY id DESC
-       LIMIT 50`,
-      [userId],
-    ),
-    safeRoles.length > 0
-      ? pool.query(
-          `SELECT g.id, g.message, g.type, g.created_at,
-                  'global' AS scope,
-                  IF(r.announcement_id IS NOT NULL, TRUE, FALSE) AS isRead
-           FROM tbl_global_announcements g
-           LEFT JOIN tbl_user_read_announcements r
-             ON g.id = r.announcement_id AND r.user_id = ?
-           WHERE g.targetRole IN (${placeholders})
-             AND (r.is_deleted IS NULL OR r.is_deleted = FALSE)
-           ORDER BY g.id DESC
-           LIMIT 50`,
-          roleParams,
-        )
-      : [[]]),
-  ]);
-
-  const personalNotis = personalRows[0] || [];
-  const globalNotis = globalRows[0] || [];
-
-  const allNotifications = [...personalNotis, ...globalNotis]
-    .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
-    .slice(0, 50)
-    .map((n) => ({ ...n, createdAt: n.created_at }));
-
-  res.json(allNotifications);
 });
 
-// @desc    Mark notification as read
-// @route   PUT /api/notifications/:id/read
-// @access  Private
 const markAsRead = asyncHandler(async (req, res) => {
-  const userId = req.user?._id || req.user?.id;
-  if (!userId) {
-    return res.status(401).json({ message: "User ID not found" });
-  }
-
   const { scope } = req.body;
   const notificationId = Number(req.params.id);
-
-  if (!notificationId || !scope) {
-    return res.status(400).json({ message: "Invalid params" });
-  }
+  const userId = req.user?._id || req.user?.id;
+  if (!userId) return res.status(401).json({ message: "User ID not found" });
 
   if (scope === "global") {
     await pool.query(
-      `INSERT IGNORE INTO tbl_user_read_announcements
-       (user_id, announcement_id, isRead)
-       VALUES (?, ?, TRUE)`,
-      [userId, notificationId],
+      `INSERT INTO tbl_user_read_announcements (user_id, announcement_id, isRead, is_deleted)
+       VALUES (?, ?, TRUE, FALSE)
+       ON DUPLICATE KEY UPDATE isRead = TRUE`,
+      [userId, notificationId]
     );
   } else {
-    const [result] = await pool.query(
-      `UPDATE tbl_notifications
-       SET isRead = TRUE
-       WHERE id = ? AND user_id = ?`,
-      [notificationId, userId],
+    await pool.query(
+      `UPDATE tbl_notifications SET isRead = TRUE WHERE id = ? AND user_id = ?`,
+      [notificationId, userId]
     );
-    if (result.affectedRows === 0) {
-      return res.status(404).json({ message: "Notification not found" });
-    }
   }
-
-  res.json({ message: "Marked as read" });
+  res.json({ success: true });
 });
 
-// @desc    Mark all notifications as read
-// @route   PUT /api/notifications/read-all
-// @access  Private
-const markAllAsRead = asyncHandler(async (req, res) => {
-  const userId = req.user?._id || req.user?.id;
-  if (!userId) {
-    return res.status(401).json({ message: "User ID not found" });
-  }
-
-  const safeRoles = buildRoleList(req.user);
-  const rolePlaceholders = safeRoles.map(() => "?").join(", ");
-
-  await Promise.all([
-    // Personal: update all unread
-    pool.query(
-      `UPDATE tbl_notifications SET isRead = TRUE WHERE user_id = ? AND isRead = FALSE`,
-      [userId],
-    ),
-    // Global: insert IGNORE for each matching announcement
-    safeRoles.length > 0
-      ? pool.query(
-          `INSERT IGNORE INTO tbl_user_read_announcements
-           (user_id, announcement_id, isRead)
-           SELECT ?, id, TRUE
-           FROM tbl_global_announcements
-           WHERE targetRole IN (${rolePlaceholders})
-             AND id NOT IN (
-               SELECT announcement_id FROM tbl_user_read_announcements WHERE user_id = ?
-             )`,
-          [userId, ...safeRoles, userId],
-        )
-      : Promise.resolve(),
-  ]);
-
-  res.json({ message: "All marked as read" });
-});
-
-// @desc    Delete a notification
-// @route   DELETE /api/notifications/:id
-// @access  Private
-const deleteNotification = asyncHandler(async (req, res) => {
-  const userId = req.user?._id || req.user?.id;
-  if (!userId) {
-    return res.status(401).json({ message: "User ID not found" });
-  }
-
-  const scope = req.query.scope || req.body.scope || "personal";
-  const notificationId = Number(req.params.id);
-
-  if (!notificationId) {
-    return res.status(400).json({ message: "Invalid notification ID" });
-  }
-
-  if (scope === "global") {
-    const [result] = await pool.query(
-      `INSERT INTO tbl_user_read_announcements
-       (user_id, announcement_id, is_deleted)
-       VALUES (?, ?, TRUE)
-       ON DUPLICATE KEY UPDATE is_deleted = TRUE`,
-      [userId, notificationId],
-    );
-    res.json({ message: "Global notification hidden" });
-  } else {
-    const [result] = await pool.query(
-      `DELETE FROM tbl_notifications WHERE id = ? AND user_id = ?`,
-      [notificationId, userId],
-    );
-    if (result.affectedRows === 0) {
-      return res.status(404).json({ message: "Notification not found" });
-    }
-    res.json({ message: "Notification deleted" });
-  }
-});
-
-// @desc    Delete all notifications
-// @route   DELETE /api/notifications/delete-all
-// @access  Private
-const deleteAllNotifications = asyncHandler(async (req, res) => {
-  const userId = req.user?._id || req.user?.id;
-  if (!userId) {
-    return res.status(401).json({ message: "User ID not found" });
-  }
-
-  const safeRoles = buildRoleList(req.user);
-  const rolePlaceholders = safeRoles.map(() => "?").join(", ");
-
-  await Promise.all([
-    // Delete personal
-    pool.query(`DELETE FROM tbl_notifications WHERE user_id = ?`, [userId]),
-    // Hide global for this user
-    safeRoles.length > 0
-      ? pool.query(
-          `INSERT INTO tbl_user_read_announcements
-           (user_id, announcement_id, is_deleted)
-           SELECT ?, id, TRUE
-           FROM tbl_global_announcements
-           WHERE targetRole IN (${rolePlaceholders})
-           ON DUPLICATE KEY UPDATE is_deleted = TRUE`,
-          [userId, ...safeRoles],
-        )
-      : Promise.resolve(),
-  ]);
-
-  res.json({ message: "All notifications deleted" });
-});
-
-// @desc    Create broadcast notification (internal service call)
-// @access  Internal only — use createBroadcastNotification({ ... })
-const createBroadcastNotification = asyncHandler(async (req, res) => {
-  const { message, type, related_id, targetRole } = req.body;
-
-  if (!message || !message.trim()) {
-    return res.status(400).json({ message: "Message is required" });
-  }
-
-  const safeTargetRole = /^[a-zA-Z0-9_]+$/.test(targetRole || "")
-    ? targetRole
-    : "all";
-
-  const [result] = await pool.query(
-    `INSERT INTO tbl_global_announcements
-     (message, type, related_id, targetRole, created_at)
-     VALUES (?, ?, ?, ?, NOW())`,
-    [message.trim(), type || "info", related_id || null, safeTargetRole],
-  );
-
-  res.status(201).json({
-    message: "Broadcast created globally",
-    id: result.insertId,
-  });
-});
-
-module.exports = {
-  getNotifications,
-  markAsRead,
-  markAllAsRead,
-  deleteNotification,
-  deleteAllNotifications,
-  createBroadcastNotification,
-};
+module.exports = { getNotifications, markAsRead };

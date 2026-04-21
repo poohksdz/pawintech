@@ -1,24 +1,8 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import {
-  FaCheck,
-  FaTimes,
-  FaEye,
-  FaUser,
-  FaCalendarAlt,
-  FaSearch,
-  FaFileInvoiceDollar,
-  FaTruck,
-  FaStore,
-  FaPhoneAlt,
-  FaClock,
-  FaDownload,
-  FaFilter,
-  FaChartLine,
-  FaInfoCircle,
-  FaArrowRight,
-} from "react-icons/fa";
+import html2pdf from "html2pdf.js";
+import { FaCheck, FaTimes, FaEye, FaUser, FaCalendarAlt, FaSearch, FaFileInvoiceDollar, FaTruck, FaStore, FaPhoneAlt, FaClock, FaDownload, FaFilter, FaChartLine, FaInfoCircle, FaArrowRight } from "react-icons/fa";
 import { toast } from "react-toastify";
 
 import {
@@ -166,6 +150,7 @@ const PaymentTableRow = ({
   onShowSlip,
   onUpdateStatus,
   onShipOrder,
+  onDownloadPDF,
 }) => {
   const amount = item.amount || 0;
   const isPaid = checkIsPaid(item);
@@ -184,10 +169,7 @@ const PaymentTableRow = ({
       <td className="px-4 md:px-6 py-4 md:py-6 vertical-top align-top">
         <div className="flex flex-col gap-2 text-start">
           <div className="flex items-center gap-2">
-            <span className={`px-2 py-0.5 rounded text-[10px] font-bold border uppercase ${item.orderType === "custom"
-              ? "bg-purple-50 text-purple-600 border-purple-100"
-              : "bg-blue-50 text-blue-600 border-blue-100"
-              }`}>
+            <span className={`px-2 py-0.5 rounded text-[10px] font-bold border uppercase bg-blue-50 text-blue-600 border-blue-100`}>
               {item.orderType || "Product"}
             </span>
             <span className="text-xs font-bold text-slate-900">
@@ -227,11 +209,17 @@ const PaymentTableRow = ({
                 NO SLIP
               </span>
             )}
+            <button
+              onClick={() => onDownloadPDF(item)}
+              className="flex items-center gap-1.5 text-[10px] font-bold text-blue-600 bg-blue-50 border border-blue-100 px-3 py-1.5 rounded-lg hover:bg-blue-600 hover:text-white transition-all shadow-sm"
+            >
+              <FaDownload size={12} /> PDF
+            </button>
             <a
               href={getDetailLink(item)}
               target="_blank"
               rel="noreferrer"
-              className="flex items-center gap-1.5 text-[10px] font-bold text-blue-600 bg-blue-50 border border-blue-100 px-3 py-1.5 rounded-lg hover:bg-blue-600 hover:text-white transition-all shadow-sm"
+              className="flex items-center gap-1.5 text-[10px] font-bold text-purple-600 bg-purple-50 border border-purple-100 px-3 py-1.5 rounded-lg hover:bg-purple-600 hover:text-white transition-all shadow-sm"
             >
               <FaInfoCircle size={12} /> ออเดอร์
             </a>
@@ -561,6 +549,43 @@ const AdminPaymentListScreen = () => {
     toast.success("ส่งออกข้อมูลสำเร็จ");
   };
 
+  const handleDownloadPDF = (item) => {
+    const content = `
+      <div style="font-family:sans-serif;padding:20px;max-width:600px;margin:0 auto;">
+        <div style="text-align:center;border-bottom:2px solid #000;padding-bottom:16px;margin-bottom:20px;">
+          <h2 style="margin:0;">ใบเสร็จรับเงิน / Payment Receipt</h2>
+          <p style="margin:4px 0 0;font-size:12px;color:#666;">Order #${String(item._id).slice(-8).toUpperCase()}</p>
+        </div>
+        <table style="width:100%;border-collapse:collapse;margin-bottom:20px;">
+          <tr><td style="padding:8px 4px;font-weight:bold;width:40%;">วันที่ / Date</td><td style="padding:8px 4px;">${formatDateTime(item.createdAt)}</td></tr>
+          <tr style="background:#f5f5f5;"><td style="padding:8px 4px;font-weight:bold;">ประเภทออเดอร์ / Order Type</td><td style="padding:8px 4px;text-transform:uppercase;">${item.orderType || "Product"}</td></tr>
+          <tr><td style="padding:8px 4px;font-weight:bold;">ชื่อลูกค้า / Customer</td><td style="padding:8px 4px;">${item.shippingName || item.user?.name || "N/A"}</td></tr>
+          <tr style="background:#f5f5f5;"><td style="padding:8px 4px;font-weight:bold;">เบอร์โทร / Phone</td><td style="padding:8px 4px;">${item.shippingPhone || "N/A"}</td></tr>
+          <tr><td style="padding:8px 4px;font-weight:bold;">ที่อยู่ / Address</td><td style="padding:8px 4px;">${item.shippingAddress || "N/A"}</td></tr>
+          <tr style="background:#f5f5f5;"><td style="padding:8px 4px;font-weight:bold;">สถานะการชำระ / Payment Status</td><td style="padding:8px 4px;">${checkIsPaid(item) ? "✅ ชำระแล้ว / Paid" : "⏳ รอตรวจสอบ / Pending"}</td></tr>
+        </table>
+        <div style="background:#000;color:#fff;padding:16px;border-radius:8px;text-align:center;">
+          <p style="margin:0;font-size:12px;">จำนวนเงิน / Amount</p>
+          <p style="margin:4px 0 0;font-size:28px;font-weight:bold;">฿${Number(item.amount || 0).toLocaleString()} THB</p>
+        </div>
+        <div style="margin-top:20px;padding:12px;background:#f9f9f9;border-radius:8px;font-size:11px;color:#666;text-align:center;">
+          ระบบจัดการออเดอร์ PAWIN TECH | Order Management System<br/>
+          https://pawin-tech.com/admin/paymentlist
+        </div>
+      </div>
+    `;
+
+    const opt = {
+      margin: 10,
+      filename: `PaymentReceipt_${String(item._id).slice(-8).toUpperCase()}.pdf`,
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { scale: 2, useCORS: true, logging: false },
+      jsPDF: { unit: 'mm', format: 'a5', orientation: 'portrait' },
+    };
+
+    html2pdf().set(opt).from(content).save();
+  };
+
   return (
     <div className="min-h-screen bg-slate-50/50 py-4 md:py-8 px-4 md:px-10 font-['Prompt'] antialiased text-start">
       <style dangerouslySetInnerHTML={{ __html: `.hide-scrollbar::-webkit-scrollbar { display: none; } .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }` }} />
@@ -744,6 +769,7 @@ const AdminPaymentListScreen = () => {
                             }}
                             onUpdateStatus={handleUpdateStatus}
                             onShipOrder={handleShipOrder}
+                            onDownloadPDF={handleDownloadPDF}
                           />
                         ))}
                       </AnimatePresence>
