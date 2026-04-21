@@ -656,6 +656,11 @@ const Header = () => {
                               label={t.orderlist}
                               onClick={() => setActiveDropdown(null)}
                             />
+                            <SimpleListItem
+                              to="/admin/servicelist"
+                              label={t.ServiceConfig}
+                              onClick={() => setActiveDropdown(null)}
+                            />
                           </div>
                         </div>
                       </DropdownWrapper>
@@ -775,11 +780,6 @@ const Header = () => {
                             <SimpleListItem
                               to="/admin/userlist"
                               label={t.adminUsers}
-                              onClick={() => setActiveDropdown(null)}
-                            />
-                            <SimpleListItem
-                              to="/admin/servicelist"
-                              label={t.ServiceConfig}
                               onClick={() => setActiveDropdown(null)}
                             />
                           </div>
