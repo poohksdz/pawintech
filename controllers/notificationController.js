@@ -31,7 +31,7 @@ const getNotifications = asyncHandler(async (req, res) => {
   const [personalRows, globalRows] = await Promise.all([
     pool.query(
       `SELECT id, message, type, isRead,
-              COALESCE(createdAt, created_at, NOW()) AS created_at,
+              COALESCE(created_at, NOW()) AS created_at,
               'personal' AS scope
        FROM tbl_notifications
        WHERE user_id = ?
