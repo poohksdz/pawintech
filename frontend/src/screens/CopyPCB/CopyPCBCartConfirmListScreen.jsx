@@ -147,7 +147,7 @@ const CopyPCBCartConfirmListScreen = () => {
                   <td className="text-center">
                     <Button
                       as={Link}
-                      to={`/${order.id}`}
+                      to={`/copypcb/${order.id}`}
                       variant="light"
                       className="btn-sm primary"
                     >

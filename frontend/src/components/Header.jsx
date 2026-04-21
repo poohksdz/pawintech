@@ -322,10 +322,12 @@ const Header = () => {
       orderAssemblyPCB: "Assembly Orders",
       adminProducts: "Manage Products",
       Categories: "Categories",
+      foliolistAdmin: "Folio List",
       Quotations: "Quotations",
       Invoices: "Invoices",
       Customers: "Customers",
       adminUsers: "Users",
+      folioListAdmin: "Folio List",
       customIdeaPCB: "Custom Idea PCB",
       copyModifyPCB: "Copy & Modify PCB",
       orderCustomerPCB: "Order Customer PCB",
@@ -348,6 +350,7 @@ const Header = () => {
       product: "สินค้า",
       service: "บริการ",
       blog: "บทความ",
+      folioList: "จัดการผลงาน",
       folio: "ผลงาน",
       signIn: "เข้าสู่ระบบ",
       logout: "ออกระบบ",
@@ -373,6 +376,7 @@ const Header = () => {
       orderAssemblyPCB: "ออเดอร์ Assembly",
       adminProducts: "จัดการสินค้าหน้าร้าน",
       Categories: "หมวดหมู่สินค้า",
+      foliolistAdmin: "รายการผลงาน",
       Quotations: "ใบเสนอราคา",
       Invoices: "ใบแจ้งหนี้",
       Customers: "รายชื่อลูกค้า",
@@ -517,7 +521,7 @@ const Header = () => {
                           .map((s) => (
                             <SimpleListItem
                               key={s.ID}
-                              to={`/${s.ID}`}
+                              to={`/service/${s.ID}`}
                               label={
                                 language === "thai"
                                   ? s.headerThaiOne
@@ -1105,7 +1109,7 @@ const Header = () => {
                 .map((s) => (
                   <Link
                     key={s.ID}
-                    to={`/ service / ${s.ID}`}
+                    to={`/service/${s.ID}`}
                     onClick={closeMenu}
                     className="block py-2 text-sm text-slate-600 hover:text-blue-600 border-l-2 border-slate-200 pl-3"
                   >
@@ -1146,6 +1150,7 @@ const Header = () => {
             </MobileAccordion>
             <MobileLink to="/folio" label={t.folio} onClick={closeMenu} />
             <MobileLink to="/blogs" label={t.blog} onClick={closeMenu} />
+                    <MobileLink to="/admin/foliolist" label={t.folioList} onClick={closeMenu} />
             {(isStore || isPCB || isAdmin) && (
               <MobileAccordion
                 title={t.Admin}
@@ -1252,6 +1257,9 @@ const Header = () => {
                     </Link>
                     <Link to="/admin/servicelist" onClick={closeMenu} className="block py-2 text-sm text-slate-600 hover:text-rose-600 border-l-2 border-slate-200 pl-3">
                       {t.ServiceConfig}
+                    </Link>
+                    <Link to="/admin/foliolist" onClick={closeMenu} className="block py-2 text-sm text-slate-600 hover:text-rose-600 border-l-2 border-slate-200 pl-3">
+                      {t.folioListAdmin}
                     </Link>
                   </div>
                 )}

@@ -77,7 +77,7 @@ const FolioDetailScreen = () => {
     return img?.image || img?.path || img?.url || "/images/sample.jpg";
   };
 
-  const images = [folio?.imageOne, folio?.imageTwo, folio?.imageThree].filter(
+  const images = [folio?.imageOne, folio?.imageTwo, folio?.imageThree, folio?.imageFour, folio?.imageFive].filter(
     Boolean,
   );
   const foliosArray = Array.isArray(foliosListData)
@@ -154,7 +154,7 @@ const FolioDetailScreen = () => {
               {relatedFolios.map((f) => (
                 <Link
                   key={f.ID}
-                  to={`/${f.ID}`}
+                  to={`/folio/${f.ID}`}
                   className="group bg-white dark:bg-zinc-900 rounded-lg overflow-hidden border border-slate-200 dark:border-zinc-800 shadow-sm transition-colors"
                 >
                   <img

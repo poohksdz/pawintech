@@ -222,7 +222,7 @@ const CustomerOrderPCBList = () => {
                     )}
 
                     <Link
-                      to={`/${order.id}`}
+                      to={`/orderpcb/${order.id}`}
                       className="absolute inset-0 z-10"
                       title={translations.orderDetailsLbl}
                     >

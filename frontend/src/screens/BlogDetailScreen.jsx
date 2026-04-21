@@ -214,7 +214,7 @@ const BlogDetailScreen = () => {
                     .map((item, idx) => (
                       <Link
                         key={item._id}
-                        to={`/${item._id || item.id}`}
+                        to={`/blogs/${item._id || item.id}`}
                         className="group flex items-start gap-5 no-underline"
                       >
                         <span className="text-3xl font-black text-slate-100 dark:text-zinc-800 group-hover:text-indigo-200 dark:group-hover:text-indigo-900 transition-colors leading-none">

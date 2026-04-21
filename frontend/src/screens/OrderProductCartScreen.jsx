@@ -196,7 +196,7 @@ const OrderProductCartScreen = () => {
 
                         {/* Details Section */}
                         <div className="flex flex-col flex-1 min-w-0">
-                          <Link to={`/${item._id}`} className="text-sm font-bold text-slate-800 uppercase tracking-tight leading-snug mb-0.5 line-clamp-2">
+                          <Link to={`/orderproduct/${item._id}`} className="text-sm font-bold text-slate-800 uppercase tracking-tight leading-snug mb-0.5 line-clamp-2">
                             {item.name}
                           </Link>
                           <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">
@@ -266,7 +266,7 @@ const OrderProductCartScreen = () => {
                             {/* Details Context */}
                             <div className="flex flex-col flex-1 min-w-0 py-0.5 md:py-0 md:pr-6 relative">
                               <Link
-                                to={`/${item._id}`}
+                                to={`/orderproduct/${item._id}`}
                                 className="text-[13px] md:text-[14px] font-black text-slate-900 uppercase hover:text-blue-600 transition-colors leading-snug mb-0.5 truncate block w-full pr-6 md:pr-0"
                               >
                                 {item.name}

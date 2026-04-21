@@ -107,7 +107,7 @@ const ServiceAllScreen = () => {
               className="h-full"
             >
               <Link
-                to={`/${service.ID}`}
+                to={`/service/${service.ID}`}
                 className="group block h-full bg-white dark:bg-zinc-900/40 rounded-2xl md:rounded-[1.5rem] p-2.5 sm:p-4 border border-slate-50 dark:border-zinc-800/50 shadow-sm hover:shadow-[0_12px_30px_rgba(79,70,229,0.1)] dark:hover:shadow-[0_12px_30px_rgba(79,70,229,0.05)] transition-all duration-300 flex flex-col"
               >
                 {/* Image Wrapper - ใช้ 4:3 บนทุกขนาดจอเพื่อไม่ให้ยืดความสูง */}
@@ -174,8 +174,8 @@ const ServiceAllScreen = () => {
                   key={x + 1}
                   to={`/service/page/${x + 1}`}
                   className={`min-w-[36px] md:min-w-[40px] h-9 md:h-10 px-3 flex items-center justify-center rounded-xl font-bold text-xs md:text-sm transition-all duration-300 ${isActive
-                    ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/30"
-                    : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 hover:text-indigo-600 hover:border-indigo-200"
+                      ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/30"
+                      : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 hover:text-indigo-600 hover:border-indigo-200"
                     }`}
                 >
                   {x + 1}

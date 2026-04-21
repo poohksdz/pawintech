@@ -307,7 +307,7 @@ const OrderAssemblyCartScreen = () => {
 
                         {/* Details Section */}
                         <div className="flex flex-col flex-1 min-w-0">
-                          <Link to={`/${order.id}`} className="text-sm font-bold text-slate-800 uppercase tracking-tight leading-snug mb-0.5 line-clamp-2">
+                          <Link to={`/assembly/${order.id}`} className="text-sm font-bold text-slate-800 uppercase tracking-tight leading-snug mb-0.5 line-clamp-2">
                             {order.projectname || "Untitled Project"}
                           </Link>
                           <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">
@@ -337,7 +337,7 @@ const OrderAssemblyCartScreen = () => {
                               )}
                               {order.quotation_no && (
                                 <Link
-                                  to={`/${order.quotation_no}`}
+                                  to={`/assembly/${order.quotation_no}`}
                                   target="_blank"
                                   className="w-8 h-8 bg-blue-50 border border-blue-100 text-blue-500 flex items-center justify-center rounded-xl hover:bg-white transition-all shadow-sm"
                                   title="View Quotation"
@@ -395,7 +395,7 @@ const OrderAssemblyCartScreen = () => {
                             {/* Details Context */}
                             <div className="flex flex-col flex-1 min-w-0 py-0.5 md:py-0 text-start md:pr-6 relative">
                               <Link
-                                to={`/${order.id}`}
+                                to={`/assembly/${order.id}`}
                                 className="text-[13px] md:text-[14px] font-black text-slate-900 uppercase hover:text-blue-600 transition-colors leading-snug mb-0.5 truncate block w-full pr-6 md:pr-0"
                               >
                                 {order.projectname || "Untitled Project"}
@@ -439,7 +439,7 @@ const OrderAssemblyCartScreen = () => {
                           </div>
                           {order.quotation_no && (
                             <Link
-                              to={`/${order.quotation_no}`}
+                              to={`/assembly/${order.quotation_no}`}
                               target="_blank"
                               className="p-2 text-blue-400 hover:text-blue-600 hover:bg-blue-50 rounded-full transition-all duration-200"
                               title="View Quotation"

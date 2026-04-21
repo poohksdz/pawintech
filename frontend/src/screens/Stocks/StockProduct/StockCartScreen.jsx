@@ -283,7 +283,7 @@ const StockCartScreen = () => {
                                 {p.manufacture || "No Brand"}
                               </span>
                               <Link
-                                to={`/${p.ID}`}
+                                to={`/stockproduct/${p.ID}`}
                                 className="text-[13px] md:text-[14px] font-black text-slate-900 uppercase hover:text-blue-600 transition-colors leading-snug mb-0.5 truncate block w-full pr-6 md:pr-0"
                               >
                                 {p.electotronixPN || p.manufacturePN}

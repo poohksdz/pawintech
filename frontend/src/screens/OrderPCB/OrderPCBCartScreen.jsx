@@ -287,7 +287,7 @@ const OrderPCBCartScreen = () => {
                               </button>
                               {item.quotation_no && (
                                 <Link
-                                  to={`/${item.quotation_no}`}
+                                  to={`/orderpcb/${item.quotation_no}`}
                                   target="_blank"
                                   className="w-8 h-8 bg-blue-50 border border-blue-100 text-blue-500 flex items-center justify-center rounded-xl hover:bg-white transition-all shadow-sm"
                                   title="View Quotation"
@@ -365,7 +365,7 @@ const OrderPCBCartScreen = () => {
                             </button>
                             {item.quotation_no && (
                               <Link
-                                to={`/${item.quotation_no}`}
+                                to={`/orderpcb/${item.quotation_no}`}
                                 target="_blank"
                                 className="p-2 text-blue-400 hover:text-blue-600 hover:bg-blue-50 rounded-full transition-all duration-200"
                                 title="View Quotation"

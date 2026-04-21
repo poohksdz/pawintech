@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
 import { Table, Button, Row, Col, Image, Card } from "react-bootstrap";
-import { FaEdit, FaPlus, FaTrash } from "react-icons/fa";
+import { FaEdit, FaPlus, FaTrash, FaEye } from "react-icons/fa";
 import { Link, useParams } from "react-router-dom";
 import Message from "../../components/Message";
 import Loader from "../../components/Loader";
@@ -186,6 +186,15 @@ const FolioListScreen = () => {
                       </td>
                       <td className="py-4 px-4 md:px-6 text-center">
                         <div className="flex items-center justify-center gap-2">
+                          <a
+                            href={`/folio/${folio.ID}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="w-9 h-9 flex items-center justify-center bg-blue-50 dark:bg-zinc-800 border border-blue-200 dark:border-zinc-700 text-blue-600 dark:text-blue-400 hover:bg-blue-600 dark:hover:bg-blue-500 hover:text-white rounded-lg transition-all shadow-sm"
+                            title="View"
+                          >
+                            <FaEye size={14} />
+                          </a>
                           <Link
                             to={`/admin/folio/${folio.ID}/edit`}
                             className="w-9 h-9 flex items-center justify-center bg-indigo-50 dark:bg-zinc-800 border border-indigo-200 dark:border-zinc-700 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-600 dark:hover:bg-indigo-500 hover:text-white rounded-lg transition-all shadow-sm"

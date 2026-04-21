@@ -280,7 +280,7 @@ const ServiceScreen = () => {
                     variants={itemFadeUp}
                     className="min-w-[280px] md:min-w-0"
                   >
-                    <Link to={`/${item.ID}`} className="block group">
+                    <Link to={`/service/${item.ID}`} className="block group">
                       <div className="bg-white dark:bg-zinc-900/40 rounded-[2rem] border border-slate-100 dark:border-zinc-800 p-3 h-full transition-all duration-500 hover:shadow-2xl hover:shadow-indigo-900/10 dark:hover:shadow-indigo-900/5">
                         <div className="aspect-[4/3] rounded-2xl overflow-hidden relative mb-4">
                           <div className="absolute inset-0 bg-slate-900/10 group-hover:bg-transparent z-10 transition-colors duration-500"></div>
@@ -327,7 +327,8 @@ const ServiceScreen = () => {
       </div>
 
       {/* Tailwind Custom Animation (Float) */}
-      <style dangerouslySetInnerHTML={{ __html: `
+      <style dangerouslySetInnerHTML={{
+        __html: `
         @keyframes float {
           0% { transform: translateY(0px); }
           50% { transform: translateY(-15px); }

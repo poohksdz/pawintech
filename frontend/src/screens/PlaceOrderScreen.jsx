@@ -204,7 +204,7 @@ const PlaceOrderScreen = () => {
                         </div>
                         <div className="flex-grow min-w-0">
                           <Link
-                            to={`/${item.product}`}
+                            to={`/product/${item.product}`}
                             className="block text-slate-900 font-bold hover:text-black transition-colors truncate"
                           >
                             {item.name}

@@ -125,7 +125,7 @@ const FolioScreen = () => {
                 className="h-full"
               >
                 <Link
-                  to={`/${folio.ID}`}
+                  to={`/folio/${folio.ID}`}
                   className="group block h-full bg-white dark:bg-zinc-900/50 rounded-2xl md:rounded-[1.5rem] p-2.5 sm:p-4 border border-slate-100 dark:border-zinc-800 shadow-sm hover:shadow-xl hover:shadow-blue-900/10 dark:hover:shadow-white/5 transition-all duration-300 flex flex-col"
                 >
                   {/* Image Wrapper */}

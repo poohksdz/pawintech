@@ -2,40 +2,122 @@ const asyncHandler = require("../middleware/asyncHandler.js");
 const { pool } = require("../config/db.js");
 
 const buildRoleList = (user) => {
-  const roles = ["all"];
-  if (Number(user?.isAdmin) === 1) roles.push("isAdmin");
-  if (Number(user?.isStore) === 1) roles.push("isStore");
-  if (Number(user?.isPCBAdmin) === 1) roles.push("isPCBAdmin");
-  return roles.filter((r) => /^[a-zA-Z0-9_]+$/.test(r)).map((r) => r.replace(/[^a-zA-Z0-9_]/g, "")).filter(Boolean);
+  try {
+    const roles = ["all"];
+    if (user?.isAdmin === true || user?.isAdmin === 1 || Number(user?.isAdmin) === 1) roles.push("isAdmin");
+    if (user?.isStore === true || user?.isStore === 1 || Number(user?.isStore) === 1) roles.push("isStore");
+    if (user?.isPCBAdmin === true || user?.isPCBAdmin === 1 || Number(user?.isPCBAdmin) === 1) roles.push("isPCBAdmin");
+    // Only allow known safe role names
+    return roles
+      .filter((r) => r && typeof r === 'string' && /^[a-zA-Z0-9_]+$/.test(r))
+      .map((r) => r.replace(/[^a-zA-Z0-9_]/g, ""))
+      .filter(Boolean);
+  } catch (err) {
+    console.warn("buildRoleList error:", err.message);
+    return ["all"]; // Safe fallback
+  }
 };
 
-const getNotifications = asyncHandler(async (req, res) => {
+// @desc    Get user notifications (Personal + Global)
+// @route   GET /api/notifications
+// @access  Private
+const getNotifications = asyncHandler(async (req, res, next) => {
   try {
     const userId = req.user?._id || req.user?.id;
-    if (!userId) return res.status(401).json({ message: "User ID not found" });
+    if (!userId) {
+      return res.status(401).json({ message: "User ID not found" });
+    }
 
     const safeRoles = buildRoleList(req.user);
-    const placeholders = safeRoles.map(() => "?").join(", ");
-    const roleParams = [userId, ...safeRoles];
 
-    let [personalNotis] = await pool.query(
-      `SELECT n.id, n.message, n.type, n.isRead, COALESCE(n.createdAt, n.created_at, NOW()) AS created_at, 'personal' AS scope
-       FROM tbl_notifications n WHERE n.user_id = ? ORDER BY n.id DESC LIMIT 50`, [userId]
-    ).catch(() => [[]]);
+    let personalRows = [[]];
+    let globalRows = [[]];
 
-    let [globalNotis] = safeRoles.length > 0 ? await pool.query(
-      `SELECT g.id, g.message, g.type, g.created_at, 'global' AS scope,
-              IF(r.announcement_id IS NOT NULL, TRUE, FALSE) AS isRead
-       FROM tbl_global_announcements g
-       LEFT JOIN tbl_user_read_announcements r ON g.id = r.announcement_id AND r.user_id = ?
-       WHERE g.targetRole IN (${placeholders}) AND (r.is_deleted IS NULL OR r.is_deleted = FALSE)
-       ORDER BY g.id DESC LIMIT 50`, roleParams
-    ) : [[]];
+    // Fetch personal notifications with error handling
+    try {
+      const [rows] = await pool.query(
+        `SELECT * FROM tbl_notifications WHERE user_id = ? ORDER BY id DESC LIMIT 50`,
+        [userId],
+      );
+      personalRows = [rows];
+    } catch (err) {
+      console.warn("tbl_notifications table or columns missing:", err.message);
+      personalRows = [[]];
+    }
 
-    const allNotifications = [...(personalNotis[0] || []), ...(globalNotis[0] || [])]
-      .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
-      .slice(0, 50)
-      .map((n) => ({ ...n, createdAt: n.created_at }));
+    // Fetch global announcements with error handling
+    if (safeRoles.length > 0) {
+      try {
+        const placeholders = safeRoles.map(() => "?").join(", ");
+        const roleParams = [userId, ...safeRoles];
+        const [rows] = await pool.query(
+          `SELECT g.*, r.announcement_id AS r_announcement_id, r.is_deleted AS r_is_deleted 
+             FROM tbl_global_announcements g
+             LEFT JOIN tbl_user_read_announcements r
+               ON g.id = r.announcement_id AND r.user_id = ?
+             WHERE g.targetRole IN (${placeholders})
+               AND (r.is_deleted IS NULL OR r.is_deleted = FALSE)
+             ORDER BY g.id DESC
+             LIMIT 50`,
+          roleParams,
+        );
+        globalRows = [rows];
+      } catch (err) {
+        console.warn("tbl_global_announcements or tbl_user_read_announcements error:", err.message);
+        try {
+          // Fallback: try without is_deleted column
+          const placeholders = safeRoles.map(() => "?").join(", ");
+          const roleParams = [userId, ...safeRoles];
+          const [rows] = await pool.query(
+            `SELECT g.*, r.announcement_id AS r_announcement_id 
+               FROM tbl_global_announcements g
+               LEFT JOIN tbl_user_read_announcements r
+                 ON g.id = r.announcement_id AND r.user_id = ?
+               WHERE g.targetRole IN (${placeholders})
+               ORDER BY g.id DESC
+               LIMIT 50`,
+            roleParams,
+          );
+          globalRows = [rows];
+        } catch (fallbackErr) {
+          console.warn("Fallback query also failed:", fallbackErr.message);
+          globalRows = [[]];
+        }
+      }
+    }
+
+    // Use JS mapping to safely pull correct column names regardless of database schema changes
+    const personalNotis = (personalRows[0] || []).map(n => ({
+      ...n,
+      id: n.id || n._id,
+      type: n.type || "system",
+      message: n.message || n.content || "",
+      // Handle various column name conventions for isRead
+      isRead: Boolean(
+        n.isRead !== undefined ? n.isRead :
+          n.is_read !== undefined ? n.is_read :
+            n.isReaded !== undefined ? n.isReaded :
+              n.read !== undefined ? n.read : false
+      ),
+      // Handle various column name conventions for createdAt
+      createdAt: n.created_at || n.createdAt || n.create_at || n.Create_at || n.date || n.Date || new Date(),
+      scope: 'personal' // Add scope manually
+    }));
+
+    const globalNotis = (globalRows[0] || []).map(g => ({
+      ...g,
+      id: g.id || g._id,
+      type: g.type || "system",
+      message: g.message || g.content || "",
+      isRead: Boolean(g.r_announcement_id !== null && g.r_announcement_id !== undefined),
+      // Handle various column name conventions for createdAt
+      createdAt: g.created_at || g.createdAt || g.create_at || g.Create_at || g.date || g.Date || new Date(),
+      scope: 'global' // Add scope manually
+    }));
+
+    const allNotifications = [...personalNotis, ...globalNotis]
+      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+      .slice(0, 50);
 
     res.json(allNotifications);
   } catch (error) {

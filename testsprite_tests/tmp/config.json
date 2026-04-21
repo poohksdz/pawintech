@@ -1,0 +1,17 @@
+{
+  "status": "init",
+  "executionArgs": {
+    "projectName": "pawin-backend 31 20250106",
+    "projectPath": "D:\\pawin\\pawin-backend 31 20250106",
+    "testIds": [],
+    "additionalInstruction": "Re-run backend test suite using existing admin bearer auth settings and report current failures.",
+    "serverMode": "development",
+    "envs": {
+      "API_KEY": "sk-user-EjMlHu3LFT-xuo5ocwIfMfyUEuhKQVlOgxS_oCwaPkcAlb-MQ7KImSIbevQRIMVrTUgB9PkmPYikwjx6M_4WYxOA3N2kirWiq1Rm7XZ0riG7CXvKU08Z6ds6lRzeW_Cq9O4"
+    }
+  },
+  "scope": "codebase",
+  "type": "backend",
+  "localEndpoint": "http://localhost:5000/",
+  "serverPort": 50665
+}
