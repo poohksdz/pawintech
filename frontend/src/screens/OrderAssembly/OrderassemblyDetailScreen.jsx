@@ -227,6 +227,7 @@ const OrderassemblyDetailScreen = () => {
       smd: "SMD Details",
       tht: "THT Details",
       total: "Grand Total",
+      pickup: "Pickup at Company",
     },
     thai: {
       title: "รายละเอียดคำสั่งซื้อ",
@@ -244,6 +245,7 @@ const OrderassemblyDetailScreen = () => {
       smd: "รายละเอียด SMD",
       tht: "รายละเอียด THT",
       total: "ยอดรวมสุทธิ",
+      pickup: "รับที่บริษัท",
     },
   }[language || "en"];
 
@@ -260,7 +262,7 @@ const OrderassemblyDetailScreen = () => {
         {/* Header & Actions */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
           <Link
-            to={language === "thai" ? "/pcbassemblycart" : "/pcbassemblycart"}
+            to={userInfo?.isAdmin ? "/admin/orderassemblypcblist" : "/profile?tab=pcbassembly"}
             className="inline-flex items-center gap-3 text-slate-500 hover:text-blue-600 font-bold transition-all group active:scale-95"
           >
             <div className="w-10 h-10 bg-white rounded-full shadow-sm border border-slate-200 flex items-center justify-center group-hover:border-blue-200 group-hover:shadow-md transition-all">
@@ -278,19 +280,21 @@ const OrderassemblyDetailScreen = () => {
                 <FaTools /> {language === "thai" ? "จัดการออเดอร์" : "Admin Panel"}
               </button>
             )}
-            {orderData.status === "paid" && orderData.billingTax && orderData.billingTax !== "N/A" && (
+            {(userInfo?.isAdmin || (orderData.billingTax && orderData.billingTax !== "N/A")) && (
               <div className="flex gap-2">
                 <button
                   onClick={() => handlePrint("full")}
-                  className="inline-flex items-center gap-2 px-6 py-2.5 bg-black text-white rounded-full font-bold shadow-lg hover:bg-slate-900 transition-all active:scale-95 text-xs uppercase tracking-widest"
+                  disabled={isGeneratingPDF}
+                  className="inline-flex items-center gap-2 px-6 py-2.5 bg-black text-white rounded-full font-bold shadow-lg hover:bg-slate-900 transition-all active:scale-95 text-xs uppercase tracking-widest disabled:opacity-50"
                 >
-                  <FaFileInvoice /> Full Invoice (PDF)
+                  <FaFileInvoice /> {isGeneratingPDF && printMode === "full" ? "Generating PDF..." : "Full Invoice (PDF)"}
                 </button>
                 <button
                   onClick={() => handlePrint("short")}
-                  className="inline-flex items-center gap-2 px-6 py-2.5 bg-white border border-slate-200 text-slate-700 rounded-full font-bold shadow-sm hover:shadow-md hover:border-slate-300 transition-all active:scale-95 text-xs uppercase tracking-widest"
+                  disabled={isGeneratingPDF}
+                  className="inline-flex items-center gap-2 px-6 py-2.5 bg-white border border-slate-200 text-slate-700 rounded-full font-bold shadow-sm hover:shadow-md hover:border-slate-300 transition-all active:scale-95 text-xs uppercase tracking-widest disabled:opacity-50"
                 >
-                  <FaReceipt /> Short Receipt
+                  <FaReceipt /> {isGeneratingPDF && printMode === "short" ? "Generating PDF..." : "Short Receipt"}
                 </button>
               </div>
             )}
