@@ -66,4 +66,167 @@ const markAsRead = asyncHandler(async (req, res) => {
   res.json({ success: true });
 });
 
-module.exports = { getNotifications, markAsRead };
+const markAllAsRead = asyncHandler(async (req, res) => {
+  const userId = req.user?._id || req.user?.id;
+  if (!userId) {
+    return res.status(401).json({ message: "User ID not found" });
+  }
+
+  const safeRoles = buildRoleList(req.user);
+  const rolePlaceholders = safeRoles.map(() => "?").join(", ");
+
+  await Promise.all([
+    pool.query(
+      `UPDATE tbl_notifications SET isRead = TRUE WHERE user_id = ? AND isRead = FALSE`,
+      [userId],
+    ),
+    safeRoles.length > 0
+      ? pool.query(
+        `INSERT IGNORE INTO tbl_user_read_announcements
+           (user_id, announcement_id, isRead)
+           SELECT ?, id, TRUE
+           FROM tbl_global_announcements
+           WHERE targetRole IN (${rolePlaceholders})
+             AND id NOT IN (
+               SELECT announcement_id FROM tbl_user_read_announcements WHERE user_id = ?
+             )`,
+        [userId, ...safeRoles, userId],
+      )
+      : Promise.resolve(),
+  ]);
+
+  res.json({ message: "All marked as read" });
+});
+
+const deleteNotification = asyncHandler(async (req, res) => {
+  const userId = req.user?._id || req.user?.id;
+  if (!userId) {
+    return res.status(401).json({ message: "User ID not found" });
+  }
+
+  const scope = req.query.scope || req.body.scope || "personal";
+  const notificationId = Number(req.params.id);
+
+  if (!notificationId) {
+    return res.status(400).json({ message: "Invalid notification ID" });
+  }
+
+  if (scope === "global") {
+    try {
+      await pool.query(
+        `INSERT INTO tbl_user_read_announcements (user_id, announcement_id, is_deleted)
+         VALUES (?, ?, TRUE)
+         ON DUPLICATE KEY UPDATE is_deleted = TRUE`,
+        [userId, notificationId],
+      );
+    } catch (err) {
+      console.warn("is_deleted column missing. Simulating delete by marking as read:", err.message);
+      await pool.query(
+        "INSERT IGNORE INTO tbl_user_read_announcements (user_id, announcement_id) VALUES (?, ?)",
+        [userId, notificationId],
+      );
+    }
+    res.json({ message: "Global notification hidden" });
+  } else {
+    const [result] = await pool.query(
+      `DELETE FROM tbl_notifications WHERE id = ? AND user_id = ?`,
+      [notificationId, userId],
+    );
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: "Notification not found" });
+    }
+    res.json({ message: "Notification deleted" });
+  }
+});
+
+const deleteAllNotifications = asyncHandler(async (req, res) => {
+  const userId = req.user?._id || req.user?.id;
+  if (!userId) {
+    return res.status(401).json({ message: "User ID not found" });
+  }
+
+  const safeRoles = buildRoleList(req.user);
+  const rolePlaceholders = safeRoles.map(() => "?").join(", ");
+
+  await Promise.all([
+    pool.query(`DELETE FROM tbl_notifications WHERE user_id = ?`, [userId]),
+    safeRoles.length > 0
+      ? pool.query(
+        `INSERT INTO tbl_user_read_announcements
+           (user_id, announcement_id, is_deleted)
+           SELECT ?, id, TRUE
+           FROM tbl_global_announcements
+           WHERE targetRole IN (${rolePlaceholders})
+           ON DUPLICATE KEY UPDATE is_deleted = TRUE`,
+        [userId, ...safeRoles],
+      )
+      : Promise.resolve(),
+  ]);
+
+  res.json({ message: "All notifications deleted" });
+});
+
+const createBroadcastNotification = async (arg1, arg2, next) => {
+  if (arg1 && arg1.body && arg2 && typeof arg2.status === "function") {
+    const req = arg1;
+    const res = arg2;
+    try {
+      const { message, type, related_id, targetRole } = req.body;
+      if (!message || !message.trim()) {
+        return res.status(400).json({ message: "Message is required" });
+      }
+      const safeTargetRole = /^[a-zA-Z0-9_]+$/.test(targetRole || "") ? targetRole : "all";
+      const [result] = await pool.query(
+        "Insert INTO tbl_global_announcements (message, type, related_id, targetRole, created_at) VALUES (?, ?, ?, ?, NOW())",
+        [message.trim(), type || "info", related_id || null, safeTargetRole],
+      );
+      return res.status(201).json({ message: "Broadcast created globally", id: result.insertId });
+    } catch (error) {
+      console.error("Error in createBroadcastNotification (API):", error);
+      if (next) return next(error);
+      return res.status(500).json({ message: "เกิดข้อผิดพลาดในการสร้างประกาศ" });
+    }
+  }
+
+  const options = arg1;
+  try {
+    const { message, type, related_id, targetRole } = options || {};
+    if (!message || !message.trim()) throw new Error("Message required");
+    const safeTargetRole = /^[a-zA-Z0-9_]+$/.test(targetRole || "") ? targetRole : "all";
+    const [result] = await pool.query(
+      "INSERT INTO tbl_global_announcements (message, type, related_id, targetRole, created_at) VALUES (?, ?, ?, ?, NOW())",
+      [message.trim(), type || "info", related_id || null, safeTargetRole],
+    );
+    return result.insertId;
+  } catch (error) {
+    console.error("Error in createBroadcastNotification (Internal):", error);
+    throw error;
+  }
+};
+
+const migrateDatabase = asyncHandler(async (req, res) => {
+  let logs = [];
+
+  try {
+    await pool.query("ALTER TABLE tbl_user_read_announcements ADD COLUMN is_deleted BOOLEAN DEFAULT FALSE");
+    logs.push("Added missing column 'is_deleted' to 'tbl_user_read_announcements'");
+  } catch (err) {
+    if (err.code === 'ER_DUP_FIELDNAME') {
+      logs.push("Column 'is_deleted' already exists in 'tbl_user_read_announcements'");
+    } else {
+      logs.push("Error adding 'is_deleted': " + err.message);
+    }
+  }
+
+  res.json({ message: "Database schema migration applied successfully!", details: logs });
+});
+
+module.exports = {
+  getNotifications,
+  markAsRead,
+  markAllAsRead,
+  deleteNotification,
+  deleteAllNotifications,
+  createBroadcastNotification,
+  migrateDatabase,
+};

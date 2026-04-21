@@ -9,10 +9,18 @@ const getStockProducts = asyncHandler(async (req, res) => {
     const [products] = await db.pool.query(
       "SELECT * FROM tbl_product",
     );
-    // Fix image paths: DB stores /images/xxx but files are at /componentImages/images/xxx
+    // Fix image paths: ensure absolute URLs so UI won't fail to load due to SPA fallback
+    const fixImg = (img) => {
+      if (!img || img === "-" || img === "null") return null;
+      if (img.startsWith("http") || img.startsWith("/componentImages")) return img;
+      if (img.startsWith("/images/")) return `/componentImages${img}`;
+      if (img.startsWith("images/")) return `/componentImages/${img}`;
+      return `/componentImages/images/${img}`;
+    };
+
     const fixed = products.map((p) => ({
       ...p,
-      img: p.img && p.img.startsWith("/images/") ? `/componentImages${p.img}` : p.img,
+      img: fixImg(p.img),
     }));
     res.status(200).json({ products: fixed });
   } catch (error) {
@@ -38,9 +46,14 @@ const getStockProductById = asyncHandler(async (req, res) => {
     }
 
     const p = product[0];
-    if (p.img && p.img.startsWith("/images/")) {
-      p.img = `/componentImages${p.img}`;
-    }
+    const fixImg = (img) => {
+      if (!img || img === "-" || img === "null") return null;
+      if (img.startsWith("http") || img.startsWith("/componentImages")) return img;
+      if (img.startsWith("/images/")) return `/componentImages${img}`;
+      if (img.startsWith("images/")) return `/componentImages/${img}`;
+      return `/componentImages/images/${img}`;
+    };
+    p.img = fixImg(p.img);
     res.status(200).json(p);
   } catch (error) {
     console.error(`Error fetching product ID ${id}:`, error);
@@ -127,9 +140,14 @@ const getStockProductByBarcode = asyncHandler(async (req, res) => {
     }
 
     const p = product[0];
-    if (p.img && p.img.startsWith("/images/")) {
-      p.img = `/componentImages${p.img}`;
-    }
+    const fixImg = (img) => {
+      if (!img || img === "-" || img === "null") return null;
+      if (img.startsWith("http") || img.startsWith("/componentImages")) return img;
+      if (img.startsWith("/images/")) return `/componentImages${img}`;
+      if (img.startsWith("images/")) return `/componentImages/${img}`;
+      return `/componentImages/images/${img}`;
+    };
+    p.img = fixImg(p.img);
     res.status(200).json(p);
   } catch (error) {
     console.error(`Error fetching product by barcode ${barcode}:`, error);
