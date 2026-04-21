@@ -41,7 +41,7 @@ const getNotifications = asyncHandler(async (req, res) => {
     ),
     safeRoles.length > 0
       ? pool.query(
-          `SELECT g.id, g.message, g.type, g.created_at,
+        `SELECT g.id, g.message, g.type, g.created_at,
                   'global' AS scope,
                   IF(r.announcement_id IS NOT NULL, TRUE, FALSE) AS isRead
            FROM tbl_global_announcements g
@@ -51,8 +51,8 @@ const getNotifications = asyncHandler(async (req, res) => {
              AND (r.is_deleted IS NULL OR r.is_deleted = FALSE)
            ORDER BY g.id DESC
            LIMIT 50`,
-          roleParams,
-        )
+        roleParams,
+      )
       : [[]],
   ]);
 
@@ -126,7 +126,7 @@ const markAllAsRead = asyncHandler(async (req, res) => {
     // Global: insert IGNORE for each matching announcement
     safeRoles.length > 0
       ? pool.query(
-          `INSERT IGNORE INTO tbl_user_read_announcements
+        `INSERT IGNORE INTO tbl_user_read_announcements
            (user_id, announcement_id, isRead)
            SELECT ?, id, TRUE
            FROM tbl_global_announcements
@@ -134,8 +134,8 @@ const markAllAsRead = asyncHandler(async (req, res) => {
              AND id NOT IN (
                SELECT announcement_id FROM tbl_user_read_announcements WHERE user_id = ?
              )`,
-          [userId, ...safeRoles, userId],
-        )
+        [userId, ...safeRoles, userId],
+      )
       : Promise.resolve(),
   ]);
 
@@ -197,45 +197,65 @@ const deleteAllNotifications = asyncHandler(async (req, res) => {
     // Hide global for this user
     safeRoles.length > 0
       ? pool.query(
-          `INSERT INTO tbl_user_read_announcements
+        `INSERT INTO tbl_user_read_announcements
            (user_id, announcement_id, is_deleted)
            SELECT ?, id, TRUE
            FROM tbl_global_announcements
            WHERE targetRole IN (${rolePlaceholders})
            ON DUPLICATE KEY UPDATE is_deleted = TRUE`,
-          [userId, ...safeRoles],
-        )
+        [userId, ...safeRoles],
+      )
       : Promise.resolve(),
   ]);
 
   res.json({ message: "All notifications deleted" });
 });
 
-// @desc    Create broadcast notification (internal service call)
-// @access  Internal only — use createBroadcastNotification({ ... })
-const createBroadcastNotification = asyncHandler(async (req, res) => {
-  const { message, type, related_id, targetRole } = req.body;
-
-  if (!message || !message.trim()) {
-    return res.status(400).json({ message: "Message is required" });
+/**
+ * createBroadcastNotification
+ * Supports two calling styles:
+ * 1. API: (req, res)
+ * 2. Internal Service: (options object)
+ */
+const createBroadcastNotification = async (arg1, arg2, next) => {
+  // Style 1: API (req, res)
+  if (arg1 && arg1.body && arg2 && typeof arg2.status === "function") {
+    const req = arg1;
+    const res = arg2;
+    try {
+      const { message, type, related_id, targetRole } = req.body;
+      if (!message || !message.trim()) {
+        return res.status(400).json({ message: "Message is required" });
+      }
+      const safeTargetRole = /^[a-zA-Z0-9_]+$/.test(targetRole || "") ? targetRole : "all";
+      const [result] = await pool.query(
+        "INSERT INTO tbl_global_announcements (message, type, related_id, targetRole, created_at) VALUES (?, ?, ?, ?, NOW())",
+        [message.trim(), type || "info", related_id || null, safeTargetRole],
+      );
+      return res.status(201).json({ message: "Broadcast created globally", id: result.insertId });
+    } catch (error) {
+      console.error("❌ Error in createBroadcastNotification (API):", error);
+      if (next) return next(error);
+      return res.status(500).json({ message: "เกิดข้อผิดพลาดในการสร้างประกาศ" });
+    }
   }
 
-  const safeTargetRole = /^[a-zA-Z0-9_]+$/.test(targetRole || "")
-    ? targetRole
-    : "all";
-
-  const [result] = await pool.query(
-    `INSERT INTO tbl_global_announcements
-     (message, type, related_id, targetRole, created_at)
-     VALUES (?, ?, ?, ?, NOW())`,
-    [message.trim(), type || "info", related_id || null, safeTargetRole],
-  );
-
-  res.status(201).json({
-    message: "Broadcast created globally",
-    id: result.insertId,
-  });
-});
+  // Style 2: Internal Service ({ message, type, ... })
+  const options = arg1;
+  try {
+    const { message, type, related_id, targetRole } = options || {};
+    if (!message || !message.trim()) throw new Error("Message required");
+    const safeTargetRole = /^[a-zA-Z0-9_]+$/.test(targetRole || "") ? targetRole : "all";
+    const [result] = await pool.query(
+      "INSERT INTO tbl_global_announcements (message, type, related_id, targetRole, created_at) VALUES (?, ?, ?, ?, NOW())",
+      [message.trim(), type || "info", related_id || null, safeTargetRole],
+    );
+    return result.insertId;
+  } catch (error) {
+    console.error("❌ Error in createBroadcastNotification (Internal):", error);
+    throw error;
+  }
+};
 
 module.exports = {
   getNotifications,
