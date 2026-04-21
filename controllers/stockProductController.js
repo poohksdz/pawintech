@@ -13,7 +13,9 @@ const getStockProducts = asyncHandler(async (req, res) => {
     const fixImg = (img) => {
       if (!img || img === "-" || img === "null") return null;
       if (img.startsWith("http") || img.startsWith("/componentImages")) return img;
-      return img.startsWith("/images/") ? `/componentImages${img}` : `/componentImages/${img}`;
+      if (img.startsWith("/images/")) return `/componentImages${img}`;
+      if (img.startsWith("images/")) return `/componentImages/${img}`;
+      return `/componentImages/images/${img}`;
     };
 
     const fixed = products.map((p) => ({
@@ -47,7 +49,9 @@ const getStockProductById = asyncHandler(async (req, res) => {
     const fixImg = (img) => {
       if (!img || img === "-" || img === "null") return null;
       if (img.startsWith("http") || img.startsWith("/componentImages")) return img;
-      return img.startsWith("/images/") ? `/componentImages${img}` : `/componentImages/${img}`;
+      if (img.startsWith("/images/")) return `/componentImages${img}`;
+      if (img.startsWith("images/")) return `/componentImages/${img}`;
+      return `/componentImages/images/${img}`;
     };
     p.img = fixImg(p.img);
     res.status(200).json(p);
@@ -139,7 +143,9 @@ const getStockProductByBarcode = asyncHandler(async (req, res) => {
     const fixImg = (img) => {
       if (!img || img === "-" || img === "null") return null;
       if (img.startsWith("http") || img.startsWith("/componentImages")) return img;
-      return img.startsWith("/images/") ? `/componentImages${img}` : `/componentImages/${img}`;
+      if (img.startsWith("/images/")) return `/componentImages${img}`;
+      if (img.startsWith("images/")) return `/componentImages/${img}`;
+      return `/componentImages/images/${img}`;
     };
     p.img = fixImg(p.img);
     res.status(200).json(p);
