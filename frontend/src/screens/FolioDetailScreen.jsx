@@ -66,8 +66,13 @@ const FolioDetailScreen = () => {
     if (!img) return "/images/sample.jpg";
     if (typeof img === "string") {
       if (img.startsWith("http")) return img;
-      const baseUrl = process.env.NODE_ENV === "development" ? "http://localhost:5000" : "";
-      return img.startsWith("/") ? `${baseUrl}${img}` : `${baseUrl}/${img}`;
+      // Folio images stored in /uploads/folios/
+      if (!img.includes("/")) {
+        // Just filename like "image7.jpg" -> assume folio image
+        return `/uploads/folios/${img}`;
+      }
+      // Already has path separator
+      return img.startsWith("/") ? img : `/${img}`;
     }
     return img?.image || img?.path || img?.url || "/images/sample.jpg";
   };
