@@ -53,7 +53,7 @@ const getNotifications = asyncHandler(async (req, res) => {
            LIMIT 50`,
           roleParams,
         )
-      : [[]]),
+      : [[]],
   ]);
 
   const personalNotis = personalRows[0] || [];
