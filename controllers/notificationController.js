@@ -2,127 +2,55 @@ const asyncHandler = require("../middleware/asyncHandler.js");
 const { pool } = require("../config/db.js");
 
 const buildRoleList = (user) => {
-  try {
-    const roles = ["all"];
-    if (user?.isAdmin === true || user?.isAdmin === 1 || Number(user?.isAdmin) === 1) roles.push("isAdmin");
-    if (user?.isStore === true || user?.isStore === 1 || Number(user?.isStore) === 1) roles.push("isStore");
-    if (user?.isPCBAdmin === true || user?.isPCBAdmin === 1 || Number(user?.isPCBAdmin) === 1) roles.push("isPCBAdmin");
-    // Only allow known safe role names
-    return roles
-      .filter((r) => r && typeof r === 'string' && /^[a-zA-Z0-9_]+$/.test(r))
-      .map((r) => r.replace(/[^a-zA-Z0-9_]/g, ""))
-      .filter(Boolean);
-  } catch (err) {
-    console.warn("buildRoleList error:", err.message);
-    return ["all"]; // Safe fallback
-  }
+  const roles = ["all"];
+  if (Number(user?.isAdmin) === 1) roles.push("isAdmin");
+  if (Number(user?.isStore) === 1) roles.push("isStore");
+  if (Number(user?.isPCBAdmin) === 1) roles.push("isPCBAdmin");
+  return roles.filter((r) => /^[a-zA-Z0-9_]+$/.test(r)).map((r) => r.replace(/[^a-zA-Z0-9_]/g, "")).filter(Boolean);
 };
 
-// @desc    Get user notifications (Personal + Global)
-// @route   GET /api/notifications
-// @access  Private
-const getNotifications = asyncHandler(async (req, res, next) => {
+const getNotifications = asyncHandler(async (req, res) => {
   try {
     const userId = req.user?._id || req.user?.id;
-    if (!userId) {
-      return res.status(401).json({ message: "User ID not found" });
-    }
+    if (!userId) return res.json([]);
 
     const safeRoles = buildRoleList(req.user);
+    const placeholders = safeRoles.map(() => "?").join(", ");
+    const roleParams = [userId, ...safeRoles];
 
-    let personalRows = [[]];
-    let globalRows = [[]];
-
-    // Fetch personal notifications with error handling
+    let personalNotis = [[]];
     try {
-      const [rows] = await pool.query(
-        `SELECT * FROM tbl_notifications WHERE user_id = ? ORDER BY id DESC LIMIT 50`,
-        [userId],
+      const result = await pool.query(
+        "SELECT n.id, n.message, n.type, n.isRead, COALESCE(n.createdAt, n.created_at, NOW()) AS created_at, 'personal' AS scope FROM tbl_notifications n WHERE n.user_id = ? ORDER BY n.id DESC LIMIT 50",
+        [userId]
       );
-      personalRows = [rows];
-    } catch (err) {
-      console.warn("tbl_notifications table or columns missing:", err.message);
-      personalRows = [[]];
+      personalNotis = result;
+    } catch (e) {
+      console.warn("Personal notifications query failed:", e.message);
     }
 
-    // Fetch global announcements with error handling
+    let globalNotis = [[]];
     if (safeRoles.length > 0) {
       try {
-        const placeholders = safeRoles.map(() => "?").join(", ");
-        const roleParams = [userId, ...safeRoles];
-        const [rows] = await pool.query(
-          `SELECT g.*, r.announcement_id AS r_announcement_id, r.is_deleted AS r_is_deleted 
-             FROM tbl_global_announcements g
-             LEFT JOIN tbl_user_read_announcements r
-               ON g.id = r.announcement_id AND r.user_id = ?
-             WHERE g.targetRole IN (${placeholders})
-               AND (r.is_deleted IS NULL OR r.is_deleted = FALSE)
-             ORDER BY g.id DESC
-             LIMIT 50`,
-          roleParams,
+        const result = await pool.query(
+          "SELECT g.id, g.message, g.type, g.created_at, 'global' AS scope, IF(r.announcement_id IS NOT NULL, TRUE, FALSE) AS isRead FROM tbl_global_announcements g LEFT JOIN tbl_user_read_announcements r ON g.id = r.announcement_id AND r.user_id = ? WHERE g.targetRole IN (" + placeholders + ") AND (r.is_deleted IS NULL OR r.is_deleted = FALSE) ORDER BY g.id DESC LIMIT 50",
+          roleParams
         );
-        globalRows = [rows];
-      } catch (err) {
-        console.warn("tbl_global_announcements or tbl_user_read_announcements error:", err.message);
-        try {
-          // Fallback: try without is_deleted column
-          const placeholders = safeRoles.map(() => "?").join(", ");
-          const roleParams = [userId, ...safeRoles];
-          const [rows] = await pool.query(
-            `SELECT g.*, r.announcement_id AS r_announcement_id 
-               FROM tbl_global_announcements g
-               LEFT JOIN tbl_user_read_announcements r
-                 ON g.id = r.announcement_id AND r.user_id = ?
-               WHERE g.targetRole IN (${placeholders})
-               ORDER BY g.id DESC
-               LIMIT 50`,
-            roleParams,
-          );
-          globalRows = [rows];
-        } catch (fallbackErr) {
-          console.warn("Fallback query also failed:", fallbackErr.message);
-          globalRows = [[]];
-        }
+        globalNotis = result;
+      } catch (e) {
+        console.warn("Global notifications query failed:", e.message);
       }
     }
 
-    // Use JS mapping to safely pull correct column names regardless of database schema changes
-    const personalNotis = (personalRows[0] || []).map(n => ({
-      ...n,
-      id: n.id || n._id,
-      type: n.type || "system",
-      message: n.message || n.content || "",
-      // Handle various column name conventions for isRead
-      isRead: Boolean(
-        n.isRead !== undefined ? n.isRead :
-          n.is_read !== undefined ? n.is_read :
-            n.isReaded !== undefined ? n.isReaded :
-              n.read !== undefined ? n.read : false
-      ),
-      // Handle various column name conventions for createdAt
-      createdAt: n.created_at || n.createdAt || n.create_at || n.Create_at || n.date || n.Date || new Date(),
-      scope: 'personal' // Add scope manually
-    }));
-
-    const globalNotis = (globalRows[0] || []).map(g => ({
-      ...g,
-      id: g.id || g._id,
-      type: g.type || "system",
-      message: g.message || g.content || "",
-      isRead: Boolean(g.r_announcement_id !== null && g.r_announcement_id !== undefined),
-      // Handle various column name conventions for createdAt
-      createdAt: g.created_at || g.createdAt || g.create_at || g.Create_at || g.date || g.Date || new Date(),
-      scope: 'global' // Add scope manually
-    }));
-
-    const allNotifications = [...personalNotis, ...globalNotis]
-      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-      .slice(0, 50);
+    const allNotifications = [...(personalNotis[0] || []), ...(globalNotis[0] || [])]
+      .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+      .slice(0, 50)
+      .map((n) => ({ ...n, createdAt: n.created_at }));
 
     res.json(allNotifications);
   } catch (error) {
     console.error("Error in getNotifications:", error);
-    res.status(500).json({ message: "Failed to fetch notifications" });
+    res.json([]);
   }
 });
 
@@ -134,14 +62,12 @@ const markAsRead = asyncHandler(async (req, res) => {
 
   if (scope === "global") {
     await pool.query(
-      `INSERT INTO tbl_user_read_announcements (user_id, announcement_id, isRead, is_deleted)
-       VALUES (?, ?, TRUE, FALSE)
-       ON DUPLICATE KEY UPDATE isRead = TRUE`,
+      "INSERT INTO tbl_user_read_announcements (user_id, announcement_id, isRead, is_deleted) VALUES (?, ?, TRUE, FALSE) ON DUPLICATE KEY UPDATE isRead = TRUE",
       [userId, notificationId]
     );
   } else {
     await pool.query(
-      `UPDATE tbl_notifications SET isRead = TRUE WHERE id = ? AND user_id = ?`,
+      "UPDATE tbl_notifications SET isRead = TRUE WHERE id = ? AND user_id = ?",
       [notificationId, userId]
     );
   }
@@ -159,19 +85,12 @@ const markAllAsRead = asyncHandler(async (req, res) => {
 
   await Promise.all([
     pool.query(
-      `UPDATE tbl_notifications SET isRead = TRUE WHERE user_id = ? AND isRead = FALSE`,
+      "UPDATE tbl_notifications SET isRead = TRUE WHERE user_id = ? AND isRead = FALSE",
       [userId],
     ),
     safeRoles.length > 0
       ? pool.query(
-        `INSERT IGNORE INTO tbl_user_read_announcements
-           (user_id, announcement_id, isRead)
-           SELECT ?, id, TRUE
-           FROM tbl_global_announcements
-           WHERE targetRole IN (${rolePlaceholders})
-             AND id NOT IN (
-               SELECT announcement_id FROM tbl_user_read_announcements WHERE user_id = ?
-             )`,
+        "INSERT IGNORE INTO tbl_user_read_announcements (user_id, announcement_id, isRead) SELECT ?, id, TRUE FROM tbl_global_announcements WHERE targetRole IN (" + rolePlaceholders + ") AND id NOT IN (SELECT announcement_id FROM tbl_user_read_announcements WHERE user_id = ?)",
         [userId, ...safeRoles, userId],
       )
       : Promise.resolve(),
@@ -196,9 +115,7 @@ const deleteNotification = asyncHandler(async (req, res) => {
   if (scope === "global") {
     try {
       await pool.query(
-        `INSERT INTO tbl_user_read_announcements (user_id, announcement_id, is_deleted)
-         VALUES (?, ?, TRUE)
-         ON DUPLICATE KEY UPDATE is_deleted = TRUE`,
+        "INSERT INTO tbl_user_read_announcements (user_id, announcement_id, is_deleted) VALUES (?, ?, TRUE) ON DUPLICATE KEY UPDATE is_deleted = TRUE",
         [userId, notificationId],
       );
     } catch (err) {
@@ -211,7 +128,7 @@ const deleteNotification = asyncHandler(async (req, res) => {
     res.json({ message: "Global notification hidden" });
   } else {
     const [result] = await pool.query(
-      `DELETE FROM tbl_notifications WHERE id = ? AND user_id = ?`,
+      "DELETE FROM tbl_notifications WHERE id = ? AND user_id = ?",
       [notificationId, userId],
     );
     if (result.affectedRows === 0) {
@@ -231,15 +148,10 @@ const deleteAllNotifications = asyncHandler(async (req, res) => {
   const rolePlaceholders = safeRoles.map(() => "?").join(", ");
 
   await Promise.all([
-    pool.query(`DELETE FROM tbl_notifications WHERE user_id = ?`, [userId]),
+    pool.query("DELETE FROM tbl_notifications WHERE user_id = ?", [userId]),
     safeRoles.length > 0
       ? pool.query(
-        `INSERT INTO tbl_user_read_announcements
-           (user_id, announcement_id, is_deleted)
-           SELECT ?, id, TRUE
-           FROM tbl_global_announcements
-           WHERE targetRole IN (${rolePlaceholders})
-           ON DUPLICATE KEY UPDATE is_deleted = TRUE`,
+        "INSERT INTO tbl_user_read_announcements (user_id, announcement_id, is_deleted) SELECT ?, id, TRUE FROM tbl_global_announcements WHERE targetRole IN (" + rolePlaceholders + ") ON DUPLICATE KEY UPDATE is_deleted = TRUE",
         [userId, ...safeRoles],
       )
       : Promise.resolve(),
@@ -266,7 +178,7 @@ const createBroadcastNotification = async (arg1, arg2, next) => {
     } catch (error) {
       console.error("Error in createBroadcastNotification (API):", error);
       if (next) return next(error);
-      return res.status(500).json({ message: "เกิดข้อผิดพลาดในการสร้างประกาศ" });
+      return res.status(500).json({ message: "Failed to create broadcast" });
     }
   }
 

@@ -29,7 +29,7 @@ import { useGetStockFootprintsQuery } from "../../../slices/stockFootprintApiSli
 import { useGetStockSuppliersQuery } from "../../../slices/stockSupplierApiSlice";
 import Loader from "../../../components/Loader";
 import Message from "../../../components/Message";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "react-toastify";
 
 // ============================================================================
@@ -354,6 +354,10 @@ const QuickLookModal = ({ isOpen, onClose, product }) => {
 
 const StockProductEditListScreen = () => {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  // Initialize formData with category from URL if present
+  const getInitialCategory = () => searchParams.get("category") || "";
 
   // API
   const {
@@ -376,7 +380,7 @@ const StockProductEditListScreen = () => {
   const [searchInput, setSearchInput] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [formData, setFormData] = useState({
-    category: "",
+    category: getInitialCategory(),
     subcategory: "",
     manufacturer: "",
     footprint: "",
@@ -499,7 +503,18 @@ const StockProductEditListScreen = () => {
     if (e.key === "Enter") handleTriggerSearch();
   };
   const handleChange = (e) => {
-    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+
+    // Update URL search params for category to preserve filter on back navigation
+    if (name === "category") {
+      if (value) {
+        setSearchParams({ category: value });
+      } else {
+        setSearchParams({});
+      }
+    }
+
     setCurrentPage(1);
   };
 
@@ -895,7 +910,7 @@ const StockProductEditListScreen = () => {
                                   </button>
                                   <button
                                     onClick={() =>
-                                      navigate(`/componenteditlist/${p.ID}/edit`)
+                                      navigate(`/componenteditlist/${p.ID}/edit?category=${encodeURIComponent(formData.category || "")}`)
                                     }
                                     className="w-10 h-10 rounded-xl bg-indigo-50 border border-indigo-100 text-indigo-600 hover:bg-indigo-600 hover:text-white hover:shadow-md flex items-center justify-center transition-all"
                                     title="Edit Configuration"
@@ -996,7 +1011,7 @@ const StockProductEditListScreen = () => {
                             </button>
                             <button
                               onClick={() =>
-                                navigate(`/componenteditlist/${p.ID}/edit`)
+                                navigate(`/componenteditlist/${p.ID}/edit?category=${encodeURIComponent(formData.category || "")}`)
                               }
                               className="flex-1 h-10 rounded-xl bg-indigo-50 border border-indigo-100 text-indigo-600 text-[11px] font-bold uppercase tracking-wider hover:bg-indigo-600 hover:text-white flex items-center justify-center gap-2 transition-all shadow-sm"
                             >

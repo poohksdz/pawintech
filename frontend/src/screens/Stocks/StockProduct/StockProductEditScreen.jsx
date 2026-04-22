@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { useSelector } from "react-redux";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -44,7 +44,7 @@ import {
 } from "../../../slices/stockSupplierApiSlice";
 
 // ============================================================================
-// COMPONENT: SMOOTH FORM DROPDOWN
+// COMPONENT: SEARCHABLE FORM DROPDOWN
 // ============================================================================
 const FormDropdown = ({
   name,
@@ -56,12 +56,49 @@ const FormDropdown = ({
   required,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const dropdownRef = useRef(null);
+  const searchInputRef = useRef(null);
+
   const selectedOption = options?.find(
     (o) => String(o.value) === String(value),
   );
 
+  // Filter options based on search query
+  const filteredOptions = options?.filter((opt) =>
+    opt.label?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  // Focus search input when dropdown opens
+  useEffect(() => {
+    if (isOpen && searchInputRef.current) {
+      setTimeout(() => searchInputRef.current?.focus(), 100);
+    } else {
+      setSearchQuery("");
+    }
+  }, [isOpen]);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    };
+    if (isOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [isOpen]);
+
+  const handleKeyDown = (e) => {
+    if (e.key === "Escape") {
+      setIsOpen(false);
+    }
+  };
+
   return (
-    <div className="relative flex-1">
+    <div className="relative flex-1" ref={dropdownRef}>
       {/* Hidden input for HTML5 required validation */}
       <input
         type="text"
@@ -96,39 +133,61 @@ const FormDropdown = ({
       <AnimatePresence>
         {isOpen && !disabled && (
           <React.Fragment key="dropdown-fragment">
-            <div
-              className="fixed inset-0 z-[110]"
-              onClick={() => setIsOpen(false)}
-            />
-            <motion.ul
+            <motion.div
               initial={{ opacity: 0, y: 4, scale: 0.98 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 4, scale: 0.98 }}
               transition={{ duration: 0.15, ease: "easeOut" }}
-              className="absolute z-[120] w-full mt-1.5 bg-white border border-slate-100 rounded-xl shadow-xl shadow-slate-200/50 py-1.5 max-h-60 overflow-y-auto custom-scrollbar"
+              className="absolute z-[120] w-full mt-1.5 bg-white border border-slate-100 rounded-xl shadow-xl shadow-slate-200/50 overflow-hidden"
+              onKeyDown={handleKeyDown}
             >
-              <li
-                onClick={() => {
-                  onChange({ target: { name, value: "" } });
-                  setIsOpen(false);
-                }}
-                className="px-4 py-2.5 text-xs font-bold text-slate-400 hover:bg-slate-50 hover:text-slate-800 cursor-pointer transition-colors uppercase tracking-wider"
-              >
-                -- Clear Selection --
-              </li>
-              {options?.map((opt) => (
-                <li
-                  key={String(opt.key)}
-                  onClick={() => {
-                    onChange({ target: { name, value: opt.value } });
-                    setIsOpen(false);
-                  }}
-                  className={`px-4 py-2.5 text-sm font-medium hover:bg-indigo-50 hover:text-indigo-700 cursor-pointer transition-colors ${String(value) === String(opt.value) ? "text-indigo-700 bg-indigo-50/50 font-bold" : "text-slate-700"}`}
-                >
-                  {opt.label}
-                </li>
-              ))}
-            </motion.ul>
+              {/* Search Input */}
+              <div className="p-2 border-b border-slate-100">
+                <input
+                  ref={searchInputRef}
+                  type="text"
+                  placeholder="พิมพ์เพื่อค้นหา..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full h-10 px-3 text-sm border border-slate-200 rounded-lg outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all"
+                />
+              </div>
+
+              {/* Options List */}
+              <div className="max-h-52 overflow-y-auto custom-scrollbar">
+                <ul className="py-1">
+                  <li
+                    onClick={() => {
+                      onChange({ target: { name, value: "" } });
+                      setIsOpen(false);
+                      setSearchQuery("");
+                    }}
+                    className="px-4 py-2.5 text-xs font-bold text-slate-400 hover:bg-slate-50 hover:text-slate-800 cursor-pointer transition-colors uppercase tracking-wider"
+                  >
+                    -- ล้างการเลือก --
+                  </li>
+                  {filteredOptions?.length > 0 ? (
+                    filteredOptions.map((opt) => (
+                      <li
+                        key={String(opt.key)}
+                        onClick={() => {
+                          onChange({ target: { name, value: opt.value } });
+                          setIsOpen(false);
+                          setSearchQuery("");
+                        }}
+                        className={`px-4 py-2.5 text-sm font-medium hover:bg-indigo-50 hover:text-indigo-700 cursor-pointer transition-colors ${String(value) === String(opt.value) ? "text-indigo-700 bg-indigo-50/50 font-bold" : "text-slate-700"}`}
+                      >
+                        {opt.label}
+                      </li>
+                    ))
+                  ) : (
+                    <li className="px-4 py-3 text-sm text-slate-400 text-center">
+                      ไม่พบรายการที่ค้นหา
+                    </li>
+                  )}
+                </ul>
+              </div>
+            </motion.div>
           </React.Fragment>
         )}
       </AnimatePresence>
@@ -199,7 +258,11 @@ const SmoothModal = ({
 const StockProductEditScreen = () => {
   const navigate = useNavigate();
   const { id: productId } = useParams();
+  const [searchParams] = useSearchParams();
   const { userInfo } = useSelector((state) => state.auth);
+
+  // Get category from URL params if present (preserved from list page)
+  const categoryFromUrl = searchParams.get("category") || "";
 
   const [formData, setFormData] = useState({
     img: "",
@@ -296,7 +359,9 @@ const StockProductEditScreen = () => {
       refetchSuppliers();
       refetchManufactures();
       toast.success("Component updated successfully!");
-      navigate("/componenteditlist");
+      // Navigate back to list with category preserved
+      const categoryParam = categoryFromUrl ? `?category=${encodeURIComponent(categoryFromUrl)}` : "";
+      navigate(`/componenteditlist${categoryParam}`);
     } catch (error) {
       toast.error("Failed to update component");
     }
@@ -323,7 +388,8 @@ const StockProductEditScreen = () => {
         img: data.img || "",
         electotronixPN: data.electotronixPN || "",
         value: data.value || "",
-        category: data.category || "",
+        // Use category from URL if present, otherwise use data.category
+        category: categoryFromUrl || data.category || "",
         subcategory: data.subcategory || "",
         footprint: data.footprint || "",
         weight: data.weight || "",
@@ -345,7 +411,7 @@ const StockProductEditScreen = () => {
         username: userInfo.name || "",
       });
     }
-  }, [data, userInfo.name]);
+  }, [data, userInfo.name, categoryFromUrl]);
 
   const inputClass =
     "w-full bg-white border border-slate-300 text-slate-900 text-sm rounded-xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-600 block p-3 transition-all outline-none shadow-sm placeholder:text-slate-400 font-medium";
@@ -359,7 +425,10 @@ const StockProductEditScreen = () => {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
           <div className="flex items-center gap-4">
             <button
-              onClick={() => navigate(-1)}
+              onClick={() => {
+                const categoryParam = categoryFromUrl ? `?category=${encodeURIComponent(categoryFromUrl)}` : "";
+                navigate(`/componenteditlist${categoryParam}`);
+              }}
               className="w-10 h-10 bg-white border border-slate-200 text-slate-500 hover:text-slate-800 rounded-xl flex items-center justify-center shadow-sm transition-all hover:bg-slate-50"
             >
               <FaArrowLeft size={14} />

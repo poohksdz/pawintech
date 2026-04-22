@@ -148,12 +148,14 @@ const ServiceScreen = () => {
                 <div className="animate-[float_6s_ease-in-out_infinite] shadow-2xl shadow-indigo-900/10 rounded-[2.5rem] overflow-hidden border-[6px] border-white dark:border-zinc-900 bg-white dark:bg-zinc-900 transition-colors">
                   <img
                     src={
-                      typeof service.imageOne === "string"
+                      (typeof service.imageOne === "string" &&
+                        service.imageOne.length > 14 &&
+                        service.imageOne !== "/serviceImages/" &&
+                        service.imageOne !== "/images/")
                         ? service.imageOne
-                        : service.imageOne?.image ||
-                        service.imageOne?.path ||
-                        service.imageOne?.url ||
-                        "/images/sample.jpg"
+                        : service.imageTwo && service.imageTwo.length > 1
+                          ? service.imageTwo
+                          : "/images/sample.jpg"
                     }
                     alt={service.headerTextOne}
                     className="w-full aspect-[4/3] object-cover"
@@ -286,12 +288,14 @@ const ServiceScreen = () => {
                           <div className="absolute inset-0 bg-slate-900/10 group-hover:bg-transparent z-10 transition-colors duration-500"></div>
                           <img
                             src={
-                              typeof item.imageOne === "string"
+                              (typeof item.imageOne === "string" &&
+                                item.imageOne.length > 14 &&
+                                item.imageOne !== "/serviceImages/" &&
+                                item.imageOne !== "/images/")
                                 ? item.imageOne
-                                : item.imageOne?.image ||
-                                item.imageOne?.path ||
-                                item.imageOne?.url ||
-                                "/images/sample.jpg"
+                                : item.imageTwo && item.imageTwo.length > 1
+                                  ? item.imageTwo
+                                  : "/images/sample.jpg"
                             }
                             alt="service"
                             className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
