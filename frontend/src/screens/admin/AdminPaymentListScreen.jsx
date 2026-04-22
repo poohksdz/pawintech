@@ -209,14 +209,9 @@ const PaymentTableRow = ({
                 NO SLIP
               </span>
             )}
-            <button
-              onClick={() => onDownloadPDF(item)}
-              className="flex items-center gap-1.5 text-[10px] font-bold text-blue-600 bg-blue-50 border border-blue-100 px-3 py-1.5 rounded-lg hover:bg-blue-600 hover:text-white transition-all shadow-sm"
-            >
-              <FaDownload size={12} /> PDF
-            </button>
             <a
               href={getDetailLink(item)}
+
               target="_blank"
               rel="noreferrer"
               className="flex items-center gap-1.5 text-[10px] font-bold text-purple-600 bg-purple-50 border border-purple-100 px-3 py-1.5 rounded-lg hover:bg-purple-600 hover:text-white transition-all shadow-sm"
