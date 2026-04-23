@@ -4,7 +4,8 @@
       "Bash(node -e ' *)",
       "Bash(node -e \"require\\('dotenv'\\).config\\(\\); console.log\\(process.env.JWT_SECRET\\)\")",
       "Bash(netstat -ano)",
-      "Bash(taskkill //F //PID 25556)"
+      "Bash(taskkill //F //PID 25556)",
+      "WebFetch(domain:minimax-algeng-chat-tts-us.oss-us-east-1.aliyuncs.com)"
     ]
   }
 }

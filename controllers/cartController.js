@@ -44,7 +44,7 @@ const getCart = asyncHandler(async (req, res) => {
   }
 });
 
-// @desc    Update user cart
+// @desc    Update user cart (REPLACE mode - แทนที่ quantity ไม่ใช่บวกเพิ่ม)
 // @route   PUT /api/cart
 // @access  Private
 const updateCart = asyncHandler(async (req, res) => {
@@ -52,36 +52,58 @@ const updateCart = asyncHandler(async (req, res) => {
   const { cartItems } = req.body;
 
   try {
-    // 1. ลบของเก่าออกให้หมดก่อน (Sync)
-    await pool.query(`DELETE FROM product_carts WHERE user_id = ?`, [userId]);
-
     if (!cartItems || cartItems.length === 0) {
+      // ถ้าไม่มีสินค้าให้ลบตะกร้าทิ้ง
+      await pool.query(`DELETE FROM product_carts WHERE user_id = ?`, [userId]);
       return res.json({ message: "Cart cleared", cartItems: [] });
     }
 
-    // 2. เตรียมข้อมูลสำหรับ Insert (บันทึกแค่ข้อมูลจำเป็น ไม่ต้องบันทึก countInStock)
-    const cleanItems = cartItems.map((item) => [
-      userId,
-      item._id || item.product,
-      item.name,
-      item.price,
-      item.qty,
-      item.image,
-    ]);
+    // FIX BUG: ใช้ REPLACE mode แทน ACCUMULATE mode
+    // ลบรายการเดิมทั้งหมดของ user แล้วเพิ่มใหม่ทั้งหมด (Source of Truth = Frontend state)
 
-    // 3. บันทึกข้อมูลลงตาราง (สังเกตว่าไม่ต้องมี countInStock)
-    const insertSql = `
-        INSERT INTO product_carts (user_id, product_id, name, price, qty, image) 
-        VALUES ?
-    `;
-    await pool.query(insertSql, [cleanItems]);
+    // 1. ลบตะกร้าเดิมทั้งหมด
+    await pool.query(`DELETE FROM product_carts WHERE user_id = ?`, [userId]);
 
-    res.json({ message: "Cart updated", cartItems });
+    // 2. เพิ่มรายการใหม่ทั้งหมด (ใช้ค่า qty จาก Frontend โดยตรง)
+    for (const item of cartItems) {
+      const productId = item._id || item.product;
+      const qty = item.qty;
+      const name = item.name || "";
+      const price = item.price || 0;
+      const image = item.image || "";
+
+      if (qty > 0) {
+        // เพิ่มรายการใหม่ (ไม่บวกเพิ่ม)
+        await pool.query(
+          `INSERT INTO product_carts (user_id, product_id, name, price, qty, image) VALUES (?, ?, ?, ?, ?, ?)`,
+          [userId, productId, name, price, qty, image]
+        );
+      }
+    }
+
+    // ดึงตะกร้าที่อัพเดตแล้วกลับไปส่งให้ Frontend
+    const [updatedCart] = await pool.query(
+      `SELECT c.*, p.countInStock as realStock, p.price as currentPrice, p.name as realName, p.image as realImage
+       FROM product_carts c
+       LEFT JOIN products p ON c.product_id = p._id
+       WHERE c.user_id = ?`,
+      [userId]
+    );
+
+    const formattedCart = updatedCart.map((item) => ({
+      _id: item.product_id,
+      name: item.realName || item.name,
+      image: item.realImage || item.image,
+      price: item.currentPrice !== null ? Number(item.currentPrice) : Number(item.price),
+      qty: item.qty,
+      product: item.product_id,
+      countInStock: item.realStock !== null ? item.realStock : 0,
+    }));
+
+    res.json({ message: "Cart updated", cartItems: formattedCart });
   } catch (err) {
     console.error("❌ SQL Error (UpdateCart):", err.message);
-    res
-      .status(500)
-      .json({ message: "Failed to save cart", error: err.message });
+    res.status(500).json({ message: "Failed to save cart", error: err.message });
   }
 });
 

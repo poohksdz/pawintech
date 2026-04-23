@@ -17,8 +17,8 @@ export const productsApiSlice = apiSlice.injectEndpoints({
       query: (productId) => ({
         url: `${PRODUCTS_URL}/${productId}`,
       }),
-      //  แก้ไข: เพิ่มเวลาเก็บ Cache ข้อมูลรายละเอียดสินค้า
-      keepUnusedDataFor: 300,
+      // ลดเวลา Cache เพื่อให้ refetch ทำงานได้ดีขึ้น
+      keepUnusedDataFor: 60,
       providesTags: (result, error, productId) => [
         { type: "Products", id: productId },
       ],
@@ -88,18 +88,35 @@ export const productsApiSlice = apiSlice.injectEndpoints({
         method: "POST",
         body: data,
       }),
-      invalidatesTags: ["Products"],
+      // Invalidate the specific product's cache so it refetches
+      invalidatesTags: (result, error, data) => [
+        { type: "Products", id: data.productId },
+      ],
+    }),
+    updateReview: builder.mutation({
+      query: (data) => ({
+        url: `${PRODUCTS_URL}/${data.productId}/reviews/${data.reviewId}`,
+        method: "PUT",
+        body: data,
+      }),
+      invalidatesTags: (result, error, data) => [
+        { type: "Products", id: data.productId },
+      ],
+    }),
+    deleteReview: builder.mutation({
+      query: (data) => ({
+        url: `${PRODUCTS_URL}/${data.productId}/reviews/${data.reviewId}`,
+        method: "DELETE",
+        body: { reviewId: data.reviewId },
+      }),
+      invalidatesTags: (result, error, data) => [
+        { type: "Products", id: data.productId },
+      ],
     }),
     getTopProducts: builder.query({
       query: () => `${PRODUCTS_URL}/top`,
       //  แก้ไข: เพิ่มเวลา Cache
       keepUnusedDataFor: 300,
-    }),
-    downloadProductDatasheet: builder.query({
-      query: (productId) => ({
-        url: `${PRODUCTS_URL}/${productId}/datasheet`,
-        responseType: "blob",
-      }),
     }),
   }),
 });
@@ -109,13 +126,14 @@ export const {
   useGetProductDetailsQuery,
   useCreateProductMutation,
   useUpdateProductMutation,
+  useUpdateShowFrontProductMutation,
   useUploadProductImageMutation,
   useUploadProductMutipleImageMutation,
   useUploadProductDatasheetMutation,
   useUploadProductManualMutation,
   useDeleteProductMutation,
   useCreateReviewMutation,
+  useUpdateReviewMutation,
+  useDeleteReviewMutation,
   useGetTopProductsQuery,
-  useDownloadProductDatasheetQuery,
-  useUpdateShowFrontProductMutation,
 } = productsApiSlice;

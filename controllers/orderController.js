@@ -276,19 +276,19 @@ const addOrderItems = asyncHandler(async (req, res) => {
         req.user.name,
         req.user.email,
         receivePlace || "bysending",
-        shippingAddress.shippingname,
-        shippingAddress.address,
-        shippingAddress.city,
-        shippingAddress.postalCode,
-        shippingAddress.country,
-        shippingAddress.phone,
-        billingAddress.billingName,
-        billingAddress.billinggAddress,
-        billingAddress.billingCity,
-        billingAddress.billingPostalCode,
-        billingAddress.billingCountry,
-        billingAddress.billingPhone,
-        billingAddress.tax,
+        shippingAddress.shippingname || "",
+        shippingAddress.address || "",
+        shippingAddress.city || "",
+        shippingAddress.postalCode || "",
+        shippingAddress.country || "",
+        shippingAddress.phone || "",
+        billingAddress?.billingName || "",
+        billingAddress?.billinggAddress || "",
+        billingAddress?.billingCity || "",
+        billingAddress?.billingPostalCode || "",
+        billingAddress?.billingCountry || "",
+        billingAddress?.billingPhone || "",
+        billingAddress?.tax || "",
         totalPrice,
         totalQtyCount,
         paymentResult.image,
@@ -335,6 +335,18 @@ const addOrderItems = asyncHandler(async (req, res) => {
 
     //  ยืนยันการทำรายการทั้งหมด
     await connection.commit();
+
+    //  แจ้งเตือนผู้ใช้ว่าชำระเงินสำเร็จ
+    try {
+      const notificationMessage = `💳 ชำระเงินสำเร็จ! คำสั่งซื้อ #${newId} ยอด ${totalPrice.toFixed(2)} บาท`;
+      await pool.query(
+        "INSERT INTO tbl_notifications (user_id, message, type, related_id, isRead, createdAt) VALUES (?, ?, ?, ?, FALSE, NOW())",
+        [req.user._id, notificationMessage, "payment_success", newId]
+      );
+      console.log(`✅ Notification created for user ${req.user._id}, order #${newId}`);
+    } catch (notifErr) {
+      console.error("⚠️ Failed to create notification:", notifErr.message);
+    }
 
     res.status(201).json({ message: "สำเร็จ", orderId: newId });
   } catch (error) {

@@ -21,7 +21,7 @@ const getNotifications = asyncHandler(async (req, res) => {
     let personalNotis = [[]];
     try {
       const result = await pool.query(
-        "SELECT n.id, n.message, n.type, n.isRead, COALESCE(n.createdAt, n.created_at, NOW()) AS created_at, 'personal' AS scope FROM tbl_notifications n WHERE n.user_id = ? ORDER BY n.id DESC LIMIT 50",
+        "SELECT n.id, n.message, n.type, n.isRead, COALESCE(n.createdAt, n.created_at, n.id, NOW()) AS created_at, 'personal' AS scope FROM tbl_notifications n WHERE n.user_id = ? ORDER BY n.id DESC LIMIT 50",
         [userId]
       );
       personalNotis = result;
@@ -33,7 +33,7 @@ const getNotifications = asyncHandler(async (req, res) => {
     if (safeRoles.length > 0) {
       try {
         const result = await pool.query(
-          "SELECT g.id, g.message, g.type, g.created_at, 'global' AS scope, IF(r.announcement_id IS NOT NULL, TRUE, FALSE) AS isRead FROM tbl_global_announcements g LEFT JOIN tbl_user_read_announcements r ON g.id = r.announcement_id AND r.user_id = ? WHERE g.targetRole IN (" + placeholders + ") AND (r.is_deleted IS NULL OR r.is_deleted = FALSE) ORDER BY g.id DESC LIMIT 50",
+          "SELECT g.id, g.message, g.type, COALESCE(g.created_at, g.id, NOW()) AS created_at, 'global' AS scope, IF(r.announcement_id IS NOT NULL, TRUE, FALSE) AS isRead FROM tbl_global_announcements g LEFT JOIN tbl_user_read_announcements r ON g.id = r.announcement_id AND r.user_id = ? WHERE g.targetRole IN (" + placeholders + ") AND (r.is_deleted IS NULL OR r.is_deleted = FALSE) ORDER BY g.id DESC LIMIT 50",
           roleParams
         );
         globalNotis = result;
@@ -160,6 +160,33 @@ const deleteAllNotifications = asyncHandler(async (req, res) => {
   res.json({ message: "All notifications deleted" });
 });
 
+// ️ สร้าง notification สำหรับการชำระเงินสำเร็จ
+const createPaymentNotification = asyncHandler(async (req, res) => {
+  try {
+    const { user_id, order_id, order_type, amount } = req.body;
+
+    if (!user_id || !order_id) {
+      return res.status(400).json({ message: "user_id และ order_id จำเป็น" });
+    }
+
+    const message = `💳 ชำระเงินสำเร็จ! คำสั่งซื้อ #${order_id} (${order_type || 'สินค้า'}) ยอด ${parseFloat(amount || 0).toFixed(2)} บาท`;
+
+    const [result] = await pool.query(
+      "INSERT INTO tbl_notifications (user_id, message, type, related_id, isRead, createdAt) VALUES (?, ?, ?, ?, FALSE, NOW())",
+      [user_id, message, "payment_success", order_id]
+    );
+
+    res.status(201).json({
+      success: true,
+      id: result.insertId,
+      message: "แจ้งเตือนถูกสร้างแล้ว"
+    });
+  } catch (error) {
+    console.error("Error creating payment notification:", error);
+    res.status(500).json({ message: "เกิดข้อผิดพลาดในการสร้างแจ้งเตือน" });
+  }
+});
+
 const createBroadcastNotification = async (arg1, arg2, next) => {
   if (arg1 && arg1.body && arg2 && typeof arg2.status === "function") {
     const req = arg1;
@@ -209,6 +236,28 @@ const migrateDatabase = asyncHandler(async (req, res) => {
       logs.push("Column 'is_deleted' already exists in 'tbl_user_read_announcements'");
     } else {
       logs.push("Error adding 'is_deleted': " + err.message);
+    }
+  }
+
+  try {
+    await pool.query("ALTER TABLE tbl_notifications ADD COLUMN created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP");
+    logs.push("Added missing column 'created_at' to 'tbl_notifications'");
+  } catch (err) {
+    if (err.code === 'ER_DUP_FIELDNAME') {
+      logs.push("Column 'created_at' already exists in 'tbl_notifications'");
+    } else {
+      logs.push("Error adding 'created_at': " + err.message);
+    }
+  }
+
+  try {
+    await pool.query("ALTER TABLE tbl_global_announcements ADD COLUMN created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP");
+    logs.push("Added missing column 'created_at' to 'tbl_global_announcements'");
+  } catch (err) {
+    if (err.code === 'ER_DUP_FIELDNAME') {
+      logs.push("Column 'created_at' already exists in 'tbl_global_announcements'");
+    } else {
+      logs.push("Error adding 'created_at': " + err.message);
     }
   }
 

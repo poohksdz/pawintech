@@ -282,6 +282,9 @@ app.use("/api/signatures", signatureRoutes);
 // Payment Routes
 app.use("/api/payments", paymentRoutes);
 
+// Payment Slip Upload Route
+app.use("/api/paymentSlipImages", require("./routes/paymentSlipRoutes"));
+
 // Stock Routes
 app.use("/api/stockproducts", stockProductRoutes);
 app.use("/api/stockcategories", stockCategoryRoutes);

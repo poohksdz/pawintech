@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useSelector } from "react-redux";
 import { useLocation, useParams, Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
@@ -17,6 +17,7 @@ const ProductAllScreen = () => {
   const [categories, setCategories] = useState([]);
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const dropdownRef = useRef(null);
 
   const { data, isLoading, error } = useGetProductsQuery({
     keyword,
@@ -54,6 +55,21 @@ const ProductAllScreen = () => {
   };
 
   const t = translations[language] || translations.en;
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsDropdownOpen(false);
+      }
+    };
+    if (isDropdownOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isDropdownOpen]);
 
   useEffect(() => {
     if (data?.products) {
@@ -111,10 +127,11 @@ const ProductAllScreen = () => {
               </label>
               <div className="relative grow">
                 <div
-                  className="relative z-20"
-                  onMouseLeave={() => setIsDropdownOpen(false)}
+                  ref={dropdownRef}
+                  className="relative z-30"
                 >
                   <button
+                    type="button"
                     onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                     className="w-full flex items-center justify-between pr-4 pl-4 py-2 rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-black h-[45px] font-bold text-slate-700 dark:text-white cursor-pointer transition-all duration-300 hover:border-indigo-400 focus:outline-none focus:ring-4 focus:ring-indigo-100 shadow-sm"
                   >
@@ -148,10 +165,12 @@ const ProductAllScreen = () => {
                         initial={{ opacity: 0, y: -10, scale: 0.95 }}
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: -10, scale: 0.95 }}
-                        className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-black rounded-2xl border border-slate-100 dark:border-zinc-800 shadow-2xl shadow-indigo-200/50 dark:shadow-none overflow-hidden py-2"
+                        transition={{ duration: 0.15 }}
+                        className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-black rounded-2xl border border-slate-100 dark:border-zinc-800 shadow-2xl shadow-indigo-200/50 dark:shadow-none overflow-hidden py-2 z-50"
                       >
                         {categories.map((category) => (
                           <button
+                            type="button"
                             key={category.value}
                             className={`w-full text-left px-4 py-3 text-[14px] font-bold transition-colors flex items-center justify-between ${selectedCategory === category.value
                                 ? "bg-indigo-50 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400"

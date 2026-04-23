@@ -101,7 +101,8 @@ const StockCartScreen = () => {
 
   const updateQty = (item, newQty) => {
     const nextQty = Math.max(Number(newQty), 1);
-    dispatch(addToStockCart({ ...item, reqqty: nextQty }));
+    // replaceQty: true = แทนที่ค่าโดยตรง (สำหรับการแก้ไขจำนวนในตะกร้า)
+    dispatch(addToStockCart({ ...item, reqqty: nextQty, replaceQty: true }));
   };
 
   const handleNoteChange = (p, n) =>
@@ -240,15 +241,24 @@ const StockCartScreen = () => {
                   >
                     <div className="flex md:grid md:grid-cols-12 gap-3 md:gap-4 items-start md:items-center w-full px-2 md:px-0">
                       {/* Checkbox */}
-                      <div className="col-span-1 flex items-center justify-center shrink-0 pt-1 md:pt-0">
+                      <div className="col-span-1 flex items-center justify-center shrink-0 pt-1 md:pt-0 z-10">
                         <CustomCheckbox
                           checked={selectedIds.includes(p._id)}
                           onChange={() => toggleSelect(p._id)}
                         />
                       </div>
 
-                      {/* Unified Content Container */}
-                      <div className="col-span-11 flex-1 grid grid-cols-1 md:grid-cols-11 items-start md:items-center gap-3 md:gap-4 min-w-0">
+                      {/* Clickable Card - Product Info */}
+                      <Link
+                        to={`/componenteditlist/${p.ID}`}
+                        className="col-span-11 flex-1 grid grid-cols-1 md:grid-cols-11 items-start md:items-center gap-3 md:gap-4 min-w-0 cursor-pointer hover:bg-slate-50/50 -mx-2 px-2 rounded-xl transition-colors"
+                        onClick={(e) => {
+                          // Prevent navigation if clicking on interactive elements
+                          if (e.target.closest('button') || e.target.closest('input')) {
+                            e.preventDefault();
+                          }
+                        }}
+                      >
                         {/* Image and Details Stack */}
                         <div className="col-span-7 flex flex-col md:flex-row gap-3 md:gap-5 w-full">
                           {/* Top row: Image + Name/SKU */}
@@ -282,22 +292,20 @@ const StockCartScreen = () => {
                               <span className="text-[8px] md:text-[10px] font-black uppercase tracking-widest text-slate-400 mb-0.5 md:mb-1 truncate block w-full">
                                 {p.manufacture || "No Brand"}
                               </span>
-                              <Link
-                                to={`/stockproduct/${p.ID}`}
-                                className="text-[13px] md:text-[14px] font-black text-slate-900 uppercase hover:text-blue-600 transition-colors leading-snug mb-0.5 truncate block w-full pr-6 md:pr-0"
-                              >
+                              <span className="text-[13px] md:text-[14px] font-black text-slate-900 uppercase hover:text-blue-600 transition-colors leading-snug mb-0.5 truncate block w-full pr-6 md:pr-0">
                                 {p.electotronixPN || p.manufacturePN}
-                              </Link>
+                              </span>
                               <span className="text-[9px] md:text-[11px] text-slate-400 font-bold leading-relaxed line-clamp-1">
                                 {p.description || "No description provided"}
                               </span>
-
-                              {/* Mobile Trash (Absolute) Removed */}
+                              <span className="text-[9px] md:text-[10px] text-indigo-500 font-medium mt-1 hidden md:block">
+                                {language === "thai" ? "คลิกเพื่อดูรายละเอียด" : "Click to view details"}
+                              </span>
                             </div>
                           </div>
 
                           {/* Mobile Note Input */}
-                          <div className="md:hidden w-full">
+                          <div className="md:hidden w-full" onClick={(e) => e.stopPropagation()}>
                             <input
                               type="text"
                               className="w-full bg-slate-50 border border-slate-100 py-1.5 px-3 text-[10px] font-bold text-slate-600 rounded-lg outline-none focus:ring-1 focus:ring-slate-200 placeholder:text-slate-300 shadow-inner"
@@ -310,7 +318,10 @@ const StockCartScreen = () => {
                           </div>
 
                           {/* --- MOBILE ONLY ACTION BOX (separate row) --- */}
-                          <div className="flex md:hidden items-center justify-between w-full bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-xl">
+                          <div
+                            className="flex md:hidden items-center justify-between w-full bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-xl"
+                            onClick={(e) => e.stopPropagation()}
+                          >
                             <div className="flex flex-col min-w-0">
                               <span className="text-[8px] font-black tracking-[0.15em] uppercase text-slate-400 mb-0.5">
                                 Units
@@ -359,7 +370,10 @@ const StockCartScreen = () => {
                         </div>
 
                         {/* --- DESKTOP ONLY COLUMNS --- */}
-                        <div className="hidden md:flex col-span-4 justify-end items-center gap-4 md:gap-6 pr-2">
+                        <div
+                          className="hidden md:flex col-span-4 justify-end items-center gap-4 md:gap-6 pr-2"
+                          onClick={(e) => e.stopPropagation()}
+                        >
                           <div className="flex w-[120px] h-[40px] border border-gray-300 rounded-sm overflow-hidden bg-white">
                             <button
                               onClick={() => updateQty(p, Number(p.reqqty) - 1)}
@@ -392,7 +406,7 @@ const StockCartScreen = () => {
                             <FaTrashAlt size={14} />
                           </button>
                         </div>
-                      </div>
+                      </Link>
                     </div>
                   </motion.div>
                 ))
@@ -427,11 +441,10 @@ const StockCartScreen = () => {
               <button
                 onClick={requestnowHandler}
                 disabled={selectedIds.length === 0}
-                className={`w-full py-3 rounded-none text-[13px] font-bold tracking-widest uppercase transition-all shadow-md flex items-center justify-center gap-3 mb-8 ${
-                  selectedIds.length > 0
+                className={`w-full py-3 rounded-none text-[13px] font-bold tracking-widest uppercase transition-all shadow-md flex items-center justify-center gap-3 mb-8 ${selectedIds.length > 0
                     ? "bg-black text-white hover:bg-slate-900"
                     : "bg-gray-300 text-gray-500 cursor-not-allowed"
-                }`}
+                  }`}
               >
                 Submit Request <FaArrowRight size={12} />
               </button>
@@ -520,7 +533,8 @@ const StockCartScreen = () => {
           document.body,
         )}
 
-      <style dangerouslySetInnerHTML={{ __html: `
+      <style dangerouslySetInnerHTML={{
+        __html: `
             .hide-scrollbar::-webkit-inner-spin-button,
             .hide-scrollbar::-webkit-outer-spin-button {
                -webkit-appearance: none;

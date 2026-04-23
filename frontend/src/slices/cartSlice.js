@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import { updateCart } from "../utils/cartUtils";
+import { updateCart, mergeCartItems } from "../utils/cartUtils";
 import axios from "axios";
 
 // --- API CONFIG ---
@@ -43,12 +43,17 @@ export const syncCartDB = createAsyncThunk(
     if (!state.auth.userInfo) return;
 
     try {
-      // ส่งสินค้าทั้งหมดไปเซฟทับที่ Server
-      await axios.post(
+      // FIX BUG: ใช้ PUT แทน POST เพื่อ replace cart ไม่ใช่ accumulate
+      console.log("[Cart] Syncing cart to DB, items:", state.cart.cartItems.length);
+      const response = await axios.put(
         CART_URL,
         { cartItems: state.cart.cartItems },
         getConfig(state),
       );
+      if (response.data && response.data.cartItems) {
+        console.log("[Cart] Sync completed, received:", response.data.cartItems.length, "items");
+        return response.data.cartItems;
+      }
     } catch (err) {
       console.error("Sync Cart Error:", err);
     }
@@ -56,14 +61,26 @@ export const syncCartDB = createAsyncThunk(
 );
 
 // --- INITIAL STATE ---
-const initialState = localStorage.getItem("cart")
-  ? JSON.parse(localStorage.getItem("cart"))
-  : {
-    cartItems: [],
-    shippingAddress: {},
-    billingAddress: {},
-    paymentMethod: "PayPal",
-  };
+// FIX BUG: Merge duplicates when loading from localStorage
+const loadCartFromStorage = () => {
+  const saved = localStorage.getItem("cart");
+  if (!saved) {
+    return {
+      cartItems: [],
+      shippingAddress: {},
+      billingAddress: {},
+      paymentMethod: "PayPal",
+    };
+  }
+  const parsed = JSON.parse(saved);
+  // Merge duplicates from localStorage on initial load
+  if (parsed.cartItems && parsed.cartItems.length > 0) {
+    parsed.cartItems = mergeCartItems(parsed.cartItems);
+  }
+  return parsed;
+};
+
+const initialState = loadCartFromStorage();
 
 const cartSlice = createSlice({
   name: "cart",
@@ -163,7 +180,8 @@ const cartSlice = createSlice({
     builder.addCase(fetchCartDB.fulfilled, (state, action) => {
       // ถ้า Backend ส่งรายการสินค้ากลับมา ให้ใช้แทนของในเครื่องทันที
       if (action.payload && action.payload.cartItems) {
-        state.cartItems = action.payload.cartItems;
+        // FIX BUG: Merge duplicate items from DB (same product_id multiple rows)
+        state.cartItems = mergeCartItems(action.payload.cartItems);
         updateCart(state);
         localStorage.setItem("cart", JSON.stringify(state)); // Sync กลับ LocalStorage กันเหนียว
       }

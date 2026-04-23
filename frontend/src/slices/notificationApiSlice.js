@@ -1,59 +1,55 @@
 import { apiSlice } from "./apiSlice";
 
+const NOTIFICATION_URL = "/api/notifications";
+
 export const notificationApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
     getNotifications: builder.query({
       query: () => ({
-        url: "/api/notifications",
+        url: NOTIFICATION_URL,
+        method: "GET",
       }),
-      providesTags: ["Notification"],
+    }),
+    createNotification: builder.mutation({
+      query: (notificationData) => ({
+        url: `${NOTIFICATION_URL}/create`,
+        method: "POST",
+        body: notificationData,
+      }),
     }),
     markAsRead: builder.mutation({
       query: ({ id, scope }) => ({
-        url: `/api/notifications/${id}/read`,
+        url: `${NOTIFICATION_URL}/${id}/read`,
         method: "PUT",
         body: { scope },
       }),
-      invalidatesTags: ["Notification"],
     }),
     markAllAsRead: builder.mutation({
       query: () => ({
-        url: "/api/notifications/read-all",
+        url: `${NOTIFICATION_URL}/read-all`,
         method: "PUT",
       }),
-      invalidatesTags: ["Notification"],
-    }),
-    sendTestNotification: builder.mutation({
-      query: (data) => ({
-        url: "/api/notifications/test",
-        method: "POST",
-        body: data,
-      }),
-      invalidatesTags: ["Notification"],
     }),
     deleteNotification: builder.mutation({
       query: ({ id, scope }) => ({
-        url: `/api/notifications/${id}`,
+        url: `${NOTIFICATION_URL}/${id}?scope=${scope || "personal"}`,
         method: "DELETE",
-        body: { scope },
       }),
-      invalidatesTags: ["Notification"],
     }),
     deleteAllNotifications: builder.mutation({
       query: () => ({
-        url: "/api/notifications/delete-all",
+        url: `${NOTIFICATION_URL}/delete-all`,
         method: "DELETE",
       }),
-      invalidatesTags: ["Notification"],
     }),
   }),
 });
 
 export const {
   useGetNotificationsQuery,
+  useCreateNotificationMutation,
   useMarkAsReadMutation,
   useMarkAllAsReadMutation,
-  useSendTestNotificationMutation,
   useDeleteNotificationMutation,
   useDeleteAllNotificationsMutation,
 } = notificationApiSlice;

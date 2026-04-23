@@ -263,7 +263,11 @@ const Header = () => {
   const handleNotificationClick = (n) => {
     if (!n.isRead) markAsRead({ id: n.id, scope: n.scope });
 
-    if (n.type === "star_expiration_warning" || n.type === "star_reset") {
+    // Payment Success → ไปหน้า Order Lists
+    if (n.type === "payment_success") {
+      navigate("/orderlist");
+      setActiveDropdown(null);
+    } else if (n.type === "star_expiration_warning" || n.type === "star_reset") {
       if (n.related_id) {
         navigate(`/componenteditlist/${n.related_id}/edit`);
         setActiveDropdown(null);
@@ -1027,68 +1031,68 @@ const Header = () => {
       <div
         className={`fixed inset-y-0 right-0 w-[85%] max-w-[320px] bg-white z-[1010] shadow-2xl transform transition-transform duration-300 ease-out xl:hidden flex flex-col ${showOffcanvas ? "translate-x-0" : "translate-x-full"}`}
       >
-                        <div className="flex items-center justify-between p-5 border-b border-slate-100">
-                          <span className="font-black text-xl text-slate-900 tracking-tight">
-                            PAWIN
-                          </span>
-                          <button
-                            onClick={closeMenu}
-                            className="p-2 text-slate-400 hover:text-slate-800 hover:bg-slate-100 rounded-full transition-colors"
-                          >
-                            <FaTimes size={20} />
-                          </button>
-                        </div>
-                        <div className="flex-1 overflow-y-auto p-4 custom-scrollbar text-start">
-                          {userInfo ? (
-                            <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 mb-6 flex items-center gap-3 text-start">
-                              <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center text-slate-300 shadow-sm border border-slate-100">
-                                <FaUserCircle size={32} />
-                              </div>
-                              <div className="overflow-hidden text-start">
-                                <div className="font-bold text-slate-800 truncate">
-                                  {userInfo?.name || ""}
-                                </div>
-                                <div className="text-xs text-slate-500 truncate">
-                                  {userInfo?.email || ""}
-                                </div>
-                                <Link
-                                  to="/profile"
-                                  onClick={closeMenu}
-                                  className="text-xs font-bold text-blue-600 mt-1 inline-block hover:underline"
-                                >
-                                  {t.profile}
-                                </Link>
-                              </div>
-                            </div>
-                          ) : (
-                            <div className="mb-6">
-                              <Link
-                                to="/login"
-                                onClick={closeMenu}
-                                className="flex w-full items-center justify-center py-3 bg-slate-900 text-white font-bold rounded-xl shadow-lg"
-                              >
-                                {t.signIn}
-                              </Link>
-                            </div>
-                          )}
-                          <div className="space-y-1">
-                            <MobileLink to="/" label={t.home} onClick={closeMenu} />
-                            <MobileAccordion
-                              title={t.product}
-                              isOpen={mobileMenuOpen["product"]}
-                              onClick={() => toggleMobileMenu("product")}
-                            >
-                              <Link
-                                to="/product"
-                                onClick={closeMenu}
-                                className="block py-2 text-sm text-slate-600 hover:text-blue-600 border-l-2 border-slate-200 pl-3"
-                              >
-                                {language === "thai" ? "สินค้าทั้งหมด" : "All Products"}
-                              </Link>
-                              {categories.map((cat, idx) => (
-                                <Link
-                                  key={idx}
-                                  to={`/product?category=${cat.value}`}
+        <div className="flex items-center justify-between p-5 border-b border-slate-100">
+          <span className="font-black text-xl text-slate-900 tracking-tight">
+            PAWIN
+          </span>
+          <button
+            onClick={closeMenu}
+            className="p-2 text-slate-400 hover:text-slate-800 hover:bg-slate-100 rounded-full transition-colors"
+          >
+            <FaTimes size={20} />
+          </button>
+        </div>
+        <div className="flex-1 overflow-y-auto p-4 custom-scrollbar text-start">
+          {userInfo ? (
+            <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 mb-6 flex items-center gap-3 text-start">
+              <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center text-slate-300 shadow-sm border border-slate-100">
+                <FaUserCircle size={32} />
+              </div>
+              <div className="overflow-hidden text-start">
+                <div className="font-bold text-slate-800 truncate">
+                  {userInfo?.name || ""}
+                </div>
+                <div className="text-xs text-slate-500 truncate">
+                  {userInfo?.email || ""}
+                </div>
+                <Link
+                  to="/profile"
+                  onClick={closeMenu}
+                  className="text-xs font-bold text-blue-600 mt-1 inline-block hover:underline"
+                >
+                  {t.profile}
+                </Link>
+              </div>
+            </div>
+          ) : (
+            <div className="mb-6">
+              <Link
+                to="/login"
+                onClick={closeMenu}
+                className="flex w-full items-center justify-center py-3 bg-slate-900 text-white font-bold rounded-xl shadow-lg"
+              >
+                {t.signIn}
+              </Link>
+            </div>
+          )}
+          <div className="space-y-1">
+            <MobileLink to="/" label={t.home} onClick={closeMenu} />
+            <MobileAccordion
+              title={t.product}
+              isOpen={mobileMenuOpen["product"]}
+              onClick={() => toggleMobileMenu("product")}
+            >
+              <Link
+                to="/product"
+                onClick={closeMenu}
+                className="block py-2 text-sm text-slate-600 hover:text-blue-600 border-l-2 border-slate-200 pl-3"
+              >
+                {language === "thai" ? "สินค้าทั้งหมด" : "All Products"}
+              </Link>
+              {categories.map((cat, idx) => (
+                <Link
+                  key={idx}
+                  to={`/product?category=${cat.value}`}
                   onClick={closeMenu}
                   className="block py-2 text-sm text-slate-600 hover:text-blue-600 border-l-2 border-slate-200 pl-3"
                 >
@@ -1150,7 +1154,7 @@ const Header = () => {
             </MobileAccordion>
             <MobileLink to="/folio" label={t.folio} onClick={closeMenu} />
             <MobileLink to="/blogs" label={t.blog} onClick={closeMenu} />
-                    <MobileLink to="/admin/foliolist" label={t.folioList} onClick={closeMenu} />
+            <MobileLink to="/admin/foliolist" label={t.folioList} onClick={closeMenu} />
             {(isStore || isPCB || isAdmin) && (
               <MobileAccordion
                 title={t.Admin}
@@ -1271,43 +1275,43 @@ const Header = () => {
           <div className="grid grid-cols-2 gap-3">
             <button
               onClick={() => dispatch(setLanguageCredentials("en"))}
-              className={`py - 2 text - xs font - bold rounded - lg border transition - colors ${ language === "en" ? "bg-slate-800 text-white border-slate-800" : "bg-white text-slate-600 border-slate-200"}`}
+              className={`py - 2 text - xs font - bold rounded - lg border transition - colors ${language === "en" ? "bg-slate-800 text-white border-slate-800" : "bg-white text-slate-600 border-slate-200"}`}
             >
-                              English
-                            </button>
-                            <button
-                              onClick={() => dispatch(setLanguageCredentials("thai"))}
-                              className={`py-2 text-xs font-bold rounded-lg border transition-colors ${language === "thai" ? "bg-slate-800 text-white border-slate-800" : "bg-white text-slate-600 border-slate-200"}`}
-                            >
-                              ภาษาไทย
-                            </button>
-                          </div>
-                          <button
-                            onClick={() => dispatch(toggleTheme())}
-                            className="w-full mt-3 py-2 flex items-center justify-center gap-2 text-sm font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg transition-colors border border-slate-200"
-                          >
-                            {theme === "dark" ? (
-                              <>
-                                <MdLightMode size={16} /> Light Mode
-                              </>
-                            ) : (
-                              <>
-                                <MdDarkMode size={16} /> Dark Mode
-                              </>
-                            )}
-                          </button>
-                          {userInfo && (
-                            <button
-                              onClick={logoutHandler}
-                              className="w-full mt-3 py-2 text-sm font-bold text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition-colors border border-red-100"
-                            >
-                              {t.logout}
-                            </button>
-                          )}
-                        </div>
-                      </div>
-                    </>
-                    );
+              English
+            </button>
+            <button
+              onClick={() => dispatch(setLanguageCredentials("thai"))}
+              className={`py-2 text-xs font-bold rounded-lg border transition-colors ${language === "thai" ? "bg-slate-800 text-white border-slate-800" : "bg-white text-slate-600 border-slate-200"}`}
+            >
+              ภาษาไทย
+            </button>
+          </div>
+          <button
+            onClick={() => dispatch(toggleTheme())}
+            className="w-full mt-3 py-2 flex items-center justify-center gap-2 text-sm font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg transition-colors border border-slate-200"
+          >
+            {theme === "dark" ? (
+              <>
+                <MdLightMode size={16} /> Light Mode
+              </>
+            ) : (
+              <>
+                <MdDarkMode size={16} /> Dark Mode
+              </>
+            )}
+          </button>
+          {userInfo && (
+            <button
+              onClick={logoutHandler}
+              className="w-full mt-3 py-2 text-sm font-bold text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition-colors border border-red-100"
+            >
+              {t.logout}
+            </button>
+          )}
+        </div>
+      </div>
+    </>
+  );
 };
 
-                    export default Header;
+export default Header;

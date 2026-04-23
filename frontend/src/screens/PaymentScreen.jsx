@@ -118,14 +118,23 @@ const PaymentScreen = () => {
     orderType === "product" ? cart.totalPrice : urlAmount;
 
   useEffect(() => {
+    console.log("[PaymentScreen] useEffect triggered, cart.cartItems:", cart.cartItems?.length);
+
     if (orderType === "product") {
       if (!cart.cartItems || cart.cartItems.length === 0) {
+        console.log("[PaymentScreen] Cart empty, redirecting to /cart");
         navigate("/cart");
         return;
       } else if (!cart.shippingAddress?.address) {
+        console.log("[PaymentScreen] No shipping address, redirecting to /shipping");
         navigate("/shipping");
         return;
       }
+
+      // ตรวจสอบจำนวนสินค้าที่เลือก
+      const selectedItems = cart.cartItems.filter(item => item.isSelected !== false);
+      console.log("[PaymentScreen] Selected items for payment:", selectedItems.length);
+
       const tempOrderID = `PWT-${generateOrderID()}`;
       setOrderID(tempOrderID);
       setPaymentComfirmID(tempOrderID);
@@ -217,9 +226,20 @@ const PaymentScreen = () => {
     }
 
     if (orderType === "product") {
-      //  กรณี: สินค้าทั่วไป
+      //  กรณี: สินค้าทั่วไป - ส่งเฉพาะรายการที่เลือกเท่านั้น
       try {
-        const cleanedOrderItems = cart.cartItems.map((item) => ({
+        const selectedItems = cart.cartItems.filter(item => item.isSelected !== false);
+
+        if (selectedItems.length === 0) {
+          toast.error(
+            language === "thai"
+              ? "กรุณาเลือกสินค้าอย่างน้อย 1 รายการ"
+              : "Please select at least 1 item",
+          );
+          return;
+        }
+
+        const cleanedOrderItems = selectedItems.map((item) => ({
           name: item.name,
           qty: Number(item.qty),
           image: item.image,
@@ -247,7 +267,7 @@ const PaymentScreen = () => {
         }).unwrap();
 
         dispatch(clearCartItems());
-        navigate(`/order/${res._id}`);
+        navigate(`/order/${res.orderId}`);
       } catch (err) {
         toast.error(err?.data?.message || "เกิดข้อผิดพลาดในการสร้างออเดอร์");
         setImage("");

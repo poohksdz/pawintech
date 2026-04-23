@@ -11,14 +11,22 @@ const stockCartApiSlice = createSlice({
   initialState,
   reducers: {
     addToStockCart: (state, action) => {
-      const { user, ...item } = action.payload;
+      const { user, replaceQty, ...item } = action.payload;
       const existItem = state.stockcartItems.find(
         (x) => x._id === item._id.toString(),
       );
 
       if (existItem) {
+        // ถ้า replaceQty = true ให้แทนที่ qty (กรณีแก้ไขโดยตรง)
+        // ถ้า replaceQty = false/undefined ให้สะสม qty (กรณีเพิ่มสินค้า)
+        const newQty = replaceQty
+          ? item.reqqty
+          : (existItem.reqqty || 0) + (item.reqqty || 0);
+
         state.stockcartItems = state.stockcartItems.map((x) =>
-          x._id === existItem._id ? item : x,
+          x._id === existItem._id
+            ? { ...item, reqqty: newQty, note: item.note !== undefined ? item.note : x.note }
+            : x,
         );
       } else {
         state.stockcartItems.push(item);

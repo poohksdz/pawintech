@@ -1,24 +1,93 @@
-const asyncHandler = require("../middleware/asyncHandler");
+const asyncHandler = require("../middleware/asyncHandler.js");
 const { pool } = require("../config/db.js");
-const deleteFile = require("../utils/fileUtils");
 
-// @desc    Fetch all products
 const getProducts = asyncHandler(async (req, res) => {
   try {
-    //  ไม่ต้อง alias id as _id แล้ว เพราะใน DB ชื่อ _id อยู่แล้ว
-    const [rows] = await pool.query("SELECT * FROM products");
-    res.status(200).json({ products: rows });
+    const {
+      page = 1,
+      limit = 20,
+      search = "",
+      category = "",
+      minPrice,
+      maxPrice,
+      sortBy = "createdAt",
+      sortOrder = "desc",
+    } = req.query;
+
+    const offset = (page - 1) * limit;
+    const params = [];
+    let whereClause = "";
+
+    if (search) {
+      whereClause += " AND (name LIKE ? OR nameThai LIKE ?)";
+      params.push(`%${search}%`, `%${search}%`);
+    }
+
+    if (category) {
+      whereClause += " AND category = ?";
+      params.push(category);
+    }
+
+    if (minPrice) {
+      whereClause += " AND price >= ?";
+      params.push(minPrice);
+    }
+
+    if (maxPrice) {
+      whereClause += " AND price <= ?";
+      params.push(maxPrice);
+    }
+
+    const validSortColumns = [
+      "createdAt",
+      "price",
+      "name",
+      "rating",
+      "numReviews",
+    ];
+    const sortColumn = validSortColumns.includes(sortBy) ? sortBy : "createdAt";
+    const order = sortOrder === "asc" ? "ASC" : "DESC";
+
+    const [countResult] = await pool.query(
+      `SELECT COUNT(*) as total FROM products WHERE 1=1 ${whereClause}`,
+      params
+    );
+    const total = countResult[0].total;
+
+    const [rows] = await pool.query(
+      `SELECT * FROM products WHERE 1=1 ${whereClause} ORDER BY ${sortColumn} ${order} LIMIT ? OFFSET ?`,
+      [...params, Number(limit), Number(offset)]
+    );
+
+    // Parse reviews JSON for each product
+    const products = rows.map((product) => {
+      if (Buffer.isBuffer(product.reviews)) {
+        product.reviews = JSON.parse(product.reviews.toString("utf8") || "[]");
+      } else if (typeof product.reviews === "string") {
+        try {
+          product.reviews = JSON.parse(product.reviews);
+        } catch (e) {
+          product.reviews = [];
+        }
+      }
+      return product;
+    });
+
+    res.json({
+      products,
+      page: Number(page),
+      pages: Math.ceil(total / limit),
+      total,
+    });
   } catch (error) {
-    console.error(`Error fetching products: ${error.message}`);
-    res.status(500).json({ message: "Error fetching products" });
+    console.error("Error in getProducts:", error);
+    res.status(500).json({ message: "Server Error" });
   }
 });
 
-// @desc    Fetch single product
 const getProductById = asyncHandler(async (req, res) => {
-  const { id } = req.params;
   try {
-    //  แก้ WHERE id เป็น WHERE _id
+    const { id } = req.params;
     const [rows] = await pool.query("SELECT * FROM products WHERE _id = ?", [
       id,
     ]);
@@ -27,239 +96,196 @@ const getProductById = asyncHandler(async (req, res) => {
       res.status(404);
       throw new Error("Product not found");
     }
-    res.status(200).json(rows[0]);
+
+    const product = rows[0];
+
+    // Parse reviews JSON
+    if (Buffer.isBuffer(product.reviews)) {
+      product.reviews = JSON.parse(product.reviews.toString("utf8") || "[]");
+    } else if (typeof product.reviews === "string") {
+      try {
+        product.reviews = JSON.parse(product.reviews);
+      } catch (e) {
+        product.reviews = [];
+      }
+    }
+
+    // Parse images JSON
+    if (Buffer.isBuffer(product.images)) {
+      product.images = JSON.parse(product.images.toString("utf8") || "[]");
+    } else if (typeof product.images === "string") {
+      try {
+        product.images = JSON.parse(product.images);
+      } catch (e) {
+        product.images = [];
+      }
+    }
+
+    res.json(product);
   } catch (error) {
-    console.error(`Error fetching product: ${error.message}`);
-    res.status(500).json({ message: "Error fetching product" });
+    console.error("Error in getProductById:", error);
+    res.status(error.status || 500).json({ message: error.message });
   }
 });
 
-// @desc    Create a product
 const createProduct = asyncHandler(async (req, res) => {
-  // (ส่วนรับค่า req.body คงเดิม)
-  const {
-    productCode,
-    name,
-    image,
-    mutipleImage,
-    brand,
-    category,
-    description,
-    datasheet,
-    manual,
-    price,
-    countInStock,
-    nameThai,
-    descriptionThai,
-    brandThai,
-    categoryThai,
-    videoLink,
-  } = req.body;
-
-  // Basic Validation
-  if (!name || !productCode || price === undefined) {
-    res.status(400);
-    throw new Error("Please provide name, product code, and price");
-  }
-
-  if (price < 0 || countInStock < 0) {
-    res.status(400);
-    throw new Error("Price and stock cannot be negative");
-  }
-
   try {
-    const query = `
-      INSERT INTO products (
-        productCode, name, image, mutipleImage, brand, category, 
-        description, datasheet, manual, rating, numReviews, price, 
-        countInStock, nameThai, descriptionThai, brandThai, categoryThai, 
-        reviews, videoLink, createdAt, updatedAt
-      ) 
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())
-    `;
-
-    const [result] = await pool.query(query, [
-      productCode,
+    const {
       name,
+      nameThai,
+      price,
+      description,
       image,
-      mutipleImage || "",
       brand,
       category,
-      description,
-      datasheet,
-      manual,
-      5,
-      5,
-      price || 0,
-      countInStock || 0,
-      nameThai,
-      descriptionThai,
-      brandThai,
-      categoryThai,
-      5,
-      videoLink,
-    ]);
+      countInStock,
+      featured,
+      showOnFront,
+    } = req.body;
 
-    res.status(201).json({
-      message: "Product created successfully",
-      product: { ...req.body, _id: result.insertId },
-    });
+    if (!name || !price) {
+      return res.status(400).json({ message: "Name and price are required" });
+    }
+
+    const [result] = await pool.query(
+      `INSERT INTO products (name, nameThai, price, description, image, brand, category, countInStock, featured, showOnFront, rating, numReviews, reviews) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        name,
+        nameThai || "",
+        price,
+        description || "",
+        image || "",
+        brand || "",
+        category || "",
+        countInStock || 0,
+        featured || false,
+        showOnFront || false,
+        0,
+        0,
+        "[]",
+      ]
+    );
+
+    res.status(201).json({ _id: result.insertId, ...req.body });
   } catch (error) {
-    console.error(`Error creating product: ${error.message}`);
-    res.status(500).json({ message: "Error creating product" });
+    console.error("Error in createProduct:", error);
+    res.status(500).json({ message: "Server Error" });
   }
 });
 
-// @desc    Update a product
 const updateProduct = asyncHandler(async (req, res) => {
-  const { id } = req.params;
-  const {
-    productCode,
-    name,
-    image,
-    mutipleImage,
-    brand,
-    category,
-    description,
-    datasheet,
-    manual,
-    price,
-    countInStock,
-    nameThai,
-    descriptionThai,
-    brandThai,
-    categoryThai,
-    videoLink,
-  } = req.body;
-
-  // Basic Validation
-  if (price !== undefined && price < 0) {
-    res.status(400);
-    throw new Error("Price cannot be negative");
-  }
-
-  if (countInStock !== undefined && countInStock < 0) {
-    res.status(400);
-    throw new Error("Stock cannot be negative");
-  }
-
   try {
-    //  แก้ WHERE _id
-    const query = `
-      UPDATE products 
-      SET 
-        productCode=?, name=?, image=?, mutipleImage=?,
-        brand=?, category=?, description=?, datasheet=?, manual=?, 
-        price=?, countInStock=?, nameThai=?, 
-        descriptionThai=?, brandThai=?, categoryThai=?, videoLink=?,
-        updatedAt=NOW() 
-      WHERE _id = ?`;
+    const { id } = req.params;
+    const updates = req.body;
+    delete updates._id;
+    delete updates.createdAt;
 
-    await pool.query(query, [
-      productCode,
-      name,
-      image,
-      mutipleImage,
-      brand,
-      category,
-      description,
-      datasheet,
-      manual,
-      price,
-      countInStock,
-      nameThai,
-      descriptionThai,
-      brandThai,
-      categoryThai,
-      videoLink,
+    // Handle images array
+    if (Array.isArray(updates.images)) {
+      updates.images = JSON.stringify(updates.images);
+    }
+
+    // Handle reviews array
+    if (typeof updates.reviews === "object") {
+      updates.reviews = JSON.stringify(updates.reviews);
+    }
+
+    const fields = Object.keys(updates);
+    const values = Object.values(updates);
+
+    if (fields.length === 0) {
+      return res.status(400).json({ message: "No fields to update" });
+    }
+
+    const setClause = fields.map((field) => `${field} = ?`).join(", ");
+
+    const [result] = await pool.query(
+      `UPDATE products SET ${setClause} WHERE _id = ?`,
+      [...values, id]
+    );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: "Product not found" });
+    }
+
+    const [rows] = await pool.query("SELECT * FROM products WHERE _id = ?", [
+      id,
+    ]);
+    res.json(rows[0]);
+  } catch (error) {
+    console.error("Error in updateProduct:", error);
+    res.status(500).json({ message: "Server Error" });
+  }
+});
+
+const deleteProduct = asyncHandler(async (req, res) => {
+  try {
+    const { id } = req.params;
+    const [result] = await pool.query("DELETE FROM products WHERE _id = ?", [
       id,
     ]);
 
-    res.status(200).json({ message: "Product updated successfully" });
-  } catch (error) {
-    res.status(500).json({ message: "Error updating product" });
-  }
-});
-
-// @desc    Delete a product
-const deleteProduct = asyncHandler(async (req, res) => {
-  const { id } = req.params;
-  try {
-    // 1. Fetch product data to get file paths
-    const [rows] = await pool.query(
-      "SELECT image, mutipleImage, datasheet, manual FROM products WHERE _id = ?",
-      [id],
-    );
-
-    if (rows.length > 0) {
-      const product = rows[0];
-      // 2. Delete main image
-      deleteFile(product.image);
-
-      // 3. Delete multiple images (stored as JSON string or comma-separated)
-      if (product.mutipleImage) {
-        try {
-          const images = JSON.parse(product.mutipleImage);
-          if (Array.isArray(images)) {
-            images.forEach((img) => deleteFile(img.path || img));
-          }
-        } catch (e) {
-          // Fallback for non-JSON content
-          const images = product.mutipleImage.split(",");
-          images.forEach((img) => deleteFile(img.trim()));
-        }
-      }
-
-      // 4. Delete documents
-      deleteFile(product.datasheet);
-      deleteFile(product.manual);
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: "Product not found" });
     }
 
-    // 5. Delete from DB
-    await pool.query("DELETE FROM products WHERE _id = ?", [id]);
-    res.status(200).json({ message: "Product deleted successfully" });
+    res.json({ message: "Product removed" });
   } catch (error) {
-    res
-      .status(500)
-      .json({ message: "เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์" });
+    console.error("Error in deleteProduct:", error);
+    res.status(500).json({ message: "Server Error" });
   }
 });
 
-// (ฟังก์ชันอื่นๆ เช่น updateReviewsProduct, updateShowFrontProduct ก็ต้องแก้ WHERE id เป็น WHERE _id เช่นกัน)
 const updateReviewsProduct = asyncHandler(async (req, res) => {
-  const { id } = req.params;
-  const { reviews } = req.body;
-  const userID = req.user._id;
   try {
-    await pool.query(
-      "UPDATE products SET user = ?, reviews = ? WHERE _id = ?",
-      [userID, reviews, id],
-    );
-    res.status(200).json({ message: "Product reviews updated" });
+    const { id } = req.params;
+    const { reviews } = req.body;
+
+    if (typeof reviews !== "object") {
+      return res.status(400).json({ message: "Invalid reviews format" });
+    }
+
+    const reviewsJson = JSON.stringify(reviews);
+    await pool.query("UPDATE products SET reviews = ? WHERE _id = ?", [
+      reviewsJson,
+      id,
+    ]);
+
+    res.json({ message: "Reviews updated successfully" });
   } catch (error) {
-    res.status(500).json({ message: "Error" });
+    console.error("Error in updateReviewsProduct:", error);
+    res.status(500).json({ message: "Server Error" });
   }
 });
 
 const updateShowFrontProduct = asyncHandler(async (req, res) => {
-  const { id } = req.params;
-  const { showFront } = req.body;
   try {
-    await pool.query("UPDATE products SET showFront = ? WHERE _id = ?", [
-      showFront,
+    const { id } = req.params;
+    const { showOnFront } = req.body;
+
+    await pool.query("UPDATE products SET showOnFront = ? WHERE _id = ?", [
+      showOnFront,
       id,
     ]);
-    res.status(200).json({ message: "Updated show front" });
+
+    res.json({ message: "Show on front updated successfully" });
   } catch (error) {
-    res.status(500).json({ message: "Error" });
+    console.error("Error in updateShowFrontProduct:", error);
+    res.status(500).json({ message: "Server Error" });
   }
 });
 
+// Create product review with image support
 const createProductReview = asyncHandler(async (req, res) => {
-  const { rating, comment } = req.body;
-  const { id } = req.params;
-
   try {
+    const { id } = req.params;
+    const { rating, comment, images } = req.body;
+
+    if (!rating || !comment) {
+      res.status(400);
+      throw new Error("Rating and comment are required");
+    }
+
     const [rows] = await pool.query("SELECT * FROM products WHERE _id = ?", [
       id,
     ]);
@@ -271,18 +297,27 @@ const createProductReview = asyncHandler(async (req, res) => {
 
     const product = rows[0];
     let reviews = [];
+    let reviewsStr = product.reviews;
+
+    // Handle Buffer type (MySQL returns JSON as Buffer)
+    if (Buffer.isBuffer(product.reviews)) {
+      reviewsStr = product.reviews.toString("utf8");
+    }
 
     try {
-      if (product.reviews && product.reviews !== "5") {
-        reviews = JSON.parse(product.reviews);
+      if (reviewsStr && reviewsStr !== "5" && reviewsStr !== 5 && reviewsStr !== 0) {
+        if (typeof reviewsStr === "string") {
+          reviews = JSON.parse(reviewsStr);
+        }
       }
       if (!Array.isArray(reviews)) reviews = [];
     } catch (e) {
       reviews = [];
     }
 
+    // Check if user already reviewed
     const alreadyReviewed = reviews.find(
-      (r) => r.user && r.user.toString() === req.user._id.toString(),
+      (r) => r.user && r.user.toString() === req.user._id.toString()
     );
 
     if (alreadyReviewed) {
@@ -297,6 +332,7 @@ const createProductReview = asyncHandler(async (req, res) => {
       user: req.user._id,
       _id: Date.now().toString(),
       createdAt: new Date().toISOString(),
+      images: images || [], // Support for multiple images
     };
 
     reviews.push(review);
@@ -305,17 +341,180 @@ const createProductReview = asyncHandler(async (req, res) => {
     const avgRating =
       reviews.reduce((acc, item) => item.rating + acc, 0) / reviews.length;
 
+    const reviewsJson = JSON.stringify(reviews);
+
     await pool.query(
       "UPDATE products SET rating = ?, numReviews = ?, reviews = ? WHERE _id = ?",
-      [avgRating, numReviews, JSON.stringify(reviews), id],
+      [avgRating, numReviews, reviewsJson, id]
     );
 
-    res.status(201).json({ message: "Review added" });
+    res.status(201).json({ message: "Review added", review });
   } catch (error) {
     console.error(`Error adding review: ${error.message}`);
     res
       .status(error.status || 500)
       .json({ message: "เกิดข้อผิดพลาดในการเพิ่มรีวิว" });
+  }
+});
+
+// Update product review
+const updateProductReview = asyncHandler(async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { reviewId, rating, comment, images } = req.body;
+
+    if (!reviewId) {
+      res.status(400);
+      throw new Error("Review ID is required");
+    }
+
+    if (!rating || !comment) {
+      res.status(400);
+      throw new Error("Rating and comment are required");
+    }
+
+    const [rows] = await pool.query("SELECT * FROM products WHERE _id = ?", [
+      id,
+    ]);
+
+    if (rows.length === 0) {
+      res.status(404);
+      throw new Error("Product not found");
+    }
+
+    const product = rows[0];
+    let reviews = [];
+    let reviewsStr = product.reviews;
+
+    // Handle Buffer type
+    if (Buffer.isBuffer(product.reviews)) {
+      reviewsStr = product.reviews.toString("utf8");
+    }
+
+    try {
+      if (reviewsStr && reviewsStr !== "5" && reviewsStr !== 5 && reviewsStr !== 0) {
+        if (typeof reviewsStr === "string") {
+          reviews = JSON.parse(reviewsStr);
+        }
+      }
+      if (!Array.isArray(reviews)) reviews = [];
+    } catch (e) {
+      reviews = [];
+    }
+
+    // Find and update the review
+    const reviewIndex = reviews.findIndex(
+      (r) =>
+        r._id === reviewId && r.user && r.user.toString() === req.user._id.toString()
+    );
+
+    if (reviewIndex === -1) {
+      res.status(404);
+      throw new Error("Review not found or you don't have permission to edit");
+    }
+
+    // Update review fields
+    reviews[reviewIndex] = {
+      ...reviews[reviewIndex],
+      rating: Number(rating),
+      comment,
+      images: images !== undefined ? images : reviews[reviewIndex].images || [],
+      updatedAt: new Date().toISOString(),
+    };
+
+    const numReviews = reviews.length;
+    const avgRating =
+      reviews.reduce((acc, item) => item.rating + acc, 0) / reviews.length;
+
+    const reviewsJson = JSON.stringify(reviews);
+
+    await pool.query(
+      "UPDATE products SET rating = ?, numReviews = ?, reviews = ? WHERE _id = ?",
+      [avgRating, numReviews, reviewsJson, id]
+    );
+
+    res.status(200).json({ message: "Review updated", review: reviews[reviewIndex] });
+  } catch (error) {
+    console.error(`Error updating review: ${error.message}`);
+    res
+      .status(error.status || 500)
+      .json({ message: "เกิดข้อผิดพลาดในการแก้ไขรีวิว" });
+  }
+});
+
+// Delete product review
+const deleteProductReview = asyncHandler(async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { reviewId } = req.body;
+
+    if (!reviewId) {
+      res.status(400);
+      throw new Error("Review ID is required");
+    }
+
+    const [rows] = await pool.query("SELECT * FROM products WHERE _id = ?", [
+      id,
+    ]);
+
+    if (rows.length === 0) {
+      res.status(404);
+      throw new Error("Product not found");
+    }
+
+    const product = rows[0];
+    let reviews = [];
+    let reviewsStr = product.reviews;
+
+    // Handle Buffer type
+    if (Buffer.isBuffer(product.reviews)) {
+      reviewsStr = product.reviews.toString("utf8");
+    }
+
+    try {
+      if (reviewsStr && reviewsStr !== "5" && reviewsStr !== 5 && reviewsStr !== 0) {
+        if (typeof reviewsStr === "string") {
+          reviews = JSON.parse(reviewsStr);
+        }
+      }
+      if (!Array.isArray(reviews)) reviews = [];
+    } catch (e) {
+      reviews = [];
+    }
+
+    // Find and remove the review
+    const reviewIndex = reviews.findIndex(
+      (r) =>
+        r._id === reviewId && r.user && r.user.toString() === req.user._id.toString()
+    );
+
+    if (reviewIndex === -1) {
+      res.status(404);
+      throw new Error("Review not found or you don't have permission to delete");
+    }
+
+    // Remove review
+    reviews.splice(reviewIndex, 1);
+
+    const numReviews = reviews.length;
+    const avgRating =
+      numReviews > 0
+        ? reviews.reduce((acc, item) => item.rating + acc, 0) / numReviews
+        : 0;
+
+    const reviewsJson = JSON.stringify(reviews);
+
+    await pool.query(
+      "UPDATE products SET rating = ?, numReviews = ?, reviews = ? WHERE _id = ?",
+      [avgRating, numReviews, reviewsJson, id]
+    );
+
+    res.status(200).json({ message: "Review deleted" });
+  } catch (error) {
+    console.error(`Error deleting review: ${error.message}`);
+    res
+      .status(error.status || 500)
+      .json({ message: "เกิดข้อผิดพลาดในการลบรีวิว" });
   }
 });
 
@@ -328,4 +527,6 @@ module.exports = {
   updateReviewsProduct,
   updateShowFrontProduct,
   createProductReview,
+  updateProductReview,
+  deleteProductReview,
 };

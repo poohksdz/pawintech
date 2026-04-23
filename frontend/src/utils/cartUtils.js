@@ -8,12 +8,30 @@ export const addDecimals = (num) => {
 // correct to call it passing a string as the argument.
 
 // 导出一个函数，用于更新购物车
+// Helper: merge duplicate items by _id (take latest qty)
+// Export for use in cartSlice
+export const mergeCartItems = (items) => {
+  const map = {};
+  items.forEach((item) => {
+    if (!map[item._id]) {
+      map[item._id] = { ...item };
+    } else {
+      // Keep the larger qty if duplicate
+      map[item._id].qty = Math.max(map[item._id].qty || 0, item.qty || 0);
+    }
+  });
+  return Object.values(map);
+};
+
 export const updateCart = (state) => {
+  // Merge duplicate items first (fix bug: same product shown multiple times)
+  state.cartItems = mergeCartItems(state.cartItems);
+
   // Calculate the items price - ONLY for selected items
   const itemsPrice = state.cartItems.reduce(
     (acc, item) => {
-      // If isSelected is undefined (new item/old data), treat as selected
-      if (item.isSelected !== false) {
+      // FIX BUG: Only count items where isSelected is EXPLICITLY true
+      if (item.isSelected === true) {
         return acc + (item.price * 100 * item.qty) / 100;
       }
       return acc;

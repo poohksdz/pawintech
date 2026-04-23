@@ -2,8 +2,27 @@ import { fetchBaseQuery, createApi } from "@reduxjs/toolkit/query/react";
 import { BASE_URL } from "../constants";
 import { logout } from "./authSlice";
 
+// Helper function to get token from cookie
+const getCookie = (name) => {
+  if (typeof document === "undefined") return null;
+  const cookies = document.cookie.split(";");
+  for (let cookie of cookies) {
+    let [key, value] = cookie.trim().split("=");
+    if (key === name) return value;
+  }
+  return null;
+};
+
 const baseQuery = fetchBaseQuery({
   baseUrl: BASE_URL,
+  prepareHeaders: (headers) => {
+    // Get token from cookie (set by backend during login)
+    const token = getCookie("jwt");
+    if (token) {
+      headers.set("Authorization", `Bearer ${token}`);
+    }
+    return headers;
+  },
 });
 
 async function baseQueryWithAuth(args, api, extra) {
@@ -18,6 +37,7 @@ export const apiSlice = createApi({
   baseQuery: baseQueryWithAuth,
   tagTypes: [
     "Product",
+    "Products",
     "Order",
     "User",
     "Service",

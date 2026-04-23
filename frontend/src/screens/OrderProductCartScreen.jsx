@@ -339,67 +339,69 @@ const OrderProductCartScreen = () => {
           </div>
         </div>
 
-        <div className="w-full lg:w-[350px] bg-white p-4 md:p-6 lg:p-8 shrink-0 flex flex-col text-start border-l border-slate-100">
-          <h2 className="text-[14px] font-bold text-gray-900 uppercase tracking-wide mb-8">
-            Summary
-          </h2>
-          <div className="flex flex-col flex-grow">
-            <div className="flex justify-between items-center mb-4 text-[13px]">
-              <span className="text-gray-600 uppercase font-semibold">
-                Subtotal
-              </span>
-              <span className="text-gray-800 font-bold">
-                {formatPrice(itemsPrice)}
-              </span>
-            </div>
-            <div className="flex justify-between items-center mb-4 text-[13px]">
-              <span className="text-gray-600 uppercase font-semibold">
-                VAT (7%)
-              </span>
-              <span className="text-gray-800 font-bold">
-                {formatPrice(vatPrice)}
-              </span>
-            </div>
-            {shippingPrice > 0 && (
+        {cartItems.length > 0 && (
+          <div className="w-full lg:w-[350px] bg-white p-4 md:p-6 lg:p-8 shrink-0 flex flex-col text-start border-l border-slate-100">
+            <h2 className="text-[14px] font-bold text-gray-900 uppercase tracking-wide mb-8">
+              Summary
+            </h2>
+            <div className="flex flex-col flex-grow">
               <div className="flex justify-between items-center mb-4 text-[13px]">
                 <span className="text-gray-600 uppercase font-semibold">
-                  Shipping
+                  Subtotal
                 </span>
                 <span className="text-gray-800 font-bold">
-                  {formatPrice(shippingPrice)}
+                  {formatPrice(itemsPrice)}
                 </span>
               </div>
-            )}
-            <div className="flex justify-between items-center mb-4 text-[13px] border-t border-slate-50 pt-4">
-              <span className="text-gray-400 uppercase font-bold text-[10px]">
-                Selected {selectedItems.length} items
-              </span>
-            </div>
+              <div className="flex justify-between items-center mb-4 text-[13px]">
+                <span className="text-gray-600 uppercase font-semibold">
+                  VAT (7%)
+                </span>
+                <span className="text-gray-800 font-bold">
+                  {formatPrice(vatPrice)}
+                </span>
+              </div>
+              {shippingPrice > 0 && (
+                <div className="flex justify-between items-center mb-4 text-[13px]">
+                  <span className="text-gray-600 uppercase font-semibold">
+                    Shipping
+                  </span>
+                  <span className="text-gray-800 font-bold">
+                    {formatPrice(shippingPrice)}
+                  </span>
+                </div>
+              )}
+              <div className="flex justify-between items-center mb-4 text-[13px] border-t border-slate-50 pt-4">
+                <span className="text-gray-400 uppercase font-bold text-[10px]">
+                  Selected {selectedItems.length} items
+                </span>
+              </div>
 
-            <button
-              onClick={checkoutHandler}
-              disabled={selectedItems.length === 0}
-              className={`w-full py-4 rounded-xl text-[14px] font-black tracking-widest uppercase transition-all shadow-xl mb-4 ${selectedItems.length > 0
-                ? "bg-black text-white hover:bg-slate-900 active:scale-95"
-                : "bg-gray-200 text-gray-400 cursor-not-allowed"
-                }`}
-            >
-              {language === "thai"
-                ? "ชำระเงินตามที่เลือก"
-                : "Checkout Selected"}
-            </button>
+              <button
+                onClick={checkoutHandler}
+                disabled={selectedItems.length === 0}
+                className={`w-full py-4 rounded-xl text-[14px] font-black tracking-widest uppercase transition-all shadow-xl mb-4 ${selectedItems.length > 0
+                  ? "bg-black text-white hover:bg-slate-900 active:scale-95"
+                  : "bg-gray-200 text-gray-400 cursor-not-allowed"
+                  }`}
+              >
+                {language === "thai"
+                  ? "ชำระเงินตามที่เลือก"
+                  : "Checkout Selected"}
+              </button>
 
 
-            <div className="flex justify-between items-center mb-8 border-t border-slate-100 pt-6 mt-2">
-              <span className="text-gray-900 text-[14px] font-bold uppercase tracking-wide">
-                Order Total
-              </span>
-              <span className="font-bold text-gray-900 text-[20px] tracking-tight">
-                {formatPrice(totalPrice)}
-              </span>
+              <div className="flex justify-between items-center mb-8 border-t border-slate-100 pt-6 mt-2">
+                <span className="text-gray-900 text-[14px] font-bold uppercase tracking-wide">
+                  Order Total
+                </span>
+                <span className="font-bold text-gray-900 text-[20px] tracking-tight">
+                  {formatPrice(totalPrice)}
+                </span>
+              </div>
             </div>
           </div>
-        </div>
+        )}
 
         {/* Confirm Delete Modal */}
         {showConfirmModal &&
