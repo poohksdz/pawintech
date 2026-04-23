@@ -185,14 +185,17 @@ const OrderProductCartScreen = () => {
                       </div>
 
                       <div className="flex gap-4 items-center">
-                        {/* Image section */}
-                        <div className="w-24 h-24 shrink-0 bg-slate-50 flex items-center justify-center overflow-hidden border border-slate-100 rounded-[1.25rem]">
+                        {/* Image section - Clickable to product detail */}
+                        <button
+                          onClick={() => navigate(`/product/${item._id}`)}
+                          className="w-24 h-24 shrink-0 bg-slate-50 flex items-center justify-center overflow-hidden border border-slate-100 rounded-[1.25rem] hover:border-blue-400 hover:shadow-md transition-all cursor-pointer"
+                        >
                           {item.image ? (
                             <img src={item.image} alt={item.name} className="w-full h-full object-contain p-2" />
                           ) : (
                             <FaShoppingBag size={24} className="text-slate-300" />
                           )}
-                        </div>
+                        </button>
 
                         {/* Details Section */}
                         <div className="flex flex-col flex-1 min-w-0">
@@ -247,8 +250,11 @@ const OrderProductCartScreen = () => {
                         <div className="col-span-5 flex flex-col md:flex-row gap-3 md:gap-5 w-full">
                           {/* Top row: Image + Name/SKU */}
                           <div className="flex gap-3 md:gap-5 items-start md:items-center w-full">
-                            {/* Image */}
-                            <div className="w-16 h-16 md:w-24 md:h-24 bg-slate-50 shrink-0 flex items-center justify-center overflow-hidden rounded-xl border border-slate-100 shadow-sm group-hover:shadow-md transition-shadow">
+                            {/* Image - Clickable to product detail */}
+                            <button
+                              onClick={() => navigate(`/product/${item._id}`)}
+                              className="w-16 h-16 md:w-24 md:h-24 bg-slate-50 shrink-0 flex items-center justify-center overflow-hidden rounded-xl border border-slate-100 shadow-sm group-hover:shadow-md group-hover:border-blue-400 transition-all cursor-pointer"
+                            >
                               {item.image ? (
                                 <img
                                   src={item.image}
@@ -261,7 +267,7 @@ const OrderProductCartScreen = () => {
                                   className="text-gray-400"
                                 />
                               )}
-                            </div>
+                            </button>
 
                             {/* Details Context */}
                             <div className="flex flex-col flex-1 min-w-0 py-0.5 md:py-0 md:pr-6 relative">

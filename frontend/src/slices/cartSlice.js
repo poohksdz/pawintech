@@ -87,18 +87,34 @@ const cartSlice = createSlice({
   initialState,
   reducers: {
     // --- Standard Actions (เปลี่ยนหน้าจอทันที เพื่อความลื่นไหล) ---
+    // FIX: รองรับทั้ง _id และ product_id เป็น key
     addToCart: (state, action) => {
       const { replaceQty, ...item } = action.payload;
-      const existItem = state.cartItems.find((x) => x._id === item._id);
+
+      // หา product ID ที่ใช้เป็น key (รองรับทั้ง _id และ product_id)
+      const productKey = item._id || item.product_id;
+
+      // หาสินค้าที่มีอยู่แล้ว (เช็คทั้ง _id และ product_id)
+      const existItem = state.cartItems.find(
+        (x) => (x._id || x.product_id) === productKey
+      );
 
       if (existItem) {
+        // ถ้าสินค้ามีอยู่แล้ว ให้บวก quantity
         const newQty = replaceQty ? item.qty : existItem.qty + item.qty;
         state.cartItems = state.cartItems.map((x) =>
-          x._id === existItem._id ? { ...item, qty: newQty, isSelected: x.isSelected ?? true } : x,
+          (x._id || x.product_id) === productKey
+            ? { ...item, qty: newQty, isSelected: x.isSelected ?? true }
+            : x,
         );
       } else {
         // New item is selected by default
-        state.cartItems = [...state.cartItems, { ...item, isSelected: true }];
+        // ตรวจสอบว่ามี _id หรือไม่ ถ้าไม่มีใช้ product_id
+        const newItem = { ...item, isSelected: true };
+        if (!newItem._id && item.product_id) {
+          newItem._id = item.product_id;
+        }
+        state.cartItems = [...state.cartItems, newItem];
       }
       updateCart(state);
       localStorage.setItem("cart", JSON.stringify(state));

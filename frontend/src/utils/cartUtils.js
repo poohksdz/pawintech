@@ -7,17 +7,27 @@ export const addDecimals = (num) => {
 // Our addDecimals function expects a number and returns a string, so it is not
 // correct to call it passing a string as the argument.
 
-// 导出一个函数，用于更新购物车
-// Helper: merge duplicate items by _id (take latest qty)
-// Export for use in cartSlice
+// Helper: รวมรายการสินค้าที่ซ้ำกัน (บวก quantity เข้าด้วยกัน)
+// Support both _id and product_id as keys
 export const mergeCartItems = (items) => {
   const map = {};
   items.forEach((item) => {
-    if (!map[item._id]) {
-      map[item._id] = { ...item };
+    // ใช้ _id หรือ product_id เป็น key (ถ้าไม่มีทั้งคู่ใช้ index)
+    const key = item._id || item.product_id || `item_${Math.random().toString(36).substr(2, 9)}`;
+
+    if (!map[key]) {
+      map[key] = { ...item };
+      // ตรวจสอบว่ามี _id หรือไม่ ถ้าไม่มีให้เพิ่มจาก key
+      if (!map[key]._id) {
+        map[key]._id = key;
+      }
     } else {
-      // Keep the larger qty if duplicate
-      map[item._id].qty = Math.max(map[item._id].qty || 0, item.qty || 0);
+      // บวก quantity เข้าด้วยกัน (ไม่ใช่ max)
+      map[key].qty = (map[key].qty || 0) + (item.qty || 0);
+      // ถ้ารายการใหม่มีข้อมูลใหม่กว่า ให้อัพเดต
+      if (item.name) map[key].name = item.name;
+      if (item.image) map[key].image = item.image;
+      if (item.price) map[key].price = item.price;
     }
   });
   return Object.values(map);

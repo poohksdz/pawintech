@@ -29,13 +29,36 @@ import {
   useUpdateReviewMutation,
   useDeleteReviewMutation,
 } from "../slices/productsApiSlice";
-import { addToCart, syncCartDB } from "../slices/cartSlice";
+import { addToCart, syncCartDB, fetchCartDB } from "../slices/cartSlice";
 import DOMPurify from "dompurify";
 
 const ProductScreen = () => {
   const { id: productId } = useParams();
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const { userInfo } = useSelector((state) => state.auth);
+
+  // --- FIX: โหลด cart จาก localStorage/DB ตอน mount ---
+  React.useEffect(() => {
+    // โหลดจาก localStorage ก่อน (สำหรับ guest users)
+    const savedCart = localStorage.getItem("cart");
+    if (savedCart) {
+      try {
+        const parsedCart = JSON.parse(savedCart);
+        if (parsedCart.cartItems && parsedCart.cartItems.length > 0) {
+          // Cart ถูกโหลดอัตโนมัติจาก cartSlice initialState แล้ว
+          console.log("[ProductScreen] Cart loaded from localStorage:", parsedCart.cartItems.length, "items");
+        }
+      } catch (err) {
+        console.error("[ProductScreen] Error parsing cart:", err);
+      }
+    }
+
+    // ถ้าผู้ใช้ login อยู่ ให้ดึง cart จาก DB
+    if (userInfo) {
+      dispatch(fetchCartDB());
+    }
+  }, [dispatch, userInfo]);
 
   const [qty, setQty] = useState(1);
   const [rating, setRating] = useState(0);
@@ -67,13 +90,12 @@ const ProductScreen = () => {
   const [updateReview, { isLoading: loadingUpdateReview }] = useUpdateReviewMutation();
   const [deleteReview, { isLoading: loadingDeleteReview }] = useDeleteReviewMutation();
 
-  const { userInfo } = useSelector((state) => state.auth);
   const { language } = useSelector((state) => state.language);
 
   const allImages = useMemo(() => {
     if (!product) return [];
     const images = [product.image];
-    if (product.mutipleImage) {
+    if (product.mutipleImage && typeof product.mutipleImage === 'string') {
       images.push(...product.mutipleImage.split(",").filter(Boolean));
     }
     return images;
@@ -165,10 +187,23 @@ const ProductScreen = () => {
     });
   };
 
+  // --- FIX: แก้ไข addToCartHandler ให้จัดการ sync อย่างถูกต้อง ---
   const addToCartHandler = async () => {
-    dispatch(addToCart({ ...product, qty }));
-    await dispatch(syncCartDB()).unwrap();
-    navigate("/cart");
+    try {
+      // 1. เพิ่มสินค้าลง cart (ทำทันที ไม่ต้องรอ)
+      dispatch(addToCart({ ...product, qty }));
+
+      // 2. Sync กับ DB (ถ้าผู้ใช้ login อยู่) - ไม่บล็อก UI
+      if (userInfo) {
+        dispatch(syncCartDB());
+      }
+
+      // 3. ไปหน้าตะกร้าทันที
+      navigate("/cart");
+    } catch (err) {
+      console.error("[ProductScreen] Add to cart error:", err);
+      toast.error(language === "thai" ? "เกิดข้อผิดพลาดในการเพิ่มสินค้า" : "Error adding to cart");
+    }
   };
 
   // Handle image upload for reviews
