@@ -181,12 +181,10 @@ const PaymentScreen = () => {
     console.log("[PaymentScreen] useEffect triggered, cart.cartItems:", cart.cartItems?.length);
 
     if (isBuyNow) {
-      // Buy Now mode: ไม่ต้องเช็คตะกร้า เช็คแค่ที่อยู่จัดส่ง
-      if (!cart.shippingAddress?.address) {
-        console.log("[PaymentScreen] No shipping address, redirecting to /shipping");
-        navigate(`/shipping?type=buynow&productId=${urlProductId}&qty=${urlQty}&price=${urlPrice}`);
-        return;
-      }
+      // Buy Now mode: ไม่ต้องเช็คตะกร้าหรือที่อยู่จัดส่ง (ผ่าน ShippingScreen มาแล้ว)
+      const tempOrderID = `PWT-${generateOrderID()}`;
+      setOrderID(tempOrderID);
+      setPaymentComfirmID(tempOrderID);
     } else if (orderType === "product") {
       if (!cart.cartItems || cart.cartItems.length === 0) {
         console.log("[PaymentScreen] Cart empty, redirecting to /cart");
