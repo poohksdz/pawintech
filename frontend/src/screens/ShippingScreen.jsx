@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+﻿import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
@@ -25,7 +25,7 @@ import {
   FaPhone,
 } from "react-icons/fa";
 
-//  1. InputField (Stable Component - แก้ปัญหาหลุด Focus)
+//  1. InputField (Stable Component - รับค่าช่อง Input เมื่อได้ Focus)
 const InputField = ({
   id,
   label,
@@ -111,7 +111,7 @@ const SelectionCard = ({ icon, title, active, onClick }) => (
 const ShippingScreen = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const location = useLocation(); //  เพิ่ม useLocation สำหรับดึงค่า URL Parameter
+  const location = useLocation(); //  ใช้ useLocation เพื่อดึง Parameter จาก URL
   const { userInfo } = useSelector((state) => state.auth);
   const { language } = useSelector((state) => state.language);
 
@@ -206,9 +206,9 @@ const ShippingScreen = () => {
     },
     thai: {
       stepTitle: "การจัดส่งและใบกำกับภาษี",
-      receiveMethod: "เลือกวิธีการรับสินค้า",
+      receiveMethod: "เลือกวิธีรับสินค้า",
       addressSource: "เลือกที่อยู่จัดส่ง",
-      useProfile: "ใช้ที่อยู่ในโปรไฟล์",
+      useProfile: "ใช้ที่อยู่จากโปรไฟล์",
       useCustom: "เพิ่มที่อยู่ใหม่",
       shippingDetails: "ที่อยู่จัดส่ง",
       billingDetails: "ใบกำกับภาษี",
@@ -216,19 +216,19 @@ const ShippingScreen = () => {
       nameLabel: "ชื่อ-นามสกุล",
       phoneLabel: "เบอร์โทรศัพท์",
       addressLabel: "ที่อยู่",
-      cityLabel: "จังหวัด/เมือง",
+      cityLabel: "จังหวัด/เขต",
       postalCodeLabel: "รหัสไปรษณีย์",
       countryLabel: "ประเทศ",
       TaxLabel: "เลขประจำตัวผู้เสียภาษี",
       sendOption: "จัดส่งตามที่อยู่",
-      pickupOption: "รับสินค้าที่บริษัท",
-      pickupInfo: "กรุณาตรวจสอบชื่อและเบอร์โทรศัพท์สำหรับติดต่อรับสินค้า",
-      fillBilling: "ข้อมูลใบกำกับภาษีเต็มรูป",
+      pickupOption: "รับที่บริษัท",
+      pickupInfo: "กรุณาตรวจสอบชื่อและเบอร์โทรศัพท์สำหรับรับสินค้าที่บริษัท",
+      fillBilling: "ข้อมูลใบกำกับภาษี",
       profileAddrTitle: "ที่อยู่ในโปรไฟล์",
       errFillAll: "กรุณากรอกข้อมูลในช่องที่จำเป็นให้ครบถ้วน",
-      phName: "เช่น สมชาย ใจดี",
+      phName: "เช่น สมชาย ทองหลาง",
       phPhone: "เช่น 0812345678",
-      phAddr: "123/4 หมู่ 5 ซอยสุขุมวิท...",
+      phAddr: "123/4 หมู่ 5 ถนนสุขุมวิท...",
       phCity: "เช่น กรุงเทพฯ",
       phZip: "10xxx",
       phCountry: "ประเทศไทย",
@@ -236,7 +236,7 @@ const ShippingScreen = () => {
     },
   }[language || "en"];
 
-  //  ฟังก์ชันตรวจเช็คข้อมูลและเลื่อนหน้าจอ
+  //  ฟังก์ชันตรวจสอบความถูกต้องของข้อมูลและเลื่อนหน้าจอ
   const validateAndScroll = () => {
     const newErrors = {};
     if (!isReceiveCompleteSelected && addressSource === "manual") {
@@ -280,9 +280,9 @@ const ShippingScreen = () => {
         ? {
           shippingname: userInfo.name,
           phone: userInfo.phone || "",
-          address: "Pickup at Company",
-          city: "Thailand",
-          postalCode: "00000",
+          address: "รับที่บริษัท",
+          city: "ปทุมวัน",
+          postalCode: "10400",
           country: "TH",
         }
         : addressSource === "profile"
@@ -318,7 +318,7 @@ const ShippingScreen = () => {
           branch: "",
         };
 
-      // 1. บันทึกข้อมูลที่อยู่ลง Cart (Redux)
+      // 1. บันทึกข้อมูลที่อยู่จัดส่งลงใน Cart (Redux)
       dispatch(
         saveShippingAddress({
           ...finalShippingAddress,
@@ -327,7 +327,7 @@ const ShippingScreen = () => {
       );
       dispatch(saveBillingAddress(finalBillingAddress));
 
-      // 2. คำนวณราคาขนส่งและยอดรวม
+      // 2. อัพเดทราคาสินค้าและค่าจัดส่ง
       let localCart = JSON.parse(localStorage.getItem("cart")) || {};
       const transportCost = isReceiveCompleteSelected
         ? 0
@@ -343,24 +343,24 @@ const ShippingScreen = () => {
         }),
       );
 
-      // 3.  อัปเดตโปรไฟล์และรักษาเมนู Admin (Merge ข้อมูลเดิม)
+      // 3. อัพเดทโปรไฟล์และส่งข้อมูลให้ Admin (Merge ข้อมูลใหม่)
       const res = await updateProfileShipping({
         shippingAddress: finalShippingAddress,
         billingAddress: finalBillingAddress,
       }).unwrap();
       dispatch(setCredentials({ ...userInfo, ...res }));
 
-      //  4. ดึง Parameter จาก URL และส่งต่อไปหน้า Payment
+      //  4. ดึง Parameter จาก URL และส่งไปยังหน้า Payment
       const searchParams = new URLSearchParams(location.search);
       const type = searchParams.get("type");
       const orderId = searchParams.get("orderId");
       const amount = searchParams.get("amount");
 
       if (type && orderId) {
-        // ถ้ามี type และ orderId แปลว่ามาจากงานสั่งทำ PCB ให้ส่งค่าตามไปด้วย
+        // ถ้ามี type และ orderId แสดงว่าเป็นการแก้ไขออร์เดอร์ PCB ที่มีอยู่แล้ว
         navigate(`/payment?type=${type}&orderId=${orderId}&amount=${amount}`);
       } else {
-        // ถ้าไม่มีค่า แปลว่ามาจากระบบซื้อสินค้าทั่วไป ให้ไปหน้า payment ธรรมดา
+        // ถ้าไม่มี แสดงว่าเป็นออร์เดอร์ใหม่ ให้ไปยังหน้า payment โดยตรง
         navigate("/payment");
       }
     } catch (error) {
@@ -458,7 +458,7 @@ const ShippingScreen = () => {
                             <FaMapMarkerAlt className="text-black text-xs mt-1 shrink-0" />
                             {userInfo.shippingAddress?.address
                               ? `${userInfo.shippingAddress.address}, ${userInfo.shippingAddress.city}, ${userInfo.shippingAddress.postalCode}`
-                              : "⚠️ No address set in profile"}
+                              : "âš ï¸ No address set in profile"}
                           </div>
                         </div>
                       </div>
@@ -599,12 +599,12 @@ const ShippingScreen = () => {
                   </div>
                   <div>
                     <p className={`font-black text-base uppercase tracking-wider mb-0.5 transition-colors duration-500 ${isCompanyOrder ? "text-white" : "text-slate-800"}`}>
-                      สั่งซื้อในนามนิติบุคคล / บริษัท
+                      ออกใบเสร็จรับเงิน / ซื้อในนามบริษัท
                     </p>
                     <p className={`text-[11px] font-medium leading-tight tracking-wide transition-colors duration-500 ${isCompanyOrder ? "text-slate-400" : "text-slate-400 font-bold"}`}>
                       {isCompanyOrder
-                        ? "✓ Verified corporate billing data active"
-                        : "( Pull company info automatically from your profile )"}
+                        ? "✓ ข้อมูลบริษัทที่ตรวจสอบแล้ว"
+                        : "( ดึงข้อมูลบริษัทจากโปรไฟล์ของคุณ )"}
                     </p>
                   </div>
                 </div>
@@ -620,13 +620,13 @@ const ShippingScreen = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <SelectionCard
                   icon={<FaFileInvoice />}
-                  title="ใบเสร็จรับเงินย่อ"
+                  title="ใบเสร็จรับเงินอย่างย่อ"
                   active={!isBillingCompleteSelected}
                   onClick={() => setIsBillingCompleteSelected(false)}
                 />
                 <SelectionCard
                   icon={<FaBuilding />}
-                  title="ใบกำกับภาษีเต็มรูป"
+                  title="ใบกำกับภาษีแบบเต็ม"
                   active={isBillingCompleteSelected}
                   onClick={() => setIsBillingCompleteSelected(true)}
                 />

@@ -296,9 +296,9 @@ const OrderPCBShippingScreen = () => {
         ? {
           shippingname: userInfo?.name || "",
           phone: userInfo?.phone || "",
-          address: "Pickup at Company",
-          city: "Thailand",
-          postalCode: "00000",
+          address: "รับที่บริษัท",
+          city: "ปทุมวัน",
+          postalCode: "10400",
           country: "TH",
           receivePlace: "atcompany",
         }

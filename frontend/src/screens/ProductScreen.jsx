@@ -121,6 +121,7 @@ const ProductScreen = () => {
   const t = {
     en: {
       addToCart: "Add to Cart",
+      buyNow: "Buy Now",
       inStock: "In Stock",
       outOfStock: "Out of Stock",
       reviews: "Customer Reviews",
@@ -143,6 +144,7 @@ const ProductScreen = () => {
     },
     thai: {
       addToCart: "เพิ่มลงตะกร้า",
+      buyNow: "สั่งซื้อทันที",
       inStock: "มีสินค้าพร้อมส่ง",
       outOfStock: "สินค้าหมด",
       reviews: "รีวิวจากลูกค้า",
@@ -203,6 +205,26 @@ const ProductScreen = () => {
     } catch (err) {
       console.error("[ProductScreen] Add to cart error:", err);
       toast.error(language === "thai" ? "เกิดข้อผิดพลาดในการเพิ่มสินค้า" : "Error adding to cart");
+    }
+  };
+
+  // Buy Now Handler - สั่งซื้อสินค้าชิ้นเดียวโดยตรง
+  const buyNowHandler = async () => {
+    try {
+      // คำนวณราคาของสินค้าชิ้นนี้
+      const itemPrice = Number(product.price) * Number(qty);
+      const vatPrice = itemPrice * 0.07;
+      const shippingPrice = 70; // ค่าจัดส่งเริ่มต้น
+      const totalPrice = itemPrice + vatPrice + shippingPrice;
+
+      // สร้าง orderId ชั่วคราวสำหรับสินค้านี้
+      const tempOrderId = `BUYNOW-${product._id}-${Date.now()}`;
+
+      // ไปหน้า Shipping พร้อมส่งข้อมูลสินค้าชิ้นเดียวผ่าน URL
+      navigate(`/shipping?type=buynow&productId=${product._id}&qty=${qty}&price=${product.price}&amount=${totalPrice}`);
+    } catch (err) {
+      console.error("[ProductScreen] Buy now error:", err);
+      toast.error(language === "thai" ? "เกิดข้อผิดพลาดในการสั่งซื้อ" : "Error processing order");
     }
   };
 
@@ -514,18 +536,33 @@ const ProductScreen = () => {
               </div>
             )}
 
-            {/* Add to Cart Button */}
-            <button
-              onClick={addToCartHandler}
-              disabled={product.countInStock === 0}
-              className={`w-full sm:w-auto flex items-center justify-center gap-2 px-8 py-4 rounded-2xl font-black text-base transition-all duration-500 ${product.countInStock > 0
-                ? "bg-black dark:bg-white text-white dark:text-black hover:bg-slate-800 dark:hover:bg-slate-100"
-                : "bg-slate-200 dark:bg-zinc-800 text-slate-400 dark:text-zinc-500 cursor-not-allowed"
-                }`}
-            >
-              <FaCartPlus />
-              {t.addToCart}
-            </button>
+            {/* Action Buttons */}
+            <div className="flex flex-col sm:flex-row gap-3">
+              {/* Add to Cart Button */}
+              <button
+                onClick={addToCartHandler}
+                disabled={product.countInStock === 0}
+                className={`flex-1 flex items-center justify-center gap-2 px-6 py-4 rounded-2xl font-black text-base transition-all duration-500 ${product.countInStock > 0
+                  ? "bg-slate-100 dark:bg-zinc-800 text-slate-900 dark:text-white hover:bg-slate-200 dark:hover:bg-zinc-700 border border-slate-200 dark:border-zinc-700"
+                  : "bg-slate-100 dark:bg-zinc-800 text-slate-400 dark:text-zinc-500 cursor-not-allowed border border-slate-200 dark:border-zinc-700"
+                  }`}
+              >
+                <FaCartPlus />
+                {t.addToCart}
+              </button>
+
+              {/* Buy Now Button */}
+              <button
+                onClick={buyNowHandler}
+                disabled={product.countInStock === 0}
+                className={`flex-1 flex items-center justify-center gap-2 px-6 py-4 rounded-2xl font-black text-base transition-all duration-500 ${product.countInStock > 0
+                  ? "bg-black dark:bg-white text-white dark:text-black hover:bg-slate-800 dark:hover:bg-slate-100"
+                  : "bg-slate-200 dark:bg-zinc-800 text-slate-400 dark:text-zinc-500 cursor-not-allowed"
+                  }`}
+              >
+                {t.buyNow}
+              </button>
+            </div>
 
             {/* Features */}
             <div className="grid grid-cols-2 gap-4 pt-4 border-t border-slate-100 dark:border-zinc-800 transition-colors duration-500">

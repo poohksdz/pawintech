@@ -93,7 +93,7 @@ const PlaceOrderScreen = () => {
       total: "ยอดชำระสุทธิ",
       confirmBtn: "ยืนยันสั่งซื้อสินค้า",
       emptyCart: "ไม่มีสินค้าในตะกร้า",
-      customerPickUp: "มารับสินค้าด้วยตนเองที่บริษัท",
+      customerPickUp: "มารับสินค้าที่บริษัท",
     },
   }[language || "en"];
 

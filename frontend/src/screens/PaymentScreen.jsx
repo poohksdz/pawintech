@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+﻿import { useState, useEffect, useMemo } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { toast } from "react-toastify";
 import { useDispatch, useSelector } from "react-redux";
@@ -14,7 +14,7 @@ import {
   useUploadPaymentSlipImageMutation,
 } from "../slices/ordersApiSlice";
 
-//  นำเข้า API ของ Custom PCB ให้ครบถ้วน
+//  à¸™à¸³à¹€à¸‚à¹‰à¸² API à¸‚à¸­à¸‡ Custom PCB à¹ƒà¸«à¹‰à¸„à¸£à¸šà¸–à¹‰à¸§à¸™
 import { useCreateCustomPCBMutation } from "../slices/custompcbApiSlice";
 import { useUpdateAmountCustomcartMutation } from "../slices/custompcbCartApiSlice";
 
@@ -32,37 +32,38 @@ import {
   FaTags,
   FaClock,
   FaCalendarAlt,
+  FaBox,
 } from "react-icons/fa";
 
 const SHOP_CONFIG = {
-  promptPayID: "0992263277", // เบอร์สำหรับเทสระบบ
-  accName: "บจก. พาวิน เทคโนโลยี",
+  promptPayID: "0992263277", // à¹€à¸šà¸­à¸£à¹Œà¸ªà¸³à¸«à¸£à¸±à¸šà¹€à¸—à¸ªà¸£à¸°à¸šà¸š
+  accName: "à¸šà¸ˆà¸. à¸žà¸²à¸§à¸´à¸™ à¹€à¸—à¸„à¹‚à¸™à¹‚à¸¥à¸¢à¸µ",
 };
 
 const BANK_ACCOUNTS = [
   {
     id: "KTB",
-    label: "KTB ธ.กรุงไทย - 082-0-74742-4",
+    label: "KTB à¸˜.à¸à¸£à¸¸à¸‡à¹„à¸—à¸¢ - 082-0-74742-4",
     value: "082-0-74742-4 (KTB)",
-    bankName: "ธนาคารกรุงไทย (KTB)",
+    bankName: "à¸˜à¸™à¸²à¸„à¸²à¸£à¸à¸£à¸¸à¸‡à¹„à¸—à¸¢ (KTB)",
     accNo: "082-0-74742-4",
     initial: "K",
     color: "bg-[#00AEEF]", // KTB Blue
   },
   {
     id: "SCB",
-    label: "SCB ธ.ไทยพาณิชย์ - 146-2-90304-4",
+    label: "SCB à¸˜.à¹„à¸—à¸¢à¸žà¸²à¸“à¸´à¸Šà¸¢à¹Œ - 146-2-90304-4",
     value: "146-2-90304-4 (SCB)",
-    bankName: "ธนาคารไทยพาณิชย์ (SCB)",
+    bankName: "à¸˜à¸™à¸²à¸„à¸²à¸£à¹„à¸—à¸¢à¸žà¸²à¸“à¸´à¸Šà¸¢à¹Œ (SCB)",
     accNo: "146-2-90304-4",
     initial: "S",
     color: "bg-[#4E2E7F]", // SCB Purple
   },
   {
     id: "KBANK",
-    label: "KBANK ธ.กสิกรไทย - 012-3-45678-9",
+    label: "KBANK à¸˜.à¸à¸ªà¸´à¸à¸£à¹„à¸—à¸¢ - 012-3-45678-9",
     value: "012-3-45678-9 (KBANK)",
-    bankName: "ธนาคารกสิกรไทย (KBANK)",
+    bankName: "à¸˜à¸™à¸²à¸„à¸²à¸£à¸à¸ªà¸´à¸à¸£à¹„à¸—à¸¢ (KBANK)",
     accNo: "012-3-45678-9",
     initial: "K",
     color: "bg-[#138000]", // KBANK Green
@@ -74,13 +75,19 @@ const PaymentScreen = () => {
   const location = useLocation();
   const dispatch = useDispatch();
 
-  //  1. ระบบแยกประเภท Order จาก URL Parameters
+  //  1. à¸£à¸°à¸šà¸šà¹à¸¢à¸à¸›à¸£à¸°à¹€à¸ à¸— Order à¸ˆà¸²à¸ URL Parameters
   const searchParams = new URLSearchParams(location.search);
   const orderType = searchParams.get("type") || "product";
   const urlOrderId = searchParams.get("orderId") || "";
   const urlAmount = Number(searchParams.get("amount") || 0);
+  const urlProductId = searchParams.get("productId") || "";
+  const urlQty = Number(searchParams.get("qty") || 1);
+  const urlPrice = Number(searchParams.get("price") || 0);
 
-  //  เรียกใช้ API Hooks
+  // à¸•à¸£à¸§à¸ˆà¸ªà¸­à¸šà¸§à¹ˆà¸²à¹€à¸›à¹‡à¸™à¸à¸²à¸£à¸‹à¸·à¹‰à¸­à¸—à¸±à¸™à¸—à¸µà¸«à¸£à¸·à¸­à¹„à¸¡à¹ˆ
+  const isBuyNow = orderType === "buynow";
+
+  //  à¹€à¸£à¸µà¸¢à¸à¹ƒà¸Šà¹‰ API Hooks
   const [createOrder, { isLoading: isCreatingProductOrder }] =
     useCreateOrderMutation();
   const [createCustomPCB, { isLoading: isCreatingCustom }] =
@@ -91,9 +98,53 @@ const PaymentScreen = () => {
 
   const { userInfo } = useSelector((state) => state.auth);
   const cart = useSelector((state) => state.cart);
-  //  ดึงข้อมูลที่อยู่และวิธีรับของที่เพิ่งเลือกมาจากหน้า Shipping (ใน Redux)
+  //  à¸”à¸¶à¸‡à¸‚à¹‰à¸­à¸¡à¸¹à¸¥à¸—à¸µà¹ˆà¸­à¸¢à¸¹à¹ˆà¹à¸¥à¸°à¸§à¸´à¸˜à¸µà¸£à¸±à¸šà¸‚à¸­à¸‡à¸—à¸µà¹ˆà¹€à¸žà¸´à¹ˆà¸‡à¹€à¸¥à¸·à¸­à¸à¸¡à¸²à¸ˆà¸²à¸à¸«à¸™à¹‰à¸² Shipping (à¹ƒà¸™ Redux)
   const { shippingAddress, receivePlace } = cart;
   const { language } = useSelector((state) => state.language);
+
+  // Calculate prices from cart items (always recalculate for accuracy)
+  const calculatedPrices = useMemo(() => {
+    if (orderType !== "product") {
+      return { itemsPrice: 0, vatPrice: 0, shippingPrice: 0, totalPrice: 0 };
+    }
+
+    const selectedItems = (cart.cartItems || []).filter(item => item.isSelected !== false);
+
+    // Calculate items price: sum of (price * qty) for each selected item
+    const itemsPrice = selectedItems.reduce(
+      (acc, item) => acc + (Number(item.price) * Number(item.qty)),
+      0
+    );
+
+    // Get shipping price
+    const shippingPrice = Number(cart.shippingPrice) || 0;
+
+    // Calculate VAT (7% of items price) and total
+    const vatPrice = itemsPrice * 0.07;
+    const totalPrice = itemsPrice + vatPrice + shippingPrice;
+
+    console.log("[PaymentScreen] useMemo calculated:", {
+      itemsPrice,
+      vatPrice,
+      shippingPrice,
+      totalPrice,
+      selectedItems: selectedItems.length,
+      cartItems: cart.cartItems?.length
+    });
+
+    return {
+      itemsPrice: Math.round(itemsPrice * 100) / 100,
+      vatPrice: Math.round(vatPrice * 100) / 100,
+      shippingPrice: Math.round(shippingPrice * 100) / 100,
+      totalPrice: Math.round(totalPrice * 100) / 100,
+    };
+  }, [cart.cartItems, cart.shippingPrice, orderType]);
+
+  // Always use calculated prices for display (more reliable)
+  const displayItemsPrice = calculatedPrices.itemsPrice;
+  const displayVatPrice = calculatedPrices.vatPrice;
+  const displayShippingPrice = calculatedPrices.shippingPrice;
+  const displayTotalPrice = calculatedPrices.totalPrice;
 
   const getCurrentDateTime = () => {
     const now = new Date();
@@ -113,9 +164,9 @@ const PaymentScreen = () => {
   const [transferedDate, setTransferedDate] = useState(getCurrentDateTime());
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
-  //  กำหนดยอดเงิน
+  //  à¸à¸³à¸«à¸™à¸”à¸¢à¸­à¸”à¹€à¸‡à¸´à¸™ (à¹ƒà¸Šà¹‰ calculated price à¹€à¸›à¹‡à¸™ fallback)
   const transferedAmount =
-    orderType === "product" ? cart.totalPrice : urlAmount;
+    orderType === "product" ? displayTotalPrice : urlAmount;
 
   useEffect(() => {
     console.log("[PaymentScreen] useEffect triggered, cart.cartItems:", cart.cartItems?.length);
@@ -131,7 +182,7 @@ const PaymentScreen = () => {
         return;
       }
 
-      // ตรวจสอบจำนวนสินค้าที่เลือก
+      // à¸•à¸£à¸§à¸ˆà¸ªà¸­à¸šà¸ˆà¸³à¸™à¸§à¸™à¸ªà¸´à¸™à¸„à¹‰à¸²à¸—à¸µà¹ˆà¹€à¸¥à¸·à¸­à¸
       const selectedItems = cart.cartItems.filter(item => item.isSelected !== false);
       console.log("[PaymentScreen] Selected items for payment:", selectedItems.length);
 
@@ -140,7 +191,7 @@ const PaymentScreen = () => {
       setPaymentComfirmID(tempOrderID);
     } else {
       if (!urlOrderId || urlAmount <= 0) {
-        toast.error("ข้อมูลคำสั่งซื้อไม่สมบูรณ์");
+        toast.error("à¸‚à¹‰à¸­à¸¡à¸¹à¸¥à¸„à¸³à¸ªà¸±à¹ˆà¸‡à¸‹à¸·à¹‰à¸­à¹„à¸¡à¹ˆà¸ªà¸¡à¸šà¸¹à¸£à¸“à¹Œ");
         navigate("/");
         return;
       }
@@ -148,45 +199,46 @@ const PaymentScreen = () => {
       setPaymentComfirmID(urlOrderId);
     }
 
-    // 1. เช็คจำนวนสินค้าและรายการซ้ำ (Validation)
+    // 1. à¹€à¸Šà¹‡à¸„à¸ˆà¸³à¸™à¸§à¸™à¸ªà¸´à¸™à¸„à¹‰à¸²à¹à¸¥à¸°à¸£à¸²à¸¢à¸à¸²à¸£à¸‹à¹‰à¸³ (Validation)
     let amountToPay = 0;
     if (orderType === "product") {
-      // เฉพาะรายการที่ถูกเลือก (Selected Items)
+      // à¹€à¸‰à¸žà¸²à¸°à¸£à¸²à¸¢à¸à¸²à¸£à¸—à¸µà¹ˆà¸–à¸¹à¸à¹€à¸¥à¸·à¸­à¸ (Selected Items)
       const allItems = cart.cartItems || [];
       const items = allItems.filter(item => item.isSelected !== false);
       const totalItemsQty = items.reduce((acc, item) => acc + Number(item.qty), 0);
       const uniqueItemsCount = new Set(items.map((i) => i.product)).size;
 
-      // ตรวจสอบความถูกต้องของยอดเงิน (คำนวณจากรายการที่เลือก + ภาษี + ขนส่ง)
+      // à¸•à¸£à¸§à¸ˆà¸ªà¸­à¸šà¸„à¸§à¸²à¸¡à¸–à¸¹à¸à¸•à¹‰à¸­à¸‡à¸‚à¸­à¸‡à¸¢à¸­à¸”à¹€à¸‡à¸´à¸™ (à¸„à¸³à¸™à¸§à¸“à¸ˆà¸²à¸à¸£à¸²à¸¢à¸à¸²à¸£à¸—à¸µà¹ˆà¹€à¸¥à¸·à¸­à¸ + à¸ à¸²à¸©à¸µ + à¸‚à¸™à¸ªà¹ˆà¸‡)
       const calculatedItemsPrice = items.reduce(
-        (acc, item) => acc + Number(item.price) * Number(item.qty),
+        (acc, item) => acc + (Number(item.price) * Number(item.qty)),
         0
       );
 
-      // คำนวณยอดรวม (Items + VAT 7% + Shipping)
-      const expectedTotal = Number((calculatedItemsPrice * 1.07 + Number(cart.shippingPrice || 0)).toFixed(2));
+      // à¸„à¸³à¸™à¸§à¸“à¸¢à¸­à¸”à¸£à¸§à¸¡ (Items + VAT 7% + Shipping)
+      const shippingCost = Number(cart.shippingPrice) || 0;
+      const itemsWithVat = calculatedItemsPrice * 1.07;
+      const expectedTotal = itemsWithVat + shippingCost;
 
-      console.log(`[Validation] Selected Items: ${items.length}, Total Qty: ${totalItemsQty}, Expected Total: ${expectedTotal}`);
+      console.log(`[PaymentScreen] Items: ${items.length}, ItemsPrice: ${calculatedItemsPrice}, VAT(7%): ${calculatedItemsPrice * 0.07}, Shipping: ${shippingCost}, Total: ${expectedTotal}`);
 
       if (items.length !== uniqueItemsCount) {
-        console.warn("พบรายการสินค้าซ้ำในรายการที่เลือก");
+        console.warn("à¸žà¸šà¸£à¸²à¸¢à¸à¸²à¸£à¸ªà¸´à¸™à¸„à¹‰à¸²à¸‹à¹‰à¸³à¹ƒà¸™à¸£à¸²à¸¢à¸à¸²à¸£à¸—à¸µà¹ˆà¹€à¸¥à¸·à¸­à¸");
       }
 
-      // ใช้ยอดที่คำนวณใหม่เพื่อความชัวร์
+      // à¹ƒà¸Šà¹‰à¸¢à¸­à¸”à¸—à¸µà¹ˆà¸„à¸³à¸™à¸§à¸“à¹ƒà¸«à¸¡à¹ˆà¹€à¸žà¸·à¹ˆà¸­à¸„à¸§à¸²à¸¡à¸Šà¸±à¸§à¸£à¹Œ
       amountToPay = expectedTotal;
     } else {
-      const rawAmount = String(transferedAmount).replace(/[^0-9.]/g, "");
-      amountToPay = parseFloat(rawAmount) || 0;
+      amountToPay = urlAmount;
     }
 
-    // 2. สร้าง QR Code
+    // 2. à¸ªà¸£à¹‰à¸²à¸‡ QR Code
     if (amountToPay > 0) {
       const payload = generatePayload(SHOP_CONFIG.promptPayID, {
         amount: amountToPay,
       });
       setQrCodePayload(payload);
     }
-  }, [cart, navigate, orderType, urlOrderId, transferedAmount, urlAmount]);
+  }, [cart, navigate, orderType, urlOrderId, urlAmount]);
 
   const uploadPaymenSlipImageHandler = async (e) => {
     const file = e.target.files[0];
@@ -197,7 +249,7 @@ const PaymentScreen = () => {
       try {
         const res = await uploadPaymentSlipImage(formData).unwrap();
         setImage(res.image);
-        toast.success("อัปโหลดสลิปเรียบร้อย ระบบกำลังรอการยืนยัน");
+        toast.success("à¸­à¸±à¸›à¹‚à¸«à¸¥à¸”à¸ªà¸¥à¸´à¸›à¹€à¸£à¸µà¸¢à¸šà¸£à¹‰à¸­à¸¢ à¸£à¸°à¸šà¸šà¸à¸³à¸¥à¸±à¸‡à¸£à¸­à¸à¸²à¸£à¸¢à¸·à¸™à¸¢à¸±à¸™");
       } catch (err) {
         toast.error(err?.data?.message || err.error);
         setPreviewUrl(null);
@@ -211,7 +263,7 @@ const PaymentScreen = () => {
     if (!image) {
       toast.error(
         language === "thai"
-          ? "กรุณาแนบสลิปโอนเงิน"
+          ? "à¸à¸£à¸¸à¸“à¸²à¹à¸™à¸šà¸ªà¸¥à¸´à¸›à¹‚à¸­à¸™à¹€à¸‡à¸´à¸™"
           : "Please upload payment slip",
       );
       return;
@@ -219,21 +271,21 @@ const PaymentScreen = () => {
     if (!transferedName) {
       toast.error(
         language === "thai"
-          ? "กรุณาเลือกบัญชีธนาคาร"
+          ? "à¸à¸£à¸¸à¸“à¸²à¹€à¸¥à¸·à¸­à¸à¸šà¸±à¸à¸Šà¸µà¸˜à¸™à¸²à¸„à¸²à¸£"
           : "Please select a bank account",
       );
       return;
     }
 
     if (orderType === "product") {
-      //  กรณี: สินค้าทั่วไป - ส่งเฉพาะรายการที่เลือกเท่านั้น
+      //  à¸à¸£à¸“à¸µ: à¸ªà¸´à¸™à¸„à¹‰à¸²à¸—à¸±à¹ˆà¸§à¹„à¸› - à¸ªà¹ˆà¸‡à¹€à¸‰à¸žà¸²à¸°à¸£à¸²à¸¢à¸à¸²à¸£à¸—à¸µà¹ˆà¹€à¸¥à¸·à¸­à¸à¹€à¸—à¹ˆà¸²à¸™à¸±à¹‰à¸™
       try {
         const selectedItems = cart.cartItems.filter(item => item.isSelected !== false);
 
         if (selectedItems.length === 0) {
           toast.error(
             language === "thai"
-              ? "กรุณาเลือกสินค้าอย่างน้อย 1 รายการ"
+              ? "à¸à¸£à¸¸à¸“à¸²à¹€à¸¥à¸·à¸­à¸à¸ªà¸´à¸™à¸„à¹‰à¸²à¸­à¸¢à¹ˆà¸²à¸‡à¸™à¹‰à¸­à¸¢ 1 à¸£à¸²à¸¢à¸à¸²à¸£"
               : "Please select at least 1 item",
           );
           return;
@@ -269,12 +321,12 @@ const PaymentScreen = () => {
         dispatch(clearCartItems());
         navigate(`/order/${res.orderId}`);
       } catch (err) {
-        toast.error(err?.data?.message || "เกิดข้อผิดพลาดในการสร้างออเดอร์");
+        toast.error(err?.data?.message || "à¹€à¸à¸´à¸”à¸‚à¹‰à¸­à¸œà¸´à¸”à¸žà¸¥à¸²à¸”à¹ƒà¸™à¸à¸²à¸£à¸ªà¸£à¹‰à¸²à¸‡à¸­à¸­à¹€à¸”à¸­à¸£à¹Œ");
         setImage("");
         setPreviewUrl(null);
       }
     } else if (orderType === "custom") {
-      // ️ กรณี: งานสั่งทำ (Custom PCB) - ส่งข้อมูลที่อยู่ใหม่พ่วงไปด้วย
+      // ï¸ à¸à¸£à¸“à¸µ: à¸‡à¸²à¸™à¸ªà¸±à¹ˆà¸‡à¸—à¸³ (Custom PCB) - à¸ªà¹ˆà¸‡à¸‚à¹‰à¸­à¸¡à¸¹à¸¥à¸—à¸µà¹ˆà¸­à¸¢à¸¹à¹ˆà¹ƒà¸«à¸¡à¹ˆà¸žà¹ˆà¸§à¸‡à¹„à¸›à¸”à¹‰à¸§à¸¢
       try {
         await createCustomPCB({
           orderData: {
@@ -287,7 +339,7 @@ const PaymentScreen = () => {
             transferedName,
             paymentSlip: image,
 
-            //  หัวใจสำคัญ: ส่งที่อยู่ที่ "เพิ่งกรอกใหม่" จากหน้า Shipping ไปยัง Backend
+            //  à¸«à¸±à¸§à¹ƒà¸ˆà¸ªà¸³à¸„à¸±à¸: à¸ªà¹ˆà¸‡à¸—à¸µà¹ˆà¸­à¸¢à¸¹à¹ˆà¸—à¸µà¹ˆ "à¹€à¸žà¸´à¹ˆà¸‡à¸à¸£à¸­à¸à¹ƒà¸«à¸¡à¹ˆ" à¸ˆà¸²à¸à¸«à¸™à¹‰à¸² Shipping à¹„à¸›à¸¢à¸±à¸‡ Backend
             receivePlace: receivePlace || "bysending",
             shippingName: shippingAddress?.shippingname || customerName,
             shippingPhone: shippingAddress?.phone || userInfo?.phone,
@@ -298,10 +350,10 @@ const PaymentScreen = () => {
           },
         }).unwrap();
 
-        // อัปเดตสถานะบิลในตะกร้า
+        // à¸­à¸±à¸›à¹€à¸”à¸•à¸ªà¸–à¸²à¸™à¸°à¸šà¸´à¸¥à¹ƒà¸™à¸•à¸°à¸à¸£à¹‰à¸²
         await updateAmountCustomcart({ id: urlOrderId }).unwrap();
 
-        toast.success("ชำระเงินสำเร็จ แอดมินกำลังตรวจสอบ");
+        toast.success("à¸Šà¸³à¸£à¸°à¹€à¸‡à¸´à¸™à¸ªà¸³à¹€à¸£à¹‡à¸ˆ à¹à¸­à¸”à¸¡à¸´à¸™à¸à¸³à¸¥à¸±à¸‡à¸•à¸£à¸§à¸ˆà¸ªà¸­à¸š");
         navigate("/profile");
       } catch (err) {
         toast.error(err?.data?.message || "Error updating payment");
@@ -313,7 +365,7 @@ const PaymentScreen = () => {
 
   const copyToClipboard = (text) => {
     navigator.clipboard.writeText(text);
-    toast.success("คัดลอกเลขบัญชีแล้ว!");
+    toast.success("à¸„à¸±à¸”à¸¥à¸­à¸à¹€à¸¥à¸‚à¸šà¸±à¸à¸Šà¸µà¹à¸¥à¹‰à¸§!");
   };
 
   const t = {
@@ -327,25 +379,33 @@ const PaymentScreen = () => {
       upload: "Upload Slip",
       confirm: "Confirm Payment",
       summary: "Payment Info",
+      summaryDetail: "Order Summary",
       total: "Net Amount",
       selectMethod: "Choose Method",
       scanHint: "Scan to pay exact amount",
       account: "Transfer Account",
+      itemsPrice: "Products",
+      vatPrice: "VAT (7%)",
+      shippingPrice: "Shipping",
     },
     thai: {
-      stepTitle: "ยืนยันการชำระเงิน",
-      scanQR: "สแกนจ่าย (QR)",
-      bankTransfer: "โอนผ่านบัญชี",
-      amount: "ยอดเงินที่ต้องโอน",
-      date: "วันเวลาที่โอน",
-      customer: "ชื่อผู้โอน",
-      upload: "แนบหลักฐานการโอน (สลิป)",
-      confirm: "ยืนยันการชำระเงิน",
-      summary: "สรุปข้อมูลการชำระ",
-      total: "ยอดรวมสุทธิ",
-      selectMethod: "เลือกวิธีชำระเงิน",
-      scanHint: "สแกนเพื่อจ่ายยอดที่ถูกต้อง",
-      account: "โอนเข้าบัญชีธนาคาร",
+      stepTitle: "à¸¢à¸·à¸™à¸¢à¸±à¸™à¸à¸²à¸£à¸Šà¸³à¸£à¸°à¹€à¸‡à¸´à¸™",
+      scanQR: "à¸ªà¹à¸à¸™à¸ˆà¹ˆà¸²à¸¢ (QR)",
+      bankTransfer: "à¹‚à¸­à¸™à¸œà¹ˆà¸²à¸™à¸šà¸±à¸à¸Šà¸µ",
+      amount: "à¸¢à¸­à¸”à¹€à¸‡à¸´à¸™à¸—à¸µà¹ˆà¸•à¹‰à¸­à¸‡à¹‚à¸­à¸™",
+      date: "à¸§à¸±à¸™à¹€à¸§à¸¥à¸²à¸—à¸µà¹ˆà¹‚à¸­à¸™",
+      customer: "à¸Šà¸·à¹ˆà¸­à¸œà¸¹à¹‰à¹‚à¸­à¸™",
+      upload: "à¹à¸™à¸šà¸«à¸¥à¸±à¸à¸à¸²à¸™à¸à¸²à¸£à¹‚à¸­à¸™ (à¸ªà¸¥à¸´à¸›)",
+      confirm: "à¸¢à¸·à¸™à¸¢à¸±à¸™à¸à¸²à¸£à¸Šà¸³à¸£à¸°à¹€à¸‡à¸´à¸™",
+      summary: "à¸ªà¸£à¸¸à¸›à¸‚à¹‰à¸­à¸¡à¸¹à¸¥à¸à¸²à¸£à¸Šà¸³à¸£à¸°",
+      summaryDetail: "à¸ªà¸£à¸¸à¸›à¸£à¸²à¸¢à¸à¸²à¸£à¸ªà¸±à¹ˆà¸‡à¸‹à¸·à¹‰à¸­",
+      total: "à¸¢à¸­à¸”à¸£à¸§à¸¡à¸ªà¸¸à¸—à¸˜à¸´",
+      selectMethod: "à¹€à¸¥à¸·à¸­à¸à¸§à¸´à¸˜à¸µà¸Šà¸³à¸£à¸°à¹€à¸‡à¸´à¸™",
+      scanHint: "à¸ªà¹à¸à¸™à¹€à¸žà¸·à¹ˆà¸­à¸ˆà¹ˆà¸²à¸¢à¸¢à¸­à¸”à¸—à¸µà¹ˆà¸–à¸¹à¸à¸•à¹‰à¸­à¸‡",
+      account: "à¹‚à¸­à¸™à¹€à¸‚à¹‰à¸²à¸šà¸±à¸à¸Šà¸µà¸˜à¸™à¸²à¸„à¸²à¸£",
+      itemsPrice: "à¸£à¸²à¸„à¸²à¸ªà¸´à¸™à¸„à¹‰à¸²",
+      vatPrice: "VAT (7%)",
+      shippingPrice: "à¸„à¹ˆà¸²à¸ˆà¸±à¸”à¸ªà¹ˆà¸‡",
     },
   }[language || "en"];
 
@@ -353,37 +413,37 @@ const PaymentScreen = () => {
     switch (type) {
       case "product":
         return {
-          name: "สินค้าทั่วไป (Cart)",
+          name: "à¸ªà¸´à¸™à¸„à¹‰à¸²à¸—à¸±à¹ˆà¸§à¹„à¸› (Cart)",
           color: "text-black",
           bg: "bg-slate-50",
         };
       case "custom":
         return {
-          name: "สั่งทำ Custom PCB",
+          name: "à¸ªà¸±à¹ˆà¸‡à¸—à¸³ Custom PCB",
           color: "text-black",
           bg: "bg-slate-50",
         };
       case "pcb":
         return {
-          name: "ก๊อปปี้ Copy PCB",
+          name: "à¸à¹Šà¸­à¸›à¸›à¸µà¹‰ Copy PCB",
           color: "text-black",
           bg: "bg-slate-50",
         };
       case "assembly":
         return {
-          name: "งานประกอบ (Assembly)",
+          name: "à¸‡à¸²à¸™à¸›à¸£à¸°à¸à¸­à¸š (Assembly)",
           color: "text-black",
           bg: "bg-slate-50",
         };
       case "orderpcb":
         return {
-          name: "ออเดอร์แผ่น PCB",
+          name: "à¸­à¸­à¹€à¸”à¸­à¸£à¹Œà¹à¸œà¹ˆà¸™ PCB",
           color: "text-black",
           bg: "bg-slate-50",
         };
       default:
         return {
-          name: "รายการอื่นๆ",
+          name: "à¸£à¸²à¸¢à¸à¸²à¸£à¸­à¸·à¹ˆà¸™à¹†",
           color: "text-slate-600",
           bg: "bg-slate-50",
         };
@@ -410,7 +470,7 @@ const PaymentScreen = () => {
             <span
               className={`text-[10px] md:text-sm font-black uppercase tracking-wider ${categoryInfo.color}`}
             >
-              ชำระเงินสำหรับ : {categoryInfo.name}
+              à¸Šà¸³à¸£à¸°à¹€à¸‡à¸´à¸™à¸ªà¸³à¸«à¸£à¸±à¸š : {categoryInfo.name}
             </span>
           </div>
         </div>
@@ -453,7 +513,7 @@ const PaymentScreen = () => {
                         />
                       </div>
                       <h3 className="text-3xl font-black text-slate-900">
-                        {Number(transferedAmount).toLocaleString()} ฿
+                        à¸¿{displayTotalPrice.toLocaleString()}
                       </h3>
                       <p className="text-slate-400 text-sm font-medium mt-2">
                         {t.scanHint}
@@ -517,10 +577,60 @@ const PaymentScreen = () => {
               </div>
             </div>
 
+            {/* Order Summary Card - Left Side */}
+            {orderType === "product" && (
+              <div className="bg-white rounded-3xl p-4 md:p-6 shadow-sm border border-slate-100">
+                <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2">
+                  <FaReceipt size={12} />
+                  {t.summaryDetail}
+                </h4>
+                <div className="space-y-2.5">
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs font-medium text-slate-500">
+                      {t.itemsPrice}
+                    </span>
+                    <span className="text-sm font-bold text-slate-700">
+                      à¸¿{displayItemsPrice.toLocaleString()}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs font-medium text-slate-500">
+                      {t.vatPrice}
+                    </span>
+                    <span className="text-sm font-bold text-slate-700">
+                      à¸¿{displayVatPrice.toLocaleString()}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs font-medium text-slate-500">
+                      {t.shippingPrice}
+                    </span>
+                    <span className="text-sm font-bold text-slate-700">
+                      {displayShippingPrice === 0 ? (
+                        <span className="text-emerald-600">{language === "thai" ? "à¸Ÿà¸£à¸µ" : "Free"}</span>
+                      ) : (
+                        <>à¸¿{displayShippingPrice.toLocaleString()}</>
+                      )}
+                    </span>
+                  </div>
+                  <div className="border-t border-slate-100 pt-2.5 mt-2">
+                    <div className="flex justify-between items-center">
+                      <span className="text-xs font-black text-slate-700 uppercase tracking-wide">
+                        {t.total}
+                      </span>
+                      <span className="text-base font-black text-indigo-600">
+                        à¸¿{displayTotalPrice.toLocaleString()}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
             <div className="bg-slate-900 rounded-3xl p-4 md:p-6 text-white flex justify-between items-center shadow-xl shadow-slate-200">
               <div className="text-start">
                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                  หมายเลขอ้างอิงชำระเงิน
+                  à¸«à¸¡à¸²à¸¢à¹€à¸¥à¸‚à¸­à¹‰à¸²à¸‡à¸­à¸´à¸‡à¸Šà¸³à¸£à¸°à¹€à¸‡à¸´à¸™
                 </p>
                 <p className="font-mono font-bold text-lg">{orderID}</p>
               </div>
@@ -542,6 +652,83 @@ const PaymentScreen = () => {
                 onSubmit={submitHandler}
                 className="p-4 md:p-8 flex-grow flex flex-col gap-4 md:gap-6"
               >
+                {/* Order Summary Breakdown */}
+                {orderType === "product" && (
+                  <div className="bg-gradient-to-br from-slate-50 to-indigo-50 rounded-3xl p-4 md:p-6 border border-slate-100 shadow-sm">
+                    <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2">
+                      <FaReceipt size={12} />
+                      {t.summaryDetail}
+                    </h4>
+                    <div className="space-y-3">
+                      {/* Products */}
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm font-medium text-slate-600">
+                          {t.itemsPrice}
+                        </span>
+                        <span className="text-sm font-bold text-slate-800">
+                          à¸¿{displayItemsPrice.toLocaleString()}
+                        </span>
+                      </div>
+                      {/* VAT */}
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm font-medium text-slate-600">
+                          {t.vatPrice}
+                        </span>
+                        <span className="text-sm font-bold text-slate-800">
+                          à¸¿{displayVatPrice.toLocaleString()}
+                        </span>
+                      </div>
+                      {/* Shipping */}
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm font-medium text-slate-600">
+                          {t.shippingPrice}
+                        </span>
+                        <span className="text-sm font-bold text-slate-800">
+                          {displayShippingPrice === 0 ? (
+                            <span className="text-emerald-600">{language === "thai" ? "à¸Ÿà¸£à¸µ" : "Free"}</span>
+                          ) : (
+                            <>à¸¿{displayShippingPrice.toLocaleString()}</>
+                          )}
+                        </span>
+                      </div>
+                      {/* Divider */}
+                      <div className="border-t border-slate-200 my-2"></div>
+                      {/* Total */}
+                      <div className="flex justify-between items-center">
+                        <span className="text-base font-black text-slate-900 uppercase tracking-wide">
+                          {t.total}
+                        </span>
+                        <span className="text-xl font-black text-indigo-600">
+                          à¸¿{displayTotalPrice.toLocaleString()}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* BuyNow Product Detail */}
+                {isBuyNow && (
+                  <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-3xl p-4 md:p-6 border border-amber-200 shadow-sm">
+                    <h4 className="text-xs font-black text-amber-600 uppercase tracking-widest mb-3 flex items-center gap-2">
+                      <FaReceipt size={12} />
+                      {language === "thai" ? "สินค้าสั่งซื้อทันที" : "Direct Purchase"}
+                    </h4>
+                    <div className="flex items-center gap-4">
+                      <div className="w-16 h-16 bg-white rounded-xl border border-amber-100 flex items-center justify-center shadow-sm">
+                        <FaBox size={24} className="text-amber-300" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="font-bold text-slate-800 text-sm">
+                          {language === "thai" ? "สินค้าชิ้นเดียว x" : "Single Item x"}{" "}{urlQty}
+                        </p>
+                        <p className="text-xs text-slate-500 mt-1">
+                          ฿{urlPrice.toLocaleString()} / ชิ้น
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 text-start">
                   <div className="md:col-span-2 space-y-1.5">
                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">
@@ -563,19 +750,19 @@ const PaymentScreen = () => {
                     {(() => {
                       const selectedOption =
                         transferedName === "PromptPay QR"
-                          ? { icon: "📲", label: "พร้อมเพย์ (Scan QR Code)" }
+                          ? { icon: "ðŸ“²", label: "à¸žà¸£à¹‰à¸­à¸¡à¹€à¸žà¸¢à¹Œ (Scan QR Code)" }
                           : BANK_ACCOUNTS.find(
                             (b) => b.value === transferedName,
                           )
                             ? {
-                              icon: "🏦",
+                              icon: "ðŸ¦",
                               label: BANK_ACCOUNTS.find(
                                 (b) => b.value === transferedName,
                               ).label,
                             }
                             : {
-                              icon: "💳",
-                              label: "-- เลือกช่องทางที่คุณชำระเงิน --",
+                              icon: "ðŸ’³",
+                              label: "-- à¹€à¸¥à¸·à¸­à¸à¸Šà¹ˆà¸­à¸‡à¸—à¸²à¸‡à¸—à¸µà¹ˆà¸„à¸¸à¸“à¸Šà¸³à¸£à¸°à¹€à¸‡à¸´à¸™ --",
                             };
 
                       const handleSelect = (val) => {
@@ -626,10 +813,10 @@ const PaymentScreen = () => {
                                     onClick={() => handleSelect("PromptPay QR")}
                                     className={`px-4 py-3 flex items-center gap-3 hover:bg-slate-50 cursor-pointer transition-colors ${transferedName === "PromptPay QR" ? "bg-slate-50" : ""}`}
                                   >
-                                    <span className="text-xl text-start">📲</span>
+                                    <span className="text-xl text-start">ðŸ“²</span>
                                     <div className="flex flex-col text-start">
                                       <span className="text-sm font-bold text-slate-800 leading-tight">
-                                        พร้อมเพย์ (Scan QR Code)
+                                        à¸žà¸£à¹‰à¸­à¸¡à¹€à¸žà¸¢à¹Œ (Scan QR Code)
                                       </span>
                                       <span className="text-[10px] font-medium text-slate-400">
                                         Scan and Pay instantly
@@ -648,7 +835,7 @@ const PaymentScreen = () => {
                                       onClick={() => handleSelect(bank.value)}
                                       className={`px-4 py-3 flex items-center gap-3 hover:bg-slate-50 cursor-pointer transition-colors ${transferedName === bank.value ? "bg-slate-50" : ""}`}
                                     >
-                                      <span className="text-xl text-start">🏦</span>
+                                      <span className="text-xl text-start">ðŸ¦</span>
                                       <div className="flex flex-col text-start">
                                         <span className="text-sm font-bold text-slate-800 leading-tight">
                                           {bank.label}
@@ -676,7 +863,7 @@ const PaymentScreen = () => {
                       {t.amount}
                     </label>
                     <div className="w-full bg-slate-100 border border-slate-200 rounded-2xl px-4 py-3 text-sm font-black text-black">
-                      {Number(transferedAmount).toLocaleString()} ฿
+                      à¸¿{displayTotalPrice.toLocaleString()}
                     </div>
                   </div>
                   <div className="space-y-1.5">
@@ -712,7 +899,7 @@ const PaymentScreen = () => {
                       <div className="py-4">
                         <FaFileUpload className="mx-auto text-slate-300 text-4xl mb-4 group-hover:text-blue-500 transition-colors" />
                         <p className="text-sm font-bold text-slate-500">
-                          คลิกเพื่ออัปโหลดสลิปโอนเงิน
+                          à¸„à¸¥à¸´à¸à¹€à¸žà¸·à¹ˆà¸­à¸­à¸±à¸›à¹‚à¸«à¸¥à¸”à¸ªà¸¥à¸´à¸›à¹‚à¸­à¸™à¹€à¸‡à¸´à¸™
                         </p>
                       </div>
                     )}
