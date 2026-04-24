@@ -149,7 +149,14 @@ const limiter = rateLimit({
   max: process.env.NODE_ENV === "development" ? 500 : 500, //  เน€เธเธดเนเธก Limit เนเธเนเธซเธกเธ” Dev
   message: "Too many requests from this IP, please try again later.",
 });
-app.use("/api", limiter);
+// Apply rate limiter to /api EXCEPT for stock product routes (component check boom - needs unlimited access)
+app.use("/api", (req, res, next) => {
+  // Skip rate limiting for stock product routes
+  if (req.path.startsWith("/stockproducts")) {
+    return next();
+  }
+  limiter(req, res, next);
+});
 
 // Stricter Rate Limit for Login
 const loginLimiter = rateLimit({
