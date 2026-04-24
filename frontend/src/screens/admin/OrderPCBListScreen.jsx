@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from "react";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
 
 // --- Icons ---
 import {
@@ -13,6 +14,8 @@ import {
   FaLayerGroup,
   FaCheckCircle,
   FaDownload,
+  FaArrowRight,
+  FaBox,
 } from "react-icons/fa";
 import { PiCircuitryFill, PiCurrencyCircleDollarBold } from "react-icons/pi";
 
@@ -66,6 +69,7 @@ const OrderPCBListScreen = () => {
   const [showModal, setShowModal] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
   const [confirmType, setConfirmType] = useState(null); // 'review', 'manufacture', 'delivery'
+  const [hoveredRow, setHoveredRow] = useState(null);
 
   // --- Handlers ---
   const handleShowModal = (item, type) => {
@@ -147,56 +151,66 @@ const OrderPCBListScreen = () => {
     () =>
       ({
         en: {
-          Title: "Command Center",
-          Subtitle: "Manufacturing Pipeline",
+          Title: "PCB Command Center",
+          Subtitle: "Manufacturing Pipeline Overview",
           BtnPrice: "Pricing Schema",
-          Search: "Search system archive...",
+          Search: "Search by project name or order ID...",
           Stats: {
-            total: "Total Assets",
-            pending: "Waiting Confirmation",
+            total: "Total Orders",
+            pending: "Awaiting Approval",
             manufacturing: "In Production",
-            delivered: "Dispatched",
+            delivered: "Shipped",
           },
           Headers: {
-            Project: "Project Entity",
+            Project: "Project Details",
             Price: "Valuation",
-            Process: "Management Flow",
+            Process: "Workflow Status",
             Action: "Actions",
           },
           Status: {
-            Pending: "Authorize",
+            Pending: "Pending",
             Done: "Delivered",
             Locked: "Waiting",
+            Manufacturing: "Manufacturing",
           },
           Buttons: {
-            Look: "Look",
+            Look: "View Details",
             ConfirmDelivery: "Confirm Delivery",
             ApproveProduction: "Approve Production",
           },
+          Empty: "No orders found",
+          EmptyDesc: "Try adjusting your search criteria",
         },
         thai: {
-          Title: "ศูนย์บัญชาการ",
-          Subtitle: "สายการผลิตทั้งหมด",
+          Title: "ศูนย์ควบคุม PCB",
+          Subtitle: "ภาพรวมสายการผลิต",
           BtnPrice: "ตั้งราคากลาง",
-          Search: "ค้นหาออเดอร์ในระบบ...",
+          Search: "ค้นหาด้วยชื่อโปรเจกต์หรือรหัสคำสั่งซื้อ...",
           Stats: {
-            total: "รายการทั้งหมด",
-            pending: "รอการยืนยัน",
+            total: "คำสั่งซื้อทั้งหมด",
+            pending: "รออนุมัติ",
             manufacturing: "กำลังผลิต",
             delivered: "จัดส่งแล้ว",
           },
           Headers: {
-            Project: "ข้อมูลโปรเจกต์",
+            Project: "รายละเอียดโปรเจกต์",
             Price: "มูลค่า",
-            Process: "จัดการสถานะ",
+            Process: "สถานะการผลิต",
             Action: "ตัวเลือก",
           },
-          Status: { Pending: "อนุมัติ", Done: "ส่งแล้ว", Locked: "รอผลิต" },
-          Buttons: {
-            Look: "ดูข้อมูล",
-            ConfirmDelivery: "ยืนยันการส่ง",
-            ApproveProduction: "อนุมัติผลิต",
+          Status: {
+            Pending: "รอดำเนินการ",
+            Done: "ส่งแล้ว",
+            Locked: "รอผลิต",
+            Manufacturing: "กำลังผลิต",
           },
+          Buttons: {
+            Look: "ดูรายละเอียด",
+            ConfirmDelivery: "ยืนนั้นการส่ง",
+            ApproveProduction: "อนุมัติการผลิต",
+          },
+          Empty: "ไม่พบรายการ",
+          EmptyDesc: "ลองปรับเงื่อนไขการค้นหาของคุณ",
         },
       })[language || "en"],
     [language],
@@ -222,7 +236,7 @@ const OrderPCBListScreen = () => {
   // --- Render Early Returns ---
   if (loadingOrders || loadingCarts) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#f8f9fb] dark:bg-black transition-colors duration-500">
+      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100 dark:from-black dark:to-zinc-900 transition-colors duration-500">
         <Loader />
       </div>
     );
@@ -240,35 +254,48 @@ const OrderPCBListScreen = () => {
 
   // --- Main Render ---
   return (
-    <div className="min-h-screen bg-[#f8f9fb] dark:bg-black p-4 md:p-6 font-sans selection:bg-blue-100 selection:text-blue-900 md:p-10 lg:p-12 transition-colors duration-500">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 dark:from-black dark:via-zinc-950 dark:to-black p-4 md:p-6 font-sans selection:bg-blue-100 selection:text-blue-900 md:p-8 lg:p-12 transition-colors duration-500">
       <style dangerouslySetInnerHTML={{ __html: `
                 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Outfit:wght@400;500;600;700;800;900&family=Prompt:wght@400;500;600;700;800;900&display=swap');
                 .font-display { font-family: 'Outfit', 'Prompt', sans-serif; }
                 .font-sans { font-family: 'Inter', 'Prompt', sans-serif; }
 
                 .glass-header {
-                  background: white;
-                  border: 1px solid rgba(0,0,0,0.05);
-                  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05);
+                  background: rgba(255, 255, 255, 0.8);
+                  backdrop-filter: blur(20px);
+                  border: 1px solid rgba(255, 255, 255, 0.8);
+                  box-shadow: 0 8px 32px -12px rgba(0, 0, 0, 0.08);
                 }
                 .dark .glass-header {
-                  background: rgba(24, 24, 27, 0.5);
-                  border: 1px solid rgba(39, 39, 42, 1);
-                  box-shadow: none;
+                  background: rgba(24, 24, 27, 0.6);
+                  backdrop-filter: blur(20px);
+                  border: 1px solid rgba(39, 39, 42, 0.6);
+                  box-shadow: 0 8px 32px -12px rgba(0, 0, 0, 0.4);
                 }
-                .ls-widest { letter-spacing: 0.3em; }
-                .ls-loose { letter-spacing: 0.1em; }
+                .glass-card {
+                  background: rgba(255, 255, 255, 0.7);
+                  backdrop-filter: blur(16px);
+                  border: 1px solid rgba(255, 255, 255, 0.6);
+                  box-shadow: 0 4px 24px -8px rgba(0, 0, 0, 0.06);
+                }
+                .dark .glass-card {
+                  background: rgba(24, 24, 27, 0.5);
+                  border: 1px solid rgba(39, 39, 42, 0.5);
+                  box-shadow: 0 4px 24px -8px rgba(0, 0, 0, 0.3);
+                }
+                .ls-widest { letter-spacing: 0.2em; }
+                .ls-loose { letter-spacing: 0.05em; }
                 .btn-action {
                     display: flex;
-                    height: 2.25rem;
-                    width: 2.25rem;
+                    height: 2.5rem;
+                    width: 2.5rem;
                     align-items: center;
                     justify-content: center;
-                    border-radius: 0.75rem;
+                    border-radius: 1rem;
                     background: white;
-                    box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-                    border: 1px solid rgb(241 245 249);
-                    transition: all 0.2s;
+                    box-shadow: 0 2px 8px -2px rgba(0, 0, 0, 0.1);
+                    border: 1px solid rgba(0, 0, 0, 0.05);
+                    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
                     cursor: pointer;
                     position: relative;
                     z-index: 10;
@@ -276,107 +303,252 @@ const OrderPCBListScreen = () => {
                 .dark .btn-action {
                     background: #09090b;
                     border: 1px solid #27272a;
-                    box-shadow: none;
+                    box-shadow: 0 2px 8px -2px rgba(0, 0, 0, 0.3);
                 }
                 .btn-action:hover {
-                    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
-                    transform: translateY(-1px);
+                    box-shadow: 0 8px 20px -8px rgba(0, 0, 0, 0.15);
+                    transform: translateY(-2px) scale(1.05);
                 }
                 .btn-action:active {
                     transform: scale(0.95);
+                }
+                .stat-card {
+                  background: linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.7) 100%);
+                  border: 1px solid rgba(255, 255, 255, 0.8);
+                  box-shadow: 0 4px 16px -4px rgba(0, 0, 0, 0.08);
+                }
+                .dark .stat-card {
+                  background: linear-gradient(135deg, rgba(39,39,42,0.9) 0%, rgba(24,24,27,0.7) 100%);
+                  border: 1px solid rgba(39, 39, 42, 0.6);
+                  box-shadow: 0 4px 16px -4px rgba(0, 0, 0, 0.3);
+                }
+                .status-badge {
+                  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                }
+                .status-badge:hover {
+                  transform: scale(1.05);
+                }
+                .search-input {
+                  background: rgba(255, 255, 255, 0.8);
+                  backdrop-filter: blur(12px);
+                  border: 1px solid rgba(0, 0, 0, 0.06);
+                  box-shadow: 0 4px 16px -4px rgba(0, 0, 0, 0.06);
+                }
+                .dark .search-input {
+                  background: rgba(24, 24, 27, 0.8);
+                  border: 1px solid rgba(39, 39, 42, 0.6);
+                  box-shadow: 0 4px 16px -4px rgba(0, 0, 0, 0.3);
+                }
+                .search-input:focus {
+                  background: white;
+                  border-color: rgba(59, 130, 246, 0.5);
+                  box-shadow: 0 4px 20px -4px rgba(59, 130, 246, 0.2);
+                }
+                .dark .search-input:focus {
+                  background: #09090b;
+                  border-color: rgba(59, 130, 246, 0.5);
+                }
+                .gradient-icon {
+                  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+                  box-shadow: 0 4px 12px -2px rgba(30, 41, 59, 0.4);
+                }
+                .dark .gradient-icon {
+                  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+                  box-shadow: 0 4px 12px -2px rgba(59, 130, 246, 0.4);
+                }
+                .table-row-hover {
+                  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+                }
+                .table-row-hover:hover {
+                  background: rgba(59, 130, 246, 0.04);
+                }
+                .dark .table-row-hover:hover {
+                  background: rgba(59, 130, 246, 0.08);
+                }
+                .table-divider {
+                  border-bottom: 1px solid #e2e8f0;
+                }
+                .dark .table-divider {
+                  border-bottom: 1px solid #27272a;
+                }
+                .empty-state {
+                  background: linear-gradient(135deg, rgba(255,255,255,0.6) 0%, rgba(248,250,252,0.4) 100%);
+                }
+                .dark .empty-state {
+                  background: linear-gradient(135deg, rgba(39,39,42,0.6) 0%, rgba(24,24,27,0.4) 100%);
                 }
             ` }} />
 
       <div className="mx-auto max-w-7xl">
         {/* --- HEADER DASHBOARD --- */}
-        <header className="glass-header mb-12 flex flex-col items-center justify-between gap-4 md:gap-8 rounded-[2.5rem] p-4 md:p-8 md:flex-row md:p-10">
+        <motion.header
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, ease: "easeOut" }}
+          className="glass-header mb-10 flex flex-col items-center justify-between gap-6 rounded-[2rem] p-6 md:p-8 lg:flex-row md:p-10"
+        >
           <div className="flex flex-col items-center gap-4 md:gap-6 md:flex-row md:items-start">
-            <div className="flex h-16 w-16 items-center justify-center rounded-[1.5rem] bg-slate-950 dark:bg-blue-600 text-blue-400 dark:text-white">
+            <div className="gradient-icon flex h-16 w-16 items-center justify-center rounded-[1.25rem] text-blue-400 dark:text-white">
               <PiCircuitryFill size={32} />
             </div>
             <div className="text-center md:text-left">
-              <h1 className="font-display text-4xl font-black tracking-tighter text-slate-950 dark:text-white">
+              <h1 className="font-display text-3xl md:text-4xl font-black tracking-tight text-slate-900 dark:text-white">
                 {t.Title}
               </h1>
-              <p className="mt-1 text-[11px] font-black uppercase ls-widest text-slate-400">
+              <p className="mt-1 text-[11px] font-semibold uppercase ls-widest text-slate-500 dark:text-slate-400">
                 {t.Subtitle}
               </p>
             </div>
           </div>
 
-          <div className="flex flex-wrap justify-center gap-4 md:gap-6 md:gap-10 md:justify-end">
-            <StatItem label={t.Stats.total} value={stats.total} />
-            <StatItem
-              label={t.Stats.manufacturing}
-              value={stats.manufacturing}
-              color="text-amber-500"
-            />
-            <StatItem
-              label={t.Stats.delivered}
-              value={stats.delivered}
-              color="text-emerald-500"
-            />
+          <div className="flex flex-wrap justify-center gap-3 md:gap-4 lg:justify-end">
+            <motion.div
+              whileHover={{ scale: 1.02 }}
+              className="stat-card rounded-2xl p-4 text-center min-w-[100px]"
+            >
+              <p className="text-[9px] font-bold uppercase ls-widest text-slate-400 mb-1">
+                {t.Stats.total}
+              </p>
+              <p className="font-display text-2xl font-black text-slate-900 dark:text-white">
+                {stats.total}
+              </p>
+            </motion.div>
+            <motion.div
+              whileHover={{ scale: 1.02 }}
+              className="stat-card rounded-2xl p-4 text-center min-w-[100px]"
+            >
+              <p className="text-[9px] font-bold uppercase ls-widest text-amber-500 mb-1">
+                {t.Stats.pending}
+              </p>
+              <p className="font-display text-2xl font-black text-amber-600 dark:text-amber-400">
+                {stats.pending}
+              </p>
+            </motion.div>
+            <motion.div
+              whileHover={{ scale: 1.02 }}
+              className="stat-card rounded-2xl p-4 text-center min-w-[100px]"
+            >
+              <p className="text-[9px] font-bold uppercase ls-widest text-blue-500 mb-1">
+                {t.Stats.manufacturing}
+              </p>
+              <p className="font-display text-2xl font-black text-blue-600 dark:text-blue-400">
+                {stats.manufacturing}
+              </p>
+            </motion.div>
+            <motion.div
+              whileHover={{ scale: 1.02 }}
+              className="stat-card rounded-2xl p-4 text-center min-w-[100px]"
+            >
+              <p className="text-[9px] font-bold uppercase ls-widest text-emerald-500 mb-1">
+                {t.Stats.delivered}
+              </p>
+              <p className="font-display text-2xl font-black text-emerald-600 dark:text-emerald-400">
+                {stats.delivered}
+              </p>
+            </motion.div>
           </div>
-        </header>
+        </motion.header>
 
         {/* --- TOOLBAR --- */}
-        <div className="mb-8 flex flex-col items-center justify-between gap-4 md:gap-6 md:flex-row md:px-4">
-          <div className="relative w-full max-w-md">
-            <FaSearch className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300" />
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, ease: "easeOut", delay: 0.1 }}
+          className="mb-8 flex flex-col items-center justify-between gap-4 md:gap-6 md:flex-row"
+        >
+          <div className="relative w-full max-w-lg">
+            <FaSearch className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400" size={14} />
             <input
               type="text"
               placeholder={t.Search}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="h-14 w-full rounded-2xl bg-white dark:bg-zinc-900/30 px-14 text-sm font-semibold tracking-tight text-slate-950 dark:text-white shadow-sm ring-1 ring-slate-100 dark:ring-zinc-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 md:text-base border-none"
+              className="search-input h-12 w-full rounded-xl px-12 py-3 text-sm font-medium tracking-tight text-slate-900 dark:text-white outline-none transition-all md:h-14 md:text-base"
             />
+            {searchTerm && (
+              <button
+                onClick={() => setSearchTerm("")}
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
+              >
+                <FaBox size={14} />
+              </button>
+            )}
           </div>
 
-          <button
+          <motion.button
+            whileHover={{ scale: 1.02, y: -2 }}
+            whileTap={{ scale: 0.98 }}
             onClick={() => navigate("/admin/orderpcbeditlist")}
-            className="flex h-14 items-center gap-4 rounded-2xl bg-slate-950 px-4 md:px-8 font-display text-xs font-black uppercase ls-widest text-white shadow-xl shadow-slate-950/20 hover:bg-slate-900 transition-all"
+            className="flex h-12 items-center gap-3 rounded-xl bg-gradient-to-r from-slate-900 to-slate-800 px-6 font-display text-xs font-bold uppercase ls-widest text-white shadow-lg shadow-slate-900/20 hover:shadow-xl hover:shadow-slate-900/30 transition-all dark:from-blue-600 dark:to-blue-700 dark:shadow-blue-900/30"
           >
-            <PiCurrencyCircleDollarBold size={20} className="text-blue-400" />
+            <PiCurrencyCircleDollarBold size={18} className="text-blue-400" />
             {t.BtnPrice}
-          </button>
-        </div>
+          </motion.button>
+        </motion.div>
 
         {/* --- DATA LIST --- */}
-        <div className="space-y-6 md:px-4">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, ease: "easeOut", delay: 0.2 }}
+          className="space-y-4"
+        >
+          {/* EMPTY STATE */}
+          {filteredOrders.length === 0 && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="empty-state rounded-3xl p-16 text-center border border-dashed border-slate-200 dark:border-zinc-800"
+            >
+              <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-2xl bg-slate-100 dark:bg-zinc-900">
+                <FaLayerGroup size={32} className="text-slate-300" />
+              </div>
+              <h3 className="mb-2 font-display text-xl font-bold text-slate-900 dark:text-white">
+                {t.Empty}
+              </h3>
+              <p className="text-sm text-slate-500">{t.EmptyDesc}</p>
+            </motion.div>
+          )}
+
           {/* PC VIEW */}
-          <div className="hidden lg:block overflow-hidden rounded-[2.5rem] bg-white dark:bg-zinc-900/30 shadow-sm ring-1 ring-slate-100 dark:ring-zinc-800">
+          <div className="hidden lg:block overflow-hidden rounded-[1.5rem] glass-card">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="border-b border-slate-50 dark:border-zinc-800 bg-slate-50/50 dark:bg-zinc-950">
-                  <th className="py-4 ps-10 text-[10px] font-black uppercase ls-widest text-slate-400">
+                <tr className="border-b-2 border-slate-300 dark:border-zinc-600 bg-slate-50/80 dark:bg-zinc-900/50">
+                  <th className="py-5 ps-8 text-[10px] font-bold uppercase ls-widest text-slate-500 dark:text-slate-400">
                     #
                   </th>
-                  <th className="py-4 ps-4 text-[10px] font-black uppercase ls-widest text-slate-400">
+                  <th className="py-5 ps-4 text-[10px] font-bold uppercase ls-widest text-slate-500 dark:text-slate-400">
                     {t.Headers.Project}
                   </th>
-                  <th className="py-4 text-[10px] font-black uppercase ls-widest text-slate-400">
+                  <th className="py-5 text-[10px] font-bold uppercase ls-widest text-slate-500 dark:text-slate-400">
                     {t.Headers.Price}
                   </th>
-                  <th className="py-4 text-center text-[10px] font-black uppercase ls-widest text-slate-400">
+                  <th className="py-5 text-center text-[10px] font-bold uppercase ls-widest text-slate-500 dark:text-slate-400">
                     {t.Headers.Process}
                   </th>
-                  <th className="py-4 pe-10 text-right text-[10px] font-black uppercase ls-widest text-slate-400">
+                  <th className="py-5 pe-8 text-right text-[10px] font-bold uppercase ls-widest text-slate-500 dark:text-slate-400">
                     {t.Headers.Action}
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-50">
+              <tbody className="divide-y divide-slate-200 dark:divide-zinc-700">
                 {filteredOrders.map((pcb, index) => (
-                  <tr
+                  <motion.tr
                     key={pcb.id}
-                    className="group hover:bg-slate-50/50 transition-colors"
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: index * 0.05, duration: 0.3 }}
+                    onMouseEnter={() => setHoveredRow(pcb.id)}
+                    onMouseLeave={() => setHoveredRow(null)}
+                    className="table-row-hover group border-b border-slate-200 dark:border-zinc-700 last:border-b-0"
                   >
-                    <td className="py-4 md:py-8 ps-10 font-display text-sm font-black text-slate-200 dark:text-zinc-800">
+                    <td className="py-6 ps-8 font-display text-sm font-bold text-slate-300 dark:text-zinc-700">
                       {String(index + 1).padStart(2, "0")}
                     </td>
-                    <td className="py-4 md:py-8 ps-4">
-                      <div className="flex items-center gap-4 md:gap-6">
-                        <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-white dark:bg-black shadow-sm ring-1 ring-slate-100 dark:ring-zinc-800">
+                    <td className="py-6 ps-4">
+                      <div className="flex items-center gap-5">
+                        <div className="glass-card flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-xl">
                           {pcb.pcb_image ? (
                             <img
                               src={`${BASE_URL}${pcb.pcb_image}`}
@@ -385,98 +557,123 @@ const OrderPCBListScreen = () => {
                             />
                           ) : (
                             <FaLayerGroup
-                              size={24}
+                              size={22}
                               className="text-slate-300"
                             />
                           )}
                         </div>
                         <div className="min-w-0 pr-4">
-                          <h3 className="truncate font-display text-lg font-black tracking-tight text-slate-950 dark:text-white">
+                          <h3 className="truncate font-display text-base font-bold tracking-tight text-slate-900 dark:text-white">
                             {pcb.projectname}
                           </h3>
-                          <span className="rounded-lg bg-slate-100 dark:bg-zinc-800 px-2 py-0.5 font-mono text-[10px] font-bold text-slate-500 dark:text-slate-400">
+                          <span className="mt-1 inline-block rounded-md bg-slate-100 dark:bg-zinc-800 px-2 py-0.5 font-mono text-[10px] font-semibold text-slate-500 dark:text-slate-400">
                             {pcb.orderID}
                           </span>
                         </div>
                       </div>
                     </td>
-                    <td className="py-4 md:py-8">
+                    <td className="py-6">
                       <div className="flex flex-col">
-                        <span className="font-mono text-sm font-bold text-blue-600 dark:text-blue-400">
+                        <span className="font-mono text-base font-bold text-blue-600 dark:text-blue-400">
                           {formatCurrency(
                             pcb.quoted_price_to_customer ||
                             pcb.total_amount_cost,
                           )}
                         </span>
-                        <span className="text-[10px] font-black uppercase ls-loose text-slate-400">
+                        <span className="mt-1 text-[10px] font-medium uppercase ls-loose text-slate-400">
                           {formatDate(pcb.created_at, language)}
                         </span>
                       </div>
                     </td>
-                    <td className="py-4 md:py-6 text-center">
-                      <div className="flex items-center justify-center gap-2">
+                    <td className="py-6 text-center">
+                      <div className="flex items-center justify-center gap-3">
                         {pcb.itemType === 'ORDER' ? (
                           <>
-                            <button
-                              onClick={() => handleShowModal(pcb, "manufacture")}
-                              className={`px-3 py-1.5 rounded-lg text-[9px] font-black uppercase ls-widest transition-all ${Number(pcb.isManufacting) === 1 ? "bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600 dark:text-emerald-400" : "bg-amber-50 dark:bg-amber-950/30 text-amber-600 dark:text-amber-400"}`}
+                            <span
+                              className={`status-badge inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[9px] font-bold uppercase ls-widest ${
+                                Number(pcb.isManufacting) === 1
+                                  ? "bg-gradient-to-r from-emerald-50 to-emerald-100 dark:from-emerald-950/50 dark:to-emerald-900/30 text-emerald-700 dark:text-emerald-400 border border-emerald-200/50 dark:border-emerald-800/50"
+                                  : "bg-gradient-to-r from-amber-50 to-amber-100 dark:from-amber-950/50 dark:to-amber-900/30 text-amber-700 dark:text-amber-400 border border-amber-200/50 dark:border-amber-800/50"
+                              }`}
                             >
+                              {Number(pcb.isManufacting) === 1 ? (
+                                <FaIndustry size={10} />
+                              ) : (
+                                <FaCheck size={10} />
+                              )}
                               {Number(pcb.isManufacting) === 1
                                 ? pcb.manufactureOrderNumber
                                 : t.Status.Pending}
-                            </button>
-                            <div className="h-px w-4 bg-slate-100" />
-                            <button
-                              onClick={() =>
-                                Number(pcb.isManufacting) === 1 &&
-                                handleShowModal(pcb, "delivery")
-                              }
-                              className={`px-3 py-1.5 rounded-lg text-[9px] font-black uppercase ls-widest transition-all ${Number(pcb.isDelivered) === 1 ? "bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600 dark:text-emerald-400" : Number(pcb.isManufacting) === 1 ? "bg-amber-50 dark:bg-amber-950/30 text-amber-600 dark:text-amber-400" : "bg-slate-50 dark:bg-zinc-900 text-slate-200 dark:text-zinc-800 cursor-not-allowed"}`}
+                            </span>
+                            <div className="h-5 w-px bg-slate-200 dark:bg-zinc-700" />
+                            <span
+                              className={`status-badge inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[9px] font-bold uppercase ls-widest ${
+                                Number(pcb.isDelivered) === 1
+                                  ? "bg-gradient-to-r from-emerald-50 to-emerald-100 dark:from-emerald-950/50 dark:to-emerald-900/30 text-emerald-700 dark:text-emerald-400 border border-emerald-200/50 dark:border-emerald-800/50"
+                                  : Number(pcb.isManufacting) === 1
+                                  ? "bg-gradient-to-r from-amber-50 to-amber-100 dark:from-amber-950/50 dark:to-amber-900/30 text-amber-700 dark:text-amber-400 border border-amber-200/50 dark:border-amber-800/50"
+                                  : "bg-slate-100 text-slate-400 dark:bg-zinc-800 dark:text-zinc-600 border border-slate-200/50 dark:border-zinc-700/50"
+                              }`}
                             >
+                              {Number(pcb.isDelivered) === 1 ? (
+                                <FaCheck size={10} />
+                              ) : (
+                                <FaTruck size={10} />
+                              )}
                               {Number(pcb.isDelivered) === 1
                                 ? t.Status.Done
-                                : t.Status.Pending}
-                            </button>
+                                : t.Status.Locked}
+                            </span>
                           </>
                         ) : (
                           <>
-                            <button
-                              onClick={() => handleShowCartModal(pcb)}
-                              className={`px-3 py-1.5 rounded-lg text-[9px] font-black uppercase ls-widest transition-all ${pcb.status === 'accepted' ? "bg-emerald-50 text-emerald-600" : "bg-amber-50 text-amber-600"}`}
+                            <span
+                              className={`status-badge inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[9px] font-bold uppercase ls-widest ${
+                                pcb.status === 'accepted'
+                                  ? "bg-gradient-to-r from-emerald-50 to-emerald-100 dark:from-emerald-950/50 dark:to-emerald-900/30 text-emerald-700 dark:text-emerald-400 border border-emerald-200/50 dark:border-emerald-800/50"
+                                  : "bg-gradient-to-r from-amber-50 to-amber-100 dark:from-amber-950/50 dark:to-amber-900/30 text-amber-700 dark:text-amber-400 border border-amber-200/50 dark:border-amber-800/50"
+                              }`}
                             >
-                              {pcb.status === 'accepted' ? "Review Done" : t.Status.Pending}
-                            </button>
-                            <div className="h-px w-4 bg-slate-100" />
-                            <button
-                              disabled
-                              className="px-3 py-1.5 rounded-lg text-[9px] font-black uppercase ls-widest bg-slate-50 dark:bg-zinc-900 text-slate-200 dark:text-zinc-800 cursor-not-allowed"
-                            >
-                              {t.Status.Pending}
-                            </button>
+                              {pcb.status === 'accepted' ? (
+                                <FaCheckCircle size={10} />
+                              ) : (
+                                <FaIndustry size={10} />
+                              )}
+                              {pcb.status === 'accepted' ? "Reviewed" : t.Status.Pending}
+                            </span>
+                            <div className="h-5 w-px bg-slate-200 dark:bg-zinc-700" />
+                            <span className="inline-flex items-center gap-1.5 rounded-lg bg-slate-100 px-3 py-1.5 text-[9px] font-bold uppercase ls-widest text-slate-400 dark:bg-zinc-800 dark:text-zinc-600 border border-slate-200/50 dark:border-zinc-700/50">
+                              <FaTruck size={10} />
+                              {t.Status.Locked}
+                            </span>
                           </>
                         )}
                       </div>
                     </td>
-                    <td className="py-4 md:py-6 pe-10 text-right">
-                      <div className="flex justify-end gap-3">
+                    <td className="py-6 pe-8 text-right">
+                      <div className="flex justify-end gap-2">
                         {pcb.itemType === 'ORDER' ? (
                           <>
-                            <button
+                            <motion.button
+                              whileHover={{ scale: 1.1 }}
+                              whileTap={{ scale: 0.9 }}
                               onClick={() => {
                                 if (Number(pcb.isManufacting) === 0)
                                   handleShowModal(pcb, "manufacture");
                               }}
-                              className={`btn-action ${Number(pcb.isManufacting) === 1 ? "text-emerald-500" : "text-amber-600"}`}
+                              className={`btn-action ${Number(pcb.isManufacting) === 1 ? "text-emerald-500" : "text-amber-500"}`}
                               title={t.Buttons.ApproveProduction}
                             >
                               {Number(pcb.isManufacting) === 1 ? (
-                                <FaCheckCircle size={14} />
+                                <FaCheckCircle size={16} />
                               ) : (
-                                <FaIndustry size={14} />
+                                <FaIndustry size={16} />
                               )}
-                            </button>
+                            </motion.button>
 
-                            <button
+                            <motion.button
+                              whileHover={{ scale: 1.1 }}
+                              whileTap={{ scale: 0.9 }}
                               onClick={() => {
                                 if (
                                   Number(pcb.isManufacting) === 1 &&
@@ -484,74 +681,85 @@ const OrderPCBListScreen = () => {
                                 )
                                   handleShowModal(pcb, "delivery");
                               }}
-                              className={`btn-action ${Number(pcb.isDelivered) === 1 ? "text-emerald-500" : Number(pcb.isManufacting) === 1 ? "text-emerald-600" : "text-slate-200"}`}
+                              className={`btn-action ${Number(pcb.isDelivered) === 1 ? "text-emerald-500" : Number(pcb.isManufacting) === 1 ? "text-blue-500" : "text-slate-300"}`}
                               title={t.Buttons.ConfirmDelivery}
                             >
                               {Number(pcb.isDelivered) === 1 ? (
-                                <FaCheck size={14} />
+                                <FaCheck size={16} />
                               ) : (
-                                <FaTruck size={14} />
+                                <FaTruck size={16} />
                               )}
-                            </button>
+                            </motion.button>
                           </>
                         ) : (
                           <>
-                            <button
+                            <motion.button
+                              whileHover={{ scale: 1.1 }}
+                              whileTap={{ scale: 0.9 }}
                               onClick={() => handleShowCartModal(pcb)}
-                              className={`btn-action ${pcb.status === 'accepted' ? "text-emerald-500" : "text-amber-600"}`}
+                              className={`btn-action ${pcb.status === 'accepted' ? "text-emerald-500" : "text-amber-500"}`}
                               title="Review Cart Request"
                             >
-                              {pcb.status === 'accepted' ? <FaCheckCircle size={14} /> : <FaIndustry size={14} />}
-                            </button>
+                              {pcb.status === 'accepted' ? <FaCheckCircle size={16} /> : <FaIndustry size={16} />}
+                            </motion.button>
 
-                            <button
+                            <motion.button
+                              whileHover={{ scale: 1.1 }}
+                              whileTap={{ scale: 0.9 }}
                               disabled
-                              className="btn-action text-slate-200 cursor-not-allowed"
+                              className="btn-action text-slate-300 cursor-not-allowed"
                               title="Confirm Delivery (Waiting Payment)"
                             >
-                              <FaTruck size={14} />
-                            </button>
+                              <FaTruck size={16} />
+                            </motion.button>
                           </>
                         )}
 
                         {pcb.gerberZip && (
-                          <button
+                          <motion.button
+                            whileHover={{ scale: 1.1 }}
+                            whileTap={{ scale: 0.9 }}
                             onClick={() => {
                               const filename = pcb.gerberZip.split(/[/\\]/).pop();
                               window.open(`${BASE_URL}/api/gerber/download/${filename}`, "_blank");
                             }}
-                            className="btn-action text-emerald-600"
+                            className="btn-action text-emerald-500"
                             title="Download Gerber ZIP"
                           >
-                            <FaDownload size={14} />
-                          </button>
+                            <FaDownload size={16} />
+                          </motion.button>
                         )}
 
-                        <button
+                        <motion.button
+                          whileHover={{ scale: 1.1 }}
+                          whileTap={{ scale: 0.9 }}
                           onClick={() => pcb.itemType === 'ORDER' ? navigate(`/orderpcbs/${pcb.id}`) : handleShowCartModal(pcb)}
-                          className="btn-action text-blue-600"
+                          className="btn-action text-blue-500"
                           title={t.Buttons.Look}
                         >
-                          <FaEye size={14} />
-                        </button>
+                          <FaArrowRight size={16} />
+                        </motion.button>
                       </div>
                     </td>
-                  </tr>
+                  </motion.tr>
                 ))}
               </tbody>
             </table>
           </div>
 
           {/* MOBILE VIEW */}
-          <div className="grid grid-cols-1 gap-4 md:gap-6 lg:hidden">
-            {filteredOrders.map((pcb) => (
-              <div
+          <div className="grid grid-cols-1 gap-4 lg:hidden">
+            {filteredOrders.map((pcb, index) => (
+              <motion.div
                 key={pcb.id}
-                className="relative flex flex-col gap-4 md:gap-6 rounded-[2.5rem] bg-white dark:bg-zinc-900/30 p-4 md:p-8 shadow-sm ring-1 ring-slate-100 dark:ring-zinc-800 transition-colors duration-500"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.05, duration: 0.3 }}
+                className="glass-card flex flex-col gap-4 rounded-2xl p-5 transition-all duration-300 border border-slate-200 dark:border-zinc-700"
               >
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-4 min-w-0">
-                    <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-slate-50 dark:bg-black ring-1 ring-slate-100 dark:ring-zinc-800">
+                    <div className="glass-card flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-xl">
                       {pcb.pcb_image ? (
                         <img
                           src={`${BASE_URL}${pcb.pcb_image}`}
@@ -563,10 +771,10 @@ const OrderPCBListScreen = () => {
                       )}
                     </div>
                     <div className="min-w-0">
-                      <span className="rounded-lg bg-slate-100 px-2 py-0.5 font-mono text-[10px] font-bold text-slate-500">
+                      <span className="rounded-md bg-slate-100 px-2 py-0.5 font-mono text-[10px] font-semibold text-slate-500 dark:bg-zinc-800 dark:text-slate-400">
                         {pcb.orderID}
                       </span>
-                      <h3 className="mt-1 truncate font-display text-xl font-black tracking-tight text-slate-950 dark:text-white">
+                      <h3 className="mt-1 truncate font-display text-lg font-bold tracking-tight text-slate-900 dark:text-white">
                         {pcb.projectname}
                       </h3>
                     </div>
@@ -580,69 +788,76 @@ const OrderPCBListScreen = () => {
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between gap-4 py-4 rounded-3xl bg-slate-50/50 dark:bg-zinc-950/50 px-4 md:px-6">
+                <div className="flex items-center justify-between gap-3 rounded-xl bg-slate-50/80 dark:bg-zinc-900/50 px-4 py-3">
                   {pcb.itemType === 'ORDER' ? (
                     <>
-                      <button
-                        onClick={() => handleShowModal(pcb, "manufacture")}
-                        className={`px-3 py-1 rounded-lg text-[8px] font-black uppercase ls-widest ${Number(pcb.isManufacting) === 1 ? "bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600 dark:text-emerald-400" : "bg-amber-50 dark:bg-amber-950/30 text-amber-600 dark:text-amber-400"}`}
+                      <span
+                        className={`status-badge inline-flex items-center gap-1 rounded-lg px-2 py-1 text-[8px] font-bold uppercase ${
+                          Number(pcb.isManufacting) === 1
+                            ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-400"
+                            : "bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-400"
+                        }`}
                       >
                         {Number(pcb.isManufacting) === 1 ? "Prod" : "Auth"}
-                      </button>
-                      <div className="h-px grow bg-slate-200" />
-                      <button
-                        onClick={() =>
-                          Number(pcb.isManufacting) === 1 &&
-                          handleShowModal(pcb, "delivery")
-                        }
-                        className={`px-3 py-1 rounded-lg text-[8px] font-black uppercase ls-widest ${Number(pcb.isDelivered) === 1 ? "bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600 dark:text-emerald-400" : Number(pcb.isManufacting) === 1 ? "bg-amber-50 dark:bg-amber-950/30 text-amber-600 dark:text-amber-400" : "bg-slate-50 dark:bg-zinc-900 text-slate-200 dark:text-zinc-800"}`}
+                      </span>
+                      <div className="h-4 w-px bg-slate-200 dark:bg-zinc-700" />
+                      <span
+                        className={`status-badge inline-flex items-center gap-1 rounded-lg px-2 py-1 text-[8px] font-bold uppercase ${
+                          Number(pcb.isDelivered) === 1
+                            ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-400"
+                            : Number(pcb.isManufacting) === 1
+                            ? "bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-400"
+                            : "bg-slate-100 text-slate-400 dark:bg-zinc-800 dark:text-zinc-600"
+                        }`}
                       >
                         {Number(pcb.isDelivered) === 1 ? "Done" : "Ship"}
-                      </button>
+                      </span>
                     </>
                   ) : (
                     <>
-                      <button
-                        onClick={() => handleShowCartModal(pcb)}
-                        className={`px-3 py-1 rounded-lg text-[8px] font-black uppercase ls-widest ${pcb.status === 'accepted' ? "bg-emerald-50 text-emerald-600" : "bg-amber-50 text-amber-600"}`}
+                      <span
+                        className={`status-badge inline-flex items-center gap-1 rounded-lg px-2 py-1 text-[8px] font-bold uppercase ${
+                          pcb.status === 'accepted'
+                            ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-400"
+                            : "bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-400"
+                        }`}
                       >
                         {pcb.status === 'accepted' ? "Done" : "Auth"}
-                      </button>
-                      <div className="h-px grow bg-slate-200" />
-                      <button
-                        disabled
-                        className="px-3 py-1 rounded-lg text-[8px] font-black uppercase ls-widest bg-slate-50 text-slate-200"
-                      >
+                      </span>
+                      <div className="h-4 w-px bg-slate-200 dark:bg-zinc-700" />
+                      <span className="inline-flex items-center gap-1 rounded-lg bg-slate-100 px-2 py-1 text-[8px] font-bold uppercase text-slate-400 dark:bg-zinc-800 dark:text-zinc-600">
                         Ship
-                      </button>
+                      </span>
                     </>
                   )}
                 </div>
 
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2 text-slate-300">
-                    <FaCalendarAlt size={12} />
-                    <span className="text-[10px] font-black uppercase ls-loose">
+                  <div className="flex items-center gap-2 text-slate-400">
+                    <FaCalendarAlt size={11} />
+                    <span className="text-[10px] font-medium uppercase ls-loose">
                       {formatDate(pcb.created_at, language)}
                     </span>
                   </div>
-                  <div className="flex gap-4">
+                  <div className="flex gap-3">
                     {pcb.itemType === 'ORDER' ? (
                       <>
-                        <button
+                        <motion.button
+                          whileTap={{ scale: 0.9 }}
                           onClick={() => {
                             if (Number(pcb.isManufacting) === 0)
                               handleShowModal(pcb, "manufacture");
                           }}
-                          className={`text-xs font-black uppercase ls-widest ${Number(pcb.isManufacting) === 1 ? "text-emerald-500" : "text-amber-600"}`}
+                          className={`${Number(pcb.isManufacting) === 1 ? "text-emerald-500" : "text-amber-500"}`}
                         >
                           {Number(pcb.isManufacting) === 1 ? (
-                            <FaCheckCircle size={16} />
+                            <FaCheckCircle size={18} />
                           ) : (
-                            <FaIndustry size={16} />
+                            <FaIndustry size={18} />
                           )}
-                        </button>
-                        <button
+                        </motion.button>
+                        <motion.button
+                          whileTap={{ scale: 0.9 }}
                           onClick={() => {
                             if (
                               Number(pcb.isManufacting) === 1 &&
@@ -650,62 +865,61 @@ const OrderPCBListScreen = () => {
                             )
                               handleShowModal(pcb, "delivery");
                           }}
-                          className={`text-xs font-black uppercase ls-widest ${Number(pcb.isDelivered) === 1 ? "text-emerald-500" : Number(pcb.isManufacting) === 1 ? "text-emerald-600" : "text-slate-200"}`}
+                          className={`${Number(pcb.isDelivered) === 1 ? "text-emerald-500" : Number(pcb.isManufacting) === 1 ? "text-blue-500" : "text-slate-300"}`}
                         >
                           {Number(pcb.isDelivered) === 1 ? (
-                            <FaCheck size={16} />
+                            <FaCheck size={18} />
                           ) : (
-                            <FaTruck size={16} />
+                            <FaTruck size={18} />
                           )}
-                        </button>
+                        </motion.button>
                       </>
                     ) : (
                       <>
-                        <button
+                        <motion.button
+                          whileTap={{ scale: 0.9 }}
                           onClick={() => handleShowCartModal(pcb)}
-                          className={`text-xs font-black uppercase ls-widest ${pcb.status === 'accepted' ? "text-emerald-500" : "text-amber-600"}`}
+                          className={`${pcb.status === 'accepted' ? "text-emerald-500" : "text-amber-500"}`}
                         >
-                          {pcb.status === 'accepted' ? <FaCheckCircle size={16} /> : <FaIndustry size={16} />}
-                        </button>
-                        <button
-                          disabled
-                          className="text-xs font-black uppercase ls-widest text-slate-200"
-                        >
-                          <FaTruck size={16} />
+                          {pcb.status === 'accepted' ? <FaCheckCircle size={18} /> : <FaIndustry size={18} />}
+                        </motion.button>
+                        <button className="text-slate-300">
+                          <FaTruck size={18} />
                         </button>
                       </>
                     )}
-                    <button
+                    <motion.button
+                      whileTap={{ scale: 0.9 }}
                       onClick={() => pcb.itemType === 'ORDER' ? navigate(`/orderpcbs/${pcb.id}`) : handleShowCartModal(pcb)}
-                      className="text-xs font-black uppercase ls-widest text-blue-600"
+                      className="text-blue-500"
                     >
-                      <FaEye size={16} />
-                    </button>
+                      <FaEye size={18} />
+                    </motion.button>
                     {pcb.gerberZip && (
-                      <button
+                      <motion.button
+                        whileTap={{ scale: 0.9 }}
                         onClick={() => {
                           const filename = pcb.gerberZip.split(/[/\\]/).pop();
                           window.open(`${BASE_URL}/api/gerber/download/${filename}`, "_blank");
                         }}
-                        className="text-xs font-black uppercase ls-widest text-emerald-600"
-                        title="Download Gerber ZIP"
+                        className="text-emerald-500"
                       >
-                        <FaDownload size={16} />
-                      </button>
+                        <FaDownload size={18} />
+                      </motion.button>
                     )}
                   </div>
                 </div>
-              </div>
+              </motion.div>
             ))}
           </div>
-        </div>
+        </motion.div>
 
-        <footer className="mt-20 flex items-center justify-center gap-4 py-12 opacity-20">
-          <div className="h-px w-12 bg-slate-400" />
-          <span className="text-[10px] font-black uppercase ls-widest tracking-[0.5em] text-slate-950 dark:text-white">
-            PCB Logistics OS / v1.3
+        <footer className="mt-16 flex items-center justify-center gap-4 py-8 opacity-30">
+          <div className="h-px w-8 bg-slate-400" />
+          <span className="text-[10px] font-bold uppercase ls-widest tracking-[0.3em] text-slate-600 dark:text-slate-400">
+            PCB Manufacturing System v1.4
           </span>
-          <div className="h-px w-12 bg-slate-400" />
+          <div className="h-px w-8 bg-slate-400" />
         </footer>
       </div>
 

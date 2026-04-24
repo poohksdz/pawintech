@@ -168,62 +168,98 @@
   }
 }
 
-/* 
+/*
 ===================================================
-TRUE BLACK AESTHETICS OVERRIDE
-Forces the strict "Everything dark, text white" rule 
-requested by user, guaranteeing absolute contrast.
+ELEGANT DARK THEME
+Modern dark theme with subtle depth and contrast.
 ===================================================
 */
 html.dark body,
 html.dark main,
 html.dark section {
-  background-color: #000000 !important;
-  color: #ffffff !important;
+  background-color: #0f0f14 !important;
+  color: #e2e8f0 !important;
 }
 
-/* Force intermediate white backgrounds into true black */
-html.dark .bg-white,
+/* Dark backgrounds with subtle depth */
+html.dark .bg-white {
+  background-color: #1a1a24 !important;
+}
+
 html.dark .bg-slate-50,
-html.dark .bg-slate-100,
+html.dark .bg-slate-100 {
+  background-color: #1e1e28 !important;
+}
+
+html.dark .bg-slate-200 {
+  background-color: #2a2a38 !important;
+}
+
 html.dark .bg-slate-800,
-html.dark .bg-slate-900,
-html.dark .bg-slate-950,
+html.dark .bg-slate-900 {
+  background-color: #0f0f14 !important;
+}
+
+html.dark .bg-slate-950 {
+  background-color: #08080c !important;
+}
+
 html.dark .bg-gray-50,
 html.dark .bg-gray-100 {
-  background-color: #000000 !important;
+  background-color: #1a1a24 !important;
 }
 
-/* Force EVERYTHING text-related to be pure white */
+html.dark .bg-gray-200 {
+  background-color: #2a2a38 !important;
+}
+
+/* Cards and elevated surfaces */
+html.dark .bg-slate-300,
+html.dark .bg-gray-300 {
+  background-color: #32324a !important;
+}
+
+/* Text colors - maintain readability */
 html.dark h1,
 html.dark h2,
 html.dark h3,
 html.dark h4,
 html.dark h5,
-html.dark h6,
+html.dark h6 {
+  color: #f1f5f9 !important;
+}
+
 html.dark p,
 html.dark span,
 html.dark div,
-html.dark a,
-html.dark button,
-html.dark label,
-html.dark input,
-html.dark textarea,
 html.dark li,
 html.dark ul {
-  color: #ffffff !important;
+  color: #cbd5e1 !important;
 }
 
-/* 
+html.dark a {
+  color: #94a3b8 !important;
+}
+
+html.dark a:hover {
+  color: #e2e8f0 !important;
+}
+
+/*
 ===================================================
 VIBRANT EXCEPTIONS
-Allows critical UI elements (Stars, Status) to 
-retain their colors amidst the black-out.
+Allows critical UI elements (Stars, Status) to
+retain their colors amidst the dark theme.
 ===================================================
 */
 html.dark .text-yellow-400,
 html.dark .text-yellow-500 {
   color: #facc15 !important;
+}
+
+html.dark .text-amber-400,
+html.dark .text-amber-500 {
+  color: #fbbf24 !important;
 }
 
 html.dark .text-rose-400,
@@ -232,15 +268,55 @@ html.dark .text-rose-600 {
   color: #fb7185 !important;
 }
 
+html.dark .text-red-400,
+html.dark .text-red-500 {
+  color: #f87171 !important;
+}
+
 html.dark .text-emerald-400,
 html.dark .text-emerald-500,
 html.dark .text-emerald-600 {
   color: #34d399 !important;
 }
 
+html.dark .text-green-400,
+html.dark .text-green-500 {
+  color: #4ade80 !important;
+}
+
 html.dark .text-blue-400,
 html.dark .text-blue-500 {
   color: #60a5fa !important;
+}
+
+html.dark .text-cyan-400,
+html.dark .text-cyan-500 {
+  color: #22d3ee !important;
+}
+
+html.dark .text-indigo-400,
+html.dark .text-indigo-500 {
+  color: #818cf8 !important;
+}
+
+html.dark .text-violet-400,
+html.dark .text-violet-500 {
+  color: #a78bfa !important;
+}
+
+html.dark .text-purple-400,
+html.dark .text-purple-500 {
+  color: #c084fc !important;
+}
+
+html.dark .text-pink-400,
+html.dark .text-pink-500 {
+  color: #f472b6 !important;
+}
+
+html.dark .text-orange-400,
+html.dark .text-orange-500 {
+  color: #fb923c !important;
 }
 
 /* Star Rating Specifics */
@@ -250,21 +326,421 @@ html.dark .star-filled {
 
 html.dark .star-empty {
   color: #3f3f46 !important;
-  /* zinc-700 for a subtle empty look */
+}
+
+/* Primary/Secondary colors for buttons */
+html.dark .text-primary {
+  color: #60a5fa !important;
+}
+
+html.dark .text-secondary {
+  color: #94a3b8 !important;
 }
 
 /* Ensure placeholders are visible but subdued in dark mode */
 html.dark input::placeholder,
 html.dark textarea::placeholder {
-  color: #a1a1aa !important;
-  /* Zinc-400 */
+  color: #64748b !important;
 }
 
-/* Subtly dim borders for a seamless black look */
+/*
+===================================================
+BORDERS & INPUTS
+===================================================
+*/
+/* Subtle borders for dark theme */
 html.dark .border-slate-100,
 html.dark .border-slate-200,
 html.dark .border-gray-100,
 html.dark .border-gray-200 {
-  border-color: #18181b !important;
-  /* Zinc-900 */
+  border-color: #2e2e3a !important;
+}
+
+html.dark .border-slate-300,
+html.dark .border-gray-300 {
+  border-color: #3f3f52 !important;
+}
+
+html.dark .border {
+  border-color: #2e2e3a !important;
+}
+
+/* Input fields */
+html.dark input,
+html.dark textarea,
+html.dark select {
+  background-color: #1a1a24 !important;
+  border-color: #2e2e3a !important;
+  color: #e2e8f0 !important;
+}
+
+html.dark input:focus,
+html.dark textarea:focus,
+html.dark select:focus {
+  background-color: #1e1e28 !important;
+  border-color: #3b82f6 !important;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2) !important;
+}
+
+html.dark input:disabled,
+html.dark textarea:disabled,
+html.dark select:disabled {
+  background-color: #12121a !important;
+  color: #64748b !important;
+}
+
+/*
+===================================================
+CARDS & CONTAINERS
+===================================================
+*/
+html.dark .card,
+html.dark .rounded-lg,
+html.dark .rounded-xl,
+html.dark .rounded-2xl {
+  background-color: #1a1a24 !important;
+  border: 1px solid #2e2e3a !important;
+}
+
+html.dark .bg-card,
+html.dark .bg-white\/50,
+html.dark .bg-white\/10 {
+  background-color: #1a1a24 !important;
+}
+
+/*
+===================================================
+BUTTONS
+===================================================
+*/
+html.dark button,
+html.dark .btn {
+  transition: all 0.2s ease;
+}
+
+html.dark .btn-primary,
+html.dark .bg-blue-600,
+html.dark .bg-blue-500 {
+  background-color: #2563eb !important;
+  color: #ffffff !important;
+}
+
+html.dark .btn-primary:hover,
+html.dark .bg-blue-600:hover,
+html.dark .bg-blue-500:hover {
+  background-color: #1d4ed8 !important;
+}
+
+html.dark .btn-secondary,
+html.dark .bg-gray-500,
+html.dark .bg-slate-500 {
+  background-color: #3f3f52 !important;
+  color: #e2e8f0 !important;
+}
+
+html.dark .btn-secondary:hover,
+html.dark .bg-gray-500:hover,
+html.dark .bg-slate-500:hover {
+  background-color: #52525b !important;
+}
+
+html.dark .btn-outline-primary {
+  border-color: #3b82f6 !important;
+  color: #60a5fa !important;
+}
+
+html.dark .btn-outline-primary:hover {
+  background-color: #1e40af !important;
+  color: #ffffff !important;
+}
+
+html.dark .btn-outline-secondary {
+  border-color: #475569 !important;
+  color: #94a3b8 !important;
+}
+
+html.dark .btn-outline-secondary:hover {
+  background-color: #334155 !important;
+  color: #e2e8f0 !important;
+}
+
+/*
+===================================================
+TABLES
+===================================================
+*/
+html.dark table {
+  color: #e2e8f0 !important;
+}
+
+html.dark th,
+html.dark td {
+  border-color: #2e2e3a !important;
+}
+
+html.dark thead {
+  background-color: #1e1e28 !important;
+}
+
+html.dark tbody tr:hover {
+  background-color: #1a1a24 !important;
+}
+
+/*
+===================================================
+MODALS & OVERLAYS
+===================================================
+*/
+html.dark .modal-content,
+html.dark .dialog-content {
+  background-color: #1a1a24 !important;
+  border: 1px solid #2e2e3a !important;
+}
+
+html.dark .modal-header,
+html.dark .modal-footer {
+  border-color: #2e2e3a !important;
+}
+
+/*
+===================================================
+SCROLLBARS
+===================================================
+*/
+html.dark ::-webkit-scrollbar-thumb {
+  background-color: #3f3f52 !important;
+}
+
+html.dark ::-webkit-scrollbar-thumb:hover {
+  background-color: #52526b !important;
+}
+
+/*
+===================================================
+BADGES & TAGS
+===================================================
+*/
+html.dark .bg-blue-100,
+html.dark .bg-blue-200 {
+  background-color: #1e3a5f !important;
+  color: #93c5fd !important;
+}
+
+html.dark .bg-green-100,
+html.dark .bg-green-200 {
+  background-color: #14532d !important;
+  color: #86efac !important;
+}
+
+html.dark .bg-yellow-100,
+html.dark .bg-yellow-200 {
+  background-color: #422006 !important;
+  color: #fde047 !important;
+}
+
+html.dark .bg-red-100,
+html.dark .bg-red-200 {
+  background-color: #450a0a !important;
+  color: #fca5a5 !important;
+}
+
+html.dark .bg-gray-100,
+html.dark .bg-gray-200 {
+  background-color: #27272a !important;
+  color: #a1a1aa !important;
+}
+
+/*
+===================================================
+NAVBAR & HEADER
+===================================================
+*/
+html.dark nav,
+html.dark header {
+  background-color: #0f0f14 !important;
+  border-bottom: 1px solid #2e2e3a !important;
+}
+
+/*
+===================================================
+FOOTER
+===================================================
+*/
+html.dark footer {
+  background-color: #0a0a0f !important;
+  border-top: 1px solid #2e2e3a !important;
+}
+
+/*
+===================================================
+ALERTS & NOTIFICATIONS
+===================================================
+*/
+html.dark .alert {
+  border-color: #2e2e3a !important;
+}
+
+html.dark .alert-success {
+  background-color: #05261f !important;
+  border-color: #065f46 !important;
+  color: #6ee7b7 !important;
+}
+
+html.dark .alert-danger {
+  background-color: #450a0a !important;
+  border-color: #991b1b !important;
+  color: #fca5a5 !important;
+}
+
+html.dark .alert-warning {
+  background-color: #422006 !important;
+  border-color: #92400e !important;
+  color: #fde047 !important;
+}
+
+html.dark .alert-info {
+  background-color: #0c4a6e !important;
+  border-color: #0369a1 !important;
+  color: #7dd3fc !important;
+}
+
+/*
+===================================================
+DROPDOWN & SELECT
+===================================================
+*/
+html.dark .dropdown-menu {
+  background-color: #1a1a24 !important;
+  border: 1px solid #2e2e3a !important;
+}
+
+html.dark .dropdown-item {
+  color: #cbd5e1 !important;
+}
+
+html.dark .dropdown-item:hover {
+  background-color: #2a2a38 !important;
+  color: #f1f5f9 !important;
+}
+
+/*
+===================================================
+FORM GROUPS
+===================================================
+*/
+html.dark .form-label {
+  color: #94a3b8 !important;
+}
+
+html.dark .form-text {
+  color: #64748b !important;
+}
+
+html.dark .form-check-input {
+  background-color: #1a1a24 !important;
+  border-color: #475569 !important;
+}
+
+html.dark .form-check-input:checked {
+  background-color: #3b82f6 !important;
+  border-color: #3b82f6 !important;
+}
+
+/*
+===================================================
+TABS
+===================================================
+*/
+html.dark .nav-tabs {
+  border-color: #2e2e3a !important;
+}
+
+html.dark .nav-tabs .nav-link {
+  color: #94a3b8 !important;
+}
+
+html.dark .nav-tabs .nav-link:hover {
+  color: #e2e8f0 !important;
+  border-color: #3f3f52 !important;
+}
+
+html.dark .nav-tabs .nav-link.active {
+  background-color: #1a1a24 !important;
+  border-color: #2e2e3a #2e2e3a #1a1a24 !important;
+  color: #f1f5f9 !important;
+}
+
+/*
+===================================================
+PAGINATION
+===================================================
+*/
+html.dark .page-link {
+  background-color: #1a1a24 !important;
+  border-color: #2e2e3a !important;
+  color: #94a3b8 !important;
+}
+
+html.dark .page-link:hover {
+  background-color: #2a2a38 !important;
+  color: #e2e8f0 !important;
+}
+
+html.dark .page-item.active .page-link {
+  background-color: #3b82f6 !important;
+  border-color: #3b82f6 !important;
+  color: #ffffff !important;
+}
+
+/*
+===================================================
+SPINNER & LOADER
+===================================================
+*/
+html.dark .spinner-border {
+  border-color: #3f3f52 !important;
+  border-top-color: #60a5fa !important;
+}
+
+/*
+===================================================
+SHADOWS
+===================================================
+*/
+html.dark .shadow-sm {
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.4) !important;
+}
+
+html.dark .shadow {
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.4), 0 1px 2px -1px rgba(0, 0, 0, 0.4) !important;
+}
+
+html.dark .shadow-lg {
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -4px rgba(0, 0, 0, 0.4) !important;
+}
+
+/*
+===================================================
+BACKDROP & OVERLAY
+===================================================
+*/
+html.dark .backdrop-blur-sm {
+  backdrop-filter: blur(4px);
+  background-color: rgba(15, 15, 20, 0.8) !important;
+}
+
+/*
+===================================================
+CODE & PRE
+===================================================
+*/
+html.dark code {
+  background-color: #1e1e28 !important;
+  color: #f472b6 !important;
+}
+
+html.dark pre {
+  background-color: #12121a !important;
+  border: 1px solid #2e2e3a !important;
+  color: #e2e8f0 !important;
 }

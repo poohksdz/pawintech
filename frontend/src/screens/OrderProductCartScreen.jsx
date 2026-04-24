@@ -184,52 +184,52 @@ const OrderProductCartScreen = () => {
                         </button>
                       </div>
 
-                      <div className="flex gap-4 items-center">
-                        {/* Image section - Clickable to product detail */}
-                        <button
-                          onClick={() => navigate(`/product/${item._id}`)}
-                          className="w-24 h-24 shrink-0 bg-slate-50 flex items-center justify-center overflow-hidden border border-slate-100 rounded-[1.25rem] hover:border-blue-400 hover:shadow-md transition-all cursor-pointer"
-                        >
+                      {/* Product Info - Clickable to detail */}
+                      <Link to={`/product/${item._id}`} className="flex gap-4 items-center">
+                        <div className="w-24 h-24 shrink-0 bg-slate-50 flex items-center justify-center overflow-hidden border border-slate-100 rounded-[1.25rem] hover:border-blue-400 hover:shadow-md transition-all">
                           {item.image ? (
                             <img src={item.image} alt={item.name} className="w-full h-full object-contain p-2" />
                           ) : (
                             <FaShoppingBag size={24} className="text-slate-300" />
                           )}
-                        </button>
+                        </div>
 
                         {/* Details Section */}
                         <div className="flex flex-col flex-1 min-w-0">
-                          <Link to={`/orderproduct/${item._id}`} className="text-sm font-bold text-slate-800 uppercase tracking-tight leading-snug mb-0.5 line-clamp-2">
+                          <span className="text-sm font-bold text-slate-800 uppercase tracking-tight leading-snug mb-0.5 line-clamp-2">
                             {item.name}
-                          </Link>
+                          </span>
                           <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">
                             SKU: {String(item._id).substring(0, 8)}
                           </span>
 
-                          {/* Price and Quantity Row */}
-                          <div className="flex justify-between items-end mt-auto">
-                            <div className="flex flex-col">
-                              <span className="text-[15px] font-black text-blue-600">{formatPrice(item.price * item.qty)}</span>
-                              <span className="text-[10px] font-bold text-slate-400">{formatPrice(item.price)} / ชิ้น</span>
-                            </div>
-
-                            {/* Quantity Controls */}
-                            <div className="flex items-center justify-between bg-slate-50 rounded-xl p-1 border border-slate-200 w-24">
-                              <button
-                                onClick={() => addToCartHandler(item, Math.max(1, item.qty - 1))}
-                                className="w-6 h-6 flex items-center justify-center text-slate-500 hover:text-black transition-colors rounded-lg hover:bg-white border-transparent hover:border-slate-200 border"
-                              >
-                                <FaMinus size={8} />
-                              </button>
-                              <span className="text-xs font-black text-slate-800">{item.qty}</span>
-                              <button
-                                onClick={() => addToCartHandler(item, Math.min(item.countInStock, item.qty + 1))}
-                                className="w-6 h-6 flex items-center justify-center text-slate-500 hover:text-black transition-colors rounded-lg hover:bg-white border-transparent hover:border-slate-200 border"
-                              >
-                                <FaPlus size={8} />
-                              </button>
-                            </div>
+                          {/* Price */}
+                          <div className="flex flex-col">
+                            <span className="text-[15px] font-black text-blue-600">{formatPrice(item.price * item.qty)}</span>
+                            <span className="text-[10px] font-bold text-slate-400">{formatPrice(item.price)} / ชิ้น</span>
                           </div>
+                        </div>
+                      </Link>
+
+                      {/* Quantity Controls - Separate row */}
+                      <div className="flex items-center justify-between mt-3 pt-3 border-t border-slate-100">
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                          {language === "thai" ? "จำนวน" : "Quantity"}
+                        </span>
+                        <div className="flex items-center justify-between bg-slate-50 rounded-xl p-1 border border-slate-200 w-24">
+                          <button
+                            onClick={() => addToCartHandler(item, Math.max(1, item.qty - 1))}
+                            className="w-6 h-6 flex items-center justify-center text-slate-500 hover:text-black transition-colors rounded-lg hover:bg-white border-transparent hover:border-slate-200 border"
+                          >
+                            <FaMinus size={8} />
+                          </button>
+                          <span className="text-xs font-black text-slate-800">{item.qty}</span>
+                          <button
+                            onClick={() => addToCartHandler(item, Math.min(item.countInStock, item.qty + 1))}
+                            className="w-6 h-6 flex items-center justify-center text-slate-500 hover:text-black transition-colors rounded-lg hover:bg-white border-transparent hover:border-slate-200 border"
+                          >
+                            <FaPlus size={8} />
+                          </button>
                         </div>
                       </div>
                     </div>
@@ -244,98 +244,91 @@ const OrderProductCartScreen = () => {
                         />
                       </div>
 
-                      {/* Unified Content Container */}
-                      <div className="col-span-11 flex-1 grid grid-cols-1 md:grid-cols-11 items-center gap-2 md:gap-4 min-w-0">
-                        {/* Image and Details Stack */}
-                        <div className="col-span-5 flex flex-col md:flex-row gap-3 md:gap-5 w-full">
-                          {/* Top row: Image + Name/SKU */}
-                          <div className="flex gap-3 md:gap-5 items-start md:items-center w-full">
-                            {/* Image - Clickable to product detail */}
-                            <button
-                              onClick={() => navigate(`/product/${item._id}`)}
-                              className="w-16 h-16 md:w-24 md:h-24 bg-slate-50 shrink-0 flex items-center justify-center overflow-hidden rounded-xl border border-slate-100 shadow-sm group-hover:shadow-md group-hover:border-blue-400 transition-all cursor-pointer"
-                            >
-                              {item.image ? (
-                                <img
-                                  src={item.image}
-                                  alt={item.name}
-                                  className="w-full h-full object-cover"
-                                />
-                              ) : (
-                                <FaShoppingBag
-                                  size={24}
-                                  className="text-gray-400"
-                                />
-                              )}
-                            </button>
-
-                            {/* Details Context */}
-                            <div className="flex flex-col flex-1 min-w-0 py-0.5 md:py-0 md:pr-6 relative">
-                              <Link
-                                to={`/orderproduct/${item._id}`}
-                                className="text-[13px] md:text-[14px] font-black text-slate-900 uppercase hover:text-blue-600 transition-colors leading-snug mb-0.5 truncate block w-full pr-6 md:pr-0"
-                              >
-                                {item.name}
-                              </Link>
-                              <span className="text-[9px] md:text-[10px] text-slate-400 font-bold uppercase tracking-widest truncate block w-full">
-                                SKU: {String(item._id).substring(0, 8)}
-                              </span>
-                            </div>
-                          </div>
+                      {/* Product Info - Clickable to detail */}
+                      <Link
+                        to={`/product/${item._id}`}
+                        className="col-span-5 flex flex-col md:flex-row gap-3 md:gap-5 items-start md:items-center cursor-pointer hover:bg-slate-50/50 px-2 md:px-0 rounded-xl transition-colors"
+                      >
+                        {/* Image */}
+                        <div className="w-16 h-16 md:w-24 md:h-24 bg-slate-50 shrink-0 flex items-center justify-center overflow-hidden rounded-xl border border-slate-100 shadow-sm hover:shadow-md hover:border-blue-400 transition-all">
+                          {item.image ? (
+                            <img
+                              src={item.image}
+                              alt={item.name}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <FaShoppingBag
+                              size={24}
+                              className="text-gray-400"
+                            />
+                          )}
                         </div>
 
-                        {/* --- DESKTOP ONLY COLUMNS --- */}
-                        <div className="hidden md:block col-span-2 text-right pr-4">
-                          <span className="font-bold text-[14px]">
-                            {formatPrice(item.price)}
+                        {/* Details */}
+                        <div className="flex flex-col flex-1 min-w-0 py-0.5 md:py-0 md:pr-6 relative">
+                          <span className="text-[13px] md:text-[14px] font-black text-slate-900 uppercase hover:text-blue-600 transition-colors leading-snug mb-0.5 truncate block w-full">
+                            {item.name}
+                          </span>
+                          <span className="text-[9px] md:text-[10px] text-slate-400 font-bold uppercase tracking-widest truncate block w-full">
+                            SKU: {String(item._id).substring(0, 8)}
                           </span>
                         </div>
+                      </Link>
 
-                        <div className="hidden md:flex col-span-2 justify-center">
-                          <div className="flex w-[100px] h-[36px] border border-gray-300 rounded-sm overflow-hidden bg-white">
-                            <button
-                              onClick={() =>
-                                addToCartHandler(
-                                  item,
-                                  Math.max(1, item.qty - 1),
-                                )
-                              }
-                              className="w-8 flex items-center justify-center text-gray-400 hover:text-black hover:bg-gray-50 bg-white border-r border-gray-300"
-                            >
-                              <FaMinus size={8} />
-                            </button>
-                            <div className="flex-1 flex items-center justify-center text-[13px] text-gray-700 font-bold">
-                              {item.qty}
-                            </div>
-                            <button
-                              onClick={() =>
-                                addToCartHandler(
-                                  item,
-                                  Math.min(item.countInStock, item.qty + 1),
-                                )
-                              }
-                              className="w-8 flex items-center justify-center text-gray-400 hover:text-black hover:bg-gray-50 bg-white border-l border-gray-300"
-                            >
-                              <FaPlus size={8} />
-                            </button>
-                          </div>
-                        </div>
+                      {/* Price */}
+                      <div className="hidden md:block col-span-2 text-right pr-4">
+                        <span className="font-bold text-[14px]">
+                          {formatPrice(item.price)}
+                        </span>
+                      </div>
 
-                        <div className="hidden md:flex col-span-2 items-center justify-end gap-3 text-right">
-                          <span className="font-bold text-[14px]">
-                            {formatPrice(item.price * item.qty)}
-                          </span>
+                      {/* Quantity Controls */}
+                      <div className="hidden md:flex col-span-2 justify-center">
+                        <div className="flex w-[100px] h-[36px] border border-gray-300 rounded-sm overflow-hidden bg-white">
                           <button
-                            onClick={() => {
-                              setItemToRemoveId(item._id);
-                              setShowConfirmModal(true);
-                            }}
-                            className="p-2 text-gray-300 hover:text-rose-500 hover:bg-rose-50 rounded-full transition-all duration-200"
-                            title="Remove Item"
+                            onClick={() =>
+                              addToCartHandler(
+                                item,
+                                Math.max(1, item.qty - 1),
+                              )
+                            }
+                            className="w-8 flex items-center justify-center text-gray-400 hover:text-black hover:bg-gray-50 bg-white border-r border-gray-300"
                           >
-                            <FaTrashAlt size={14} />
+                            <FaMinus size={8} />
+                          </button>
+                          <div className="flex-1 flex items-center justify-center text-[13px] text-gray-700 font-bold">
+                            {item.qty}
+                          </div>
+                          <button
+                            onClick={() =>
+                              addToCartHandler(
+                                item,
+                                Math.min(item.countInStock, item.qty + 1),
+                              )
+                            }
+                            className="w-8 flex items-center justify-center text-gray-400 hover:text-black hover:bg-gray-50 bg-white border-l border-gray-300"
+                          >
+                            <FaPlus size={8} />
                           </button>
                         </div>
+                      </div>
+
+                      {/* Subtotal + Delete */}
+                      <div className="hidden md:flex col-span-2 items-center justify-end gap-3 text-right">
+                        <span className="font-bold text-[14px]">
+                          {formatPrice(item.price * item.qty)}
+                        </span>
+                        <button
+                          onClick={() => {
+                            setItemToRemoveId(item._id);
+                            setShowConfirmModal(true);
+                          }}
+                          className="p-2 text-gray-300 hover:text-rose-500 hover:bg-rose-50 rounded-full transition-all duration-200"
+                          title="Remove Item"
+                        >
+                          <FaTrashAlt size={14} />
+                        </button>
                       </div>
                     </div>
                   </motion.div>

@@ -6,7 +6,7 @@ const CustomCheckbox = ({ checked, onChange, variant = "black" }) => {
   return (
     <motion.div
       className="relative flex items-center justify-center cursor-pointer w-5 h-5"
-      onClick={onChange}
+      onClick={(e) => { e.stopPropagation(); onChange(); }}
       whileTap={{ scale: 0.85 }}
     >
       <motion.div

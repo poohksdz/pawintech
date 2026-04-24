@@ -248,165 +248,142 @@ const StockCartScreen = () => {
                         />
                       </div>
 
-                      {/* Clickable Card - Product Info */}
+                      {/* Clickable Card - Product Info (Only this part links) */}
                       <Link
                         to={`/componenteditlist/${p.ID}`}
-                        className="col-span-11 flex-1 grid grid-cols-1 md:grid-cols-11 items-start md:items-center gap-3 md:gap-4 min-w-0 cursor-pointer hover:bg-slate-50/50 -mx-2 px-2 rounded-xl transition-colors"
-                        onClick={(e) => {
-                          // Prevent navigation if clicking on interactive elements
-                          if (e.target.closest('button') || e.target.closest('input')) {
-                            e.preventDefault();
-                          }
-                        }}
+                        className="col-span-6 md:col-span-7 flex flex-col md:flex-row gap-3 md:gap-5 items-start md:items-center cursor-pointer hover:bg-slate-50/50 -mx-2 px-2 rounded-xl transition-colors"
                       >
-                        {/* Image and Details Stack */}
-                        <div className="col-span-7 flex flex-col md:flex-row gap-3 md:gap-5 w-full">
-                          {/* Top row: Image + Name/SKU */}
-                          <div className="flex gap-3 md:gap-5 items-start md:items-center w-full">
-                            {/* Image */}
-                            <div className="w-16 h-16 md:w-24 md:h-24 bg-[#f3f4f6] shrink-0 flex items-center justify-center overflow-hidden rounded-xl border border-gray-100 p-2 shadow-sm group-hover:shadow-md transition-shadow">
-                              {p.img ? (
-                                <img
-                                  src={p.img}
-                                  alt={p.electotronixPN}
-                                  className="w-full h-full object-contain mix-blend-multiply"
-                                />
-                              ) : (
-                                <FaBoxOpen
-                                  size={24}
-                                  className="text-gray-400 md:hidden"
-                                />
-                              )}
-                              <div className="hidden md:block">
-                                {!p.img && (
-                                  <FaBoxOpen
-                                    size={36}
-                                    className="text-gray-400"
-                                  />
-                                )}
-                              </div>
-                            </div>
-
-                            {/* Details Context */}
-                            <div className="flex flex-col flex-1 min-w-0 py-0.5 md:py-0 text-start md:pr-6 relative">
-                              <span className="text-[8px] md:text-[10px] font-black uppercase tracking-widest text-slate-400 mb-0.5 md:mb-1 truncate block w-full">
-                                {p.manufacture || "No Brand"}
-                              </span>
-                              <span className="text-[13px] md:text-[14px] font-black text-slate-900 uppercase hover:text-blue-600 transition-colors leading-snug mb-0.5 truncate block w-full pr-6 md:pr-0">
-                                {p.electotronixPN || p.manufacturePN}
-                              </span>
-                              <span className="text-[9px] md:text-[11px] text-slate-400 font-bold leading-relaxed line-clamp-1">
-                                {p.description || "No description provided"}
-                              </span>
-                              <span className="text-[9px] md:text-[10px] text-indigo-500 font-medium mt-1 hidden md:block">
-                                {language === "thai" ? "คลิกเพื่อดูรายละเอียด" : "Click to view details"}
-                              </span>
-                            </div>
-                          </div>
-
-                          {/* Mobile Note Input */}
-                          <div className="md:hidden w-full" onClick={(e) => e.stopPropagation()}>
-                            <input
-                              type="text"
-                              className="w-full bg-slate-50 border border-slate-100 py-1.5 px-3 text-[10px] font-bold text-slate-600 rounded-lg outline-none focus:ring-1 focus:ring-slate-200 placeholder:text-slate-300 shadow-inner"
-                              placeholder="Add request note (e.g. Project Name)"
-                              value={p.note || ""}
-                              onChange={(e) =>
-                                handleNoteChange(p, e.target.value)
-                              }
+                        {/* Image */}
+                        <div className="w-16 h-16 md:w-24 md:h-24 bg-[#f3f4f6] shrink-0 flex items-center justify-center overflow-hidden rounded-xl border border-gray-100 p-2 shadow-sm group-hover:shadow-md transition-shadow">
+                          {p.img ? (
+                            <img
+                              src={p.img}
+                              alt={p.electotronixPN}
+                              className="w-full h-full object-contain mix-blend-multiply"
                             />
-                          </div>
-
-                          {/* --- MOBILE ONLY ACTION BOX (separate row) --- */}
-                          <div
-                            className="flex md:hidden items-center justify-between w-full bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-xl"
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            <div className="flex flex-col min-w-0">
-                              <span className="text-[8px] font-black tracking-[0.15em] uppercase text-slate-400 mb-0.5">
-                                Units
-                              </span>
-                              <div className="flex items-center gap-1.5">
-                                <span className="font-bold text-[14px] text-slate-900 leading-none">
-                                  {p.reqqty}
-                                </span>
-                                <span className="text-[9px] font-bold text-slate-400 uppercase tracking-tighter">
-                                  Requested
-                                </span>
-                              </div>
-                            </div>
-
-                            <div className="flex flex-1 items-center justify-end gap-2">
-                              <div className="flex h-8 border border-slate-300 rounded-lg overflow-hidden bg-white">
-                                <button
-                                  onClick={() =>
-                                    updateQty(p, Number(p.reqqty) - 1)
-                                  }
-                                  disabled={p.reqqty <= 1}
-                                  className="w-8 flex items-center justify-center text-slate-400 hover:text-black active:bg-slate-100 transition-colors border-r border-slate-300 disabled:opacity-20"
-                                >
-                                  <FaMinus size={8} />
-                                </button>
-                                <div className="w-8 flex items-center justify-center text-[12px] font-black text-slate-900 bg-transparent">
-                                  {p.reqqty}
-                                </div>
-                                <button
-                                  onClick={() =>
-                                    updateQty(p, Number(p.reqqty) + 1)
-                                  }
-                                  className="w-8 flex items-center justify-center text-slate-400 hover:text-black active:bg-slate-100 transition-colors border-l border-slate-300"
-                                >
-                                  <FaPlus size={8} />
-                                </button>
-                              </div>
-                              <button
-                                onClick={() => removeHandler(p)}
-                                className="w-8 h-8 flex items-center justify-center text-rose-500 bg-rose-50 rounded-lg border border-rose-100 active:bg-rose-100 transition-colors"
-                              >
-                                <FaTrashAlt size={11} />
-                              </button>
-                            </div>
+                          ) : (
+                            <FaBoxOpen
+                              size={24}
+                              className="text-gray-400 md:hidden"
+                            />
+                          )}
+                          <div className="hidden md:block">
+                            {!p.img && (
+                              <FaBoxOpen
+                                size={36}
+                                className="text-gray-400"
+                              />
+                            )}
                           </div>
                         </div>
 
-                        {/* --- DESKTOP ONLY COLUMNS --- */}
-                        <div
-                          className="hidden md:flex col-span-4 justify-end items-center gap-4 md:gap-6 pr-2"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <div className="flex w-[120px] h-[40px] border border-gray-300 rounded-sm overflow-hidden bg-white">
-                            <button
-                              onClick={() => updateQty(p, Number(p.reqqty) - 1)}
-                              disabled={p.reqqty <= 1}
-                              className="w-10 flex items-center justify-center text-gray-400 hover:text-black hover:bg-gray-50 bg-white border-r border-gray-300 disabled:opacity-20"
-                            >
-                              <FaMinus size={10} />
-                            </button>
-                            <input
-                              type="number"
-                              value={p.reqqty || ""}
-                              onChange={(e) => updateQty(p, e.target.value)}
-                              className="flex-1 w-full text-center text-[14px] font-bold text-gray-900 bg-transparent outline-none border-none hide-scrollbar"
-                            />
-                            <button
-                              onClick={() => updateQty(p, Number(p.reqqty) + 1)}
-                              className="w-10 flex items-center justify-center text-gray-400 hover:text-black hover:bg-gray-50 bg-white border-l border-gray-300"
-                            >
-                              <FaPlus size={10} />
-                            </button>
-                          </div>
-                          <button
-                            onClick={() => {
-                              setItemToRemoveId(p._id);
-                              setShowConfirmModal(true);
-                            }}
-                            className="p-2 text-gray-300 hover:text-rose-500 hover:bg-rose-50 rounded-full transition-all duration-200"
-                            title="Remove Component"
-                          >
-                            <FaTrashAlt size={14} />
-                          </button>
+                        {/* Details */}
+                        <div className="flex flex-col flex-1 min-w-0 py-0.5 md:py-0 text-start md:pr-6 relative">
+                          <span className="text-[8px] md:text-[10px] font-black uppercase tracking-widest text-slate-400 mb-0.5 md:mb-1 truncate block w-full">
+                            {p.manufacture || "No Brand"}
+                          </span>
+                          <span className="text-[13px] md:text-[14px] font-black text-slate-900 uppercase hover:text-blue-600 transition-colors leading-snug mb-0.5 truncate block w-full pr-6 md:pr-0">
+                            {p.electotronixPN || p.manufacturePN}
+                          </span>
+                          <span className="text-[9px] md:text-[11px] text-slate-400 font-bold leading-relaxed line-clamp-1">
+                            {p.description || "No description provided"}
+                          </span>
+                          <span className="text-[9px] md:text-[10px] text-indigo-500 font-medium mt-1 hidden md:block">
+                            {language === "thai" ? "คลิกเพื่อดูรายละเอียด" : "Click to view details"}
+                          </span>
                         </div>
                       </Link>
+
+                      {/* --- MOBILE ONLY: Note Input + Actions --- */}
+                      <div className="md:hidden col-span-5 flex flex-col gap-2">
+                        <input
+                          type="text"
+                          className="w-full bg-slate-50 border border-slate-100 py-1.5 px-3 text-[10px] font-bold text-slate-600 rounded-lg outline-none focus:ring-1 focus:ring-slate-200 placeholder:text-slate-300 shadow-inner"
+                          placeholder="Add note..."
+                          value={p.note || ""}
+                          onChange={(e) => handleNoteChange(p, e.target.value)}
+                        />
+                        <div className="flex items-center justify-between w-full bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-xl">
+                          <div className="flex flex-col min-w-0">
+                            <span className="text-[8px] font-black tracking-[0.15em] uppercase text-slate-400 mb-0.5">
+                              Units
+                            </span>
+                            <div className="flex items-center gap-1.5">
+                              <span className="font-bold text-[14px] text-slate-900 leading-none">
+                                {p.reqqty}
+                              </span>
+                              <span className="text-[9px] font-bold text-slate-400 uppercase tracking-tighter">
+                                Requested
+                              </span>
+                            </div>
+                          </div>
+
+                          <div className="flex flex-1 items-center justify-end gap-2">
+                            <div className="flex h-8 border border-slate-300 rounded-lg overflow-hidden bg-white">
+                              <button
+                                onClick={() => updateQty(p, Number(p.reqqty) - 1)}
+                                disabled={p.reqqty <= 1}
+                                className="w-8 flex items-center justify-center text-slate-400 hover:text-black active:bg-slate-100 transition-colors border-r border-slate-300 disabled:opacity-20"
+                              >
+                                <FaMinus size={8} />
+                              </button>
+                              <div className="w-8 flex items-center justify-center text-[12px] font-black text-slate-900 bg-transparent">
+                                {p.reqqty}
+                              </div>
+                              <button
+                                onClick={() => updateQty(p, Number(p.reqqty) + 1)}
+                                className="w-8 flex items-center justify-center text-slate-400 hover:text-black active:bg-slate-100 transition-colors border-l border-slate-300"
+                              >
+                                <FaPlus size={8} />
+                              </button>
+                            </div>
+                            <button
+                              onClick={() => {
+                                setItemToRemoveId(p._id);
+                                setShowConfirmModal(true);
+                              }}
+                              className="w-8 h-8 flex items-center justify-center text-rose-500 bg-rose-50 rounded-lg border border-rose-100 active:bg-rose-100 transition-colors"
+                            >
+                              <FaTrashAlt size={11} />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* --- DESKTOP ONLY: Quantity + Delete --- */}
+                      <div className="hidden md:flex col-span-4 justify-end items-center gap-4 md:gap-6 pr-2">
+                        <div className="flex w-[120px] h-[40px] border border-gray-300 rounded-sm overflow-hidden bg-white">
+                          <button
+                            onClick={() => updateQty(p, Number(p.reqqty) - 1)}
+                            disabled={p.reqqty <= 1}
+                            className="w-10 flex items-center justify-center text-gray-400 hover:text-black hover:bg-gray-50 bg-white border-r border-gray-300 disabled:opacity-20"
+                          >
+                            <FaMinus size={10} />
+                          </button>
+                          <input
+                            type="number"
+                            value={p.reqqty || ""}
+                            onChange={(e) => updateQty(p, e.target.value)}
+                            className="flex-1 w-full text-center text-[14px] font-bold text-gray-900 bg-transparent outline-none border-none hide-scrollbar"
+                          />
+                          <button
+                            onClick={() => updateQty(p, Number(p.reqqty) + 1)}
+                            className="w-10 flex items-center justify-center text-gray-400 hover:text-black hover:bg-gray-50 bg-white border-l border-gray-300"
+                          >
+                            <FaPlus size={10} />
+                          </button>
+                        </div>
+                        <button
+                          onClick={() => {
+                            setItemToRemoveId(p._id);
+                            setShowConfirmModal(true);
+                          }}
+                          className="p-2 text-gray-300 hover:text-rose-500 hover:bg-rose-50 rounded-full transition-all duration-200"
+                          title="Remove Component"
+                        >
+                          <FaTrashAlt size={14} />
+                        </button>
+                      </div>
                     </div>
                   </motion.div>
                 ))

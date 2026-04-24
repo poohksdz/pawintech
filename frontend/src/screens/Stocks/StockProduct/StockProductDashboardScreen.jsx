@@ -35,7 +35,7 @@ import { toast } from "react-toastify";
 import { useGetNotificationsQuery } from "../../../slices/notificationApiSlice";
 
 // ============================================================================
-// COMPONENT: MINIMALIST DROPDOWN
+// COMPONENT: MINIMALIST DROPDOWN WITH SEARCH
 // ============================================================================
 const CustomDropdown = ({
   label,
@@ -47,9 +47,34 @@ const CustomDropdown = ({
   onChange,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const searchInputRef = useRef(null);
   const selectedOption = options?.find(
     (o) => String(o.value) === String(value),
   );
+
+  // Filter options based on search term
+  const filteredOptions = options?.filter((opt) =>
+    opt.label?.toLowerCase().includes(searchTerm.toLowerCase())
+  ) || [];
+
+  const handleOpen = () => {
+    if (!disabled) {
+      setIsOpen(true);
+      setSearchTerm("");
+      // Focus search input after opening
+      setTimeout(() => {
+        if (searchInputRef.current) {
+          searchInputRef.current.focus();
+        }
+      }, 50);
+    }
+  };
+
+  const handleClose = () => {
+    setIsOpen(false);
+    setSearchTerm("");
+  };
 
   return (
     <div className="mb-2 relative">
@@ -60,8 +85,8 @@ const CustomDropdown = ({
         <button
           type="button"
           disabled={disabled}
-          onClick={() => setIsOpen(!isOpen)}
-          className={`w-full bg-white border ${isOpen ? "border-slate-400" : "border-slate-200"} rounded-xl px-4 py-2 text-sm font-medium text-slate-800 flex items-center justify-between transition-colors hover:border-slate-300 outline-none ${disabled ? "opacity-40 cursor-not-allowed bg-slate-50" : "cursor-pointer"}`}
+          onClick={isOpen ? handleClose : handleOpen}
+          className={`w-full bg-white dark:bg-[#111111] border ${isOpen ? "border-slate-400 dark:border-slate-600" : "border-slate-200 dark:border-white/10"} rounded-xl px-4 py-2 text-sm font-medium text-slate-800 dark:text-slate-200 flex items-center justify-between transition-colors hover:border-slate-300 dark:hover:border-white/20 outline-none ${disabled ? "opacity-40 cursor-not-allowed bg-slate-50 dark:bg-black/20" : "cursor-pointer"}`}
         >
           <span
             className={`truncate mr-2 ${!selectedOption ? "text-slate-400 font-normal" : ""}`}
@@ -82,37 +107,72 @@ const CustomDropdown = ({
             <React.Fragment key="dropdown-fragment">
               <div
                 className="fixed inset-0 z-[110]"
-                onClick={() => setIsOpen(false)}
+                onClick={handleClose}
               />
-              <motion.ul
+              <motion.div
                 initial={{ opacity: 0, y: 4, scale: 0.98 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: 4, scale: 0.98 }}
                 transition={{ duration: 0.15, ease: "easeOut" }}
-                className="absolute z-[120] w-full mt-1 bg-white border border-slate-100 rounded-xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.08)] py-1.5 overflow-hidden max-h-60 overflow-y-auto custom-scrollbar"
+                className="absolute z-[120] w-full mt-1 bg-white dark:bg-[#111111] border border-slate-100 dark:border-white/10 rounded-xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.08)] dark:shadow-[0_10px_40px_-10px_rgba(0,0,0,0.5)] overflow-hidden transition-colors duration-500"
               >
-                <li
-                  onClick={() => {
-                    onChange({ target: { name, value: "" } });
-                    setIsOpen(false);
-                  }}
-                  className="px-4 py-2.5 text-xs font-medium text-slate-400 hover:bg-slate-50 hover:text-slate-800 cursor-pointer transition-colors"
-                >
-                  All {label}
-                </li>
-                {options?.map((opt) => (
+                {/* Search Input */}
+                <div className="p-2 border-b border-slate-100 dark:border-white/10">
+                  <div className="relative">
+                    <FaSearch
+                      className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
+                      size={12}
+                    />
+                    <input
+                      ref={searchInputRef}
+                      type="text"
+                      placeholder={`Search ${label}...`}
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="w-full pl-9 pr-3 py-2 text-xs font-medium text-slate-800 dark:text-slate-200 bg-slate-50 dark:bg-black/30 border border-slate-200 dark:border-white/10 rounded-lg outline-none focus:border-slate-400 dark:focus:border-slate-500 placeholder:text-slate-400 transition-colors"
+                    />
+                    {searchTerm && (
+                      <button
+                        onClick={(e) => { e.stopPropagation(); setSearchTerm(""); }}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                      >
+                        <FaTimes size={10} />
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {/* Options List */}
+                <ul className="max-h-48 overflow-y-auto custom-scrollbar py-1.5">
                   <li
-                    key={String(opt.key)}
                     onClick={() => {
-                      onChange({ target: { name, value: opt.value } });
-                      setIsOpen(false);
+                      onChange({ target: { name, value: "" } });
+                      handleClose();
                     }}
-                    className={`px-4 py-2.5 text-sm font-medium hover:bg-slate-50 cursor-pointer transition-colors ${String(value) === String(opt.value) ? "text-slate-900 bg-slate-50 font-semibold" : "text-slate-600"}`}
+                    className="px-4 py-2.5 text-xs font-medium text-slate-400 dark:text-slate-500 hover:bg-slate-50 dark:hover:bg-black/50 hover:text-slate-800 dark:hover:text-slate-300 cursor-pointer transition-colors"
                   >
-                    {opt.label}
+                    All {label}
                   </li>
-                ))}
-              </motion.ul>
+                  {filteredOptions.length > 0 ? (
+                    filteredOptions.map((opt) => (
+                      <li
+                        key={String(opt.key)}
+                        onClick={() => {
+                          onChange({ target: { name, value: opt.value } });
+                          handleClose();
+                        }}
+                        className={`px-4 py-2.5 text-sm font-medium hover:bg-slate-50 dark:hover:bg-black/50 cursor-pointer transition-colors ${String(value) === String(opt.value) ? "text-slate-900 dark:text-white bg-slate-50 dark:bg-black/50 font-semibold" : "text-slate-600 dark:text-slate-400"}`}
+                      >
+                        {opt.label}
+                      </li>
+                    ))
+                  ) : (
+                    <li className="px-4 py-3 text-xs text-slate-400 text-center">
+                      No results found
+                    </li>
+                  )}
+                </ul>
+              </motion.div>
             </React.Fragment>
           )}
         </AnimatePresence>
@@ -549,12 +609,12 @@ const StockProductDashboardScreen = () => {
       {/* ============================================================================ */}
       {/* MAIN CONTENT (แยกออกจาก Modal ชัดเจน) */}
       {/* ============================================================================ */}
-      <div className="bg-[#fdfdfd] min-h-screen font-sans pb-24 text-slate-800 antialiased selection:bg-slate-200 relative">
+      <div className="bg-[#fdfdfd] dark:bg-black min-h-screen font-sans pb-24 text-slate-800 dark:text-white antialiased selection:bg-slate-200 dark:selection:bg-slate-700 relative transition-colors duration-500">
         <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 pt-8 sm:pt-12 relative z-10">
           {/* HEADER */}
           <header className="flex flex-col md:flex-row md:items-end justify-between gap-4 md:gap-6 mb-10 pb-6 border-b border-slate-100">
             <div>
-              <h1 className="text-3xl sm:text-4xl font-semibold tracking-tight text-slate-900 mb-1">
+              <h1 className="text-3xl sm:text-4xl font-semibold tracking-tight text-slate-900 dark:text-white mb-1 transition-colors duration-500">
                 {t.title}
               </h1>
               <p className="text-sm text-slate-500 font-medium">{t.subtitle}</p>
@@ -572,7 +632,7 @@ const StockProductDashboardScreen = () => {
                   value={searchInput}
                   onChange={(e) => setSearchInput(e.target.value)}
                   onKeyDown={handleKeyDown}
-                  className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-full text-sm outline-none focus:border-slate-400 transition-colors placeholder:text-slate-400"
+                  className="w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-[#111111] border border-slate-200 dark:border-white/10 rounded-full text-sm dark:text-white outline-none focus:border-slate-400 dark:focus:border-slate-500 transition-colors placeholder:text-slate-400 dark:placeholder:text-slate-600"
                 />
               </div>
 
@@ -733,10 +793,10 @@ const StockProductDashboardScreen = () => {
                 ) : (
                   <div>
                     {/* DESKTOP VIEW (Modern Edge-to-Edge Table in Card) */}
-                    <div className="hidden lg:block bg-white border border-slate-200/80 shadow-[0_4px_24px_rgba(0,0,0,0.02)] rounded-[2rem] overflow-hidden">
+                    <div className="hidden lg:block bg-white dark:bg-[#0a0a0a] border border-slate-200/80 dark:border-white/5 shadow-[0_4px_24px_rgba(0,0,0,0.02)] dark:shadow-[0_4px_30px_rgba(0,0,0,0.3)] rounded-[2rem] overflow-hidden transition-colors duration-500">
                       <table className="w-full text-left border-collapse">
                         <thead>
-                          <tr className="border-b border-slate-100 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] bg-slate-50/50">
+                          <tr className="border-b border-slate-100 dark:border-white/5 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] bg-slate-50/50 dark:bg-black/50 transition-colors duration-500">
                             <th className="py-5 pl-8 pr-4 w-28 text-center">
                               Preview
                             </th>
@@ -762,7 +822,8 @@ const StockProductDashboardScreen = () => {
                               <td className="py-4 pl-8 pr-4">
                                 <div className="relative">
                                   <div
-                                    className="w-14 h-14 rounded-2xl bg-[#f8fafc] border border-slate-100 flex items-center justify-center mx-auto overflow-hidden p-2 group-hover:bg-white group-hover:shadow-sm transition-all cursor-pointer"
+                                    className="w-14 h-14 rounded-2xl border border-slate-200 flex items-center justify-center mx-auto overflow-hidden p-2 group-hover:shadow-sm transition-all cursor-pointer"
+                                    style={{ backgroundColor: '#ffffff' }}
                                     onClick={() => handleViewDetail(p)}
                                   >
                                     {p.img ? (
@@ -890,7 +951,7 @@ const StockProductDashboardScreen = () => {
                       {currentItems.map((p, index) => (
                         <div
                           key={`p.ID ?? card-${index}`}
-                          className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex flex-col relative"
+                          className="bg-white dark:bg-[#111111] border border-slate-200 dark:border-white/10 rounded-2xl p-5 shadow-[0_8px_30px_rgba(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgba(0,0,0,0.2)] flex flex-col relative transition-colors duration-500"
                         >
                           {/* Top-Right Priority Toggle */}
                           <div className="absolute top-4 right-4 z-10">
@@ -904,7 +965,8 @@ const StockProductDashboardScreen = () => {
 
                           <div className="flex gap-4 mb-4">
                             <div
-                              className="w-20 h-20 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center shrink-0 p-2 cursor-pointer"
+                              className="w-20 h-20 rounded-xl border border-slate-200 flex items-center justify-center shrink-0 p-2 cursor-pointer transition-colors duration-500"
+                              style={{ backgroundColor: '#ffffff' }}
                               onClick={() => handleViewDetail(p)}
                             >
                               {p.img ? (
@@ -1227,7 +1289,7 @@ const StockProductDashboardScreen = () => {
                   animate={{ scale: 1, opacity: 1, y: 0 }}
                   exit={{ scale: 0.95, opacity: 0, y: 20 }}
                   transition={{ duration: 0.2, ease: "easeOut" }}
-                  className="relative bg-white rounded-3xl w-full max-w-4xl max-h-[90vh] overflow-hidden shadow-2xl flex flex-col md:flex-row z-10"
+                  className="relative bg-white dark:bg-[#0a0a0a] rounded-3xl w-full max-w-4xl max-h-[90vh] overflow-hidden shadow-2xl dark:shadow-[0_0_50px_rgba(0,0,0,0.5)] flex flex-col md:flex-row z-10 transition-colors duration-500"
                 >
                   <button
                     onClick={() => setShowDetailModal(false)}
@@ -1237,8 +1299,11 @@ const StockProductDashboardScreen = () => {
                   </button>
 
                   {/* Image Side */}
-                  <div className="w-full md:w-2/5 p-4 sm:p-10 bg-slate-50 flex flex-col items-center justify-center border-b md:border-b-0 md:border-r border-slate-100 shrink-0">
-                    <div className="w-28 h-28 sm:w-56 sm:h-56 bg-white border border-slate-200 rounded-2xl p-4 flex items-center justify-center mb-4 sm:mb-6 shadow-sm shadow-slate-200/50">
+                  <div className="w-full md:w-2/5 p-4 sm:p-10 bg-white dark:bg-[#0a0a0a] flex flex-col items-center justify-center border-b md:border-b-0 md:border-r border-slate-100 dark:border-white/5 shrink-0 transition-colors duration-500">
+                    <div
+                      className="w-28 h-28 sm:w-56 sm:h-56 border border-slate-200 rounded-2xl p-4 flex items-center justify-center mb-4 sm:mb-6 shadow-sm shadow-slate-200/50 transition-colors duration-500"
+                      style={{ backgroundColor: '#ffffff' }}
+                    >
                       {selectedDetailProduct.img ? (
                         <img
                           src={selectedDetailProduct.img}
@@ -1249,7 +1314,7 @@ const StockProductDashboardScreen = () => {
                         <FaBoxOpen className="text-slate-200" size={48} />
                       )}
                     </div>
-                    <h3 className="text-base sm:text-xl font-bold text-slate-900 text-center mb-1 leading-tight px-4">
+                    <h3 className="text-base sm:text-xl font-bold text-slate-900 dark:text-white text-center mb-1 leading-tight px-4 transition-colors duration-500">
                       {selectedDetailProduct.electotronixPN && selectedDetailProduct.electotronixPN !== "-" ? selectedDetailProduct.electotronixPN : (selectedDetailProduct.barcode || "-")}
                     </h3>
                     <p className="text-[9px] sm:text-[10px] text-slate-400 uppercase tracking-[0.2em] text-center font-bold">
@@ -1258,8 +1323,8 @@ const StockProductDashboardScreen = () => {
                   </div>
 
                   {/* Data Side */}
-                  <div className="flex-1 p-5 sm:p-10 overflow-y-auto custom-scrollbar bg-white">
-                    <h4 className="text-[10px] sm:text-xs font-bold text-slate-900 uppercase tracking-widest border-b border-slate-100 pb-3 mb-5 flex items-center gap-2">
+                  <div className="flex-1 p-5 sm:p-10 overflow-y-auto custom-scrollbar bg-white dark:bg-[#0a0a0a] transition-colors duration-500">
+                    <h4 className="text-[10px] sm:text-xs font-bold text-slate-900 dark:text-white uppercase tracking-widest border-b border-slate-100 dark:border-white/10 pb-3 mb-5 flex items-center gap-2 transition-colors duration-500">
                       <span className="w-1.5 h-1.5 rounded-full bg-slate-900"></span>{" "}
                       {t.techSpecs}
                     </h4>
@@ -1312,11 +1377,11 @@ const StockProductDashboardScreen = () => {
                       ))}
                     </div>
 
-                    <h4 className="text-xs font-bold text-slate-900 uppercase tracking-widest border-b border-slate-100 pb-3 mb-4 flex items-center gap-2">
+                    <h4 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-widest border-b border-slate-100 dark:border-white/10 pb-3 mb-4 flex items-center gap-2 transition-colors duration-500">
                       <span className="w-1.5 h-1.5 rounded-full bg-slate-300"></span>{" "}
                       {t.overview}
                     </h4>
-                    <p className="text-sm text-slate-500 leading-relaxed font-medium bg-slate-50 p-4 rounded-xl border border-slate-100 italic">
+                    <p className="text-sm text-slate-500 dark:text-white/60 leading-relaxed font-medium bg-slate-50 dark:bg-black/20 p-4 rounded-xl border border-slate-100 dark:border-white/5 italic transition-colors duration-500">
                       {selectedDetailProduct.description || t.noDescription}
                     </p>
 
@@ -1398,7 +1463,7 @@ const StockProductDashboardScreen = () => {
                   animate={{ scale: 1, opacity: 1 }}
                   exit={{ scale: 0.95, opacity: 0 }}
                   transition={{ duration: 0.2 }}
-                  className="relative bg-white rounded-2xl w-full max-w-[320px] p-5 sm:p-6 shadow-2xl border border-slate-100 text-center z-10"
+                  className="relative bg-white dark:bg-[#111111] rounded-2xl w-full max-w-[320px] p-5 sm:p-6 shadow-2xl dark:shadow-[0_0_40px_rgba(0,0,0,0.5)] border border-slate-100 dark:border-white/10 text-center z-10 transition-colors duration-500"
                 >
                   <div
                     className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4 bg-slate-50 border ${isUnmarking ? "text-red-500 border-red-100" : "text-slate-800 border-slate-200"}`}
@@ -1455,7 +1520,8 @@ const StockProductDashboardScreen = () => {
         )}
 
       {/* Custom minimalist style & Toastify Overrides */}
-      <style dangerouslySetInnerHTML={{ __html: `
+      <style dangerouslySetInnerHTML={{
+        __html: `
                 .custom-scrollbar::-webkit-scrollbar { width: 4px; height: 4px; }
                 .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
                 .custom-scrollbar::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 4px; }
