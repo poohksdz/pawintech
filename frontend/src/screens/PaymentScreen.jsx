@@ -177,8 +177,10 @@ const PaymentScreen = () => {
   const transferedAmount =
     (orderType === "product" || isBuyNow) ? calculatedPrices.totalPrice : urlAmount;
 
+  // useEffect 1: Redirect guards + Order ID generation (runs ONCE on mount)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
-    console.log("[PaymentScreen] useEffect triggered, cart.cartItems:", cart.cartItems?.length);
+    console.log("[PaymentScreen] Mount: orderType:", orderType, "isBuyNow:", isBuyNow);
 
     if (isBuyNow) {
       // Buy Now mode: ไม่ต้องเช็คตะกร้าหรือที่อยู่จัดส่ง (ผ่าน ShippingScreen มาแล้ว)
@@ -186,19 +188,22 @@ const PaymentScreen = () => {
       setOrderID(tempOrderID);
       setPaymentComfirmID(tempOrderID);
     } else if (orderType === "product") {
-      if (!cart.cartItems || cart.cartItems.length === 0) {
-        console.log("[PaymentScreen] Cart empty, redirecting to /cart");
+      // ตรวจสอบตะกร้าและที่อยู่จัดส่ง
+      const selectedItems = (cart.cartItems || []).filter(item => item.isSelected !== false);
+      console.log("[PaymentScreen] Selected items for payment:", selectedItems.length);
+
+      if (selectedItems.length === 0) {
+        console.log("[PaymentScreen] No selected items, redirecting to /cart");
+        toast.error(language === "thai" ? "กรุณาเลือกสินค้าอย่างน้อย 1 รายการ" : "Please select at least 1 item");
         navigate("/cart");
         return;
-      } else if (!cart.shippingAddress?.address) {
+      }
+
+      if (!cart.shippingAddress?.address) {
         console.log("[PaymentScreen] No shipping address, redirecting to /shipping");
         navigate("/shipping");
         return;
       }
-
-      // Removed erroneous toast.error
-      const selectedItems = cart.cartItems.filter(item => item.isSelected !== false);
-      console.log("[PaymentScreen] Selected items for payment:", selectedItems.length);
 
       const tempOrderID = `PWT-${generateOrderID()}`;
       setOrderID(tempOrderID);
@@ -212,51 +217,22 @@ const PaymentScreen = () => {
       setOrderID(`REQ-${urlOrderId.padStart(5, "0")}`);
       setPaymentComfirmID(urlOrderId);
     }
+  }, []); // Run once on mount only
 
-    // 1. ตรวจสอบความถูกต้องของข้อมูล (Validation)
-    let amountToPay = 0;
-    if (isBuyNow) {
-      // Buy Now mode: ใช้ข้อมูลจาก URL params
-      amountToPay = calculatedPrices.totalPrice;
-      console.log(`[PaymentScreen] BuyNow: Price=${urlPrice}, Qty=${urlQty}, Total=${amountToPay}`);
-    } else if (orderType === "product") {
-      // เตรียมข้อมูลการสั่งซื้อ (Selected Items)
-      const allItems = cart.cartItems || [];
-      const items = allItems.filter(item => item.isSelected !== false);
-      const totalItemsQty = items.reduce((acc, item) => acc + Number(item.qty), 0);
-      const uniqueItemsCount = new Set(items.map((i) => i.product)).size;
+  // useEffect 2: QR Code generation (reacts to price changes)
+  useEffect(() => {
+    const amountToPay = (orderType === "product" || isBuyNow)
+      ? calculatedPrices.totalPrice
+      : urlAmount;
 
-      // ตรวจสอบความถูกต้องของข้อมูล (ตรวจสอบราคาที่ถูกต้อง + ส่วนลด + ค่าส่ง)
-      const calculatedItemsPrice = items.reduce(
-        (acc, item) => acc + (Number(item.price) * Number(item.qty)),
-        0
-      );
-
-      // คำนวณรวมทั้งหมด (Items + VAT 7% + Shipping)
-      const shippingCost = Number(cart.shippingPrice) || 0;
-      const itemsWithVat = calculatedItemsPrice * 1.07;
-      const expectedTotal = itemsWithVat + shippingCost;
-
-      console.log(`[PaymentScreen] Items: ${items.length}, ItemsPrice: ${calculatedItemsPrice}, VAT(7%): ${calculatedItemsPrice * 0.07}, Shipping: ${shippingCost}, Total: ${expectedTotal}`);
-
-      if (items.length !== uniqueItemsCount) {
-        console.warn("ข้อมูลสั่งซื้อไม่ถูกต้องในรายการ");
-      }
-
-      // ใช้ข้อมูลที่คำนวณไว้แล้วในขั้นตอนก่อนหน้า
-      amountToPay = expectedTotal;
-    } else {
-      amountToPay = urlAmount;
-    }
-
-    // 2. สร้าง QR Code
     if (amountToPay > 0) {
       const payload = generatePayload(SHOP_CONFIG.promptPayID, {
         amount: amountToPay,
       });
       setQrCodePayload(payload);
+      console.log("[PaymentScreen] QR generated for amount:", amountToPay);
     }
-  }, [cart, navigate, orderType, urlOrderId, urlAmount]);
+  }, [calculatedPrices.totalPrice, orderType, isBuyNow, urlAmount]);
 
   const uploadPaymenSlipImageHandler = async (e) => {
     const file = e.target.files[0];

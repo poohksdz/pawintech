@@ -240,12 +240,21 @@ const ShippingScreen = () => {
   //  ฟังก์ชันตรวจสอบความถูกต้องของข้อมูลและเลื่อนหน้าจอ
   const validateAndScroll = () => {
     const newErrors = {};
-    if (!isReceiveCompleteSelected && addressSource === "manual") {
-      if (!shippingname) newErrors.shippingname = true;
-      if (!phone) newErrors.phone = true;
-      if (!address) newErrors.address = true;
-      if (!city) newErrors.city = true;
-      if (!postalCode) newErrors.postalCode = true;
+    if (!isReceiveCompleteSelected) {
+      // ตรวจสอบที่อยู่จัดส่ง (ไม่ว่าจะเป็น profile หรือ manual)
+      if (addressSource === "profile") {
+        // ถ้าใช้ที่อยู่จากโปรไฟล์ ต้องตรวจสอบว่ามีข้อมูลครบ
+        if (!userInfo?.shippingAddress?.address && !userInfo?.address) {
+          newErrors.profileAddress = true;
+        }
+      } else {
+        // ถ้าใส่ที่อยู่เอง ต้องกรอกให้ครบทุกช่อง
+        if (!shippingname) newErrors.shippingname = true;
+        if (!phone) newErrors.phone = true;
+        if (!address) newErrors.address = true;
+        if (!city) newErrors.city = true;
+        if (!postalCode) newErrors.postalCode = true;
+      }
     }
     if (isBillingCompleteSelected) {
       if (!billingName) newErrors.billingName = true;
