@@ -799,7 +799,7 @@ const Header = () => {
               </div>
             )}
 
-            {userInfo && isStore && (
+            {userInfo && (
               <div
                 className="relative"
                 onMouseEnter={() => handleMouseEnter("notifications")}
