@@ -37,17 +37,24 @@ export const updateCart = (state) => {
   // Merge duplicate items first (fix bug: same product shown multiple times)
   state.cartItems = mergeCartItems(state.cartItems);
 
+  // FIX: Normalize isSelected to always be a boolean (true/false) after merge
+  state.cartItems = state.cartItems.map((item) => ({
+    ...item,
+    isSelected: item.isSelected !== false, // undefined/null -> true (default selected), false -> false
+  }));
+
   // Calculate the items price - ONLY for selected items
-  const itemsPrice = state.cartItems.reduce(
+  const selectedForCalc = state.cartItems.filter(item => item.isSelected === true);
+  const itemsPrice = selectedForCalc.reduce(
     (acc, item) => {
-      // FIX BUG: Only count items where isSelected is EXPLICITLY true
-      if (item.isSelected === true) {
-        return acc + (item.price * 100 * item.qty) / 100;
-      }
-      return acc;
+      return acc + (item.price * 100 * item.qty) / 100;
     },
     0,
   );
+
+  console.log("[updateCart] Selected items for price calc:", selectedForCalc.length, "of", state.cartItems.length, "items");
+  console.log("[updateCart] itemsPrice:", itemsPrice);
+
   state.itemsPrice = addDecimals(itemsPrice);
 
   // Calculate the shipping price

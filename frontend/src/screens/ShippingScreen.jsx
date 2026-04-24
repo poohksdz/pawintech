@@ -114,6 +114,7 @@ const ShippingScreen = () => {
   const location = useLocation(); //  ใช้ useLocation เพื่อดึง Parameter จาก URL
   const { userInfo } = useSelector((state) => state.auth);
   const { language } = useSelector((state) => state.language);
+  const cart = useSelector((state) => state.cart);
 
   const [updateProfileShipping] = useProfileShippingMutation();
   const { data: transportationPrice } = useGetTransportationPriceQuery();
@@ -328,18 +329,35 @@ const ShippingScreen = () => {
       dispatch(saveBillingAddress(finalBillingAddress));
 
       // 2. อัพเดทราคาสินค้าและค่าจัดส่ง
-      let localCart = JSON.parse(localStorage.getItem("cart")) || {};
+      // คำนวณ itemsPrice: Buy Now ใช้ URL params, ปกติใช้สินค้าที่เลือกในตะกร้า
+      const searchParamsTemp = new URLSearchParams(location.search);
+      const isBuyNowFlow = searchParamsTemp.get("type") === "buynow";
+      let itemsPrice;
+      if (isBuyNowFlow) {
+        const buyPrice = Number(searchParamsTemp.get("price") || 0);
+        const buyQty = Number(searchParamsTemp.get("qty") || 1);
+        itemsPrice = buyPrice * buyQty;
+      } else {
+        const selectedItems = cart.cartItems?.filter(item => item.isSelected !== false) || [];
+        itemsPrice = selectedItems.reduce(
+          (acc, item) => acc + (Number(item.price) * Number(item.qty)),
+          0
+        );
+      }
       const transportCost = isReceiveCompleteSelected
         ? 0
         : parseFloat(transportationPrice?.transportationPrice || 0);
-      const itemsPrice = parseFloat(localCart.itemsPrice || 0);
+      const vatPrice = itemsPrice * 0.07;
+      const totalPrice = itemsPrice + vatPrice + transportCost;
+
+      console.log("[ShippingScreen] itemsPrice:", itemsPrice, "shipping:", transportCost, "total:", totalPrice);
 
       dispatch(
         updateCartPrice({
           receivePlace: isReceiveCompleteSelected ? "atcompany" : "bysending",
           shippingPrice: transportCost,
-          totalPrice: +(itemsPrice * 1.07 + transportCost).toFixed(2),
-          vatPrice: +(itemsPrice * 0.07).toFixed(2),
+          totalPrice: totalPrice,
+          vatPrice: vatPrice,
         }),
       );
 
@@ -356,7 +374,15 @@ const ShippingScreen = () => {
       const orderId = searchParams.get("orderId");
       const amount = searchParams.get("amount");
 
-      if (type && orderId) {
+      if (type === "buynow") {
+        // Buy Now flow: ส่งข้อมูลสินค้าชิ้นเดียวไปหน้า Payment
+        const productId = searchParams.get("productId");
+        const buyQty = searchParams.get("qty");
+        const buyPrice = searchParams.get("price");
+        const buyName = searchParams.get("name") || "";
+        const buyImage = searchParams.get("image") || "";
+        navigate(`/payment?type=buynow&productId=${productId}&qty=${buyQty}&price=${buyPrice}&name=${encodeURIComponent(buyName)}&image=${encodeURIComponent(buyImage)}`);
+      } else if (type && orderId) {
         // ถ้ามี type และ orderId แสดงว่าเป็นการแก้ไขออร์เดอร์ PCB ที่มีอยู่แล้ว
         navigate(`/payment?type=${type}&orderId=${orderId}&amount=${amount}`);
       } else {

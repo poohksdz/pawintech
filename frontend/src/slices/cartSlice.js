@@ -70,6 +70,12 @@ const loadCartFromStorage = () => {
       shippingAddress: {},
       billingAddress: {},
       paymentMethod: "PayPal",
+      // Ensure default price fields exist
+      itemsPrice: "0.00",
+      vatPrice: "0.00",
+      shippingPrice: "0.00",
+      totalPrice: "0.00",
+      receivePlace: "",
     };
   }
   const parsed = JSON.parse(saved);
@@ -77,7 +83,23 @@ const loadCartFromStorage = () => {
   if (parsed.cartItems && parsed.cartItems.length > 0) {
     parsed.cartItems = mergeCartItems(parsed.cartItems);
   }
-  return parsed;
+  // FIX: Normalize isSelected to always be a proper boolean (true/false)
+  if (parsed.cartItems) {
+    parsed.cartItems = parsed.cartItems.map((item) => ({
+      ...item,
+      isSelected: item.isSelected !== false, // undefined/null -> true (default selected), false -> false
+    }));
+  }
+
+  // Ensure default price fields always exist (CRITICAL FIX)
+  return {
+    ...parsed,
+    itemsPrice: parsed.itemsPrice || "0.00",
+    vatPrice: parsed.vatPrice || "0.00",
+    shippingPrice: parsed.shippingPrice || "0.00",
+    totalPrice: parsed.totalPrice || "0.00",
+    receivePlace: parsed.receivePlace || "",
+  };
 };
 
 const initialState = loadCartFromStorage();
@@ -196,8 +218,24 @@ const cartSlice = createSlice({
     builder.addCase(fetchCartDB.fulfilled, (state, action) => {
       // ถ้า Backend ส่งรายการสินค้ากลับมา ให้ใช้แทนของในเครื่องทันที
       if (action.payload && action.payload.cartItems) {
+        // Build a lookup map from current local state to preserve isSelected
+        const localSelectionMap = {};
+        (state.cartItems || []).forEach((item) => {
+          const key = item._id || item.product_id;
+          if (key) localSelectionMap[key] = item.isSelected;
+        });
+
         // FIX BUG: Merge duplicate items from DB (same product_id multiple rows)
-        state.cartItems = mergeCartItems(action.payload.cartItems);
+        // FIX: Preserve local isSelected state (DB doesn't store isSelected)
+        state.cartItems = mergeCartItems(action.payload.cartItems).map((item) => {
+          const key = item._id || item.product_id;
+          const localSelected = key ? localSelectionMap[key] : undefined;
+          return {
+            ...item,
+            // Use local isSelected if it exists (user explicitly set it), otherwise default to true
+            isSelected: localSelected !== undefined ? localSelected : true,
+          };
+        });
         updateCart(state);
         localStorage.setItem("cart", JSON.stringify(state)); // Sync กลับ LocalStorage กันเหนียว
       }

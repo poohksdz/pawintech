@@ -221,7 +221,9 @@ const ProductScreen = () => {
       const tempOrderId = `BUYNOW-${product._id}-${Date.now()}`;
 
       // ไปหน้า Shipping พร้อมส่งข้อมูลสินค้าชิ้นเดียวผ่าน URL
-      navigate(`/shipping?type=buynow&productId=${product._id}&qty=${qty}&price=${product.price}&amount=${totalPrice}`);
+      const productName = encodeURIComponent(product.name || "");
+      const productImage = encodeURIComponent(product.image || "");
+      navigate(`/shipping?type=buynow&productId=${product._id}&qty=${qty}&price=${product.price}&name=${productName}&image=${productImage}`);
     } catch (err) {
       console.error("[ProductScreen] Buy now error:", err);
       toast.error(language === "thai" ? "เกิดข้อผิดพลาดในการสั่งซื้อ" : "Error processing order");
