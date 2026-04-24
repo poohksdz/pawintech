@@ -86,7 +86,12 @@ const OrderProductCartScreen = () => {
       );
       return;
     }
-    navigate("/login?redirect=/shipping");
+    // ถ้า login แล้วไปหน้า shipping ตรงเลย ไม่ต้องผ่าน login อีก
+    if (userInfo) {
+      navigate("/shipping");
+    } else {
+      navigate("/login?redirect=/shipping");
+    }
   };
 
   const formatPrice = (price) => {
