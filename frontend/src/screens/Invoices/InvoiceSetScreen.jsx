@@ -238,14 +238,23 @@ const InvoiceSetScreen = () => {
       useCORS: true,
     });
     const imgData = canvas.toDataURL("image/png");
-    pdf.addImage(
-      imgData,
-      "PNG",
-      0,
-      0,
-      pdf.internal.pageSize.getWidth(),
-      pdf.internal.pageSize.getHeight(),
-    );
+    const pdfWidth = pdf.internal.pageSize.getWidth();
+    const pdfHeight = pdf.internal.pageSize.getHeight();
+    const imgProps = pdf.getImageProperties(imgData);
+    const totalPdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+
+    let heightLeft = totalPdfHeight;
+    let position = 0;
+
+    pdf.addImage(imgData, "PNG", 0, position, pdfWidth, totalPdfHeight);
+    heightLeft -= pdfHeight;
+
+    while (heightLeft >= 5) {
+      position -= pdfHeight;
+      pdf.addPage();
+      pdf.addImage(imgData, "PNG", 0, position, pdfWidth, totalPdfHeight);
+      heightLeft -= pdfHeight;
+    }
 
     const dataUri = pdf.output("datauristring");
     const base64Part = dataUri.split(",")[1];

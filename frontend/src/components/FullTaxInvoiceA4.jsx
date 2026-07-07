@@ -150,7 +150,7 @@ const FullTaxInvoiceA4 = ({ order, companyInfo, printMode, isQuotation = false, 
     return (
         <div className={`${printMode === "full" ? "print-area print-block" : printMode === "short" ? "print-area print-block" : "no-print block"}`}>
             {invoicePages.map((pageDef, pageIndex) => (
-                <div key={pageIndex} className={`${pageIndex === invoicePages.length - 1 ? "last-print-page" : "break-after-page"} font-prompt text-black p-[10mm] bg-white w-[210mm] min-h-[296mm] h-[296mm] box-border overflow-hidden mx-auto text-[11px] leading-tight shadow-none border-none relative print:m-0 print:p-[10mm]`}>
+                <div key={pageIndex} className={`${pageIndex === invoicePages.length - 1 ? "last-print-page" : "break-after-page"} font-prompt text-black p-[10mm] bg-white w-[210mm] min-h-[297mm] h-[297mm] box-border overflow-hidden mx-auto text-[11px] leading-tight shadow-none border-none relative print:m-0 print:p-[10mm]`}>
 
                     {(effectiveDocType === "taxinvoice" || pageDef.docSet !== "ต้นฉบับ") && (
                         <div className="absolute top-[10mm] right-[10mm] text-right">
@@ -535,7 +535,7 @@ const FullTaxInvoiceA4 = ({ order, companyInfo, printMode, isQuotation = false, 
                         margin: 0 !important;
                         padding: 10mm !important;
                         width: 210mm !important;
-                        height: 296mm !important;
+                        height: 297mm !important;
                         box-sizing: border-box !important;
                         box-shadow: none !important;
                         overflow: hidden !important;
@@ -549,7 +549,7 @@ const FullTaxInvoiceA4 = ({ order, companyInfo, printMode, isQuotation = false, 
                         margin: 0 !important;
                         padding: 10mm !important;
                         width: 210mm !important;
-                        height: 296mm !important;
+                        height: 297mm !important;
                         box-sizing: border-box !important;
                         box-shadow: none !important;
                         overflow: hidden !important;
