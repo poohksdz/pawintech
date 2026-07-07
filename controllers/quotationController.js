@@ -78,6 +78,38 @@ const getQuotationUsed = asyncHandler(async (req, res) => {
   }
 });
 
+// @desc    Get next quotation no
+// @route   GET /api/quotations/next-number
+// @access  Public
+const getNextQuotationNo = asyncHandler(async (req, res) => {
+  try {
+    const now = new Date();
+    const thaiYear = now.getFullYear() + 543;
+    const shortThaiYear = String(thaiYear).slice(-2);
+
+    const [lastQuotation] = await db.pool.query(
+      `SELECT quotation_no 
+       FROM tbl_quotations 
+       WHERE quotation_no LIKE ? 
+       ORDER BY id DESC 
+       LIMIT 1`,
+      [`QU${shortThaiYear}-%`]
+    );
+
+    let nextNumber = "0001";
+    if (lastQuotation.length > 0) {
+      const lastNo = lastQuotation[0].quotation_no.split("-")[1];
+      nextNumber = String(parseInt(lastNo) + 1).padStart(4, "0");
+    }
+    const nextQuotationNo = `QU${shortThaiYear}-${nextNumber}`;
+
+    res.status(200).json({ nextQuotationNo });
+  } catch (error) {
+    console.error(`Error fetching next quotation no: ${error.message}`);
+    res.status(500).json({ message: "Error fetching next quotation no" });
+  }
+});
+
 // @desc    Create a new quotation
 // @route   POST /api/quotations
 // @access  Public
@@ -419,6 +451,7 @@ const deleteQuotationByQuotationNo = asyncHandler(async (req, res) => {
 module.exports = {
   getQuotations,
   getQuotationById,
+  getNextQuotationNo,
   getQuotationByQuotationNo,
   getQuotationUsed,
   createQuotation,

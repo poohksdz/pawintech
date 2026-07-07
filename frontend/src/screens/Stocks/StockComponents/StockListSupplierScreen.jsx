@@ -34,6 +34,14 @@ const StockListSupplierScreen = () => {
   const [selectedSupplier, setSelectedSupplier] = useState({});
   const [formData, setFormData] = useState({ namesupplier: "" });
 
+  
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const filteredData = supplierData.filter((item) =>
+    (item.namesupplier || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (item.supplierID || "").toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   const [createSupplier] = useCreateStockSupplierMutation();
   const [updateSupplier] = useUpdateStockSupplierMutation();
   const [deleteSupplier] = useDeleteStockSupplierMutation();
@@ -88,15 +96,24 @@ const StockListSupplierScreen = () => {
     );
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 md:py-8 animate-pageFade">
+    <div className="animate-pageFade">
       <Card>
         <CardHeader
           title="Supplier List"
           action={
-            <Button variant="primary" onClick={openCreateModal}>
+            <div className="flex flex-col sm:flex-row gap-3 items-center">
+              <input
+                type="text"
+                placeholder="Search..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="px-3 py-1.5 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-full sm:w-64"
+              />
+              <Button variant="primary" onClick={openCreateModal}>
               <Plus size={18} className="mr-2" />
               Create
             </Button>
+            </div>
           }
         />
         <CardBody className="p-0">
@@ -111,7 +128,7 @@ const StockListSupplierScreen = () => {
               </Table.Row>
             </Table.Header>
             <Table.Body>
-              {supplierData.length === 0 ? (
+              {filteredData.length === 0 ? (
                 <Table.Row>
                   <Table.Cell
                     colSpan="5"
@@ -121,7 +138,7 @@ const StockListSupplierScreen = () => {
                   </Table.Cell>
                 </Table.Row>
               ) : (
-                supplierData.map((sup, index) => (
+                filteredData.map((sup, index) => (
                   <Table.Row key={sup.ID}>
                     <Table.Cell>{index + 1}</Table.Cell>
                     <Table.Cell className="font-mono text-slate-600">

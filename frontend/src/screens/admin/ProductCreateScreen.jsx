@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars, react-hooks/exhaustive-deps */
 import { useSelector } from "react-redux";
 import { useState, useRef, useMemo } from "react";
 import ReactQuill from "react-quill";

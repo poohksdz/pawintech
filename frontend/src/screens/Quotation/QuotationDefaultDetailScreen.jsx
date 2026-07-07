@@ -122,25 +122,25 @@ const QuotationA4 = ({ order, companyInfo, printMode }) => {
 
           <div className="grid grid-cols-12 gap-2 mb-2">
             <div className="col-span-8 space-y-2">
-              <p className="flex"><span className="shrink-0 mr-2">นามลูกค้า</span> <span className="text-blue-600 font-bold border-b border-dotted border-gray-400 flex-1">{currentOrder.billingAddress?.billingName || "................................................................................................"}</span></p>
-              <p className="flex"><span className="shrink-0 mr-2">ที่อยู่</span> <span className="text-blue-600 leading-tight flex-1 border-b border-dotted border-gray-400">{currentOrder.billingAddress?.billinggAddress || "......................................................................................................................."} {currentOrder.billingAddress?.billingCity || ""} {currentOrder.billingAddress?.billingPostalCode || ""}</span></p>
+              <p className="flex"><span className="shrink-0 mr-2">นามลูกค้า</span> <span className="text-black font-bold border-b border-dotted border-gray-400 flex-1">{currentOrder.billingAddress?.billingName || "................................................................................................"}</span></p>
+              <p className="flex"><span className="shrink-0 mr-2">ที่อยู่</span> <span className="text-black leading-tight flex-1 border-b border-dotted border-gray-400">{currentOrder.billingAddress?.billinggAddress || "......................................................................................................................."} {currentOrder.billingAddress?.billingCity || ""} {currentOrder.billingAddress?.billingPostalCode || ""}</span></p>
             </div>
             <div className="col-span-4 pl-4">
               <div className="space-y-2">
                 <p className="flex justify-between items-end border-b border-dotted border-black">
                   <span>เลขที่ / No.</span>
-                  <span className="text-blue-600 font-bold">{currentOrder.paymentComfirmID || currentOrder.id || ".............................."}</span>
+                  <span className="text-black font-bold">{currentOrder.paymentComfirmID || currentOrder.id || ".............................."}</span>
                 </p>
                 <p className="flex justify-between items-end border-b border-dotted border-black">
                   <span>วันที่ / Date</span>
-                  <span className="text-blue-600 font-bold">{currentOrder.id ? formatDateThai(currentOrder.createdAt) : "......../......../........"}</span>
+                  <span className="text-black font-bold">{currentOrder.id ? formatDateThai(currentOrder.createdAt) : "......../......../........"}</span>
                 </p>
               </div>
             </div>
           </div>
 
           <div className="flex items-center gap-4 mb-4">
-            <p className="flex items-center flex-1"><span className="shrink-0 mr-2">เลขประจำตัวผู้เสียภาษี</span> <span className="text-blue-600 font-bold tracking-widest border-b border-dotted border-gray-400 flex-1">{currentOrder.billingAddress?.tax || ".................................................."}</span></p>
+            <p className="flex items-center flex-1"><span className="shrink-0 mr-2">เลขประจำตัวผู้เสียภาษี</span> <span className="text-black font-bold tracking-widest border-b border-dotted border-gray-400 flex-1">{currentOrder.billingAddress?.tax || ".................................................."}</span></p>
             <div className="flex items-center gap-4 translate-y-[6px]">
               <div className="flex items-center gap-1">
                 <span className="w-4 h-4 border border-black flex items-center justify-center font-bold text-[10px]">{currentOrder.billingAddress?.branch === "สำนักงานใหญ่" || (!currentOrder.billingAddress?.branch && currentOrder.id) ? "X" : ""}</span>
@@ -149,7 +149,7 @@ const QuotationA4 = ({ order, companyInfo, printMode }) => {
               <div className="flex items-end">
                 <span className="w-4 h-4 border border-black flex items-center justify-center font-bold text-[10px] mr-1 mb-[1px]">{currentOrder.billingAddress?.branch && currentOrder.billingAddress?.branch !== "สำนักงานใหญ่" ? "X" : ""}</span>
                 <span>สาขาที่</span>
-                <span className="w-12 border-b border-dotted border-black text-center text-blue-600 ml-1 leading-none pb-[1px]">{currentOrder.billingAddress?.branch && currentOrder.billingAddress?.branch !== "สำนักงานใหญ่" ? currentOrder.billingAddress.branch : ""}</span>
+                <span className="w-12 border-b border-dotted border-black text-center text-black ml-1 leading-none pb-[1px]">{currentOrder.billingAddress?.branch && currentOrder.billingAddress?.branch !== "สำนักงานใหญ่" ? currentOrder.billingAddress.branch : ""}</span>
               </div>
             </div>
           </div>
@@ -197,46 +197,11 @@ const QuotationA4 = ({ order, companyInfo, printMode }) => {
           <div className="grid grid-cols-12 border border-black border-t-0">
             <div className="col-span-7 p-3 border-r border-black flex flex-col justify-between bg-white">
               <div>
-                <div className="flex gap-2 items-start mb-4">
-                  <span className="font-bold shrink-0 mr-2">ตัวอักษร:</span>
-                  <span className="text-blue-600 font-bold border-b border-dotted border-gray-400 flex-1 text-center">
-                    {grandTotal > 0 ? `(${thaiBahtText(grandTotal)})` : ""}
-                  </span>
-                </div>
-
-                <div className="space-y-2 mt-4 text-[9px]">
-                  <div className="flex items-center gap-6">
-                    <div className="flex items-center gap-2">
-                      <span className="w-3 h-3 border border-black flex items-center justify-center text-[8px]"></span>
-                      <span>เงินสด</span>
-                    </div>
-                    <div className="flex items-center gap-2 flex-1">
-                      <span className="w-3 h-3 border border-black flex items-center justify-center text-[8px]"></span>
-                      <span>เช็คธนาคาร</span>
-                      <span className="border-b border-dotted border-black flex-1"></span>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-4">
-                    <div className="flex items-center gap-2 flex-1">
-                      <span className="w-3 h-3 border border-black flex items-center justify-center text-[8px]"></span>
-                      <span>เงินโอนวันที่</span>
-                      <span className="border-b border-dotted border-black flex-1 text-center text-blue-600"></span>
-                    </div>
-                    <div className="flex items-center gap-2 flex-1">
-                      <span>เลขที่</span>
-                      <span className="border-b border-dotted border-black flex-1"></span>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <span>จำนวนเงิน</span>
-                    <span className="border-b border-dotted border-black w-24 text-center text-blue-600 font-bold">
-                      {grandTotal > 0 ? grandTotal.toLocaleString(undefined, { minimumFractionDigits: 2 }) : ""}
-                    </span>
-                    <span>บาท</span>
-                    <span className="ml-4 italic opacity-70">(BAHT)</span>
-                  </div>
+                <div className="space-y-2 mt-2 text-[12px] text-black">
+                  <p className="font-bold underline mb-3 text-[14px]">Note / Remark:</p>
+                  <p className="pl-2">- Deposit 50%</p>
+                  <p className="pl-2">- Bank: <span className="font-bold">บริษัท ภาวินท์เทคโนโลยี จำกัด</span></p>
+                  <p className="pl-6">No: <span className="font-bold">ธนาคารกสิกรไทย เลขที่บัญชี 096-1-10526-7</span></p>
                 </div>
               </div>
             </div>

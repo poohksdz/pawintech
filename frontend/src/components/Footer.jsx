@@ -82,7 +82,7 @@ const Footer = () => {
   const AccordionHeader = ({ id, title, icon: Icon }) => (
     <button
       onClick={() => toggleSection(id)}
-      className="w-full flex items-center justify-between py-5 border-b border-zinc-900 lg:hidden text-left group"
+      className="w-full flex items-center justify-between py-3 border-b border-zinc-900 lg:hidden text-left group"
     >
       <div className="flex items-center gap-4">
         <span className="text-blue-500/80 group-hover:text-blue-400 transition-colors">
@@ -100,14 +100,14 @@ const Footer = () => {
   );
 
   return (
-    <footer className="relative bg-[#020617] text-zinc-400 mt-32 pt-20 pb-12 border-t border-blue-900/30 overflow-hidden selection:bg-blue-500/20 print:hidden">
+    <footer className="relative bg-[#020617] text-zinc-400 mt-16 pt-12 pb-6 border-t border-blue-900/30 overflow-hidden selection:bg-blue-500/20 print:hidden">
       {/* --- Ambient Background Glow --- */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-px bg-gradient-to-r from-transparent via-blue-500/40 to-transparent" />
       <div className="absolute -top-24 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-blue-600/10 blur-[120px] rounded-full pointer-events-none" />
 
       <div className="max-w-7xl mx-auto px-4 md:px-8 relative z-10">
         {/* --- Top Section: Brand & Newsletter --- */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-20 mb-20">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 mb-10">
           <div className="lg:col-span-5">
             <Link to="/" className="inline-block group mb-8">
               <h2 className="text-white text-3xl font-black uppercase tracking-[-0.04em] leading-[0.85] transition-all duration-500 group-hover:text-blue-400">
@@ -177,7 +177,7 @@ const Footer = () => {
         </div>
 
         {/* --- Main Navigation Grid --- */}
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-x-12 gap-y-0 lg:gap-y-12 pb-16 border-t border-zinc-900/50 pt-16">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-x-8 gap-y-0 lg:gap-y-8 pb-8 border-t border-zinc-900/50 pt-8">
           {/*   Navigation */}
           <div className="lg:block">
             <AccordionHeader
@@ -267,6 +267,28 @@ const Footer = () => {
                         </div>
                         <span className="font-semibold text-zinc-500 group-hover:text-white transition-colors">contact@pawin-tech.com</span>
                       </a>
+                      <a
+                        href="https://line.me/ti/p/@pwtech"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-4 group"
+                      >
+                        <div className="w-8 h-8 rounded-lg bg-zinc-900 border border-zinc-800 flex items-center justify-center transition-colors group-hover:bg-emerald-500/10 group-hover:border-emerald-500/30">
+                          <FaLine size={12} className="text-zinc-400 group-hover:text-emerald-400 transition-colors" />
+                        </div>
+                        <span className="font-semibold text-zinc-500 group-hover:text-white transition-colors">@pwtech</span>
+                      </a>
+                      <a
+                        href="https://www.facebook.com/@electotronixth"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-4 group"
+                      >
+                        <div className="w-8 h-8 rounded-lg bg-zinc-900 border border-zinc-800 flex items-center justify-center transition-colors group-hover:bg-blue-500/10 group-hover:border-blue-500/30">
+                          <FaFacebook size={12} className="text-zinc-400 group-hover:text-blue-400 transition-colors" />
+                        </div>
+                        <span className="font-semibold text-zinc-500 group-hover:text-white transition-colors">electotronixth</span>
+                      </a>
                     </div>
                   </motion.div>
                 )}
@@ -336,7 +358,7 @@ const Footer = () => {
                       </h4>
                     </div>
                     <div className="relative group">
-                      <div className="rounded-2xl overflow-hidden border border-zinc-900 h-28 lg:h-32 transition-all duration-700 group-hover:border-blue-500/30 group-hover:shadow-[0_0_30px_-10px_rgba(59,130,246,0.3)]">
+                      <div className="rounded-xl overflow-hidden border border-zinc-900 h-24 lg:h-28 transition-all duration-700 group-hover:border-blue-500/30 group-hover:shadow-[0_0_30px_-10px_rgba(59,130,246,0.3)]">
                         <iframe
                           src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3872.494839349668!2d100.7409649!3d13.7739481!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x311d65002f271673%3A0x99007c7b8a670c94!2z4Lit4Liy4LiH4Lih4LmB4Lil4Lix4LiZ4Lib4LmJ4Liz4LiB4LiyIOC5gOC4mOC5gOC4oeC4l-C4oiDguJrguLLguKXguLHguYHguK3guIfguIHguLHguILguKfguLUg4LiY4Li34Lij4LioIOC4lOC5gOC4lA!5e0!3m2!1sen!2sth!4v1694973134532!5m2!1sen!2sth"
                           width="100%"
@@ -356,7 +378,7 @@ const Footer = () => {
         </div>
 
         {/* --- Bottom Bar --- */}
-        <div className="pt-10 border-t border-zinc-900/50 flex flex-col md:flex-row justify-between items-center gap-4 md:gap-8">
+        <div className="pt-6 border-t border-zinc-900/50 flex flex-col md:flex-row justify-between items-center gap-4">
           <p className="text-zinc-600 text-[11px] font-medium tracking-tight">
             &copy; {currentYear}{" "}
             <span className="text-zinc-400 font-bold ml-1">{t.companyName}</span>

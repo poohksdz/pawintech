@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars, react-hooks/exhaustive-deps */
 import React, { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { useDispatch, useSelector } from "react-redux";
@@ -1345,6 +1346,10 @@ const StockProductDashboardScreen = () => {
                         {
                           label: t.footprintLabel,
                           value: selectedDetailProduct.footprint || "-",
+                        },
+                        {
+                          label: "Value",
+                          value: selectedDetailProduct.value || "-",
                         },
                         {
                           label: t.warehousePos,

@@ -88,7 +88,7 @@ const ProductScreen = () => {
 
   const [createReview, { isLoading: loadingReview }] = useCreateReviewMutation();
   const [updateReview, { isLoading: loadingUpdateReview }] = useUpdateReviewMutation();
-  const [deleteReview, { isLoading: loadingDeleteReview }] = useDeleteReviewMutation();
+  const [deleteReview] = useDeleteReviewMutation();
 
   const { language } = useSelector((state) => state.language);
 

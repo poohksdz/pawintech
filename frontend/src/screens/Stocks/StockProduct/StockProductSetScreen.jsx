@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import { useSelector } from "react-redux";
 import {
   useCreateStockProductMutation,
@@ -24,30 +25,230 @@ import {
   useGetStockSuppliersQuery,
   useCreateStockSupplierMutation,
 } from "../../../slices/stockSupplierApiSlice";
-import {
-  Form,
-  Button,
-  Row,
-  Col,
-  Modal,
-  Container,
-  Card,
-  InputGroup,
-  Image,
-} from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   FaPlus,
+  FaImage,
+  FaUpload,
+  FaTimes,
   FaSave,
   FaArrowLeft,
-  FaImage,
-  FaBox,
-  FaTags,
-  FaIndustry,
-  FaWarehouse,
+  FaChevronDown,
 } from "react-icons/fa";
-import Loader from "../../../components/Loader";
+
+// ============================================================================
+// COMPONENT: SEARCHABLE FORM DROPDOWN
+// ============================================================================
+const FormDropdown = ({
+  name,
+  value,
+  options,
+  disabled,
+  placeholder,
+  onChange,
+  required,
+}) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const dropdownRef = useRef(null);
+  const searchInputRef = useRef(null);
+
+  const selectedOption = options?.find(
+    (o) => String(o.value) === String(value),
+  );
+
+  // Filter options based on search query
+  const filteredOptions = options?.filter((opt) =>
+    opt.label?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  // Focus search input when dropdown opens
+  useEffect(() => {
+    if (isOpen && searchInputRef.current) {
+      setTimeout(() => searchInputRef.current?.focus(), 100);
+    } else {
+      setSearchQuery("");
+    }
+  }, [isOpen]);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    };
+    if (isOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [isOpen]);
+
+  const handleKeyDown = (e) => {
+    if (e.key === "Escape") {
+      setIsOpen(false);
+    }
+  };
+
+  return (
+    <div className="relative flex-1" ref={dropdownRef}>
+      {/* Hidden input for HTML5 required validation */}
+      <input
+        type="text"
+        name={name}
+        value={value || ""}
+        required={required}
+        readOnly
+        className="absolute opacity-0 w-0 h-0 pointer-events-none"
+        tabIndex={-1}
+      />
+
+      <button
+        type="button"
+        disabled={disabled}
+        onClick={() => setIsOpen(!isOpen)}
+        className={`w-full h-[48px] bg-white border ${isOpen ? "border-indigo-600 ring-4 ring-indigo-500/10" : "border-slate-300"} rounded-xl px-4 text-sm text-slate-900 flex items-center justify-between transition-all outline-none shadow-sm ${disabled ? "opacity-50 cursor-not-allowed bg-slate-50" : "cursor-pointer hover:border-indigo-400"}`}
+      >
+        <span
+          className={`truncate ${!selectedOption ? "text-slate-400 font-normal" : "font-semibold"}`}
+        >
+          {selectedOption ? selectedOption.label : placeholder}
+        </span>
+        <motion.div
+          animate={{ rotate: isOpen ? 180 : 0 }}
+          transition={{ duration: 0.2 }}
+          className="flex-shrink-0"
+        >
+          <FaChevronDown className="text-slate-400" size={10} />
+        </motion.div>
+      </button>
+
+      <AnimatePresence>
+        {isOpen && !disabled && (
+          <React.Fragment key="dropdown-fragment">
+            <motion.div
+              initial={{ opacity: 0, y: 4, scale: 0.98 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 4, scale: 0.98 }}
+              transition={{ duration: 0.15, ease: "easeOut" }}
+              className="absolute z-[120] w-full mt-1.5 bg-white border border-slate-100 rounded-xl shadow-xl shadow-slate-200/50 overflow-hidden"
+              onKeyDown={handleKeyDown}
+            >
+              {/* Search Input */}
+              <div className="p-2 border-b border-slate-100">
+                <input
+                  ref={searchInputRef}
+                  type="text"
+                  placeholder="พิมพ์เพื่อค้นหา..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full h-10 px-3 text-sm border border-slate-200 rounded-lg outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all"
+                />
+              </div>
+
+              {/* Options List */}
+              <div className="max-h-52 overflow-y-auto custom-scrollbar">
+                <ul className="py-1">
+                  <li
+                    onClick={() => {
+                      onChange({ target: { name, value: "" } });
+                      setIsOpen(false);
+                      setSearchQuery("");
+                    }}
+                    className="px-4 py-2.5 text-xs font-bold text-slate-400 hover:bg-slate-50 hover:text-slate-800 cursor-pointer transition-colors uppercase tracking-wider"
+                  >
+                    -- ล้างการเลือก --
+                  </li>
+                  {filteredOptions?.length > 0 ? (
+                    filteredOptions.map((opt) => (
+                      <li
+                        key={String(opt.key)}
+                        onClick={() => {
+                          onChange({ target: { name, value: opt.value } });
+                          setIsOpen(false);
+                          setSearchQuery("");
+                        }}
+                        className={`px-4 py-2.5 text-sm font-medium hover:bg-indigo-50 hover:text-indigo-700 cursor-pointer transition-colors ${String(value) === String(opt.value) ? "text-indigo-700 bg-indigo-50/50 font-bold" : "text-slate-700"}`}
+                      >
+                        {opt.label}
+                      </li>
+                    ))
+                  ) : (
+                    <li className="px-4 py-3 text-sm text-slate-400 text-center">
+                      ไม่พบรายการที่ค้นหา
+                    </li>
+                  )}
+                </ul>
+              </div>
+            </motion.div>
+          </React.Fragment>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+};
+
+// Reusable Modal Component
+const SmoothModal = ({
+  isOpen,
+  onClose,
+  title,
+  children,
+  onConfirm,
+  confirmText = "Create",
+}) => {
+  if (typeof document === "undefined") return null;
+  return createPortal(
+    <AnimatePresence>
+      {isOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={onClose}
+            className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"
+          />
+          <motion.div
+            initial={{ scale: 0.95, opacity: 0, y: 20 }}
+            animate={{ scale: 1, opacity: 1, y: 0 }}
+            exit={{ scale: 0.95, opacity: 0, y: 20 }}
+            transition={{ duration: 0.2 }}
+            className="relative bg-white rounded-3xl w-full max-w-md p-4 md:p-6 shadow-2xl z-10 border border-slate-100"
+          >
+            <div className="flex justify-between items-center mb-5">
+              <h3 className="text-lg font-bold text-slate-900">{title}</h3>
+              <button
+                onClick={onClose}
+                className="w-8 h-8 bg-slate-50 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-full flex items-center justify-center transition-colors"
+              >
+                <FaTimes size={14} />
+              </button>
+            </div>
+            <div className="mb-6">{children}</div>
+            <div className="flex gap-3">
+              <button
+                onClick={onClose}
+                className="flex-1 py-3 bg-slate-50 text-slate-600 font-bold rounded-xl hover:bg-slate-100 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={onConfirm}
+                className="flex-1 py-3 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 shadow-md transition-colors"
+              >
+                {confirmText}
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
+    </AnimatePresence>,
+    document.body,
+  );
+};
 
 const StockProductSetScreen = () => {
   const navigate = useNavigate();
@@ -55,7 +256,7 @@ const StockProductSetScreen = () => {
 
   // --- State ---
   const [formData, setFormData] = useState({
-    electotronixPN: "", // Assuming you might want to add this field to the form
+    electotronixPN: "",
     value: "",
     category: "",
     subcategory: "",
@@ -78,13 +279,9 @@ const StockProductSetScreen = () => {
     img: "",
   });
 
-  // --- Modal States & Inputs ---
-  const [modalState, setModalState] = useState({ type: null, value: "" });
-  const closeModals = () => setModalState({ type: null, value: "" });
-
   // --- API Hooks ---
-  const [createStockProduct, { isLoading }] = useCreateStockProductMutation();
-  const [uploadStockProductImage, { isLoading: loadingUpload }] =
+  const [createStockProduct, { isLoading: isCreating }] = useCreateStockProductMutation();
+  const [uploadStockProductImage, { isLoading: isUploadingImage }] =
     useUploadStockProductImageMutation();
 
   const { data: categoryData = [], refetch: refetchCategories } =
@@ -98,17 +295,32 @@ const StockProductSetScreen = () => {
   const { data: supplierData = [], refetch: refetchSuppliers } =
     useGetStockSuppliersQuery();
 
-  // --- Create Mutations ---
+  // Modal States
+  const [showCreateCategoryModal, setShowCreateCategoryModal] = useState(false);
+  const [newCategoryName, setNewCategoryName] = useState("");
   const [createStockCategory] = useCreateStockCategoryMutation();
+
+  const [showCreateSubcategoryModal, setShowCreateSubcategoryModal] =
+    useState(false);
+  const [newSubcategoryName, setNewSubcategoryName] = useState("");
   const [createStockSubcategory] = useCreateStockSubcategoryMutation();
+
+  const [showCreateFootprintModal, setShowCreateFootprintModal] =
+    useState(false);
+  const [newFootprintName, setNewFootprintName] = useState("");
   const [createStockFootprint] = useCreateStockFootprintMutation();
+
+  const [showCreateSupplierModal, setShowCreateSupplierModal] = useState(false);
+  const [newSupplierName, setNewSupplierName] = useState("");
   const [createStockSupplier] = useCreateStockSupplierMutation();
+
+  const [showCreateManufactureModal, setShowCreateManufactureModal] =
+    useState(false);
+  const [newManufactureName, setNewManufactureName] = useState("");
   const [createStockManufacture] = useCreateStockManufactureMutation();
 
-  // --- Handlers ---
-  const handleChange = (e) => {
+  const handleChange = (e) =>
     setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -175,540 +387,588 @@ const StockProductSetScreen = () => {
     }
   };
 
-  // --- Quick Create Handlers ---
-  const handleQuickCreate = async () => {
-    const { type, value } = modalState;
-    if (!value) return;
-
-    try {
-      if (type === "Category") {
-        await createStockCategory({
-          category: value,
-          createuser: userInfo.name,
-        }).unwrap();
-        refetchCategories();
-      } else if (type === "Subcategory") {
-        await createStockSubcategory({
-          subcategory: value,
-          category: formData.category,
-          createuser: userInfo.name,
-        }).unwrap();
-        refetchSubcategories();
-      } else if (type === "Footprint") {
-        await createStockFootprint({
-          namefootprint: value,
-          category: formData.category,
-          createuser: userInfo.name,
-        }).unwrap();
-        refetchFootprints();
-      } else if (type === "Manufacture") {
-        await createStockManufacture({
-          namemanufacture: value,
-          createuser: userInfo.name,
-        }).unwrap();
-        refetchManufactures();
-      } else if (type === "Supplier") {
-        await createStockSupplier({
-          namesupplier: value,
-          createuser: userInfo.name,
-        }).unwrap();
-        refetchSuppliers();
-      }
-      toast.success(`${type} created!`);
-      closeModals();
-    } catch (err) {
-      toast.error(`Failed to create ${type}`);
-    }
-  };
+  const inputClass =
+    "w-full bg-white border border-slate-300 text-slate-900 text-sm rounded-xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-600 block p-3 transition-all outline-none shadow-sm placeholder:text-slate-400 font-medium";
+  const labelClass =
+    "block mb-2 text-xs font-black text-slate-600 uppercase tracking-widest";
 
   return (
-    <Container className="py-4">
-      {/* Header */}
-      <div className="d-flex justify-content-between align-items-center mb-4">
-        <div>
-          <h2 className="fw-bold text-primary mb-0">Create New Component</h2>
-          <p className="text-muted mb-0">
-            Add a new item to the inventory system
-          </p>
+    <div className="min-h-screen bg-[#F1F5F9] py-4 md:py-6 lg:py-10 px-4 sm:px-6 lg:px-8 font-sans selection:bg-indigo-100 dark:text-white">
+      <div className="max-w-5xl mx-auto">
+        {/* Header Section */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => navigate("/componenteditlist")}
+              className="w-10 h-10 bg-white border border-slate-200 text-slate-500 hover:text-slate-800 rounded-xl flex items-center justify-center shadow-sm transition-all hover:bg-slate-50"
+            >
+              <FaArrowLeft size={14} />
+            </button>
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
+                Create New Component
+              </h1>
+              <p className="text-slate-500 text-sm font-medium">
+                Add a new item to the inventory system
+              </p>
+            </div>
+          </div>
         </div>
-        <Button variant="outline-secondary" onClick={() => navigate(-1)}>
-          <FaArrowLeft className="me-2" /> Back
-        </Button>
-      </div>
 
-      <Form onSubmit={handleSubmit}>
-        <Row className="g-4">
-          {/* Column 1: Classification & Basic Info */}
-          <Col md={6}>
-            <Card className="shadow-sm h-100 border-0">
-              <Card.Header className="bg-white border-bottom-0 pt-3 pb-0">
-                <h5 className="fw-bold text-secondary">
-                  <FaTags className="me-2" /> Classification
-                </h5>
-              </Card.Header>
-              <Card.Body>
-                {/* Category */}
-                <Form.Group className="mb-3">
-                  <Form.Label>
-                    Category <span className="text-danger">*</span>
-                  </Form.Label>
-                  <InputGroup>
-                    <Form.Select
-                      name="category"
-                      value={formData.category}
-                      onChange={handleChange}
-                      required
-                    >
-                      <option value="">Select Category</option>
-                      {categoryData.map((cat) => (
-                        <option key={cat.ID} value={cat.category}>
-                          {cat.category}
-                        </option>
-                      ))}
-                    </Form.Select>
-                    <Button
-                      variant="outline-primary"
-                      onClick={() =>
-                        setModalState({ type: "Category", value: "" })
-                      }
-                    >
-                      <FaPlus />
-                    </Button>
-                  </InputGroup>
-                </Form.Group>
-
-                {/* Subcategory */}
-                <Form.Group className="mb-3">
-                  <Form.Label>
-                    Subcategory <span className="text-danger">*</span>
-                  </Form.Label>
-                  <InputGroup>
-                    <Form.Select
-                      name="subcategory"
-                      value={formData.subcategory}
-                      onChange={handleChange}
-                      required
-                      disabled={!formData.category}
-                    >
-                      <option value="">Select Subcategory</option>
-                      {subcategoryData
-                        .filter((sub) => sub.category === formData.category)
-                        .map((sub) => (
-                          <option
-                            key={sub.subcategoryID}
-                            value={sub.subcategory}
-                          >
-                            {sub.subcategory}
-                          </option>
-                        ))}
-                    </Form.Select>
-                    <Button
-                      variant="outline-primary"
-                      onClick={() =>
-                        setModalState({ type: "Subcategory", value: "" })
-                      }
-                      disabled={!formData.category}
-                    >
-                      <FaPlus />
-                    </Button>
-                  </InputGroup>
-                </Form.Group>
-
-                {/* Footprint */}
-                <Form.Group className="mb-3">
-                  <Form.Label>
-                    Footprint <span className="text-danger">*</span>
-                  </Form.Label>
-                  <InputGroup>
-                    <Form.Select
-                      name="footprint"
-                      value={formData.footprint}
-                      onChange={handleChange}
-                      required
-                    >
-                      <option value="">Select Footprint</option>
-                      {footprintData.map((fp) => (
-                        <option key={fp.footprintID} value={fp.namefootprint}>
-                          {fp.namefootprint}
-                        </option>
-                      ))}
-                    </Form.Select>
-                    <Button
-                      variant="outline-primary"
-                      onClick={() =>
-                        setModalState({ type: "Footprint", value: "" })
-                      }
-                      disabled={!formData.category}
-                    >
-                      <FaPlus />
-                    </Button>
-                  </InputGroup>
-                </Form.Group>
-
-                <hr className="my-4" />
-
-                <h5 className="fw-bold text-secondary mb-3">
-                  <FaBox className="me-2" /> Product Details
-                </h5>
-                <Form.Group className="mb-3">
-                  <Form.Label>
-                    Value / Name <span className="text-danger">*</span>
-                  </Form.Label>
-                  <Form.Control
-                    type="text"
-                    name="value"
-                    value={formData.value}
-                    onChange={handleChange}
-                    required
-                    placeholder="e.g. 10k Ohm, 10uF"
+        {/* Main Form */}
+        <form
+          onSubmit={handleSubmit}
+          className="bg-white rounded-[2.5rem] p-4 md:p-6 sm:p-10 shadow-xl border border-slate-200 mb-10 overflow-hidden"
+        >
+          {/* Image Upload Section */}
+          <div className="mb-10">
+            <label className={labelClass}>Component Image</label>
+            <div className="flex flex-col sm:flex-row items-center gap-4 md:gap-6 p-4 md:p-6 border-2 border-dashed border-slate-200 rounded-3xl bg-slate-50/50 hover:bg-slate-50 transition-colors group">
+              <div className="w-32 h-32 rounded-2xl bg-white border border-slate-200 shadow-sm flex items-center justify-center overflow-hidden shrink-0">
+                {formData.img ? (
+                  <img
+                    src={formData.img}
+                    alt="Preview"
+                    className="w-full h-full object-contain p-2 mix-blend-multiply"
                   />
-                </Form.Group>
-
-                <Form.Group className="mb-3">
-                  <Form.Label>Electotronix P/N</Form.Label>
-                  <Form.Control
-                    type="text"
-                    name="electotronixPN"
-                    placeholder="Auto-generated if blank or '-'"
-                    value={formData.electotronixPN}
-                    onChange={handleChange}
-                  />
-                </Form.Group>
-
-                <Form.Group className="mb-3">
-                  <Form.Label>Description</Form.Label>
-                  <Form.Control
-                    as="textarea"
-                    rows={3}
-                    name="description"
-                    value={formData.description}
-                    onChange={handleChange}
-                  />
-                </Form.Group>
-              </Card.Body>
-            </Card>
-          </Col>
-
-          {/* Column 2: Supply Chain & Inventory */}
-          <Col md={6}>
-            <Card className="shadow-sm border-0 mb-4">
-              <Card.Header className="bg-white border-bottom-0 pt-3 pb-0">
-                <h5 className="fw-bold text-secondary">
-                  <FaIndustry className="me-2" /> Supply Chain
-                </h5>
-              </Card.Header>
-              <Card.Body>
-                <Row>
-                  <Col md={6}>
-                    <Form.Group className="mb-3">
-                      <Form.Label>
-                        Manufacturer <span className="text-danger">*</span>
-                      </Form.Label>
-                      <InputGroup>
-                        <Form.Select
-                          name="manufacture"
-                          value={formData.manufacture}
-                          onChange={handleChange}
-                          required
-                        >
-                          <option value="">Select...</option>
-                          {manufactureData.map((m) => (
-                            <option key={m.ID} value={m.namemanufacture}>
-                              {m.namemanufacture}
-                            </option>
-                          ))}
-                        </Form.Select>
-                        <Button
-                          variant="outline-primary"
-                          onClick={() =>
-                            setModalState({ type: "Manufacture", value: "" })
-                          }
-                        >
-                          <FaPlus />
-                        </Button>
-                      </InputGroup>
-                    </Form.Group>
-                  </Col>
-                  <Col md={6}>
-                    <Form.Group className="mb-3">
-                      <Form.Label>Mfg P/N</Form.Label>
-                      <Form.Control
-                        type="text"
-                        name="manufacturePN"
-                        value={formData.manufacturePN}
-                        onChange={handleChange}
-                      />
-                    </Form.Group>
-                  </Col>
-                </Row>
-
-                <Row>
-                  <Col md={6}>
-                    <Form.Group className="mb-3">
-                      <Form.Label>
-                        Supplier <span className="text-danger">*</span>
-                      </Form.Label>
-                      <InputGroup>
-                        <Form.Select
-                          name="supplier"
-                          value={formData.supplier}
-                          onChange={handleChange}
-                          required
-                        >
-                          <option value="">Select...</option>
-                          {supplierData.map((s) => (
-                            <option key={s.ID} value={s.namesupplier}>
-                              {s.namesupplier}
-                            </option>
-                          ))}
-                        </Form.Select>
-                        <Button
-                          variant="outline-primary"
-                          onClick={() =>
-                            setModalState({ type: "Supplier", value: "" })
-                          }
-                        >
-                          <FaPlus />
-                        </Button>
-                      </InputGroup>
-                    </Form.Group>
-                  </Col>
-                  <Col md={6}>
-                    <Form.Group className="mb-3">
-                      <Form.Label>Supplier P/N</Form.Label>
-                      <Form.Control
-                        type="text"
-                        name="supplierPN"
-                        value={formData.supplierPN}
-                        onChange={handleChange}
-                      />
-                    </Form.Group>
-                  </Col>
-                </Row>
-
-                <Form.Group className="mb-3">
-                  <Form.Label>Datasheet / Link</Form.Label>
-                  <Form.Control
-                    type="text"
-                    name="link"
-                    value={formData.link}
-                    onChange={handleChange}
-                    placeholder="https://..."
-                  />
-                </Form.Group>
-
-                <Form.Group className="mb-3">
-                  <Form.Label>Alternative Parts</Form.Label>
-                  <Form.Control
-                    type="text"
-                    name="alternative"
-                    value={formData.alternative}
-                    onChange={handleChange}
-                  />
-                </Form.Group>
-              </Card.Body>
-            </Card>
-
-            <Card className="shadow-sm border-0">
-              <Card.Header className="bg-white border-bottom-0 pt-3 pb-0">
-                <h5 className="fw-bold text-secondary">
-                  <FaWarehouse className="me-2" /> Inventory & Pricing
-                </h5>
-              </Card.Header>
-              <Card.Body>
-                <Row className="g-2">
-                  <Col md={4}>
-                    <Form.Group className="mb-3">
-                      <Form.Label>
-                        Quantity <span className="text-danger">*</span>
-                      </Form.Label>
-                      <Form.Control
-                        type="number"
-                        name="quantity"
-                        value={formData.quantity}
-                        onChange={handleChange}
-                        required
-                      />
-                    </Form.Group>
-                  </Col>
-                  <Col md={4}>
-                    <Form.Group className="mb-3">
-                      <Form.Label>Price (Unit)</Form.Label>
-                      <Form.Control
-                        type="number"
-                        step="0.0001"
-                        name="price"
-                        value={formData.price}
-                        onChange={handleChange}
-                      />
-                    </Form.Group>
-                  </Col>
-                  <Col md={4}>
-                    <Form.Group className="mb-3">
-                      <Form.Label>Weight (g)</Form.Label>
-                      <Form.Control
-                        type="number"
-                        step="0.01"
-                        name="weight"
-                        value={formData.weight}
-                        onChange={handleChange}
-                      />
-                    </Form.Group>
-                  </Col>
-                </Row>
-                <Row className="g-2">
-                  <Col md={4}>
-                    <Form.Group className="mb-3">
-                      <Form.Label>MOQ</Form.Label>
-                      <Form.Control
-                        type="text"
-                        name="moq"
-                        value={formData.moq}
-                        onChange={handleChange}
-                      />
-                    </Form.Group>
-                  </Col>
-                  <Col md={4}>
-                    <Form.Group className="mb-3">
-                      <Form.Label>SPQ</Form.Label>
-                      <Form.Control
-                        type="text"
-                        name="spq"
-                        value={formData.spq}
-                        onChange={handleChange}
-                      />
-                    </Form.Group>
-                  </Col>
-                  <Col md={4}>
-                    <Form.Group className="mb-3">
-                      <Form.Label>Position</Form.Label>
-                      <Form.Control
-                        type="text"
-                        name="position"
-                        value={formData.position}
-                        onChange={handleChange}
-                      />
-                    </Form.Group>
-                  </Col>
-                </Row>
-
-                <Form.Group className="mb-3">
-                  <Form.Label>Process / Note</Form.Label>
-                  <Form.Control
-                    as="textarea"
-                    rows={2}
-                    name="note"
-                    value={formData.note}
-                    onChange={handleChange}
-                  />
-                </Form.Group>
-              </Card.Body>
-            </Card>
-          </Col>
-
-          {/* Full Width: Image Upload */}
-          <Col xs={12}>
-            <Card className="shadow-sm border-0 mb-4">
-              <Card.Body>
-                <h5 className="fw-bold text-secondary mb-3">
-                  <FaImage className="me-2" /> Product Image
-                </h5>
-                <Row className="align-items-center">
-                  <Col md={6}>
-                    <Form.Group controlId="img">
-                      <Form.Control
-                        type="file"
-                        accept="image/*"
-                        onChange={uploadImageHandler}
-                      />
-                      {loadingUpload && <Loader />}
-                    </Form.Group>
-                  </Col>
-                  <Col md={6} className="text-center">
-                    {formData.img ? (
-                      <Image
-                        src={formData.img}
-                        alt="Preview"
-                        thumbnail
-                        style={{ maxHeight: "150px" }}
-                      />
-                    ) : (
-                      <div className="text-muted border rounded p-4 bg-light">
-                        No Image Selected
-                      </div>
-                    )}
-                  </Col>
-                </Row>
-              </Card.Body>
-            </Card>
-          </Col>
-        </Row>
-
-        <div className="d-grid gap-2 d-md-flex justify-content-md-end mt-4 mb-5">
-          <Button
-            variant="light"
-            size="lg"
-            className="px-4"
-            onClick={() => navigate("/componenteditlist")}
-          >
-            Cancel
-          </Button>
-          <Button
-            type="submit"
-            variant="primary"
-            size="lg"
-            className="px-5 shadow-sm"
-            disabled={isLoading}
-          >
-            {isLoading ? (
-              "Saving..."
-            ) : (
-              <>
-                <FaSave className="me-2" /> Save Component
-              </>
-            )}
-          </Button>
-        </div>
-      </Form>
-
-      {/* --- Reusable Modal for Quick Adds --- */}
-      <Modal show={!!modalState.type} onHide={closeModals} centered>
-        <Modal.Header closeButton>
-          <Modal.Title>Add New {modalState.type}</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          {modalState.type && (
-            <Form.Group>
-              <Form.Label>{modalState.type} Name</Form.Label>
-              <Form.Control
-                type="text"
-                autoFocus
-                value={modalState.value}
-                onChange={(e) =>
-                  setModalState({ ...modalState, value: e.target.value })
-                }
-                placeholder={`Enter new ${modalState.type}`}
-              />
-              {/* Show Category Context for Sub/Footprint */}
-              {(modalState.type === "Subcategory" ||
-                modalState.type === "Footprint") && (
-                  <Form.Text className="text-muted">
-                    Linked to Category: <strong>{formData.category}</strong>
-                  </Form.Text>
+                ) : (
+                  <FaImage className="text-slate-300 text-4xl" />
                 )}
-            </Form.Group>
-          )}
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={closeModals}>
-            Cancel
-          </Button>
-          <Button variant="primary" onClick={handleQuickCreate}>
-            Create
-          </Button>
-        </Modal.Footer>
-      </Modal>
-    </Container>
+              </div>
+              <div className="flex-1 w-full text-center sm:text-left">
+                <h4 className="text-sm font-bold text-slate-800 mb-1">
+                  Upload Image
+                </h4>
+                <p className="text-xs text-slate-500 mb-4">
+                  PNG, JPG, GIF up to 5MB. Clear white background recommended.
+                </p>
+                <div className="relative inline-block w-full sm:w-auto">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={uploadImageHandler}
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                  />
+                  <div className="flex items-center justify-center gap-2 bg-white border border-slate-200 text-slate-700 px-4 md:px-6 py-2.5 rounded-xl text-sm font-bold shadow-sm group-hover:border-indigo-300 group-hover:text-indigo-600 transition-colors">
+                    <FaUpload />{" "}
+                    {isUploadingImage ? "Uploading..." : "Choose File"}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+            {/* Barcode & EPN */}
+            <div>
+              <label className={labelClass}>Electotronix P/N</label>
+              <input
+                type="text"
+                name="electotronixPN"
+                value={formData.electotronixPN}
+                onChange={handleChange}
+                className={inputClass}
+                placeholder="Auto-generated if blank or '-'"
+              />
+            </div>
+
+            {/* Value */}
+            <div>
+              <label className={labelClass}>
+                Value <span className="text-rose-500">*</span>
+              </label>
+              <input
+                type="text"
+                name="value"
+                value={formData.value}
+                onChange={handleChange}
+                required
+                className={inputClass}
+                placeholder="e.g. 10k, 100uF"
+              />
+            </div>
+
+            {/* Position */}
+            <div>
+              <label className={labelClass}>Storage Position</label>
+              <input
+                type="text"
+                name="position"
+                value={formData.position}
+                onChange={handleChange}
+                className={inputClass}
+                placeholder="e.g. R1-S2-B3"
+              />
+            </div>
+
+            {/* Quantity & Price */}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className={labelClass}>
+                  Quantity <span className="text-rose-500">*</span>
+                </label>
+                <input
+                  type="number"
+                  name="quantity"
+                  value={formData.quantity}
+                  onChange={handleChange}
+                  required
+                  className={inputClass}
+                />
+              </div>
+              <div>
+                <label className={labelClass}>Unit Price (฿)</label>
+                <input
+                  type="number"
+                  step="0.0001"
+                  name="price"
+                  value={formData.price}
+                  onChange={handleChange}
+                  className={inputClass}
+                />
+              </div>
+            </div>
+
+            {/* Weight */}
+            <div>
+              <label className={labelClass}>Weight (g)</label>
+              <input
+                type="number"
+                step="0.01"
+                name="weight"
+                value={formData.weight}
+                onChange={handleChange}
+                className={inputClass}
+              />
+            </div>
+
+            <hr className="col-span-1 md:col-span-2 border-slate-100 my-2" />
+
+            {/* Category */}
+            <div>
+              <label className={labelClass}>
+                Category <span className="text-rose-500">*</span>
+              </label>
+              <div className="flex gap-2">
+                <FormDropdown
+                  name="category"
+                  value={formData.category}
+                  required={true}
+                  options={categoryData.map((c) => ({
+                    key: c.ID,
+                    value: c.category,
+                    label: c.category,
+                  }))}
+                  placeholder="-- Select Category --"
+                  onChange={handleChange}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowCreateCategoryModal(true)}
+                  className="w-[48px] h-[48px] bg-slate-900 text-white rounded-xl flex items-center justify-center hover:bg-slate-800 transition-colors shrink-0"
+                >
+                  <FaPlus size={12} />
+                </button>
+              </div>
+            </div>
+
+            {/* Subcategory */}
+            <div>
+              <label className={labelClass}>Subcategory <span className="text-rose-500">*</span></label>
+              <div className="flex gap-2">
+                <FormDropdown
+                  name="subcategory"
+                  value={formData.subcategory}
+                  required={true}
+                  disabled={!formData.category}
+                  options={subcategoryData
+                    .filter((s) => s.category === formData.category)
+                    .map((s) => ({
+                      key: s.subcategoryID,
+                      value: s.subcategory,
+                      label: s.subcategory,
+                    }))}
+                  placeholder="-- Select Subcategory --"
+                  onChange={handleChange}
+                />
+                <button
+                  type="button"
+                  disabled={!formData.category}
+                  onClick={() => setShowCreateSubcategoryModal(true)}
+                  className="w-[48px] h-[48px] bg-slate-900 text-white rounded-xl flex items-center justify-center hover:bg-slate-800 transition-colors disabled:opacity-50 shrink-0"
+                >
+                  <FaPlus size={12} />
+                </button>
+              </div>
+            </div>
+
+            {/* Footprint */}
+            <div>
+              <label className={labelClass}>Footprint <span className="text-rose-500">*</span></label>
+              <div className="flex gap-2">
+                <FormDropdown
+                  name="footprint"
+                  value={formData.footprint}
+                  required={true}
+                  options={footprintData.map((fp) => ({
+                    key: fp.footprintID,
+                    value: fp.namefootprint,
+                    label: fp.namefootprint,
+                  }))}
+                  placeholder="-- Select Footprint --"
+                  onChange={handleChange}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowCreateFootprintModal(true)}
+                  className="w-[48px] h-[48px] bg-slate-900 text-white rounded-xl flex items-center justify-center hover:bg-slate-800 transition-colors shrink-0"
+                >
+                  <FaPlus size={12} />
+                </button>
+              </div>
+            </div>
+
+            <hr className="col-span-1 md:col-span-2 border-slate-100 my-2" />
+
+            {/* Manufacture & MFR PN */}
+            <div>
+              <label className={labelClass}>Manufacture <span className="text-rose-500">*</span></label>
+              <div className="flex gap-2">
+                <FormDropdown
+                  name="manufacture"
+                  value={formData.manufacture}
+                  required={true}
+                  options={manufactureData.map((m) => ({
+                    key: m.ID,
+                    value: m.namemanufacture,
+                    label: m.namemanufacture,
+                  }))}
+                  placeholder="-- Select Manufacture --"
+                  onChange={handleChange}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowCreateManufactureModal(true)}
+                  className="w-[48px] h-[48px] bg-slate-900 text-white rounded-xl flex items-center justify-center hover:bg-slate-800 transition-colors shrink-0"
+                >
+                  <FaPlus size={12} />
+                </button>
+              </div>
+            </div>
+            <div>
+              <label className={labelClass}>Manufacture PN</label>
+              <input
+                type="text"
+                name="manufacturePN"
+                value={formData.manufacturePN}
+                onChange={handleChange}
+                className={inputClass}
+              />
+            </div>
+
+            {/* Supplier & Supplier PN */}
+            <div>
+              <label className={labelClass}>Supplier <span className="text-rose-500">*</span></label>
+              <div className="flex gap-2">
+                <FormDropdown
+                  name="supplier"
+                  value={formData.supplier}
+                  required={true}
+                  options={supplierData.map((s) => ({
+                    key: s.ID,
+                    value: s.namesupplier,
+                    label: s.namesupplier,
+                  }))}
+                  placeholder="-- Select Supplier --"
+                  onChange={handleChange}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowCreateSupplierModal(true)}
+                  className="w-[48px] h-[48px] bg-slate-900 text-white rounded-xl flex items-center justify-center hover:bg-slate-800 transition-colors shrink-0"
+                >
+                  <FaPlus size={12} />
+                </button>
+              </div>
+            </div>
+            <div>
+              <label className={labelClass}>Supplier PN</label>
+              <input
+                type="text"
+                name="supplierPN"
+                value={formData.supplierPN}
+                onChange={handleChange}
+                className={inputClass}
+              />
+            </div>
+
+            <hr className="col-span-1 md:col-span-2 border-slate-100 my-2" />
+
+            {/* Other Specs */}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className={labelClass}>MOQ</label>
+                <input
+                  type="text"
+                  name="moq"
+                  value={formData.moq}
+                  onChange={handleChange}
+                  className={inputClass}
+                />
+              </div>
+              <div>
+                <label className={labelClass}>SPQ</label>
+                <input
+                  type="text"
+                  name="spq"
+                  value={formData.spq}
+                  onChange={handleChange}
+                  className={inputClass}
+                />
+              </div>
+            </div>
+            <div>
+              <label className={labelClass}>Process</label>
+              <input
+                type="text"
+                name="process"
+                value={formData.process}
+                onChange={handleChange}
+                className={inputClass}
+              />
+            </div>
+
+            <div className="md:col-span-2">
+              <label className={labelClass}>Alternative Part</label>
+              <input
+                type="text"
+                name="alternative"
+                value={formData.alternative}
+                onChange={handleChange}
+                className={inputClass}
+                placeholder="Drop-in replacement part numbers..."
+              />
+            </div>
+
+            <div className="md:col-span-2">
+              <label className={labelClass}>Datasheet / Link</label>
+              <input
+                type="text"
+                name="link"
+                value={formData.link}
+                onChange={handleChange}
+                className={inputClass}
+                placeholder="https://..."
+              />
+            </div>
+
+            <div className="md:col-span-2">
+              <label className={labelClass}>Description</label>
+              <textarea
+                rows={3}
+                name="description"
+                value={formData.description}
+                onChange={handleChange}
+                className={`${inputClass} !h-auto resize-none custom-scrollbar`}
+                placeholder="Brief description of the component..."
+              />
+            </div>
+
+            <div className="md:col-span-2">
+              <label className={labelClass}>Internal Note</label>
+              <textarea
+                rows={3}
+                name="note"
+                value={formData.note}
+                onChange={handleChange}
+                className={`${inputClass} !h-auto resize-none custom-scrollbar`}
+                placeholder="Any internal notes or warnings..."
+              />
+            </div>
+          </div>
+
+          <div className="mt-10 flex justify-end">
+            <button
+              type="submit"
+              disabled={isCreating || isUploadingImage}
+              className="w-full sm:w-auto px-4 md:px-10 py-4 bg-indigo-600 hover:bg-indigo-700 text-white font-black rounded-2xl shadow-lg shadow-indigo-200 transition-all flex items-center justify-center gap-3 disabled:opacity-50"
+            >
+              <FaSave size={16} />
+              {isCreating || isUploadingImage
+                ? "Saving..."
+                : "Save Component"}
+            </button>
+          </div>
+        </form>
+
+        {/* Create Modals */}
+        <SmoothModal
+          isOpen={showCreateCategoryModal}
+          onClose={() => setShowCreateCategoryModal(false)}
+          title="New Category"
+          onConfirm={async () => {
+            if (!newCategoryName) return;
+            try {
+              await createStockCategory({
+                category: newCategoryName,
+                createuser: userInfo.name,
+              }).unwrap();
+              toast.success("Category created!");
+              refetchCategories();
+              setNewCategoryName("");
+              setShowCreateCategoryModal(false);
+            } catch (err) {
+              toast.error("Failed to create");
+            }
+          }}
+        >
+          <label className={labelClass}>Category Name</label>
+          <input
+            type="text"
+            value={newCategoryName}
+            onChange={(e) => setNewCategoryName(e.target.value)}
+            className={inputClass}
+            placeholder="e.g. Resistors"
+          />
+        </SmoothModal>
+
+        <SmoothModal
+          isOpen={showCreateSubcategoryModal}
+          onClose={() => setShowCreateSubcategoryModal(false)}
+          title="New Subcategory"
+          onConfirm={async () => {
+            if (!newSubcategoryName || !formData.category) return;
+            try {
+              await createStockSubcategory({
+                subcategory: newSubcategoryName,
+                category: formData.category,
+                createuser: userInfo.name,
+              }).unwrap();
+              toast.success("Subcategory created!");
+              refetchSubcategories();
+              setNewSubcategoryName("");
+              setShowCreateSubcategoryModal(false);
+            } catch (err) {
+              toast.error("Failed to create");
+            }
+          }}
+        >
+          <label className={labelClass}>Selected Category</label>
+          <input
+            type="text"
+            value={formData.category}
+            readOnly
+            className={`${inputClass} bg-slate-100 text-slate-500 mb-4`}
+          />
+          <label className={labelClass}>Subcategory Name</label>
+          <input
+            type="text"
+            value={newSubcategoryName}
+            onChange={(e) => setNewSubcategoryName(e.target.value)}
+            className={inputClass}
+            placeholder="e.g. SMD 0603"
+          />
+        </SmoothModal>
+
+        <SmoothModal
+          isOpen={showCreateFootprintModal}
+          onClose={() => setShowCreateFootprintModal(false)}
+          title="New Footprint"
+          onConfirm={async () => {
+            if (!newFootprintName) return;
+            try {
+              await createStockFootprint({
+                namefootprint: newFootprintName,
+                category: formData.category || "-",
+                createuser: userInfo.name,
+              }).unwrap();
+              toast.success("Footprint created!");
+              refetchFootprints();
+              setNewFootprintName("");
+              setShowCreateFootprintModal(false);
+            } catch (err) {
+              toast.error("Failed to create");
+            }
+          }}
+        >
+          <label className={labelClass}>Footprint Name</label>
+          <input
+            type="text"
+            value={newFootprintName}
+            onChange={(e) => setNewFootprintName(e.target.value)}
+            className={inputClass}
+            placeholder="e.g. SOT-23"
+          />
+        </SmoothModal>
+
+        <SmoothModal
+          isOpen={showCreateManufactureModal}
+          onClose={() => setShowCreateManufactureModal(false)}
+          title="New Manufacture"
+          onConfirm={async () => {
+            if (!newManufactureName) return;
+            try {
+              await createStockManufacture({
+                namemanufacture: newManufactureName,
+                createuser: userInfo.name,
+              }).unwrap();
+              toast.success("Manufacture created!");
+              refetchManufactures();
+              setNewManufactureName("");
+              setShowCreateManufactureModal(false);
+            } catch (err) {
+              toast.error("Failed to create");
+            }
+          }}
+        >
+          <label className={labelClass}>Manufacture Name</label>
+          <input
+            type="text"
+            value={newManufactureName}
+            onChange={(e) => setNewManufactureName(e.target.value)}
+            className={inputClass}
+            placeholder="e.g. Texas Instruments"
+          />
+        </SmoothModal>
+
+        <SmoothModal
+          isOpen={showCreateSupplierModal}
+          onClose={() => setShowCreateSupplierModal(false)}
+          title="New Supplier"
+          onConfirm={async () => {
+            if (!newSupplierName) return;
+            try {
+              await createStockSupplier({
+                namesupplier: newSupplierName,
+                createuser: userInfo.name,
+              }).unwrap();
+              toast.success("Supplier created!");
+              refetchSuppliers();
+              setNewSupplierName("");
+              setShowCreateSupplierModal(false);
+            } catch (err) {
+              toast.error("Failed to create");
+            }
+          }}
+        >
+          <label className={labelClass}>Supplier Name</label>
+          <input
+            type="text"
+            value={newSupplierName}
+            onChange={(e) => setNewSupplierName(e.target.value)}
+            className={inputClass}
+            placeholder="e.g. Mouser Electronics"
+          />
+        </SmoothModal>
+      </div>
+      <style dangerouslySetInnerHTML={{
+        __html: `
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+      ` }} />
+    </div>
   );
 };
 

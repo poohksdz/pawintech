@@ -36,7 +36,7 @@ const HomeScreen = () => {
     data: blogData,
     isLoading: blogLoading,
     error: blogError,
-  } = useGetBlogsQuery({ pageNumber }, { skip: !userInfo });
+  } = useGetBlogsQuery({ pageNumber });
   const {
     data: serviceData,
     isLoading: serviceLoading,
@@ -51,7 +51,7 @@ const HomeScreen = () => {
     data: showcaseData,
     isLoading: showcaseLoading,
     error: showcaseError,
-  } = useGetShowcasesQuery({ pageNumber }, { skip: !userInfo });
+  } = useGetShowcasesQuery({ pageNumber });
 
   const shouldShowCarousel = (presentType) => {
     if (showcaseLoading || showcaseError || !showcaseData) return false;

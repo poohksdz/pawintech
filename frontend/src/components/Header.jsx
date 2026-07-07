@@ -316,6 +316,7 @@ const Header = () => {
       AllRequested: "All Requests",
       AddQuantity: "Add Stock",
       ManageComponents: "Manage Items",
+      ManageAttributes: "Manage Attributes",
       confirmCustomIdeaPCB: "Confirm Custom PCB",
       confirmCopyModifyPCB: "Confirm Copy PCB",
       confirmAssemblyBoard: "Confirm Assembly",
@@ -344,6 +345,8 @@ const Header = () => {
       People: "People",
       StoreAdmin: "Store Admin",
       Requests: "Requests",
+      IssueHistory: "Issue History",
+      pcbPriceConfig: "PCB Price Config",
       descCustom: "Start from your idea",
       descCopy: "Clone/Modify existing",
       descOrder: "Production from Gerber",
@@ -370,6 +373,7 @@ const Header = () => {
       AllRequested: "รายการเบิกทั้งหมด",
       AddQuantity: "เติมสต็อกสินค้า",
       ManageComponents: "จัดการรายการสินค้า",
+      ManageAttributes: "จัดการคุณสมบัติสินค้า",
       confirmCustomIdeaPCB: "อนุมัติ Custom PCB",
       confirmCopyModifyPCB: "อนุมัติ Copy PCB",
       confirmAssemblyBoard: "อนุมัติงานประกอบ",
@@ -397,6 +401,8 @@ const Header = () => {
       People: "บุคลากร",
       StoreAdmin: "ผู้ดูแลร้านค้า",
       Requests: "การเบิกจ่าย",
+      IssueHistory: "ประวัติการเบิก",
+      pcbPriceConfig: "ตั้งค่าราคา PCB",
       descCustom: "เริ่มจากไอเดียของคุณ",
       descCopy: "ก๊อปปี้หรือแก้ไขบอร์ดเดิม",
       descOrder: "สั่งผลิตจากไฟล์ Gerber",
@@ -632,6 +638,11 @@ const Header = () => {
                               label={t.ManageComponents}
                               onClick={() => setActiveDropdown(null)}
                             />
+                            <SimpleListItem
+                              to="/componentdefaultlist"
+                              label={t.ManageAttributes}
+                              onClick={() => setActiveDropdown(null)}
+                            />
                           </div>
                           <SectionLabel
                             label={t.Requests}
@@ -646,6 +657,11 @@ const Header = () => {
                             <SimpleListItem
                               to="/componentrequestlist"
                               label={t.AllRequested}
+                              onClick={() => setActiveDropdown(null)}
+                            />
+                            <SimpleListItem
+                              to="/componentissuelist"
+                              label={t.IssueHistory}
                               onClick={() => setActiveDropdown(null)}
                             />
                           </div>
@@ -667,6 +683,11 @@ const Header = () => {
                             <SimpleListItem
                               to="/admin/servicelist"
                               label={t.ServiceConfig}
+                              onClick={() => setActiveDropdown(null)}
+                            />
+                            <SimpleListItem
+                              to="/admin/orderpcbeditlist"
+                              label={t.pcbPriceConfig}
                               onClick={() => setActiveDropdown(null)}
                             />
                           </div>
@@ -1179,6 +1200,9 @@ const Header = () => {
                     <Link to="/componenteditlist" onClick={closeMenu} className="block py-2 text-sm text-slate-600 hover:text-blue-600 border-l-2 border-slate-200 pl-3">
                       {t.ManageComponents}
                     </Link>
+                    <Link to="/componentdefaultlist" onClick={closeMenu} className="block py-2 text-sm text-slate-600 hover:text-blue-600 border-l-2 border-slate-200 pl-3">
+                      {t.ManageAttributes}
+                    </Link>
 
                     <div className="text-[10px] font-black text-blue-500 uppercase tracking-widest mb-1.5 mt-4">
                       {t.Requests}
@@ -1198,6 +1222,9 @@ const Header = () => {
                     </Link>
                     <Link to="/admin/orderlist" onClick={closeMenu} className="block py-2 text-sm text-slate-600 hover:text-blue-600 border-l-2 border-slate-200 pl-3">
                       {t.orderlist}
+                    </Link>
+                    <Link to="/admin/orderpcbeditlist" onClick={closeMenu} className="block py-2 text-sm text-slate-600 hover:text-blue-600 border-l-2 border-slate-200 pl-3">
+                      {t.pcbPriceConfig}
                     </Link>
                   </div>
                 )}

@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef } from "react";
 import Button from "../../components/ui/Button";
 import { useGetDefaultQuotationUsedQuery } from "../../slices/quotationDefaultApiSlice";
 import {
-  useUpdateQuotationByQuotationNoMutation,
   useGetQuotationByQuotationNoQuery,
 } from "../../slices/quotationApiSlice";
 import { useUpdateOrderStatusByQuotationNoMutation } from "../../slices/ordersApiSlice";
@@ -15,12 +14,11 @@ import FullTaxInvoiceA4 from "../../components/FullTaxInvoiceA4";
 import { useGetDefaultInvoiceUsedQuery } from "../../slices/defaultInvoicesApiSlice";
 
 const QuotationDetailScreen = () => {
-  const componentRef = useRef();
   const { id } = useParams();
   const navigate = useNavigate();
   const { userInfo } = useSelector((state) => state.auth);
 
-  const { data: quotationData, isLoading, refetch } = useGetQuotationByQuotationNoQuery(id);
+  const { data: quotationData } = useGetQuotationByQuotationNoQuery(id);
   const { data: defaultData } = useGetDefaultQuotationUsedQuery();
   const { data: companyInfo } = useGetDefaultInvoiceUsedQuery();
   const [updateStatus] = useUpdateOrderStatusByQuotationNoMutation();
@@ -40,48 +38,14 @@ const QuotationDetailScreen = () => {
     }
   };
 
-  const companyNameTH = "บริษัท ภาวินท์เทคโนโลยี จำกัด";
-  const companyNameEN = "PAWINTECHNOLOGY CO., LTD.";
-  const companyAddressTH = "สำนักงานใหญ่ : 124 ซอยร่มเกล้า 24 แขวงมีนบุรี เขตมีนบุรี กรุงเทพมหานคร 10510";
-  const companyAddressEN = "Head Office : 124 Soi Rom Klao 24, Min Buri, Min Buri, Bangkok, 10510";
-  const companyPhone = "099-226-3277";
-  const companyEmail = "contact@pawin-tech.com";
-  const companyTaxId = "0105562141221";
-  const companyLogo = "/image/Pawin_Logo_long.png";
-
-  const [quotationNumber, setQuotationNumber] = useState("");
-  const [due_date, setdue_date] = useState("");
-  const [submit_price_within, setsubmit_price_within] = useState("");
-  const [number_of_credit_days, setnumber_of_credit_days] = useState("");
   const [numRows, setNumRows] = useState(8);
-
-  const [customerInfo, setCustomerInfo] = useState({
-    customer_name: "",
-    customer_present_name: "",
-    customer_address: "",
-    customer_vat: "",
-    branch_type: "สำนักงานใหญ่",
-    branch_no: "",
-  });
 
   const [rows, setRows] = useState([]);
   const [defaultSummary, setDefaultSummary] = useState({});
 
-  const handleCustomerChange = (field, value) =>
-    setCustomerInfo((prev) => ({ ...prev, [field]: value }));
-
   useEffect(() => {
     const firstQuotation = quotationData?.quotation?.[0]?.[0];
     if (!firstQuotation) return;
-
-    setCustomerInfo({
-      customer_name: firstQuotation.customer_name || "",
-      customer_present_name: firstQuotation.customer_present_name || "",
-      customer_address: firstQuotation.customer_address || "",
-      customer_vat: firstQuotation.customer_vat || "",
-      branch_type: "สำนักงานใหญ่", // Defaulting, adjust as needed
-      branch_no: "",
-    });
 
     setDefaultSummary({
       discount: parseFloat(firstQuotation.discount) || 0,
@@ -90,11 +54,6 @@ const QuotationDetailScreen = () => {
       bank_account_name: firstQuotation.transfer_bank_account_name || "",
       bank_account_number: firstQuotation.transfer_bank_account_number || "",
     });
-
-    setdue_date(firstQuotation.due_date || "");
-    setsubmit_price_within(firstQuotation.submit_price_within || "");
-    setnumber_of_credit_days(firstQuotation.number_of_credit_days || "");
-    setQuotationNumber(firstQuotation.quotation_no || "");
 
     const initialRows = quotationData?.quotation?.[0] || [];
     setRows(
@@ -128,72 +87,12 @@ const QuotationDetailScreen = () => {
     }
   }, [defaultData, defaultSelected]);
 
-  const handleChange = (index, field, value) => {
-    const updatedRows = [...rows];
-    updatedRows[index][field] =
-      field === "qty" || field === "unit_price"
-        ? value === ""
-          ? 0
-          : Number(value)
-        : value;
-    setRows(updatedRows);
-
-    const lastRow = updatedRows[updatedRows.length - 1];
-    const hasData = Object.values(lastRow).some((v) => v !== "" && v !== 0);
-    if (hasData) {
-      setRows((prev) => [
-        ...prev,
-        { product_id: "", description: "", qty: 0, unit: "", unit_price: 0 },
-      ]);
-    }
-  };
-
-  const autoGrow = (e) => {
-    e.target.style.height = "20px";
-    e.target.style.height = e.target.scrollHeight + "px";
-  };
-
   // Calculations
   const subTotal = rows.reduce((acc, r) => acc + (r.qty * r.unit_price || 0), 0);
   const totalDiscount = subTotal * (parseFloat(defaultSummary.discount || 0) / 100);
   const totalAfterDiscount = subTotal - totalDiscount;
   const totalVat = totalAfterDiscount * (parseFloat(defaultSummary.vat || 0) / 100);
   const grandTotal = totalAfterDiscount + totalVat;
-
-  const now = new Date();
-  const today = `${String(now.getDate()).padStart(2, "0")}/${String(
-    now.getMonth() + 1,
-  ).padStart(2, "0")}/${now.getFullYear() + 543}`;
-
-  const thaiBahtText = (price) => {
-    if (!price || isNaN(price) || price === 0) return "-";
-    const units = ["", "สิบ", "ร้อย", "พัน", "หมื่น", "แสน", "ล้าน"];
-    const numbers = ["ศูนย์", "หนึ่ง", "สอง", "สาม", "สี่", "ห้า", "หก", "เจ็ด", "แปด", "เก้า"];
-    const s = parseFloat(price).toFixed(2).split(".");
-    let integer = s[0];
-    const dec = parseInt(s[1]);
-
-    const convert = (s) => {
-      let res = "";
-      for (let i = 0; i < s.length; i++) {
-        const digit = parseInt(s[i]);
-        const pos = s.length - i - 1;
-        if (digit !== 0) {
-          if (pos === 1 && digit === 1) res += "";
-          else if (pos === 1 && digit === 2) res += "ยี่";
-          else if (pos === 0 && digit === 1 && s.length > 1) res += "เอ็ด";
-          else res += numbers[digit];
-          res += units[pos];
-        }
-      }
-      return res;
-    };
-
-    let result = convert(integer) + "บาท";
-    if (dec === 0) result += "ถ้วน";
-    else result += convert(dec) + "สตางค์";
-    return result;
-  };
 
   const handlePrint = () => {
     window.print();

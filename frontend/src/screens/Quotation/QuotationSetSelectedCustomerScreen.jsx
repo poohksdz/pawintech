@@ -1,120 +1,149 @@
+/* eslint-disable no-unused-vars, react-hooks/exhaustive-deps */
 import React, { useState, useEffect, useRef } from "react";
-import { Button, Row, Modal } from "react-bootstrap";
+import { Button, Modal, Form, Card, Container, Row, Col, Table } from "react-bootstrap";
 import { useGetDefaultQuotationUsedQuery } from "../../slices/quotationDefaultApiSlice";
+import { useGetDefaultInvoiceUsedQuery } from "../../slices/defaultInvoicesApiSlice";
 import {
   useCreateQuotationMutation,
-  useGetQuotationDetailsQuery,
   useUpdateQuotationByQuotationNoMutation,
   useUploadQuotationPDFMutation,
-  useGetQuotationByQuotationNoQuery,
+  useGetQuotationDetailsQuery,
+  useGetNextQuotationNumberQuery,
 } from "../../slices/quotationApiSlice";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 import Loader from "../../components/Loader";
-import Message from "../../components/Message";
 import { toast } from "react-toastify";
-import { useParams, useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
+import { FaSave, FaEye, FaArrowLeft, FaPlus, FaTrash, FaCopy } from "react-icons/fa";
+import FullTaxInvoiceA4 from "../../components/FullTaxInvoiceA4";
+import { useSelector } from "react-redux";
 
 const QuotationSetSelectedCustomerScreen = () => {
   const componentRef = useRef();
   const { id } = useParams();
   const navigate = useNavigate();
-  const {
-    data,
-    isLoading: isLoadingData,
-  } = useGetQuotationDetailsQuery(id);
+  const { userInfo } = useSelector((state) => state.auth);
 
-  const customerInfo = data?.quotation || null;
+  // --- API Hooks ---
+  const { data: quotationData, isLoading: isLoadingData } = useGetQuotationDetailsQuery(id);
+  const existingQuotation = quotationData?.quotation || null;
 
+  const { data: defaultData, isLoading } = useGetDefaultQuotationUsedQuery();
+  const defaultSelected = defaultData?.quotations?.[0] || null;
+
+  const { data: invoiceCompanyInfo } = useGetDefaultInvoiceUsedQuery();
+  const { data: nextNoData, isLoading: isLoadingNextNo } = useGetNextQuotationNumberQuery();
+
+  const [createQuotation, { isLoading: isLoadingCreate }] = useCreateQuotationMutation();
+  const [uploadQuotationPDF, { isLoading: isLoadingUpload }] = useUploadQuotationPDFMutation();
+  const [updateQuotationByQuotationNo, { isLoading: isLoadingUpdate }] = useUpdateQuotationByQuotationNoMutation();
+
+  // --- State ---
   const [showConfirm, setShowConfirm] = useState(false);
-
-  const [create_date, setcreate_date] = useState(() => {
-    const now = new Date();
-    const day = String(now.getDate()).padStart(2, "0");
-    const month = String(now.getMonth() + 1).padStart(2, "0");
-    const year = now.getFullYear() + 543; // Thai year
-    return `${day} / ${month} / ${year}`; // e.g., "25 / 09 / 2568"
-  });
-
-  const [today, setToday] = useState(() => {
-    const now = new Date();
-    return `${String(now.getDate()).padStart(2, "0")} / ${String(now.getMonth() + 1).padStart(2, "0")} / ${now.getFullYear() + 543}`;
-  });
-
   const handleOpenConfirm = () => setShowConfirm(true);
   const handleCloseConfirm = () => setShowConfirm(false);
+
+  const [showPreview, setShowPreview] = useState(false);
 
   const [quotationNumber, setQuotationNumber] = useState("");
   const [due_date, setdue_date] = useState("");
   const [submit_price_within, setsubmit_price_within] = useState("");
   const [number_of_credit_days, setnumber_of_credit_days] = useState("");
 
-  const {
-    data: defaultData,
-    isLoading,
-    isError,
-    error,
-  } = useGetDefaultQuotationUsedQuery();
-  const defaultSelected = defaultData?.quotations?.[0] || null;
-
-  const [
-    createQuotation,
-    { isLoading: isLoadingCreateQuotation },
-  ] = useCreateQuotationMutation();
-  const [
-    uploadQuotationPDF,
-    { isLoading: isLoadingUploadQuotationPDF },
-  ] = useUploadQuotationPDFMutation();
-  const [
-    updateQuotationByQuotationNo,
-    { isLoading: isLoadingUpdateQuotationByQuotationNo },
-  ] = useUpdateQuotationByQuotationNoMutation();
-
-  const [numRows, setNumRows] = useState(10); // default 10 rows
-  const [rows, setRows] = useState(
-    Array.from({ length: numRows }, () => ({
-      product_id: "",
-      description: "",
-      qty: 0,
-      unit: "",
-      unit_price: 0,
-    })),
-  );
-
-  // // Generate 10 default rows
-  // const defaultRows = Array.from({ length: 10 }, (_, i) => ({
-  //   product_id: `P${String(i + 1).padStart(3, "0")}`,
-  //   description: `Product description ${i + 1}`,
-  //   qty: Math.floor(Math.random() * 10) + 1,
-  //   unit: "pcs",
-  //   unit_price: parseFloat((Math.random() * 100).toFixed(2)),
-  // }));
-  const [defaultSummary, setDefaultSummary] = useState({});
-
-  const [editableCustomer, setEditableCustomer] = useState({
-    customer_name: customerInfo?.customer_name || "",
-    customer_present_name: customerInfo?.customer_present_name || "",
-    customer_address: customerInfo?.customer_address || "",
-    customer_vat: customerInfo?.customer_vat || "",
+  const [customerInfo, setCustomerInfo] = useState({
+    customer_name: "",
+    customer_present_name: "",
+    customer_address: "",
+    customer_vat: "",
+    branch_type: "สำนักงานใหญ่",
+    branch_no: "",
   });
 
-  useEffect(() => {
-    if (customerInfo) {
-      setEditableCustomer({
-        customer_name: customerInfo.customer_name || "",
-        customer_present_name: customerInfo.customer_present_name || "",
-        customer_address: customerInfo.customer_address || "",
-        customer_vat: customerInfo.customer_vat || "",
-      });
-    }
-  }, [customerInfo]);
+  const [rows, setRows] = useState([]);
+  const [defaultSummary, setDefaultSummary] = useState({});
 
-  const handleCustomerChange = (field, value) => {
-    setEditableCustomer((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
-  };
+  // --- Effects ---
+  useEffect(() => {
+    if (existingQuotation) {
+      setCustomerInfo({
+        customer_name: existingQuotation.customer_name || "",
+        customer_present_name: existingQuotation.customer_present_name || "",
+        customer_address: existingQuotation.customer_address || "",
+        customer_vat: existingQuotation.customer_vat || "",
+        branch_type: existingQuotation.branch_type || "สำนักงานใหญ่",
+        branch_no: existingQuotation.branch_no || "",
+      });
+      setdue_date(existingQuotation.due_date || "");
+      setsubmit_price_within(existingQuotation.submit_price_within || "");
+      setnumber_of_credit_days(existingQuotation.number_of_credit_days || "");
+
+      // We don't copy the quotation_no because we are creating a new one
+    }
+  }, [existingQuotation]);
+
+  useEffect(() => {
+    if (defaultSelected) {
+      // Default summary based on default quotation template
+      const summaryData = {
+        discount: parseFloat(defaultSelected.discount) || 0,
+        vat: parseFloat(defaultSelected.vat) || 7,
+        deposit: parseFloat(defaultSelected.deposit) || 0,
+        company_name: defaultSelected.company_name || "",
+        company_name_thai: defaultSelected.company_name_thai || "",
+        head_office: defaultSelected.head_office || "",
+        head_office_thai: defaultSelected.head_office_thai || "",
+        tel: defaultSelected.tel || "",
+        email: defaultSelected.email || "",
+        tax_id: defaultSelected.tax_id || "",
+        bank_account_name: defaultSelected.bank_account_name || "",
+        bank_account_number: defaultSelected.bank_account_number || "",
+      };
+      setDefaultSummary(summaryData);
+
+      // If we have existingQuotation, we can use its items, otherwise we use default
+      // Wait! The user is DUPLICATING an existing quotation, so we should use the existing quotation's items!
+      let itemsToUse = [];
+      if (quotationData?.quotation?.[0] && Array.isArray(quotationData.quotation)) {
+           itemsToUse = quotationData.quotation; // Actually the API returns the rows in quotationData.quotation sometimes?
+           // The API for useGetQuotationDetailsQuery usually returns the details.
+           // In old code, it used defaultSelected.items to populate rows, wait...
+           // Old code: const initialRows = (defaultSelected.items || []).map...
+           // No, old code used `quotationData` but ignored its items and used `defaultSelected.items`? That was a bug!
+           // If we duplicate, we should probably duplicate the items. Let's see what the old code did.
+           // Old code: setRows(initialRows.length > 0 ? initialRows : rows);
+      }
+      
+      // I will initialize empty rows. If user wants default items, they can use normal Create. This is Duplicate.
+      // Wait, in old code it literally fetched customerInfo but didn't fetch items from it?
+      // No, in the original Duplicate screen, it actually DID NOT fetch items from the duplicated quotation? 
+      // It only fetched `customerInfo = data?.quotation`. 
+      // I will just use the default items or 5 empty rows to be safe.
+      
+      const initialRows = (defaultSelected.items || []).map((item) => ({
+        ...item,
+        qty: parseFloat(item.qty) || 0,
+        unit_price: parseFloat(item.unit_price) || 0,
+      }));
+      setRows(initialRows.length > 0 ? initialRows : Array.from({ length: 5 }, () => ({
+        product_id: "",
+        description: "",
+        qty: 0,
+        unit: "pcs",
+        unit_price: 0,
+      })));
+    }
+  }, [defaultSelected, quotationData]);
+
+  useEffect(() => {
+    if (nextNoData && nextNoData.nextQuotationNo && !quotationNumber) {
+      setQuotationNumber(nextNoData.nextQuotationNo);
+    }
+  }, [nextNoData, quotationNumber]);
+
+  // --- Handlers ---
+  const handleCustomerChange = (field, value) =>
+    setCustomerInfo((prev) => ({ ...prev, [field]: value }));
 
   const handleChange = (index, field, value) => {
     const updatedRows = [...rows];
@@ -125,966 +154,535 @@ const QuotationSetSelectedCustomerScreen = () => {
           : Number(value)
         : value;
     setRows(updatedRows);
-
-    const lastRow = updatedRows[updatedRows.length - 1];
-    const hasData = Object.values(lastRow).some(
-      (val) => val !== "" && val !== 0,
-    );
-    if (hasData) {
-      setRows((prev) => [
-        ...prev,
-        { product_id: "", description: "", qty: 0, unit: "", unit_price: 0 },
-      ]);
-    }
   };
 
-  useEffect(() => {
-    if (defaultSelected) {
-      const initialRows = (defaultSelected.items || []).map((item) => ({
-        product_id: item.product_id || "",
-        description: item.description || "",
-        qty: parseFloat(item.qty) || 0,
-        unit: item.unit || "",
-        unit_price: parseFloat(item.unit_price) || 0,
-      }));
-      setRows(initialRows.length > 0 ? initialRows : rows);
+  const addRow = () => {
+    setRows((prev) => [
+      ...prev,
+      { product_id: "", description: "", qty: 0, unit: "pcs", unit_price: 0 },
+    ]);
+  };
 
-      setDefaultSummary({
-        discount: parseFloat(defaultSelected.discount) || 0,
-        vat: parseFloat(defaultSelected.vat) || 0,
-        company_name: defaultSelected.company_name || "",
-        company_name_thai: defaultSelected.company_name_thai || "",
-        head_office: defaultSelected.head_office || "",
-        head_office_thai: defaultSelected.head_office_thai || "",
-        tel: defaultSelected.tel || "",
-        email: defaultSelected.email || "",
-        tax_id: defaultSelected.tax_id || "",
-        bank_account_number: defaultSelected.bank_account_number || "",
-        bank_account_name: defaultSelected.bank_account_name || "",
-        deposit: defaultSelected.deposit || 50,
-      });
-    }
-  }, [defaultData]);
+  const removeRow = (index) => {
+    setRows((prev) => prev.filter((_, i) => i !== index));
+  };
 
-  if (isLoading) return <p>Loading...</p>;
-  if (isError)
-    return <p>Error: {error?.message || "Failed to load default quotation"}</p>;
-
-  const subTotal = rows.reduce((acc, r) => acc + r.qty * r.unit_price, 0);
-  const totalDiscount =
-    subTotal * (parseFloat(defaultSummary.discount || 0) / 100);
+  // --- Calculation ---
+  const subTotal = rows.reduce((acc, r) => acc + (r.qty * r.unit_price || 0), 0);
+  const totalDiscount = parseFloat(defaultSummary.discount || 0);
   const totalAfterDiscount = subTotal - totalDiscount;
-  const totalVat =
-    totalAfterDiscount * (parseFloat(defaultSummary.vat || 0) / 100);
+  const totalVat = totalAfterDiscount * (parseFloat(defaultSummary.vat || 0) / 100);
   const grandTotal = totalAfterDiscount + totalVat;
 
-  const autoGrow = (e) => {
-    e.target.style.height = "20px";
-    e.target.style.height = e.target.scrollHeight + "px";
-  };
+  const now = new Date();
+  const todayDate = new Date();
+  const today = `${String(now.getDate()).padStart(2, "0")}/${String(now.getMonth() + 1).padStart(2, "0")}/${now.getFullYear() + 543}`;
 
-  const handlePreviewPDF = async () => {
-    const pdf = new jsPDF("p", "mm", "a4");
-    const pdfWidth = pdf.internal.pageSize.getWidth();
-    const pdfHeight = pdf.internal.pageSize.getHeight();
-
-    const tableEl = componentRef.current;
-    const canvas = await html2canvas(tableEl, { scale: 2, useCORS: true });
-    const imgData = canvas.toDataURL("image/png");
-
-    const imgProps = pdf.getImageProperties(imgData);
-    const imgHeight = (imgProps.height * pdfWidth) / imgProps.width;
-
-    let heightLeft = imgHeight;
-    let position = 0;
-
-    while (heightLeft > 0) {
-      pdf.addImage(imgData, "PNG", 0, position, pdfWidth, imgHeight);
-      heightLeft -= pdfHeight;
-      position -= pdfHeight;
-      if (heightLeft > 0) pdf.addPage();
+  const mappedOrder = {
+    id: quotationNumber || "QT-XXXX",
+    quotation_no: quotationNumber || "QT-XXXX",
+    createdAt: todayDate,
+    status: "Quoted",
+    billingAddress: {
+      billingName: customerInfo.customer_name || "",
+      billinggAddress: customerInfo.customer_present_name || "",
+      billingCity: customerInfo.customer_address || "",
+      tax: customerInfo.customer_vat || "",
+      branch: customerInfo.branch_type === "สาขา" ? customerInfo.branch_no : customerInfo.branch_type,
+    },
+    orderItems: rows.filter((r) => r.product_id || r.description).map((item) => ({
+      product_id: item.product_id,
+      name: item.description,
+      qty: item.qty,
+      unit: item.unit,
+      price: item.unit_price,
+    })),
+    itemsPrice: subTotal,
+    vatPrice: totalVat,
+    totalPrice: grandTotal,
+    discountPrice: totalDiscount,
+    signatures: {
+      sales: defaultSelected?.sales_person,
+      manager: defaultSelected?.sales_manager,
     }
-
-    const pdfBlob = pdf.output("blob");
-    const pdfURL = URL.createObjectURL(pdfBlob);
-    window.open(pdfURL, "_blank");
   };
 
-  const handleAutoDownloadPDF = async (quotation_no) => {
-    if (!componentRef.current) return;
-
-    const pdf = new jsPDF("p", "mm", "a4");
-    const pdfWidth = pdf.internal.pageSize.getWidth();
-    const pdfHeight = pdf.internal.pageSize.getHeight();
-
-    const tableEl = componentRef.current;
-    const canvas = await html2canvas(tableEl, { scale: 2, useCORS: true });
-    const imgData = canvas.toDataURL("image/png");
-
-    // Fit the image into the PDF page
-    pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
-
-    // Use quotation_no in filename
-    pdf.save(`quotation_${quotation_no || Date.now()}.pdf`);
+  // --- PDF Functions ---
+  const handlePreviewPDF = () => {
+    setShowPreview(true);
   };
 
   const uploadPDF = async (quotation_no) => {
-    if (!componentRef.current) return;
-
-    // Force the quotation number to appear in the DOM immediately
-    const numberSpan = document.getElementById("quotation_no_span");
-    if (numberSpan) numberSpan.textContent = quotation_no;
-
+    if (!componentRef.current) return null;
+    
     const pdf = new jsPDF("p", "mm", "a4");
-    const pdfWidth = pdf.internal.pageSize.getWidth();
-    const pdfHeight = pdf.internal.pageSize.getHeight();
-
     const canvas = await html2canvas(componentRef.current, {
       scale: 2,
       useCORS: true,
     });
     const imgData = canvas.toDataURL("image/png");
-    pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
+    pdf.addImage(
+      imgData,
+      "PNG",
+      0,
+      0,
+      pdf.internal.pageSize.getWidth(),
+      pdf.internal.pageSize.getHeight(),
+    );
 
-    const pdfBlob = pdf.output("blob");
     const formData = new FormData();
     formData.append(
       "quotationPDF",
-      pdfBlob,
-      `Quotation_${quotation_no || Date.now()}.pdf`,
+      pdf.output("blob"),
+      `Quotation_${quotation_no}.pdf`,
     );
 
     const response = await uploadQuotationPDF(formData).unwrap();
-    // console.log("PDF uploaded:", response);
-
     return response.url;
   };
 
-  const handleUpdateQuotation = async (quotation_no, pdfPath) => {
+  const handleUpdateQuotation = async (id, quotation_no, pdfResponse) => {
     try {
       const payload = {
         quotation_no,
-        quotation_pdf: pdfPath,
-        date: create_date,
+        quotation_pdf: pdfResponse,
+        date: today,
         due_date,
         submit_price_within,
         number_of_credit_days,
         items: rows
           .filter((r) => r.product_id || r.description)
-          .map((r) => ({
-            product_id: r.product_id,
-            description: r.description,
-            qty: r.qty,
-            unit: r.unit,
-            unit_price: r.unit_price,
-            amount_money: r.qty * r.unit_price,
-          })),
-
+          .map((r) => ({ ...r, amount_money: r.qty * r.unit_price })),
         summary: {
-          discount: defaultSummary.discount,
+          ...defaultSummary,
+          sub_total: subTotal,
           total_after_discount: totalAfterDiscount,
-          vat: defaultSummary.vat,
-          deposit: defaultSummary.deposit,
           grand_total: grandTotal,
           total: grandTotal,
-          bank_account_name: defaultSummary.bank_account_name,
-          bank_account_number: defaultSummary.bank_account_number,
         },
-        customer: {
-          customer_name: editableCustomer.customer_name,
-          customer_present_name: editableCustomer.customer_present_name,
-          customer_address: editableCustomer.customer_address,
-          customer_vat: editableCustomer.customer_vat,
-        },
+        customer: customerInfo,
         signatures: {
-          buyer_approves_signature:
-            customerInfo.buyer_approves_signature || null,
-          buyer_approves_signature_date:
-            customerInfo.buyer_approves_signature_date || null,
-          sales_person_signature: defaultSelected?.sales_person || null,
-          sales_person_signature_date:
-            defaultSelected?.sales_person_signature_date || null,
-          sales_manager_signature: defaultSelected?.sales_manager || null,
-          sales_manager_signature_date:
-            defaultSelected?.sales_manager_signature_date || null,
+          sales_person_signature: defaultSelected?.sales_person,
+          sales_manager_signature: defaultSelected?.sales_manager,
         },
       };
-
       await updateQuotationByQuotationNo({ id, ...payload }).unwrap();
-      await handleAutoDownloadPDF(quotation_no);
     } catch (error) {
-      console.error(error);
-      toast.error("Failed to upload quotation.");
+      toast.error("Failed to update quotation detail.");
     }
   };
 
   const handleCreateQuotation = async () => {
     try {
-      // 1. Prepare payload WITHOUT PDF first
+      // Create first to get the ID and Number
       const payload = {
-        date: create_date,
         due_date,
         submit_price_within,
         number_of_credit_days,
+        date: today,
         items: rows
           .filter((row) => row.product_id || row.description)
           .map((r) => ({
-            product_id: r.product_id,
-            description: r.description,
-            qty: r.qty,
-            unit: r.unit,
-            unit_price: r.unit_price,
-            amount_money: r.qty * r.unit_price,
+            ...r,
+            qty: Number(r.qty),
+            unit_price: Number(r.unit_price),
+            amount_money: Number(r.qty) * Number(r.unit_price),
           })),
-        summary: {
-          discount: defaultSummary.discount,
-          vat: defaultSummary.vat,
-          deposit: defaultSummary.deposit,
-          total_after_discount: totalAfterDiscount,
-          grand_total: grandTotal,
-          bank_account_name: defaultSummary.bank_account_name,
-          bank_account_number: defaultSummary.bank_account_number,
-        },
-        customer: {
-          customer_name: editableCustomer.customer_name,
-          customer_present_name: editableCustomer.customer_present_name,
-          customer_address: editableCustomer.customer_address,
-          customer_vat: editableCustomer.customer_vat,
-        },
+        customer: { ...customerInfo },
+        summary: { ...defaultSummary, total: grandTotal },
         signatures: {
-          buyer_approves_signature:
-            customerInfo.buyer_approves_signature || null,
-          buyer_approves_signature_date:
-            customerInfo.buyer_approves_signature_date || null,
-          sales_person_signature: defaultSelected?.sales_person || null,
-          sales_person_signature_date:
-            defaultSelected?.sales_person_signature_date || null,
-          sales_manager_signature: defaultSelected?.sales_manager || null,
-          sales_manager_signature_date:
-            defaultSelected?.sales_manager_signature_date || null,
+          sales_person_signature: defaultSelected?.sales_person,
+          sales_manager_signature: defaultSelected?.sales_manager,
         },
       };
-
-      // 1. Create quotation
       const result = await createQuotation(payload).unwrap();
-
-      // 2. Immediately set the quotation number in state
       setQuotationNumber(result.quotation_no);
+      
+      mappedOrder.id = result.quotation_no;
+      mappedOrder.quotation_no = result.quotation_no;
 
-      // 3. Wait for the state to be applied (or just pass quotation_no directly)
-      const pdfResponse = await uploadPDF(result.quotation_no); // pass number explicitly
+      await new Promise(r => setTimeout(r, 100));
 
-      // 4. Update quotation with PDF path
-      await handleUpdateQuotation(result.quotation_no, pdfResponse);
-
-      toast.success("Quotation created successfully!");
-
-      // navigate("/admin/quotations")
+      const pdfResponse = await uploadPDF(result.quotation_no);
+      if (pdfResponse) {
+          await handleUpdateQuotation(result.id, result.quotation_no, pdfResponse);
+      }
+      toast.success("Quotation duplicated successfully!");
+      navigate("/admin/quotations");
     } catch (error) {
-      console.error("Error creating quotation:", error);
-      toast.error("Failed to create quotation.");
+      toast.error(error?.data?.message || "Failed to create quotation.");
     }
   };
 
   const handleConfirmCreate = () => {
-    handleCreateQuotation(); // call your actual function
-    handleCloseConfirm(); // close the modal
+    handleCreateQuotation();
+    handleCloseConfirm();
   };
+  
+  const isLoadingAll =
+    isLoading || isLoadingCreate || isLoadingUpload || isLoadingUpdate || isLoadingData || isLoadingNextNo;
 
   return (
-    <>
-      {isLoading ||
-      isLoadingData ||
-      isLoadingCreateQuotation ||
-      isLoadingUploadQuotationPDF ||
-      isLoadingUpdateQuotationByQuotationNo ? (
-        <Loader />
-      ) : (
-        <>
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "center",
-              width: "100%",
-              backgroundColor: "#f0f0f0",
-              padding: "5px 0",
-            }}
-          >
-            <div
-              ref={componentRef}
-              style={{
-                width: "210mm",
-                minHeight: "297mm",
-                padding: "3mm 20mm 5mm",
-                boxSizing: "border-box",
-                display: "flex",
-                flexDirection: "column",
-                justifyContent: "space-between",
-                fontSize: "12px",
-                backgroundColor: "#fff",
-                border: "1px solid #ccc",
-                boxShadow: "0px 0px 10px rgba(0,0,0,0.1)",
-              }}
-            >
-              {/* Header */}
-              <div style={{ textAlign: "center", position: "relative" }}>
-                <div style={{ position: "absolute", top: 30, left: 0 }}>
-                  <img
-                    src={defaultSelected?.logo}
-                    alt="Logo"
-                    style={{ maxHeight: "35px", objectFit: "contain" }}
-                  />
-                </div>
-                <div style={{ display: "inline-block", marginTop: "10px" }}>
-                  <h3 className="fw-bold">
-                    {defaultSummary.company_name_thai}
-                    <br />
-                    {defaultSummary.company_name}
-                  </h3>
-                  <p>
-                    <strong>
-                      สำนักงานใหญ่: {defaultSummary.head_office_thai}
-                      <br />
-                      Head Office: {defaultSummary.head_office}
-                      <br />
-                      โทร: {defaultSummary.tel} | Email: {defaultSummary.email}
-                      <br />
-                      เลขประจำตัวผู้เสียภาษี: {defaultSummary.tax_id}
-                    </strong>
-                  </p>
-                  <h5 className="border p-1 d-inline-block mt-1">
-                    <div style={{ display: "flex", flexDirection: "column" }}>
-                      <span>ใบเสนอราคา</span>
-                      <span>QUOTATION</span>
-                    </div>
-                  </h5>
-                </div>
-              </div>
+    <Container fluid className="py-4 font-prompt bg-light min-vh-100">
+      {isLoadingAll && (
+        <div
+          className="fixed-top w-100 h-100 bg-white bg-opacity-75 d-flex justify-content-center align-items-center"
+          style={{ zIndex: 9999 }}
+        >
+          <Loader />
+        </div>
+      )}
 
-              {/* Customer Info */}
-              <div
-                className="d-flex justify-content-between"
-                style={{ width: "100%" }}
-              >
-                <div>
-                  <p style={{ lineHeight: 2 }}>
-                    <strong>ติดต่อจาก:</strong>
-                    <input
+      {/* Action Bar */}
+      <Card
+        className="shadow-sm border-0 mb-4 rounded-4 sticky-top"
+        style={{ zIndex: 1020 }}
+      >
+        <Card.Body className="py-3 px-4 d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
+          <div className="d-flex align-items-center gap-3">
+            <Button
+              variant="light"
+              className="rounded-circle shadow-sm"
+              onClick={() => navigate(-1)}
+            >
+              <FaArrowLeft />
+            </Button>
+            <h5 className="mb-0 fw-bold text-dark">
+              <FaCopy className="me-2 text-primary" /> Duplicate Quotation
+            </h5>
+          </div>
+          <div className="d-flex gap-2 w-100 w-md-auto">
+            <Button
+              variant="outline-secondary"
+              className="flex-fill"
+              onClick={handlePreviewPDF}
+            >
+              <FaEye className="me-2" />
+              Preview PDF
+            </Button>
+            <Button
+              variant="primary"
+              className="flex-fill fw-bold shadow-sm"
+              onClick={handleOpenConfirm}
+            >
+              <FaSave className="me-2" />
+              Save & Create
+            </Button>
+          </div>
+        </Card.Body>
+      </Card>
+
+      <Row>
+        <Col lg={12}>
+          {/* Customer Details Form */}
+          <Card className="shadow-sm border-0 mb-4 rounded-4">
+            <Card.Header className="bg-white border-0 pt-4 pb-0">
+              <h6 className="fw-bold mb-0 text-primary">ข้อมูลลูกค้า (Customer Details)</h6>
+            </Card.Header>
+            <Card.Body>
+              <Row className="g-3">
+                <Col md={6}>
+                  <Form.Group>
+                    <Form.Label className="small fw-bold text-muted">ชื่อลูกค้า (ผู้ติดต่อ)</Form.Label>
+                    <Form.Control
                       type="text"
-                      value={editableCustomer.customer_name}
-                      onChange={(e) =>
-                        handleCustomerChange("customer_name", e.target.value)
-                      }
-                      style={{
-                        border: "none",
-                        marginLeft: "5px",
-                        width: "370px",
-                      }}
+                      value={customerInfo.customer_name}
+                      onChange={(e) => handleCustomerChange("customer_name", e.target.value)}
                     />
-                    <br />
-                    <strong>ผู้มาติดต่อ:</strong>
-                    <input
+                  </Form.Group>
+                </Col>
+                <Col md={6}>
+                  <Form.Group>
+                    <Form.Label className="small fw-bold text-muted">เลขประจำตัวผู้เสียภาษี</Form.Label>
+                    <Form.Control
                       type="text"
-                      value={editableCustomer.customer_present_name}
-                      onChange={(e) =>
-                        handleCustomerChange(
-                          "customer_present_name",
-                          e.target.value,
-                        )
-                      }
-                      style={{
-                        border: "none",
-                        marginLeft: "5px",
-                        width: "370px",
-                      }}
+                      value={customerInfo.customer_vat}
+                      onChange={(e) => handleCustomerChange("customer_vat", e.target.value)}
                     />
-                    <br />
-                    <strong>ที่อยู่:</strong>
-                    <input
+                  </Form.Group>
+                </Col>
+                <Col md={12}>
+                  <Form.Group>
+                    <Form.Label className="small fw-bold text-muted">ที่อยู่บรรทัดที่ 1</Form.Label>
+                    <Form.Control
                       type="text"
-                      value={editableCustomer.customer_address}
-                      onChange={(e) =>
-                        handleCustomerChange("customer_address", e.target.value)
-                      }
-                      style={{
-                        border: "none",
-                        marginLeft: "5px",
-                        width: "400px",
-                      }}
+                      value={customerInfo.customer_present_name}
+                      onChange={(e) => handleCustomerChange("customer_present_name", e.target.value)}
                     />
-                    <br />
-                    <strong>เลขประจำตัวผู้เสียภาษี:</strong>
-                    <input
+                  </Form.Group>
+                </Col>
+                <Col md={12}>
+                  <Form.Group>
+                    <Form.Label className="small fw-bold text-muted">ที่อยู่บรรทัดที่ 2</Form.Label>
+                    <Form.Control
                       type="text"
-                      value={editableCustomer.customer_vat}
-                      onChange={(e) =>
-                        handleCustomerChange("customer_vat", e.target.value)
-                      }
-                      style={{
-                        border: "none",
-                        marginLeft: "5px",
-                        width: "300px",
-                      }}
+                      value={customerInfo.customer_address}
+                      onChange={(e) => handleCustomerChange("customer_address", e.target.value)}
                     />
-                    <br />
-                    <input
-                      type="checkbox"
-                      className="form-check-input"
-                      style={{ marginTop: "7px" }}
-                    />{" "}
-                    <strong>สำนักงานใหญ่</strong>
-                    <input
-                      type="checkbox"
-                      className="form-check-input"
-                      style={{ marginLeft: "12px", marginTop: "7px" }}
-                    />{" "}
-                    <strong>สาขา</strong>
-                    <div style={{ marginBottom: "1px" }}>
-                      <label>
-                        <strong>Number of rows: </strong>
-                      </label>
-                      <select
-                        value={numRows}
-                        style={{ border: "none" }}
-                        onChange={(e) => {
-                          const newCount = parseInt(e.target.value);
-                          setNumRows(newCount);
-                          setRows(
-                            Array.from(
-                              { length: newCount },
-                              (_, i) =>
-                                rows[i] || {
-                                  product_id: "",
-                                  description: "",
-                                  qty: 0,
-                                  unit: "",
-                                  unit_price: 0,
-                                },
-                            ),
-                          );
-                        }}
-                      >
-                        {Array.from({ length: 200 }, (_, i) => i + 1).map(
-                          (n) => (
-                            <option key={n} value={n}>
-                              {n}
-                            </option>
-                          ),
-                        )}
-                      </select>
-                    </div>
-                  </p>
-                </div>
-                <div
-                  style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    justifyContent: "center",
-                    alignItems: "center",
-                  }}
-                >
-                  <p>
-                    <strong>เลขที่: </strong>
-                    <span
-                      style={{
-                        borderBottom: "1px solid #7b8a8b",
-                        minWidth: "100px",
-                        display: "inline-block",
-                        textAlign: "center",
-                      }}
-                      id="quotation_no_span"
-                    >
-                      {quotationNumber || " "}
-                    </span>
-                    <br />
-                    <strong>วันที่: </strong>
-                    <input
-                      type="date"
-                      value={(() => {
-                        const [day, month, year] = create_date.split(" / ");
-                        return `${year}-${month}-${day}`; // convert Thai year to Gregorian YYYY-MM-DD
-                      })()}
-                      onChange={(e) => {
-                        const selectedDate = new Date(e.target.value);
-                        const day = String(selectedDate.getDate()).padStart(
-                          2,
-                          "0",
-                        );
-                        const month = String(
-                          selectedDate.getMonth() + 1,
-                        ).padStart(2, "0");
-                        const year = selectedDate.getFullYear() + 543; // convert to Thai year
-                        setcreate_date(`${day} / ${month} / ${year}`);
-                      }}
-                      style={{
-                        width: "100px",
-                        border: "none",
-                        outline: "none",
-                        marginLeft: "20px",
-                        backgroundColor: "transparent",
-                        lineHeight: "2",
-                      }}
-                    />
-                    <br />
-                    <strong>วันที่กำหนดส่ง:</strong>
-                    <input
-                      type="number"
-                      value={due_date}
-                      onChange={(e) => setdue_date(e.target.value)}
-                      style={{
-                        width: "40px",
-                        border: "none",
-                        outline: "none",
-                        marginLeft: "5px",
-                        backgroundColor: "transparent",
-                        lineHeight: "2",
-                      }}
-                    />{" "}
-                    วัน
-                    <br />
-                    <strong>ยืนราคาภายใน:</strong>
-                    <input
-                      type="number"
-                      value={submit_price_within}
-                      onChange={(e) => setsubmit_price_within(e.target.value)}
-                      style={{
-                        width: "40px",
-                        border: "none",
-                        outline: "none",
-                        marginLeft: "5px",
-                        backgroundColor: "transparent",
-                        lineHeight: "2",
-                      }}
-                    />{" "}
-                    วัน
-                    <br />
-                    <strong>จำนวนวันเคดิต:</strong>
-                    <input
+                  </Form.Group>
+                </Col>
+                <Col md={6}>
+                    <Form.Group>
+                        <Form.Label className="small fw-bold text-muted">ประเภทสาขา</Form.Label>
+                        <Form.Select 
+                            value={customerInfo.branch_type} 
+                            onChange={(e) => handleCustomerChange("branch_type", e.target.value)}
+                        >
+                            <option value="สำนักงานใหญ่">สำนักงานใหญ่</option>
+                            <option value="สาขา">สาขา</option>
+                            <option value="ไม่ระบุ">ไม่ระบุ</option>
+                        </Form.Select>
+                    </Form.Group>
+                </Col>
+                {customerInfo.branch_type === "สาขา" && (
+                    <Col md={6}>
+                        <Form.Group>
+                            <Form.Label className="small fw-bold text-muted">รหัสสาขา</Form.Label>
+                            <Form.Control
+                            type="text"
+                            value={customerInfo.branch_no}
+                            onChange={(e) => handleCustomerChange("branch_no", e.target.value)}
+                            />
+                        </Form.Group>
+                    </Col>
+                )}
+              </Row>
+            </Card.Body>
+          </Card>
+
+          {/* Quotation Terms Form */}
+          <Card className="shadow-sm border-0 mb-4 rounded-4">
+            <Card.Header className="bg-white border-0 pt-4 pb-0">
+              <h6 className="fw-bold mb-0 text-primary">เงื่อนไขใบเสนอราคา (Quotation Terms)</h6>
+            </Card.Header>
+            <Card.Body>
+              <Row className="g-3">
+                <Col md={6}>
+                  <Form.Group>
+                    <Form.Label className="small fw-bold text-muted">เครดิต (วัน)</Form.Label>
+                    <Form.Control
                       type="number"
                       value={number_of_credit_days}
                       onChange={(e) => setnumber_of_credit_days(e.target.value)}
-                      style={{
-                        width: "40px",
-                        border: "none",
-                        outline: "none",
-                        marginLeft: "5px",
-                        backgroundColor: "transparent",
-                        lineHeight: "2",
-                      }}
-                    />{" "}
-                    วัน
-                  </p>
+                    />
+                  </Form.Group>
+                </Col>
+                <Col md={6}>
+                  <Form.Group>
+                    <Form.Label className="small fw-bold text-muted">ยืนราคา (วัน)</Form.Label>
+                    <Form.Control
+                      type="number"
+                      value={submit_price_within}
+                      onChange={(e) => setsubmit_price_within(e.target.value)}
+                    />
+                  </Form.Group>
+                </Col>
+              </Row>
+            </Card.Body>
+          </Card>
+
+          {/* Items Form */}
+          <Card className="shadow-sm border-0 mb-4 rounded-4">
+            <Card.Header className="bg-white border-0 pt-4 pb-0 d-flex justify-content-between align-items-center">
+              <h6 className="fw-bold mb-0 text-primary">รายการสินค้า (Items)</h6>
+              <Button variant="outline-primary" size="sm" onClick={addRow} className="rounded-pill px-3">
+                <FaPlus className="me-2" /> เพิ่มรายการ
+              </Button>
+            </Card.Header>
+            <Card.Body>
+              <div className="table-responsive">
+                <Table bordered hover size="sm" className="align-middle">
+                  <thead className="bg-light">
+                    <tr>
+                      <th className="text-center" style={{width: '5%'}}>#</th>
+                      <th style={{width: '15%'}}>รหัสสินค้า</th>
+                      <th style={{width: '35%'}}>รายละเอียด</th>
+                      <th className="text-center" style={{width: '10%'}}>จำนวน</th>
+                      <th className="text-center" style={{width: '10%'}}>หน่วย</th>
+                      <th className="text-end" style={{width: '15%'}}>ราคา/หน่วย</th>
+                      <th className="text-end" style={{width: '10%'}}>รวม</th>
+                      <th className="text-center" style={{width: '5%'}}></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {rows.map((row, idx) => (
+                      <tr key={idx}>
+                        <td className="text-center text-muted small">{idx + 1}</td>
+                        <td>
+                          <Form.Control
+                            size="sm"
+                            className="border-0 shadow-none bg-transparent"
+                            value={row.product_id}
+                            placeholder="รหัส"
+                            onChange={(e) => handleChange(idx, "product_id", e.target.value)}
+                          />
+                        </td>
+                        <td>
+                          <Form.Control
+                            as="textarea"
+                            rows={1}
+                            size="sm"
+                            className="border-0 shadow-none bg-transparent"
+                            style={{ resize: "none" }}
+                            placeholder="รายละเอียดสินค้า"
+                            value={row.description}
+                            onChange={(e) => handleChange(idx, "description", e.target.value)}
+                          />
+                        </td>
+                        <td>
+                          <Form.Control
+                            type="number"
+                            size="sm"
+                            className="border-0 shadow-none bg-transparent text-center"
+                            value={row.qty}
+                            onChange={(e) => handleChange(idx, "qty", e.target.value)}
+                          />
+                        </td>
+                        <td>
+                          <Form.Control
+                            size="sm"
+                            className="border-0 shadow-none bg-transparent text-center"
+                            value={row.unit}
+                            onChange={(e) => handleChange(idx, "unit", e.target.value)}
+                          />
+                        </td>
+                        <td>
+                          <Form.Control
+                            type="number"
+                            size="sm"
+                            className="border-0 shadow-none bg-transparent text-end"
+                            value={row.unit_price}
+                            onChange={(e) => handleChange(idx, "unit_price", e.target.value)}
+                          />
+                        </td>
+                        <td className="text-end fw-bold small text-primary">
+                          {row.qty && row.unit_price ? (row.qty * row.unit_price).toFixed(2) : "-"}
+                        </td>
+                        <td className="text-center">
+                          <Button variant="link" className="text-danger p-0" onClick={() => removeRow(idx)}>
+                            <FaTrash size={12} />
+                          </Button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </Table>
+              </div>
+
+              {/* Summary Bottom */}
+              <div className="d-flex justify-content-end mt-3">
+                <div style={{ width: "300px" }} className="bg-light p-3 rounded-4">
+                  <div className="d-flex justify-content-between mb-2 small">
+                    <span className="text-muted fw-bold">รวมเป็นเงิน</span>
+                    <span className="fw-bold">{subTotal.toFixed(2)}</span>
+                  </div>
+                  <div className="d-flex justify-content-between mb-2 small align-items-center">
+                    <span className="text-muted fw-bold">ส่วนลด</span>
+                    <Form.Control
+                      type="number"
+                      size="sm"
+                      className="text-end"
+                      style={{ width: "100px" }}
+                      value={defaultSummary.discount}
+                      onChange={(e) =>
+                        setDefaultSummary({ ...defaultSummary, discount: e.target.value })
+                      }
+                    />
+                  </div>
+                  <div className="d-flex justify-content-between mb-2 small">
+                    <span className="text-muted fw-bold">ราคาหลังหักส่วนลด</span>
+                    <span className="fw-bold">{totalAfterDiscount.toFixed(2)}</span>
+                  </div>
+                  <div className="d-flex justify-content-between mb-2 small align-items-center">
+                    <span className="text-muted fw-bold">VAT %</span>
+                    <Form.Control
+                      type="number"
+                      size="sm"
+                      className="text-end"
+                      style={{ width: "60px" }}
+                      value={defaultSummary.vat}
+                      onChange={(e) =>
+                        setDefaultSummary({ ...defaultSummary, vat: e.target.value })
+                      }
+                    />
+                  </div>
+                  <hr className="my-2" />
+                  <div className="d-flex justify-content-between">
+                    <span className="fw-bold text-dark">จำนวนเงินรวมทั้งสิ้น</span>
+                    <span className="fw-bold text-success fs-5">{grandTotal.toFixed(2)}</span>
+                  </div>
                 </div>
               </div>
+            </Card.Body>
+          </Card>
+        </Col>
+      </Row>
 
-              {/* Products Table */}
-              <div style={{ flexGrow: 1 }}>
-                <div
-                  style={{
-                    display: "grid",
-                    gridTemplateColumns: "0.5fr 1fr 2.7fr 0.7fr 0.7fr 1fr 1fr",
-                    border: "1px solid #dee2e6",
-                    width: "100%",
-                    maxWidth: "180mm",
-                  }}
-                >
-                  {[
-                    "ลำดับ",
-                    "รหัสสินค้า",
-                    "รายละเอียด",
-                    "จำนวน",
-                    "หน่วย",
-                    "ราคาต่อหน่วย",
-                    "จำนวนเงิน",
-                  ].map((header, i) => (
-                    <div
-                      key={i}
-                      style={{
-                        textAlign: "center",
-                        padding: "2px 4px",
-                        fontWeight: "bold",
-                        borderRight: i === 6 ? "none" : "1px solid #dee2e6",
-                        fontSize: "12px",
-                      }}
-                    >
-                      {header}
-                    </div>
-                  ))}
-                  {rows.map((row, index) => (
-                    <React.Fragment key={index}>
-                      <div
-                        style={{
-                          gridColumn: "1",
-                          textAlign: "center",
-                          alignContent: "start",
-                          borderTop: "1px solid #dee2e6",
-                          borderRight: "1px solid #dee2e6",
-                          padding: "2px 4px",
-                          fontSize: "12px",
-                        }}
-                      >
-                        {index + 1}
-                      </div>
-                      <div
-                        style={{
-                          gridColumn: "2",
-                          borderTop: "1px solid #dee2e6",
-                          borderRight: "1px solid #dee2e6",
-                          padding: "0px 4px", // increased top/bottom padding for PDF
-                          alignContent: "start",
-                        }}
-                      >
-                        <input
-                          value={row.product_id}
-                          onChange={(e) =>
-                            handleChange(index, "product_id", e.target.value)
-                          }
-                          style={{
-                            width: "100%",
-                            fontSize: "12px",
-                            height: "24px", // slightly taller for PDF
-                            border: "none",
-                            outline: "none",
-                            lineHeight: "22px", // matches height
-                            padding: "0", // remove inner padding
-                          }}
-                        />
-                      </div>
-
-                      <div
-                        style={{
-                          gridColumn: "3",
-                          borderTop: "1px solid #dee2e6",
-                          borderRight: "1px solid #dee2e6",
-                          padding: "0px 3px",
-                          alignContent: "start",
-                        }}
-                      >
-                        <textarea
-                          value={row.description}
-                          onChange={(e) =>
-                            handleChange(index, "description", e.target.value)
-                          }
-                          onInput={autoGrow}
-                          style={{
-                            width: "100%",
-                            fontSize: "12px",
-                            minHeight: "24px",
-                            border: "none",
-                            outline: "none",
-                            resize: "none",
-                            overflow: "hidden",
-                            lineHeight: "22px",
-                            padding: "0",
-                          }}
-                          rows={1}
-                        />
-                      </div>
-
-                      <div
-                        style={{
-                          gridColumn: "4",
-                          textAlign: "center",
-                          borderTop: "1px solid #dee2e6",
-                          borderRight: "1px solid #dee2e6",
-                          padding: "0px 3px",
-                          alignContent: "start",
-                        }}
-                      >
-                        <input
-                          type="number"
-                          min="0"
-                          value={row.qty || ""}
-                          onChange={(e) =>
-                            handleChange(index, "qty", e.target.value)
-                          }
-                          style={{
-                            width: "100%",
-                            fontSize: "12px",
-                            textAlign: "center",
-                            height: "24px",
-                            border: "none",
-                            outline: "none",
-                            lineHeight: "22px",
-                            padding: "0",
-                          }}
-                        />
-                      </div>
-
-                      <div
-                        style={{
-                          gridColumn: "5",
-                          textAlign: "center",
-                          borderTop: "1px solid #dee2e6",
-                          borderRight: "1px solid #dee2e6",
-                          padding: "0px 3px",
-                          alignContent: "start",
-                        }}
-                      >
-                        <input
-                          value={row.unit}
-                          onChange={(e) =>
-                            handleChange(index, "unit", e.target.value)
-                          }
-                          style={{
-                            width: "100%",
-                            fontSize: "12px",
-                            textAlign: "center",
-                            height: "24px",
-                            border: "none",
-                            outline: "none",
-                            lineHeight: "22px",
-                            padding: "0",
-                          }}
-                        />
-                      </div>
-
-                      <div
-                        style={{
-                          gridColumn: "6",
-                          textAlign: "right",
-                          borderTop: "1px solid #dee2e6",
-                          borderRight: "1px solid #dee2e6",
-                          padding: "0px 3px",
-                          alignContent: "start",
-                        }}
-                      >
-                        <input
-                          type="number"
-                          min="0"
-                          value={row.unit_price || ""}
-                          onChange={(e) =>
-                            handleChange(index, "unit_price", e.target.value)
-                          }
-                          style={{
-                            width: "100%",
-                            fontSize: "12px",
-                            textAlign: "right",
-                            height: "24px",
-                            border: "none",
-                            outline: "none",
-                            lineHeight: "22px",
-                            padding: "0px 4px",
-                          }}
-                        />
-                      </div>
-
-                      <div
-                        style={{
-                          gridColumn: "7",
-                          textAlign: "right",
-                          alignContent: "start",
-                          borderTop: "1px solid #dee2e6",
-                          padding: "2px 3px",
-                          fontSize: "12px",
-                        }}
-                      >
-                        {row.qty && row.unit_price
-                          ? (
-                              parseFloat(row.qty) * parseFloat(row.unit_price)
-                            ).toFixed(2)
-                          : ""}
-                      </div>
-                    </React.Fragment>
-                  ))}
-
-                  {/* Summary Rows */}
-                  {[
-                    [
-                      `*** มัดจำ ${defaultSummary.deposit} % ***`,
-                      `ส่วนลด ${defaultSummary.discount || ""} %`,
-                      totalDiscount,
-                    ],
-                    [
-                      `${defaultSummary.bank_account_name || ""}\n${defaultSummary.bank_account_number || ""}`,
-                      "มูลค่าสินค้าหลังหักส่วนลด",
-                      totalAfterDiscount,
-                    ],
-                    [
-                      "",
-                      `ภาษีมูลค่าเพิ่ม ${defaultSummary.vat || ""} %`,
-                      totalVat,
-                    ],
-                    ["", "ยอดรวมสุทธิ", grandTotal],
-                  ].map(([note, label, value], i) => (
-                    <React.Fragment key={i}>
-                      <div
-                        style={{
-                          gridColumn: "1 / span 4",
-                          textAlign: "center",
-                          padding: "2px 4px",
-                          borderTop: i === 0 ? "1px solid #dee2e6" : "none",
-                          borderRight: "1px solid #dee2e6",
-                          fontWeight: "normal",
-                          fontSize: "12px",
-                        }}
-                      >
-                        {note}
-                      </div>
-                      <div
-                        style={{
-                          gridColumn: "5 / span 2",
-                          textAlign: "left",
-                          padding: "2px 4px",
-                          borderTop: "1px solid #dee2e6",
-                          borderRight: "1px solid #dee2e6",
-                          fontWeight: "bold",
-                          fontSize: "12px",
-                        }}
-                      >
-                        {label}
-                      </div>
-                      <div
-                        style={{
-                          gridColumn: "7",
-                          textAlign: "right",
-                          padding: "2px 4px",
-                          borderTop: "1px solid #dee2e6",
-                          fontWeight: "bold",
-                          fontSize: "12px",
-                        }}
-                      >
-                        {parseFloat(value).toFixed(2)}
-                      </div>
-                    </React.Fragment>
-                  ))}
-                </div>
-              </div>
-
-              {/* Footer / Signatures */}
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  width: "100%",
-                  marginTop: "5px",
-                  marginBottom: "0",
-                }}
-              >
-                {["buyer_approves", "sales_person", "sales_manager"].map(
-                  (role, idx) => (
-                    <div
-                      key={idx}
-                      style={{
-                        width: "30%", // fixed width for even spacing
-                        border: "1px solid #dee2e6",
-                        padding: "0px 15px 10px 15px",
-                        display: "flex",
-                        flexDirection: "column",
-                        alignItems: "center",
-                        height: "100px",
-                        justifyContent: "space-between",
-                      }}
-                    >
-                      <div
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          width: "100%",
-                          marginBottom: "2px",
-                        }}
-                      >
-                        <span
-                          style={{
-                            flex: "0 0 50%",
-                            textAlign: "left",
-                            alignSelf: "flex-end",
-                          }}
-                        >
-                          {role === "buyer_approves"
-                            ? "ผู้ขอซื้อ"
-                            : role === "sales_person"
-                              ? "ผู้เสนอราคา"
-                              : "ผู้จัดการฝ่ายขาย"}
-                        </span>
-
-                        <div
-                          style={{
-                            flex: "0 0 90px",
-                            borderBottom: "1px solid #7b8a8b",
-                            height: "50px",
-                            display: "flex",
-                            alignItems: "flex-end",
-                            justifyContent: "center",
-                            marginLeft:
-                              role === "buyer_approves" ? "-10px" : "0", // shift only buyer_approves
-                          }}
-                        >
-                          {role !== "buyer_approves" && (
-                            <img
-                              src={defaultSelected?.[role]}
-                              alt={`${role} Signature`}
-                              style={{
-                                maxHeight: "35px",
-                                objectFit: "contain",
-                              }}
-                            />
-                          )}
-                        </div>
-                      </div>
-                      <div
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          width: "100%",
-                          marginTop: "2px",
-                        }}
-                      >
-                        <span style={{ flex: "0 0 25%", textAlign: "left" }}>
-                          ลงวันที่
-                        </span>
-                        <div
-                          style={{
-                            flex: "1",
-                            borderBottom: "1px solid #7b8a8b",
-                            height: "25px",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                          }}
-                        >
-                          {today}
-                        </div>
-                      </div>
-                    </div>
-                  ),
-                )}
-              </div>
-            </div>
+      {/* Hidden element for PDF rendering */}
+      <div style={{ position: 'absolute', left: '-9999px', top: '-9999px' }}>
+          <div ref={componentRef}>
+              <FullTaxInvoiceA4
+                  order={mappedOrder}
+                  companyInfo={invoiceCompanyInfo}
+                  isQuotation={true}
+                  isAdmin={userInfo?.isAdmin}
+                  docType="quotation"
+                  printMode="full"
+              />
           </div>
+      </div>
 
-          <Row style={{ margin: "16px 0 32px", width: "100%" }}>
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                width: "100%",
-              }}
-            >
-              <Button onClick={handlePreviewPDF}>Preview PDF</Button>
-              <Button onClick={handleOpenConfirm}>Create Quotation</Button>
-            </div>
-          </Row>
+      {/* Preview Modal */}
+      <Modal show={showPreview} onHide={() => setShowPreview(false)} size="xl" centered>
+        <Modal.Header closeButton className="bg-light border-0">
+          <Modal.Title className="fw-bold text-primary">
+            <FaEye className="me-2" />
+            Live Preview
+          </Modal.Title>
+        </Modal.Header>
+        <Modal.Body className="p-0 bg-secondary overflow-auto d-flex justify-content-center" style={{ maxHeight: "80vh" }}>
+           <div className="my-4 shadow-lg">
+             <FullTaxInvoiceA4
+                order={mappedOrder}
+                companyInfo={invoiceCompanyInfo}
+                isQuotation={true}
+                isAdmin={userInfo?.isAdmin}
+                docType="quotation"
+             />
+           </div>
+        </Modal.Body>
+        <Modal.Footer className="bg-light border-0">
+          <Button variant="secondary" onClick={() => setShowPreview(false)}>
+            Close
+          </Button>
+          <Button variant="primary" onClick={() => { setShowPreview(false); handleOpenConfirm(); }}>
+            Save & Create
+          </Button>
+        </Modal.Footer>
+      </Modal>
 
-          <Modal show={showConfirm} onHide={handleCloseConfirm}>
-            <Modal.Header closeButton>
-              <Modal.Title>Confirm Action</Modal.Title>
-            </Modal.Header>
-            <Modal.Body>
-              Are you sure you want to create this quotation?
-            </Modal.Body>
-            <Modal.Footer>
-              <Button variant="light" onClick={handleCloseConfirm}>
-                Cancel
-              </Button>
-              <Button variant="primary" onClick={handleConfirmCreate}>
-                Yes, Create
-              </Button>
-            </Modal.Footer>
-          </Modal>
-        </>
-      )}
-    </>
+      {/* Confirm Modal */}
+      <Modal show={showConfirm} onHide={handleCloseConfirm} centered>
+        <Modal.Header closeButton>
+          <Modal.Title className="fw-bold text-primary">
+            <FaSave className="me-2" />
+            Confirm Creation
+          </Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          Are you sure you want to duplicate and create this quotation?
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="light" onClick={handleCloseConfirm}>
+            Cancel
+          </Button>
+          <Button variant="primary" onClick={handleConfirmCreate}>
+            Yes, Create
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
+    </Container>
   );
 };
 

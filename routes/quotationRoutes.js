@@ -3,6 +3,7 @@ const router = express.Router();
 const {
   getQuotations,
   getQuotationById,
+  getNextQuotationNo,
   getQuotationByQuotationNo,
   getQuotationUsed,
   createQuotation,
@@ -14,8 +15,11 @@ const {
 
 const { protect, admin, store } = require("../middleware/authMiddleware.js");
 
+// Get next quotation number
+router.get("/next-number", protect, getNextQuotationNo);
+
 // Get all quotations
-router.get("/", protect, getQuotations);
+router.get("/", protect, admin, getQuotations);
 
 // Get single quotation by ID
 router.get("/:id", protect, getQuotationById);

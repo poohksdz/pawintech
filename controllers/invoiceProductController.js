@@ -1,14 +1,14 @@
 const asyncHandler = require("../middleware/asyncHandler.js");
-const db = require("../config/db.js"); //  ประกาศตัวแปรชื่อ db
+const db = require("../config/db.js");
+const PDFDocument = require("pdfkit");
 
 // @desc    Fetch all invoices
 // @route   GET /api/invoices
 // @access  Public
 const getInvoices = asyncHandler(async (req, res) => {
   try {
-    //  แก้ไข: ใช้ db แทน connection
     const [rows] = await db.pool.query(
-      "SELECT * FROM tbl_product_invoice ORDER BY ID DESC",
+      "SELECT * FROM tbl_invoices ORDER BY id DESC",
     );
     res.status(200).json(rows);
   } catch (error) {
@@ -17,20 +17,18 @@ const getInvoices = asyncHandler(async (req, res) => {
   }
 });
 
-// @desc    Fetch single invoice details
+// @desc    Fetch single invoice by ID
 // @route   GET /api/invoices/:id
 // @access  Public
 const getInvoiceDetails = asyncHandler(async (req, res) => {
-  const { id } = req.params;
+  const id = req.params.id;
   try {
-    //  แก้ไข: ใช้ db แทน connection
     const [rows] = await db.pool.query(
-      "SELECT * FROM tbl_product_invoice WHERE ID = ?",
+      "SELECT * FROM tbl_invoices WHERE id = ?",
       [id],
     );
     if (rows.length === 0) {
-      res.status(404);
-      throw new Error("Invoice not found");
+      return res.status(404).json({ message: "Invoice not found" });
     }
     res.status(200).json(rows[0]);
   } catch (error) {
@@ -39,46 +37,55 @@ const getInvoiceDetails = asyncHandler(async (req, res) => {
   }
 });
 
-// @desc    Fetch invoices by user ID
-// @route   GET /api/invoices/user/:userId
+// @desc    Fetch single invoice by invoice_no
+// @route   GET /api/invoices/invoice_no/:id
 // @access  Public
-const getInvoicesByUserId = asyncHandler(async (req, res) => {
-  const { userId } = req.params;
+const getInvoicesByInvoiceId = asyncHandler(async (req, res) => {
+  const invoice_no = req.params.invoiceId || req.params.id; // handle both param names if needed
   try {
-    //  แก้ไข: ใช้ db แทน connection
     const [rows] = await db.pool.query(
-      "SELECT * FROM tbl_product_invoice WHERE userId = ?",
-      [userId],
+      "SELECT * FROM tbl_invoices WHERE invoice_no = ?",
+      [invoice_no],
     );
+    if (rows.length === 0) {
+      return res.status(404).json({ message: "Invoice not found" });
+    }
     res.status(200).json(rows);
   } catch (error) {
-    console.error(`Error fetching invoices by user: ${error.message}`);
-    res.status(500).json({ message: "Error fetching invoices by user" });
+    console.error(`Error fetching invoice: ${error.message}`);
+    res.status(500).json({ message: "Error fetching invoice" });
   }
 });
 
-// @desc    Fetch invoices by invoice ID
-// @route   GET /api/invoices/by/:invoiceId
+// @desc    Get next invoice no
+// @route   GET /api/invoices/next-number
 // @access  Public
-const getInvoicesByInvoiceId = asyncHandler(async (req, res) => {
-  const { invoiceId } = req.params;
-
-  console.log(invoiceId);
+const getNextInvoiceNo = asyncHandler(async (req, res) => {
   try {
-    //  แก้ไข: ใช้ db แทน connection
-    const [rows] = await db.pool.query(
-      "SELECT * FROM tbl_product_invoice WHERE invoice_id = ?",
-      [invoiceId],
-    );
-    if (rows.length === 0) {
-      res.status(404).json({ message: "Invoice not found" });
-      return;
-    }
+    const now = new Date();
+    const thaiYear = now.getFullYear() + 543;
+    const shortThaiYear = String(thaiYear).slice(-2);
 
-    res.status(200).json(rows);
+    const [lastInvoice] = await db.pool.query(
+      `SELECT invoice_no 
+       FROM tbl_invoices 
+       WHERE invoice_no LIKE ? 
+       ORDER BY id DESC 
+       LIMIT 1`,
+      [`INV${shortThaiYear}-%`]
+    );
+
+    let nextNumber = "0001";
+    if (lastInvoice.length > 0) {
+      const lastNo = lastInvoice[0].invoice_no.split("-")[1];
+      nextNumber = String(parseInt(lastNo) + 1).padStart(4, "0");
+    }
+    const nextInvoiceNo = `INV${shortThaiYear}-${nextNumber}`;
+
+    res.status(200).json({ nextInvoiceNo });
   } catch (error) {
-    console.error(`Error fetching invoice by ID: ${error.message}`);
-    res.status(500).json({ message: "Error fetching invoice by ID" });
+    console.error(`Error fetching next invoice no: ${error.message}`);
+    res.status(500).json({ message: "Error fetching next invoice no" });
   }
 });
 
@@ -86,59 +93,283 @@ const getInvoicesByInvoiceId = asyncHandler(async (req, res) => {
 // @route   POST /api/invoices
 // @access  Public
 const createInvoice = asyncHandler(async (req, res) => {
-  const data = req.body;
   try {
-    const [result] = await db.pool.query(
-      "INSERT INTO tbl_product_invoice (userId, customerName, branch_name, description, qty, unit, unit_price, grand_total, date) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
-      [
-        data.userId,
-        data.customerName,
-        data.branch_name,
-        data.description,
-        data.qty,
-        data.unit,
-        data.unit_price,
-        data.grand_total,
-        data.date,
-      ],
+    const {
+      customer,
+      summary,
+      items,
+      signatures,
+      due_date,
+      submit_price_within,
+      number_of_credit_days,
+      date,
+      invoice_pdf,
+    } = req.body;
+
+    // Convert Thai date string "DD / MM / YYYY" to MySQL date "YYYY-MM-DD"
+    function thaiDateToMySQL(thaiDateStr) {
+      const [day, month, year] = thaiDateStr.split("/").map((s) => s.trim());
+      const gregorianYear = parseInt(year, 10); 
+      return `${gregorianYear}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
+    }
+
+    const mysqlDate = date
+      ? thaiDateToMySQL(date)
+      : new Date().toISOString().slice(0, 10);
+
+    const now = new Date();
+    const thaiYear = now.getFullYear() + 543;
+    const shortThaiYear = String(thaiYear).slice(-2);
+
+    const [lastInvoice] = await db.pool.query(
+      `SELECT invoice_no 
+       FROM tbl_invoices 
+       WHERE invoice_no LIKE ? 
+       ORDER BY id DESC 
+       LIMIT 1 
+       FOR UPDATE`,
+      [`INV${shortThaiYear}-%`],
     );
-    const [invoice] = await db.pool.query(
-      "SELECT * FROM tbl_product_invoice WHERE ID = ?",
-      [result.insertId],
-    );
-    res.status(201).json(invoice[0]);
+
+    let nextNumber = "0001";
+    if (lastInvoice.length > 0) {
+      const lastNo = lastInvoice[0].invoice_no.split("-")[1];
+      nextNumber = String(parseInt(lastNo) + 1).padStart(4, "0");
+    }
+    const invoice_no = `INV${shortThaiYear}-${nextNumber}`;
+
+    const createdAt = new Date();
+    const updatedAt = new Date();
+
+    for (let item of items) {
+      await db.pool.query(
+        `INSERT INTO tbl_invoices (
+          customer_name, customer_present_name, customer_address, customer_vat,
+          invoice_no, date, due_date, submit_price_within, number_of_credit_days,
+          product_id, product_detail, quantity, unit, unit_price, amount_money,
+          discount, total_amount_after_discount, total, vat, grand_total,
+          transfer_bank_account_name, transfer_bank_account_number,
+          buyer_approves_signature, buyer_approves_signature_date,
+          sales_person_signature, sales_person_signature_date,
+          sales_manager_signature, sales_manager_signature_date,
+          branch_name, invoice_pdf, created_at, updated_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [
+          customer.customer_name,
+          customer.customer_present_name,
+          customer.customer_address,
+          customer.customer_vat,
+          invoice_no,
+          mysqlDate,
+          due_date,
+          submit_price_within,
+          number_of_credit_days,
+          item.product_id,
+          item.description,
+          item.qty,
+          item.unit,
+          item.unit_price,
+          item.amount_money,
+          summary.discount,
+          summary.total, 
+          summary.total,
+          summary.vat,
+          summary.total, 
+          summary.bank_account_name,
+          summary.bank_account_number,
+          signatures?.buyer || "",
+          "",
+          signatures?.sales_person || "",
+          createdAt,
+          signatures?.sales_manager || "",
+          createdAt,
+          "Head Office",
+          invoice_pdf,
+          createdAt,
+          updatedAt,
+        ],
+      );
+    }
+
+    res.status(201).json({ message: "Invoice created", invoice_no });
   } catch (error) {
     console.error(`Error creating invoice: ${error.message}`);
     res.status(500).json({ message: "Error creating invoice" });
   }
 });
 
-// @desc    Update an existing invoice
+// @desc    Update an invoice by invoice_no
+// @route   PUT /api/invoices/invoice_no/:id
+// @access  Public
+const updateInvoiceByInvoiceNo = asyncHandler(async (req, res) => {
+  const invoice_no = req.params.id;
+  const {
+    due_date,
+    submit_price_within,
+    number_of_credit_days,
+    date,
+    items,
+    summary,
+    customer,
+    signatures,
+    invoice_pdf,
+  } = req.body;
+
+  try {
+    const [existing] = await db.pool.query(
+      "SELECT * FROM tbl_invoices WHERE invoice_no = ?",
+      [invoice_no],
+    );
+    if (existing.length === 0) {
+      return res.status(404).json({ message: "Invoice not found" });
+    }
+
+    function thaiDateToMySQL(thaiDateStr) {
+      if (!thaiDateStr) return new Date().toISOString().slice(0, 10);
+      const [day, month, year] = thaiDateStr.split("/").map((s) => s.trim());
+      const gregorianYear = parseInt(year, 10); 
+      return `${gregorianYear}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
+    }
+
+    const mysqlDate = thaiDateToMySQL(date);
+
+    await db.pool.query("DELETE FROM tbl_invoices WHERE invoice_no = ?", [
+      invoice_no,
+    ]);
+
+    const insertPromises = items.map((item) =>
+      db.pool.query(
+        `INSERT INTO tbl_invoices (
+          invoice_no,
+          customer_name,
+          customer_present_name,
+          customer_address,
+          customer_vat,
+          date,
+          due_date,
+          submit_price_within,
+          number_of_credit_days,
+          product_id,
+          product_detail,
+          quantity,
+          unit,
+          unit_price,
+          amount_money,
+          discount,
+          total_amount_after_discount,
+          total,
+          vat,
+          grand_total,
+          transfer_bank_account_name,
+          transfer_bank_account_number,
+          sales_person_signature,
+          sales_manager_signature,
+          invoice_pdf
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [
+          invoice_no,
+          customer.customer_name,
+          customer.customer_present_name,
+          customer.customer_address,
+          customer.customer_vat,
+          mysqlDate,
+          due_date,
+          submit_price_within,
+          number_of_credit_days,
+          item.product_id,
+          item.description,
+          item.qty,
+          item.unit,
+          item.unit_price,
+          item.amount_money,
+          summary.discount,
+          summary.total_after_discount || summary.total, 
+          summary.total,
+          summary.vat,
+          summary.grand_total,
+          summary.bank_account_name,
+          summary.bank_account_number,
+          signatures?.sales_person_signature || null,
+          signatures?.sales_manager_signature || null,
+          invoice_pdf || null,
+        ],
+      ),
+    );
+
+    await Promise.all(insertPromises);
+
+    res.json({ message: "Invoice updated successfully" });
+  } catch (error) {
+    console.error(`Error updating invoice: ${error.message}`);
+    res.status(500).json({ message: "Error updating invoice" });
+  }
+});
+
+// @desc    Update an invoice (legacy)
 // @route   PUT /api/invoices/:id
 // @access  Public
 const updateInvoice = asyncHandler(async (req, res) => {
-  const { id } = req.params;
-  const data = req.body;
+  const id = req.params.id;
   try {
+    const [existing] = await db.pool.query(
+      "SELECT * FROM tbl_invoices WHERE id = ?",
+      [id],
+    );
+    if (existing.length === 0) {
+      return res.status(404).json({ message: "Invoice not found" });
+    }
+
     await db.pool.query(
-      "UPDATE tbl_product_invoice SET customerName = ?, branch_name = ?, description = ?, qty = ?, unit = ?, unit_price = ?, grand_total = ?, date = ? WHERE ID = ?",
+      `UPDATE tbl_invoices SET
+        customer_name = ?, customer_present_name = ?, customer_address = ?, customer_vat = ?,
+        invoice_no = ?, date = ?, due_date = ?, submit_price_within = ?, number_of_credit_days = ?,
+        product_id = ?, product_detail = ?, quantity = ?, unit = ?, unit_price = ?, amount_money = ?,
+        discount = ?, total_amount_after_discount = ?, total = ?, vat = ?, grand_total = ?,
+        transfer_bank_account_name = ?, transfer_bank_account_number = ?,
+        buyer_approves_signature = ?, buyer_approves_signature_date = ?,
+        sales_person_signature = ?, sales_person_signature_date = ?,
+        sales_manager_signature = ?, sales_manager_signature_date = ?,
+        branch_name = ?
+      WHERE id = ?`,
       [
-        data.customerName,
-        data.branch_name,
-        data.description,
-        data.qty,
-        data.unit,
-        data.unit_price,
-        data.grand_total,
-        data.date,
+        req.body.customer_name,
+        req.body.customer_present_name,
+        req.body.customer_address,
+        req.body.customer_vat,
+        req.body.invoice_no,
+        req.body.date,
+        req.body.due_date,
+        req.body.submit_price_within,
+        req.body.number_of_credit_days,
+        req.body.product_id,
+        req.body.product_detail,
+        req.body.quantity,
+        req.body.unit,
+        req.body.unit_price,
+        req.body.amount_money,
+        req.body.discount,
+        req.body.total_amount_after_discount,
+        req.body.total,
+        req.body.vat,
+        req.body.grand_total,
+        req.body.transfer_bank_account_name,
+        req.body.transfer_bank_account_number,
+        req.body.buyer_approves_signature,
+        req.body.buyer_approves_signature_date,
+        req.body.sales_person_signature,
+        req.body.sales_person_signature_date,
+        req.body.sales_manager_signature,
+        req.body.sales_manager_signature_date,
+        req.body.branch_name,
         id,
       ],
     );
-    const [invoice] = await db.pool.query(
-      "SELECT * FROM tbl_product_invoice WHERE ID = ?",
+
+    const [updatedRow] = await db.pool.query(
+      "SELECT * FROM tbl_invoices WHERE id = ?",
       [id],
     );
-    res.status(200).json(invoice[0]);
+    res.status(200).json(updatedRow[0]);
   } catch (error) {
     console.error(`Error updating invoice: ${error.message}`);
     res.status(500).json({ message: "Error updating invoice" });
@@ -149,10 +380,9 @@ const updateInvoice = asyncHandler(async (req, res) => {
 // @route   DELETE /api/invoices/:id
 // @access  Public
 const deleteInvoice = asyncHandler(async (req, res) => {
-  const { id } = req.params;
+  const id = req.params.id;
   try {
-    //  แก้ไข: ใช้ db แทน connection
-    await db.pool.query("DELETE FROM tbl_product_invoice WHERE ID = ?", [id]);
+    await db.pool.query("DELETE FROM tbl_invoices WHERE id = ?", [id]);
     res.status(200).json({ message: "Invoice deleted successfully" });
   } catch (error) {
     console.error(`Error deleting invoice: ${error.message}`);
@@ -160,18 +390,15 @@ const deleteInvoice = asyncHandler(async (req, res) => {
   }
 });
 
-// @desc    Delete an invoice
+// @desc    Delete an invoice by invoice_id/invoice_no
 // @route   DELETE /api/invoices/invoice_id/:id
 // @access  Public
 const deleteInvoiceByInvoiceId = asyncHandler(async (req, res) => {
-  const { id: invoice_id } = req.params;
+  const invoice_no = req.params.id;
   try {
-    console.log(`Deleting invoice with invoice_id: ${invoice_id}`);
-    //  แก้ไข: ใช้ db แทน connection และ Uncomment โค้ดให้ทำงานได้จริง
-    await db.pool.query(
-      "DELETE FROM tbl_product_invoice WHERE invoice_id = ?",
-      [invoice_id],
-    );
+    await db.pool.query("DELETE FROM tbl_invoices WHERE invoice_no = ?", [
+      invoice_no,
+    ]);
     res.status(200).json({ message: "Invoice deleted successfully" });
   } catch (error) {
     console.error(`Error deleting invoice: ${error.message}`);
@@ -182,10 +409,11 @@ const deleteInvoiceByInvoiceId = asyncHandler(async (req, res) => {
 module.exports = {
   getInvoices,
   getInvoiceDetails,
-  getInvoicesByUserId,
+  getNextInvoiceNo,
   getInvoicesByInvoiceId,
   createInvoice,
   updateInvoice,
+  updateInvoiceByInvoiceNo,
   deleteInvoice,
   deleteInvoiceByInvoiceId,
 };

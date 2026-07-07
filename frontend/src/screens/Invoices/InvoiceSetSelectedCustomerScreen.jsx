@@ -1,42 +1,43 @@
 /* eslint-disable no-unused-vars, react-hooks/exhaustive-deps */
 import React, { useState, useEffect, useRef } from "react";
-import {
-  Button,
-  Row,
-  Col,
-  Modal,
-  Form,
-  Card,
-  Container,
-  Table
-} from "react-bootstrap";
+import { Button, Modal, Form, Card, Container, Row, Col, Table } from "react-bootstrap";
 import { useGetDefaultQuotationUsedQuery } from "../../slices/quotationDefaultApiSlice";
 import { useGetDefaultInvoiceUsedQuery } from "../../slices/defaultInvoicesApiSlice";
 import {
   useCreateInvoiceMutation,
   useUpdateInvoiceByInvoiceNoMutation,
   useUploadInvoicePDFMutation,
+  useGetInvoiceDetailsQuery,
   useGetNextInvoiceNumberQuery,
 } from "../../slices/invoicesApiSlice";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 import Loader from "../../components/Loader";
 import { toast } from "react-toastify";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { FaFilePdf, FaSave, FaEye, FaArrowLeft, FaPlus, FaTrash } from "react-icons/fa";
-import { useGetQuotationByQuotationNoQuery } from "../../slices/quotationApiSlice";
 import FullTaxInvoiceA4 from "../../components/FullTaxInvoiceA4";
 import { useSelector } from "react-redux";
 
-const InvoiceSetScreen = () => {
+const InvoiceSetSelectedCustomerScreen = () => {
   const componentRef = useRef();
+  const { id } = useParams(); // The existing invoice row ID to copy customer from
   const navigate = useNavigate();
-  const location = useLocation();
   const { userInfo } = useSelector((state) => state.auth);
-  
-  const convertFromQuotationNo = location.state?.convertFromQuotationNo;
-  const { data: quotationDataToConvert, isLoading: isLoadingQuotation } = 
-    useGetQuotationByQuotationNoQuery(convertFromQuotationNo, { skip: !convertFromQuotationNo });
+
+  // --- API Hooks ---
+  const { data: invoiceData, isLoading: isLoadingData } = useGetInvoiceDetailsQuery(id);
+  const existingInvoice = invoiceData || null;
+
+  const { data: defaultData, isLoading } = useGetDefaultQuotationUsedQuery();
+  const defaultSelected = defaultData?.quotations?.[0] || null;
+
+  const { data: invoiceCompanyInfo } = useGetDefaultInvoiceUsedQuery();
+  const { data: nextNoData, isLoading: isLoadingNextNo } = useGetNextInvoiceNumberQuery();
+
+  const [createInvoice, { isLoading: isLoadingCreate }] = useCreateInvoiceMutation();
+  const [uploadInvoicePDF, { isLoading: isLoadingUpload }] = useUploadInvoicePDFMutation();
+  const [updateInvoiceByInvoiceNo, { isLoading: isLoadingUpdate }] = useUpdateInvoiceByInvoiceNoMutation();
 
   // --- State ---
   const [showConfirm, setShowConfirm] = useState(false);
@@ -47,25 +48,9 @@ const InvoiceSetScreen = () => {
 
   const [invoiceNumber, setInvoiceNumber] = useState("");
   const [due_date, setdue_date] = useState("");
-  const [submit_price_within, setsubmit_price_within] = useState("");
   const [number_of_credit_days, setnumber_of_credit_days] = useState("");
 
-  // --- API Hooks ---
-  const { data: defaultData, isLoading } = useGetDefaultQuotationUsedQuery();
-  const defaultSelected = defaultData?.quotations?.[0] || null;
-
-  const { data: invoiceCompanyInfo } = useGetDefaultInvoiceUsedQuery();
-  const { data: nextNoData, isLoading: isLoadingNextNo } = useGetNextInvoiceNumberQuery();
-
-  const [createInvoice, { isLoading: isLoadingCreate }] =
-    useCreateInvoiceMutation();
-  const [uploadInvoicePDF, { isLoading: isLoadingUpload }] =
-    useUploadInvoicePDFMutation();
-  const [updateInvoiceByInvoiceNo, { isLoading: isLoadingUpdate }] =
-    useUpdateInvoiceByInvoiceNoMutation();
-
   const [customerInfo, setCustomerInfo] = useState({
-    id: "",
     customer_name: "",
     customer_present_name: "",
     customer_address: "",
@@ -81,76 +66,46 @@ const InvoiceSetScreen = () => {
       qty: 0,
       unit: "pcs",
       unit_price: 0,
-    })),
+    }))
   );
-
-  const [defaultSummary, setDefaultSummary] = useState({
-    discount: 0,
-    vat: 7,
-    deposit: 0,
-    company_name: "",
-    company_name_thai: "",
-    head_office: "",
-    head_office_thai: "",
-    tel: "",
-    email: "",
-    tax_id: "",
-    bank_account_name: "",
-    bank_account_number: "",
-  });
+  const [defaultSummary, setDefaultSummary] = useState({});
 
   // --- Effects ---
   useEffect(() => {
-    if (defaultSelected && !quotationDataToConvert) {
-      setDefaultSummary({
-        ...defaultSelected,
-        discount: parseFloat(defaultSelected.discount) || 0,
-        vat: parseFloat(defaultSelected.vat) || 7, // Default VAT 7%
-        deposit: parseFloat(defaultSelected.deposit) || 0,
+    if (existingInvoice) {
+      setCustomerInfo({
+        customer_name: existingInvoice.customer_name || "",
+        customer_present_name: existingInvoice.customer_present_name || "",
+        customer_address: existingInvoice.customer_address || "",
+        customer_vat: existingInvoice.customer_vat || "",
+        branch_type: existingInvoice.branch_type || "สำนักงานใหญ่",
+        branch_no: existingInvoice.branch_no || "",
       });
+      setdue_date(existingInvoice.due_date || "");
+      setnumber_of_credit_days(existingInvoice.number_of_credit_days || "");
+
+      // We do NOT copy existingInvoice.invoice_no because this is a new invoice
     }
-  }, [defaultSelected, quotationDataToConvert]);
+  }, [existingInvoice]);
 
   useEffect(() => {
-    if (quotationDataToConvert?.quotation?.length > 0) {
-      const itemsArray = Array.isArray(quotationDataToConvert.quotation[0])
-        ? quotationDataToConvert.quotation[0]
-        : quotationDataToConvert.quotation;
-
-      if (itemsArray && itemsArray.length > 0) {
-        const firstItem = itemsArray[0];
-        
-        setCustomerInfo({
-          id: "",
-          customer_name: firstItem.customer_name || "",
-          customer_present_name: firstItem.customer_present_name || "",
-          customer_address: firstItem.customer_address || "",
-          customer_vat: firstItem.customer_vat || "",
-          branch_type: firstItem.branch_type || "สำนักงานใหญ่",
-          branch_no: firstItem.branch_no || "",
-        });
-
-        setdue_date(firstItem.due_date || "");
-        setnumber_of_credit_days(firstItem.number_of_credit_days || "");
-        
-        setDefaultSummary((prev) => ({
-          ...prev,
-          discount: parseFloat(firstItem.discount) || 0,
-          vat: parseFloat(firstItem.vat) || 7,
-        }));
-
-        const newRows = itemsArray.map((qItem) => ({
-          product_id: qItem.product_id || "",
-          description: qItem.product_detail || qItem.description || "",
-          qty: parseFloat(qItem.quantity || qItem.qty) || 0,
-          unit: qItem.unit || "pcs",
-          unit_price: parseFloat(qItem.unit_price) || 0,
-        }));
-        setRows(newRows.length > 0 ? newRows : rows);
-        toast.info("Invoice pre-filled from Quotation!");
-      }
+    if (defaultSelected) {
+      setDefaultSummary({
+        discount: 0,
+        vat: parseFloat(defaultSelected.vat) || 7, // Default VAT 7%
+        deposit: 0,
+        company_name: defaultSelected.company_name || "",
+        company_name_thai: defaultSelected.company_name_thai || "",
+        head_office: defaultSelected.head_office || "",
+        head_office_thai: defaultSelected.head_office_thai || "",
+        tel: defaultSelected.tel || "",
+        email: defaultSelected.email || "",
+        tax_id: defaultSelected.tax_id || "",
+        bank_account_name: defaultSelected.bank_account_name || "",
+        bank_account_number: defaultSelected.bank_account_number || "",
+      });
     }
-  }, [quotationDataToConvert]);
+  }, [defaultSelected]);
 
   useEffect(() => {
     if (nextNoData && nextNoData.nextInvoiceNo && !invoiceNumber) {
@@ -197,7 +152,7 @@ const InvoiceSetScreen = () => {
 
   const mappedOrder = {
     id: invoiceNumber || "INV-XXXX",
-    quotation_no: invoiceNumber || "INV-XXXX", // Re-using quotation_no field for FullTaxInvoiceA4 compatibility
+    quotation_no: invoiceNumber || "INV-XXXX", 
     createdAt: todayDate,
     status: "Invoiced",
     billingAddress: {
@@ -265,7 +220,6 @@ const InvoiceSetScreen = () => {
         invoice_pdf: pdfResponse,
         date: today,
         due_date,
-        submit_price_within,
         number_of_credit_days,
         items: rows
           .filter((r) => r.product_id || r.description)
@@ -293,7 +247,6 @@ const InvoiceSetScreen = () => {
     try {
       const payload = {
         due_date,
-        submit_price_within,
         number_of_credit_days,
         date: today,
         items: rows
@@ -336,7 +289,7 @@ const InvoiceSetScreen = () => {
   };
   
   const isLoadingAll =
-    isLoading || isLoadingCreate || isLoadingUpload || isLoadingUpdate || isLoadingNextNo || isLoadingQuotation;
+    isLoading || isLoadingCreate || isLoadingUpload || isLoadingUpdate || isLoadingNextNo || isLoadingData;
 
   return (
     <Container fluid className="py-4 font-prompt bg-light min-vh-100">
@@ -364,7 +317,7 @@ const InvoiceSetScreen = () => {
               <FaArrowLeft />
             </Button>
             <h5 className="mb-0 fw-bold text-dark">
-              <FaFilePdf className="me-2 text-danger" /> Create Invoice
+              <FaFilePdf className="me-2 text-danger" /> Create Invoice (Selected Customer)
             </h5>
           </div>
           <div className="d-flex gap-2 w-100 w-md-auto">
@@ -687,9 +640,8 @@ const InvoiceSetScreen = () => {
           </Button>
         </Modal.Footer>
       </Modal>
-
     </Container>
   );
 };
 
-export default InvoiceSetScreen;
+export default InvoiceSetSelectedCustomerScreen;

@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars, react-hooks/exhaustive-deps */
 import React, { useState, useEffect, useMemo } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import {
@@ -11,6 +12,7 @@ import {
   FaHeart,
   FaPen,
   FaTrashAlt,
+  FaStickyNote,
 } from "react-icons/fa";
 import { useNavigate, Link } from "react-router-dom";
 import { createPortal } from "react-dom";
@@ -106,7 +108,7 @@ const StockCartScreen = () => {
   };
 
   const handleNoteChange = (p, n) =>
-    dispatch(addToStockCart({ ...p, note: n }));
+    dispatch(addToStockCart({ ...p, note: n, replaceQty: true }));
 
   const requestnowHandler = async () => {
     if (selectedItems.length === 0)
@@ -204,7 +206,8 @@ const StockCartScreen = () => {
                 onChange={toggleSelectAll}
               />
             </div>
-            <div className="col-span-7 pl-4">Component Info</div>
+            <div className="col-span-5 pl-4">Component Info</div>
+            <div className="col-span-2 text-center">Note</div>
             <div className="col-span-4 text-center">Request Units</div>
           </div>
 
@@ -251,7 +254,7 @@ const StockCartScreen = () => {
                       {/* Clickable Card - Product Info (Only this part links) */}
                       <Link
                         to={`/componenteditlist/${p.ID}`}
-                        className="col-span-6 md:col-span-7 flex flex-col md:flex-row gap-3 md:gap-5 items-start md:items-center cursor-pointer hover:bg-slate-50/50 -mx-2 px-2 rounded-xl transition-colors"
+                        className="col-span-6 md:col-span-5 flex flex-col md:flex-row gap-3 md:gap-5 items-start md:items-center cursor-pointer hover:bg-slate-50/50 -mx-2 px-2 rounded-xl transition-colors"
                       >
                         {/* Image */}
                         <div className="w-16 h-16 md:w-24 md:h-24 bg-[#f3f4f6] shrink-0 flex items-center justify-center overflow-hidden rounded-xl border border-gray-100 p-2 shadow-sm group-hover:shadow-md transition-shadow">
@@ -347,6 +350,26 @@ const StockCartScreen = () => {
                               <FaTrashAlt size={11} />
                             </button>
                           </div>
+                        </div>
+                      </div>
+
+                      {/* --- DESKTOP ONLY: Note Input --- */}
+                      <div className="hidden md:flex col-span-2 items-center justify-center px-1">
+                        <div className="relative w-full">
+                          <FaStickyNote
+                            className="absolute left-3 top-1/2 -translate-y-1/2 text-amber-400 pointer-events-none"
+                            size={11}
+                          />
+                          <input
+                            type="text"
+                            className="w-full bg-slate-50 border border-slate-200 py-2 pl-8 pr-2 text-[11px] font-bold text-slate-700 rounded-lg outline-none focus:ring-1 focus:ring-amber-400 focus:border-amber-400 placeholder:text-slate-300 shadow-inner transition-all"
+                            placeholder="Note..."
+                            value={p.note || ""}
+                            onChange={(e) =>
+                              handleNoteChange(p, e.target.value)
+                            }
+                            title="Add a note for this item before submitting"
+                          />
                         </div>
                       </div>
 

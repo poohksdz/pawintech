@@ -534,19 +534,32 @@ const updateShippingRates = asyncHandler(async (req, res) => {
     pcbColors,
   } = req.body;
 
+  const fs = require('fs');
+  const path = require('path');
+  const logFile = path.join(__dirname, '..', 'save_debug.log');
+  const log = (msg) => {
+    console.log(msg);
+    try { fs.appendFileSync(logFile, `[${new Date().toISOString()}] ${msg}\n`); } catch(e){}
+  };
+
+  log(`📦 updateShippingRates called with base_price: ${base_price}, dhl: ${dhl_service_fixed}`);
+
   const connection = await pool.getConnection();
   try {
     await connection.beginTransaction();
 
-    // 1. Update Default Pricing
+    // 1. Update Default Pricing (ตาราง orderpcbdefaultprice)
     const [check] = await connection.query(
-      "SELECT id FROM orderpcbdefaultprice LIMIT 1",
+      "SELECT id FROM orderpcbdefaultprice ORDER BY created_at DESC LIMIT 1",
     );
+
     if (check.length > 0) {
-      await connection.query(
+      const targetId = check[0].id;
+      log(`✏️ Updating pricing row id: ${targetId}`);
+      const [updateResult] = await connection.query(
         `UPDATE orderpcbdefaultprice SET 
                 base_price=?, price_per_cm2=?, extra_service_fee=?, profit_margin=?, 
-                exchange_rate=?, vat_percent=?, build_time=?, dhl_service_fixed=? 
+                exchange_rate=?, vat_percent=?, build_time=?, dhl_service_fixed=?
                 WHERE id=?`,
         [
           base_price,
@@ -557,10 +570,12 @@ const updateShippingRates = asyncHandler(async (req, res) => {
           vat_percent,
           build_time,
           dhl_service_fixed,
-          check[0].id,
+          targetId,
         ],
       );
+      log(`✅ Pricing updated, affectedRows: ${updateResult.affectedRows}`);
     } else {
+      log(`🆕 Inserting new pricing row`);
       await connection.query(
         `INSERT INTO orderpcbdefaultprice 
                 (base_price, price_per_cm2, extra_service_fee, profit_margin, exchange_rate, vat_percent, build_time, dhl_service_fixed) 
@@ -578,26 +593,37 @@ const updateShippingRates = asyncHandler(async (req, res) => {
       );
     }
 
-    // 2. Update Shipping Rates
-    if (bulk_shipping_rates) {
+    // 2. Update Shipping Rates (batch insert for performance)
+    if (bulk_shipping_rates && bulk_shipping_rates.length > 0) {
       await connection.query("DELETE FROM shipping_rates");
-      for (const rate of bulk_shipping_rates) {
-        await connection.query(
-          "INSERT INTO shipping_rates (id, shipping_type, weight_kg, price) VALUES (UUID(), ?, ?, ?)",
-          [rate.shipping_type, rate.weight_kg, rate.price],
-        );
-      }
+      const values = bulk_shipping_rates.map((r) => [
+        r.shipping_type,
+        r.weight_kg,
+        r.price,
+      ]);
+      const placeholders = values.map(() => "(UUID(), ?, ?, ?)").join(", ");
+      const batchSql = `INSERT INTO shipping_rates (id, shipping_type, weight_kg, price) VALUES ${placeholders}`;
+      await connection.query(batchSql, values.flat());
+      log(`✅ Shipping rates updated, count: ${bulk_shipping_rates.length}`);
     }
 
     // 3. Update Materials/Colors/etc
     const updateTable = async (table, items) => {
-      if (items) {
+      if (items && items.length > 0) {
         for (const item of items) {
-          await connection.query(
+          const [result] = await connection.query(
             `UPDATE \`${table}\` SET price=? WHERE name=?`,
             [item.price, item.name],
           );
+          if (result.affectedRows === 0) {
+            log(`⚠️ No row matched for ${table} name="${item.name}". Inserting new row.`);
+            await connection.query(
+              `INSERT INTO \`${table}\` (name, price) VALUES (?, ?)`,
+              [item.name, item.price]
+            );
+          }
         }
+        log(`✅ ${table} updated/inserted, count: ${items.length}`);
       }
     };
 
@@ -607,12 +633,14 @@ const updateShippingRates = asyncHandler(async (req, res) => {
     await updateTable("pcb_colors", pcbColors);
 
     await connection.commit();
+    log(`🎉 Transaction committed successfully`);
     res
       .status(200)
       .json({ success: true, message: "Configuration updated successfully" });
   } catch (error) {
     await connection.rollback();
-    res.status(500).json({ success: false, message: "เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์" });
+    log(`🔥 updateShippingRates FAILED: ${error.message} - SQL: ${error.sql || "N/A"}`);
+    res.status(500).json({ success: false, message: "เกิดข้อผิดพลาด: " + error.message });
   } finally {
     connection.release();
   }

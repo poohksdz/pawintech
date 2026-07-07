@@ -1,51 +1,54 @@
 import React, { useState, useMemo } from "react";
-import { useSelector } from "react-redux";
-import { Link } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
-import { toast } from "react-toastify";
 import {
   FaTrash,
   FaEdit,
-  FaPlus,
-  FaFileInvoiceDollar,
   FaSearch,
-  FaBox,
-  FaExclamationTriangle,
+  FaPlus,
+  FaFilePdf,
+  FaUser,
   FaCalendarAlt,
-  FaChevronRight,
+  FaFileInvoiceDollar,
+  FaFilter,
+  FaSync,
+  FaEye,
 } from "react-icons/fa";
-import { PiReceiptFill } from "react-icons/pi";
-
+import { toast } from "react-toastify";
+import { Link } from "react-router-dom";
 import Loader from "../../components/Loader";
 import Message from "../../components/Message";
 import {
   useGetInvoicesQuery,
-  useDeleteInvoiceMutation,
+  useDeleteInvoiceByInvoiceIdMutation,
 } from "../../slices/invoicesApiSlice";
 
-const InvoiceListEditScreen = () => {
-  const {
-    data: invoices,
-    isLoading,
-    isError,
-    error,
-    refetch,
-  } = useGetInvoicesQuery();
-  const [deleteInvoice, { isLoading: isDeleting }] = useDeleteInvoiceMutation();
+import Modal from "../../components/ui/Modal";
+import Button from "../../components/ui/Button";
 
-  const [searchTerm, setSearchTerm] = useState("");
+const InvoiceListEditScreen = () => {
+  // --- API Hooks ---
+  const { data: invoicesData, isLoading, isError, error, refetch } = useGetInvoicesQuery();
+  const [deleteInvoiceByInvoiceId, { isLoading: isDeleting }] =
+    useDeleteInvoiceByInvoiceIdMutation();
+
+  // --- State ---
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [selectedInvoice, setSelectedInvoice] = useState(null);
 
-  // Filter logic
-  const filteredInvoices = useMemo(() => {
-    return invoices?.filter(
-      (invoice) =>
-        invoice.branch_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        invoice.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        invoice.invoice_id?.toString().includes(searchTerm),
-    );
-  }, [invoices, searchTerm]);
+  // Filters
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filterCustomer, setFilterCustomer] = useState("");
+  const [filterPresenter, setFilterPresenter] = useState("");
+  const [filterDate, setFilterDate] = useState("");
+
+  // --- Handlers ---
+  const handleViewPdf = (pdfPath) => {
+    if (!pdfPath) return;
+    const baseUrl =
+      process.env.REACT_APP_BASE_URL ||
+      `${window.location.protocol}//${window.location.host}`;
+    const url = pdfPath.startsWith("http") ? pdfPath : `${baseUrl}${pdfPath}`;
+    window.open(url, "_blank");
+  };
 
   const confirmDelete = (invoice) => {
     setSelectedInvoice(invoice);
@@ -54,25 +57,89 @@ const InvoiceListEditScreen = () => {
 
   const handleDelete = async () => {
     try {
-      await deleteInvoice(selectedInvoice.id).unwrap();
-      toast.success("Invoice removed successfully");
+      await deleteInvoiceByInvoiceId(selectedInvoice.invoice_no).unwrap();
+      toast.success(
+        `Invoice ${selectedInvoice.invoice_no} deleted successfully`,
+      );
       setShowDeleteModal(false);
       refetch();
     } catch (err) {
-      toast.error(err?.data?.message || "Failed to remove invoice");
+      toast.error(err?.data?.message || "Failed to delete invoice");
     }
   };
 
+  const resetFilters = () => {
+    setSearchQuery("");
+    setFilterCustomer("");
+    setFilterPresenter("");
+    setFilterDate("");
+  };
+
+  // --- Data Logic (Memoized for performance) ---
+
+  // 1. Filter unique invoices first (Group by invoice_no)
+  const uniqueInvoices = useMemo(() => {
+    // If backend returns an array directly or inside an object property
+    // Check if it's an array or object
+    const list = Array.isArray(invoicesData) ? invoicesData : invoicesData?.invoices || [];
+    return (
+      list.filter(
+        (inv, index, self) =>
+          index ===
+          self.findIndex((item) => item.invoice_no === inv.invoice_no),
+      ) || []
+    );
+  }, [invoicesData]);
+
+  // 2. Apply search and filters
+  const displayedInvoices = useMemo(() => {
+    return uniqueInvoices.filter((inv) => {
+      const matchCustomer =
+        !filterCustomer || inv.customer_name === filterCustomer;
+      const matchPresenter =
+        !filterPresenter || inv.customer_present_name === filterPresenter;
+      const matchDate =
+        !filterDate ||
+        new Date(inv.date).toLocaleDateString() ===
+          new Date(filterDate).toLocaleDateString();
+
+      const searchLower = searchQuery.toLowerCase();
+      const matchSearch =
+        !searchQuery ||
+        inv.customer_name?.toLowerCase().includes(searchLower) ||
+        inv.customer_present_name?.toLowerCase().includes(searchLower) ||
+        inv.invoice_no?.toLowerCase().includes(searchLower);
+
+      return matchCustomer && matchPresenter && matchDate && matchSearch;
+    });
+  }, [
+    uniqueInvoices,
+    filterCustomer,
+    filterPresenter,
+    filterDate,
+    searchQuery,
+  ]);
+
+  // Get Lists for Dropdowns
+  const customerList = useMemo(
+    () => Array.from(new Set(uniqueInvoices.map((inv) => inv.customer_name).filter(Boolean))),
+    [uniqueInvoices],
+  );
+  const presenterList = useMemo(
+    () =>
+      Array.from(new Set(uniqueInvoices.map((inv) => inv.customer_present_name).filter(Boolean))),
+    [uniqueInvoices],
+  );
+
   if (isLoading)
     return (
-      <div className="flex items-center justify-center min-vh-100 bg-slate-50/50">
+      <div className="min-h-screen flex justify-center items-center">
         <Loader />
       </div>
     );
-
   if (isError)
     return (
-      <div className="max-w-4xl mx-auto p-4 md:p-8 pt-24">
+      <div className="p-4">
         <Message variant="danger">
           {error?.data?.message || error.message}
         </Message>
@@ -80,308 +147,368 @@ const InvoiceListEditScreen = () => {
     );
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] pb-20 pt-6 px-4 md:px-8 font-prompt">
-      <div className="max-w-7xl mx-auto">
-        {/* Header Section */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 md:gap-6 mb-10">
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            className="space-y-2"
-          >
-            <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-indigo-600 text-white shadow-lg shadow-indigo-200 mb-2">
-              <PiReceiptFill size={24} />
+    <div className="py-4 md:py-8 px-4 sm:px-6 lg:px-8 bg-slate-50 min-h-screen font-sans">
+      <div className="max-w-7xl mx-auto space-y-6">
+        {/* 1. Header Section */}
+        <div className="bg-white shadow-sm border border-slate-200 rounded-3xl p-4 md:p-6 sm:p-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 md:gap-6">
+          <div className="flex items-center gap-4">
+            <div className="bg-indigo-50 p-4 rounded-2xl text-indigo-600 shadow-inner">
+              <FaFileInvoiceDollar size={28} />
             </div>
-            <h1 className="text-3xl font-black text-slate-900 tracking-tight">
-              Invoice Management
-            </h1>
-            <p className="text-slate-500 font-medium">
-              Create and track billing invoices for all branches
-            </p>
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            className="flex flex-col sm:flex-row gap-3"
-          >
-            <div className="relative group">
-              <FaSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-500 transition-colors" />
-              <input
-                type="text"
-                placeholder="Search invoices..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-12 pr-4 py-3 bg-white border border-slate-200 rounded-2xl w-full sm:w-64 focus:outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all font-medium text-slate-700 shadow-sm"
-              />
+            <div>
+              <h4 className="text-2xl font-black text-slate-900 tracking-tight">
+                Invoices
+              </h4>
+              <p className="text-slate-500 font-medium mt-1">
+                Manage your billing invoices
+              </p>
             </div>
+          </div>
+          <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+            <button
+              onClick={refetch}
+              title="Refresh Data"
+              className="flex items-center justify-center p-3 bg-white border border-slate-200 text-slate-600 rounded-xl hover:bg-slate-50 hover:text-indigo-600 transition-colors shadow-sm"
+            >
+              <FaSync className={isLoading ? "animate-spin" : ""} size={18} />
+            </button>
             <Link
               to="/admin/invoiceset"
-              className="inline-flex items-center justify-center gap-2 px-4 md:px-6 py-3 bg-slate-900 hover:bg-indigo-600 text-white rounded-2xl font-bold shadow-lg shadow-slate-200 hover:shadow-indigo-200 transition-all active:scale-95 text-sm"
+              className="flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 md:px-6 py-3 rounded-xl font-bold transition-colors shadow-md shadow-indigo-500/30 w-full sm:w-auto"
             >
-              <FaPlus />
-              New Invoice
+              <FaPlus /> New Invoice
             </Link>
-          </motion.div>
+          </div>
         </div>
 
-        {/* Desktop View Table */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="hidden md:block bg-white rounded-[2.5rem] border border-slate-200/60 shadow-xl shadow-slate-200/40 overflow-hidden"
-        >
+        {/* 2. Filter Bar */}
+        <div className="bg-white shadow-sm border border-slate-200 rounded-3xl p-4 md:p-6">
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-end">
+            {/* Search */}
+            <div className="md:col-span-12 lg:col-span-4">
+              <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">
+                Search
+              </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <FaSearch className="text-slate-400" />
+                </div>
+                <input
+                  type="text"
+                  placeholder="Search Invoice No, Customer..."
+                  className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-colors"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+              </div>
+            </div>
+
+            {/* Customer Filter */}
+            <div className="md:col-span-4 lg:col-span-3">
+              <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">
+                Customer
+              </label>
+              <select
+                value={filterCustomer}
+                onChange={(e) => setFilterCustomer(e.target.value)}
+                className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-colors appearance-none"
+              >
+                <option value="">All Customers</option>
+                {customerList.map((name) => (
+                  <option key={name} value={name}>
+                    {name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Presenter Filter */}
+            <div className="md:col-span-4 lg:col-span-2">
+              <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">
+                Presenter
+              </label>
+              <select
+                value={filterPresenter}
+                onChange={(e) => setFilterPresenter(e.target.value)}
+                className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-colors appearance-none"
+              >
+                <option value="">All Presenters</option>
+                {presenterList.map((name) => (
+                  <option key={name} value={name}>
+                    {name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Date Filter */}
+            <div className="md:col-span-4 lg:col-span-2">
+              <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">
+                Date
+              </label>
+              <input
+                type="date"
+                value={filterDate}
+                onChange={(e) => setFilterDate(e.target.value)}
+                className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-colors"
+              />
+            </div>
+
+            {/* Reset Button */}
+            <div className="md:col-span-12 lg:col-span-1 flex items-end">
+              <button
+                onClick={resetFilters}
+                title="Reset Filters"
+                className="w-full flex items-center justify-center gap-2 py-2.5 px-4 bg-white border border-slate-200 text-slate-600 rounded-xl hover:bg-slate-50 hover:text-rose-500 transition-colors text-sm font-semibold"
+              >
+                <FaFilter /> Reset
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* 3. DESKTOP VIEW (Table) */}
+        <div className="hidden lg:block bg-white shadow-sm border border-slate-200 rounded-3xl overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="bg-slate-50 border-b border-slate-100">
-                  <th className="px-4 md:px-8 py-5 text-[11px] font-black text-slate-500 uppercase tracking-[0.2em]">
-                    #
-                  </th>
-                  <th className="px-4 md:px-6 py-5 text-[11px] font-black text-slate-400 uppercase tracking-[0.2em]">
-                    Branch & Description
-                  </th>
-                  <th className="px-4 md:px-6 py-5 text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] text-center">
-                    Quantity
-                  </th>
-                  <th className="px-4 md:px-6 py-5 text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] text-right">
-                    Value
-                  </th>
-                  <th className="px-4 md:px-6 py-5 text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] text-center">
-                    Date
-                  </th>
-                  <th className="px-4 md:px-8 py-5 text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] text-center whitespace-nowrap">
-                    Actions
-                  </th>
+                <tr className="bg-slate-50 border-b border-slate-200 text-xs font-black text-slate-500 uppercase tracking-widest">
+                  <th className="px-4 md:px-6 py-4">No.</th>
+                  <th className="px-4 md:px-6 py-4">Invoice ID</th>
+                  <th className="px-4 md:px-6 py-4">Customer Info</th>
+                  <th className="px-4 md:px-6 py-4 text-center">Date</th>
+                  <th className="px-4 md:px-6 py-4 text-right">Total Amount</th>
+                  <th className="px-4 md:px-6 py-4 text-center">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-50">
-                <AnimatePresence mode="popLayout">
-                  {filteredInvoices?.length === 0 ? (
-                    <motion.tr
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
+              <tbody className="divide-y divide-slate-100">
+                {displayedInvoices.length === 0 ? (
+                  <tr>
+                    <td
+                      colSpan="6"
+                      className="px-4 md:px-6 py-12 text-center text-slate-500 font-medium"
                     >
-                      <td colSpan="6" className="px-4 md:px-8 py-20 text-center">
-                        <div className="flex flex-col items-center gap-4">
-                          <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center text-slate-300">
-                            <FaBox size={24} />
-                          </div>
-                          <p className="text-slate-400 font-medium">
-                            No invoices found matching your criteria
-                          </p>
+                      No invoices found.
+                    </td>
+                  </tr>
+                ) : (
+                  displayedInvoices.map((inv, index) => (
+                    <tr
+                      key={inv.id}
+                      className="hover:bg-slate-50/50 transition-colors group"
+                    >
+                      <td className="px-4 md:px-6 py-4 text-sm text-slate-500 font-medium">
+                        {index + 1}
+                      </td>
+
+                      {/* Invoice No */}
+                      <td className="px-4 md:px-6 py-4">
+                        <div className="flex items-center gap-3">
+                          <span className="bg-indigo-100 text-indigo-800 font-bold uppercase tracking-wider rounded-md font-mono text-sm px-2.5 py-1">
+                            {inv.invoice_no}
+                          </span>
+                          {inv.invoice_pdf && (
+                            <button
+                              className="text-rose-500 hover:text-rose-600 hover:scale-110 transition-transform focus:outline-none"
+                              onClick={() => handleViewPdf(inv.invoice_pdf)}
+                              title="View PDF"
+                            >
+                              <FaFilePdf size={20} />
+                            </button>
+                          )}
                         </div>
                       </td>
-                    </motion.tr>
-                  ) : (
-                    filteredInvoices?.map((invoice, index) => (
-                      <motion.tr
-                        layout
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        key={`desktop-${invoice.id}`}
-                        className="hover:bg-slate-50/50 transition-colors group"
-                      >
-                        <td className="px-4 md:px-8 py-4 md:py-6 font-bold text-slate-800 tabular-nums">
-                          {index + 1}
-                        </td>
-                        <td className="px-4 md:px-6 py-4 md:py-6">
-                          <div className="flex flex-col">
-                            <span className="text-slate-900 font-bold group-hover:text-indigo-600 transition-colors">
-                              {invoice.branch_name}
-                            </span>
-                            <span className="text-slate-400 text-sm font-medium line-clamp-1 truncate max-w-[300px]">
-                              {invoice.description}
-                            </span>
-                          </div>
-                        </td>
-                        <td className="px-4 md:px-6 py-4 md:py-6 text-center">
-                          <span className="inline-flex px-3 py-1 bg-slate-100 rounded-lg text-slate-600 text-xs font-black uppercase tracking-wider">
-                            {invoice.qty} {invoice.unit}
-                          </span>
-                        </td>
-                        <td className="px-4 md:px-6 py-4 md:py-6 text-right font-bold tabular-nums">
-                          <div className="flex flex-col">
-                            <span className="text-slate-900">
-                              {parseFloat(invoice.grand_total).toLocaleString()}{" "}
-                              ฿
-                            </span>
-                            <span className="text-[10px] text-slate-400 uppercase tracking-widest font-black">
-                              Incl. VAT
-                            </span>
-                          </div>
-                        </td>
-                        <td className="px-4 md:px-6 py-4 md:py-6 text-center">
-                          <div className="flex flex-col items-center">
-                            <span className="text-slate-600 font-bold text-sm tracking-tight capitalize">
-                              {new Date(invoice.created_at).toLocaleDateString(
-                                "th-TH",
-                                {
-                                  day: "2-digit",
-                                  month: "short",
-                                  year: "2-digit",
-                                },
-                              )}
-                            </span>
-                          </div>
-                        </td>
-                        <td className="px-4 md:px-8 py-4 md:py-6">
-                          <div className="flex justify-center items-center gap-3">
-                            <Link
-                              to={`/admin/invoicelist/${invoice.id}/edit`}
-                              title="Edit Invoice"
-                              className="w-10 h-10 flex items-center justify-center bg-indigo-50 border border-indigo-100 text-indigo-600 hover:bg-indigo-600 hover:text-white rounded-xl transition-all shadow-sm hover:shadow-md"
-                            >
-                              <FaEdit size={16} />
-                            </Link>
-                            <button
-                              onClick={() => confirmDelete(invoice)}
-                              title="Delete Invoice"
-                              className="w-10 h-10 flex items-center justify-center bg-rose-50 border border-rose-100 text-rose-600 hover:bg-rose-600 hover:text-white rounded-xl transition-all shadow-sm hover:shadow-md"
-                            >
-                              <FaTrash size={16} />
+
+                      {/* Customer */}
+                      <td className="px-4 md:px-6 py-4">
+                        <div className="font-bold text-slate-900">
+                          {inv.customer_name}
+                        </div>
+                        <div className="text-xs text-slate-500 flex items-center gap-1.5 mt-1 font-medium">
+                          <FaUser className="text-slate-400" />{" "}
+                          {inv.customer_present_name}
+                        </div>
+                      </td>
+
+                      {/* Date */}
+                      <td className="px-4 md:px-6 py-4 text-center text-sm font-medium text-slate-600">
+                        {inv.date ? new Date(inv.date).toLocaleDateString("th-TH", {
+                          day: "2-digit",
+                          month: "2-digit",
+                          year: "numeric",
+                        }) : "-"}
+                      </td>
+
+                      {/* Amount */}
+                      <td className="px-4 md:px-6 py-4 text-right font-black text-slate-900 text-lg tracking-tight">
+                        {parseFloat(inv.grand_total || 0).toLocaleString(undefined, {
+                          minimumFractionDigits: 2,
+                        })}{" "}
+                        ฿
+                      </td>
+
+                      {/* Actions */}
+                      <td className="px-4 md:px-6 py-4">
+                        <div className="flex justify-center items-center gap-2 transition-opacity">
+                          <Link
+                            to={`/admin/customers/selectedcustomer/${inv.id}/setinvoice`}
+                            title="Duplicate / Create New Invoice"
+                          >
+                            <button className="w-9 h-9 flex items-center justify-center bg-amber-100 text-amber-700 hover:bg-amber-500 hover:text-white rounded-full transition-colors shadow-sm">
+                              <FaPlus size={14} />
                             </button>
-                          </div>
-                        </td>
-                      </motion.tr>
-                    ))
-                  )}
-                </AnimatePresence>
+                          </Link>
+
+                          <Link
+                            to={`/admin/invoicelist/${inv.invoice_no}/edit`}
+                            title="Edit"
+                          >
+                            <button className="w-9 h-9 flex items-center justify-center bg-white border border-slate-200 text-indigo-600 hover:bg-indigo-600 hover:text-white hover:border-indigo-600 rounded-full transition-colors shadow-sm">
+                              <FaEdit size={14} />
+                            </button>
+                          </Link>
+
+                          <button
+                            className="w-9 h-9 flex items-center justify-center bg-white border border-slate-200 text-rose-500 hover:bg-rose-500 hover:text-white hover:border-rose-500 rounded-full transition-colors shadow-sm focus:outline-none"
+                            onClick={() => confirmDelete(inv)}
+                            title="Delete"
+                          >
+                            <FaTrash size={14} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>
-        </motion.div>
+        </div>
 
-        {/* Mobile View List */}
-        <div className="md:hidden space-y-4">
-          <AnimatePresence mode="popLayout">
-            {filteredInvoices?.map((invoice) => (
-              <motion.div
-                layout
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.95 }}
-                key={`mobile-${invoice.id}`}
-                className="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm space-y-4"
+        {/* 4. MOBILE / TABLET VIEW (Cards) */}
+        <div className="lg:hidden grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {displayedInvoices.length === 0 ? (
+            <div className="col-span-full bg-white p-4 md:p-8 rounded-3xl text-center text-slate-500 font-medium shadow-sm border border-slate-200">
+              No invoices found.
+            </div>
+          ) : (
+            displayedInvoices.map((inv) => (
+              <div
+                key={inv.id}
+                className="bg-white rounded-3xl shadow-sm border border-slate-200 p-5 flex flex-col hover:border-indigo-200 transition-colors"
               >
-                <div className="flex justify-between items-start">
-                  <div className="space-y-1">
-                    <span className="text-[10px] font-black text-indigo-600 uppercase tracking-widest bg-indigo-50 px-2 py-0.5 rounded-md">
-                      {invoice.branch_name}
+                <div className="flex justify-between items-start mb-4">
+                  <div className="flex items-center gap-3">
+                    <span className="bg-indigo-100 text-indigo-800 font-bold uppercase tracking-wider rounded-md font-mono text-sm px-2.5 py-1">
+                      {inv.invoice_no}
                     </span>
-                    <h3 className="font-bold text-slate-900 leading-tight pt-1">
-                      {invoice.description}
-                    </h3>
+                    {inv.invoice_pdf && (
+                      <button
+                        onClick={() => handleViewPdf(inv.invoice_pdf)}
+                        className="text-rose-500 p-1 hover:text-rose-600 focus:outline-none"
+                      >
+                        <FaFilePdf size={18} />
+                      </button>
+                    )}
                   </div>
+                  <span className="text-xs font-semibold text-slate-500 flex items-center gap-1.5 bg-slate-50 px-2 py-1 rounded-md border border-slate-100">
+                    <FaCalendarAlt className="text-slate-400" />
+                    {inv.date ? new Date(inv.date).toLocaleDateString("th-TH", {
+                      day: "2-digit",
+                      month: "2-digit",
+                      year: "2-digit",
+                    }) : "-"}
+                  </span>
+                </div>
+
+                <div className="mb-4">
+                  <h6 className="font-bold text-slate-900 text-lg leading-tight mb-1">
+                    {inv.customer_name}
+                  </h6>
+                  <div className="text-sm text-slate-500 font-medium flex items-center gap-1.5">
+                    <FaUser className="text-slate-400" />
+                    {inv.customer_present_name}
+                  </div>
+                </div>
+
+                <div className="mt-auto border-t border-slate-100 pt-4 flex flex-col gap-4">
+                  <div className="flex justify-between items-end">
+                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                      Grand Total
+                    </span>
+                    <span className="font-black text-slate-900 text-xl tracking-tight leading-none">
+                      {parseFloat(inv.grand_total || 0).toLocaleString(undefined, {
+                        minimumFractionDigits: 2,
+                      })}{" "}
+                      ฿
+                    </span>
+                  </div>
+
                   <div className="flex gap-2">
                     <Link
-                      to={`/admin/invoicelist/${invoice.id}/edit`}
-                      className="w-10 h-10 flex items-center justify-center bg-indigo-50 border border-indigo-100 text-indigo-600 rounded-xl active:bg-indigo-600 active:text-white transition-colors shadow-sm"
+                      to={`/admin/customers/selectedcustomer/${inv.id}/setinvoice`}
+                      className="flex-1"
                     >
-                      <FaEdit size={14} />
+                      <button className="w-full flex justify-center items-center gap-1.5 py-2 bg-slate-50 hover:bg-slate-100 text-slate-700 rounded-xl text-xs font-bold transition-colors border border-slate-200">
+                        <FaPlus /> Duplicate
+                      </button>
+                    </Link>
+                    <Link to={`/admin/invoicelist/${inv.invoice_no}/edit`}>
+                      <button className="w-10 h-10 flex justify-center items-center bg-indigo-50 hover:bg-indigo-100 text-indigo-600 rounded-xl transition-colors">
+                        <FaEdit size={16} />
+                      </button>
                     </Link>
                     <button
-                      onClick={() => confirmDelete(invoice)}
-                      className="w-10 h-10 flex items-center justify-center bg-rose-50 border border-rose-100 text-rose-600 rounded-xl active:bg-rose-600 active:text-white transition-colors shadow-sm"
+                      onClick={() => confirmDelete(inv)}
+                      className="w-10 h-10 flex justify-center items-center bg-rose-50 hover:bg-rose-100 text-rose-500 rounded-xl transition-colors focus:outline-none"
                     >
-                      <FaTrash size={14} />
+                      <FaTrash size={16} />
                     </button>
                   </div>
                 </div>
-
-                <div className="flex items-end justify-between border-t border-slate-50 pt-3">
-                  <div className="space-y-1">
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.15em]">
-                      Grand Total
-                    </p>
-                    <p className="text-xl font-black text-slate-900">
-                      {parseFloat(invoice.grand_total).toLocaleString()}{" "}
-                      <span className="text-sm font-bold text-slate-400 uppercase">
-                        ฿
-                      </span>
-                    </p>
-                  </div>
-                  <div className="flex flex-col items-end gap-1">
-                    <div className="flex items-center gap-1.5 text-slate-500 font-bold text-[11px] bg-slate-50 px-2 py-1 rounded-lg">
-                      <FaCalendarAlt size={10} className="text-slate-400" />
-                      {new Date(invoice.created_at).toLocaleDateString("th-TH")}
-                    </div>
-                  </div>
-                </div>
-              </motion.div>
-            ))}
-          </AnimatePresence>
-          {filteredInvoices?.length === 0 && (
-            <div className="text-center py-20 px-4 md:px-8 bg-white border border-slate-200 rounded-[2.5rem] shadow-sm">
-              <FaBox size={32} className="mx-auto text-slate-200 mb-4" />
-              <p className="font-bold text-slate-400 text-sm uppercase tracking-widest">
-                No matching invoices
-              </p>
-            </div>
+              </div>
+            ))
           )}
         </div>
-
-        {/* Floating Add Button for Mobile */}
-        <Link
-          to="/admin/invoiceset"
-          className="md:hidden fixed right-6 bottom-24 w-14 h-14 bg-slate-900 flex items-center justify-center text-white rounded-2xl shadow-2xl shadow-slate-400 z-50 active:scale-90 transition-transform"
-        >
-          <FaPlus size={20} />
-        </Link>
       </div>
 
       {/* Delete Confirmation Modal */}
-      <AnimatePresence>
-        {showDeleteModal && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 md:p-6 bg-slate-900/40 backdrop-blur-sm">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="bg-white w-full max-w-md rounded-[2.5rem] shadow-2xl overflow-hidden"
-            >
-              <div className="p-4 md:p-8 text-center space-y-6">
-                <div className="w-20 h-20 bg-rose-50 text-rose-600 rounded-3xl flex items-center justify-center mx-auto ring-8 ring-rose-50/50">
-                  <FaTrash size={32} />
-                </div>
-                <div className="space-y-2">
-                  <h2 className="text-2xl font-black text-slate-900 tracking-tight">
-                    Remove Invoice?
-                  </h2>
-                  <p className="text-slate-500 font-medium leading-relaxed px-4">
-                    Are you sure you want to delete invoice{" "}
-                    <span className="font-black text-indigo-600">
-                      #{selectedInvoice?.invoice_id}
-                    </span>
-                    ? This action is permanent.
-                  </p>
-                </div>
-                <div className="flex gap-3 pt-2">
-                  <button
-                    onClick={() => setShowDeleteModal(false)}
-                    className="flex-1 py-4 bg-slate-50 hover:bg-slate-100 text-slate-600 rounded-2xl font-black transition-all active:scale-95"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={handleDelete}
-                    disabled={isDeleting}
-                    className="flex-1 py-4 bg-rose-600 hover:bg-rose-700 text-white rounded-2xl font-black shadow-lg shadow-rose-200 transition-all active:scale-95 disabled:opacity-50"
-                  >
-                    {isDeleting ? "Deleting..." : "Delete Now"}
-                  </button>
-                </div>
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
-
-      <style dangerouslySetInnerHTML={{ __html: `
-        .font-prompt { font-family: 'Prompt', sans-serif; }
-      ` }} />
+      <Modal
+        isOpen={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        title={
+          <span className="flex items-center gap-2 text-rose-600">
+            <FaTrash /> Delete Invoice
+          </span>
+        }
+      >
+        <div className="py-4 text-slate-600">
+          <p className="mb-2 text-lg">
+            Are you sure you want to delete{" "}
+            <strong className="text-slate-900 font-mono">
+              {selectedInvoice?.invoice_no}
+            </strong>
+            ?
+          </p>
+          <p className="text-sm text-slate-500 font-medium">
+            This action cannot be undone and will permanently remove this
+            invoice from the system.
+          </p>
+        </div>
+        <div className="flex justify-end gap-3 border-t border-slate-100 pt-6 mt-4">
+          <Button variant="outline" onClick={() => setShowDeleteModal(false)}>
+            Cancel
+          </Button>
+          <Button
+            variant="primary"
+            className="!bg-rose-600 hover:!bg-rose-700 !shadow-rose-500/30"
+            onClick={handleDelete}
+            disabled={isDeleting}
+          >
+            {isDeleting ? "Deleting..." : "Confirm Delete"}
+          </Button>
+        </div>
+      </Modal>
     </div>
   );
 };

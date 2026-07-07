@@ -36,6 +36,12 @@ const StockListCategoryScreen = () => {
 
   const [selectedCategory, setSelectedCategory] = useState({});
   const [formData, setFormData] = useState({ category: "", createuser: "" });
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const filteredData = categoryData.filter((cat) =>
+    (cat.category || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (cat.categoryid || "").toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   const [createStockCategory] = useCreateStockCategoryMutation();
   const [updateStockCategory] = useUpdateStockCategoryMutation();
@@ -100,15 +106,24 @@ const StockListCategoryScreen = () => {
     );
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 md:py-8 animate-pageFade">
+    <div className="animate-pageFade">
       <Card>
         <CardHeader
           title="Category List"
           action={
-            <Button variant="primary" onClick={openCreateModal}>
-              <Plus size={18} className="mr-2" />
-              Create
-            </Button>
+            <div className="flex flex-col sm:flex-row gap-3 items-center">
+              <input
+                type="text"
+                placeholder="Search categories..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="px-3 py-1.5 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-full sm:w-64"
+              />
+              <Button variant="primary" onClick={openCreateModal}>
+                <Plus size={18} className="mr-2" />
+                Create
+              </Button>
+            </div>
           }
         />
         <CardBody className="p-0">
@@ -123,7 +138,7 @@ const StockListCategoryScreen = () => {
               </Table.Row>
             </Table.Header>
             <Table.Body>
-              {categoryData.length === 0 ? (
+              {filteredData.length === 0 ? (
                 <Table.Row>
                   <Table.Cell
                     colSpan="5"
@@ -133,7 +148,7 @@ const StockListCategoryScreen = () => {
                   </Table.Cell>
                 </Table.Row>
               ) : (
-                categoryData.map((cat, index) => (
+                filteredData.map((cat, index) => (
                   <Table.Row key={cat.ID}>
                     <Table.Cell>{index + 1}</Table.Cell>
                     <Table.Cell className="font-mono text-slate-600">

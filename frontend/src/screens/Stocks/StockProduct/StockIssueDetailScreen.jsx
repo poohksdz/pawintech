@@ -23,6 +23,7 @@ import {
   FaWeightHanging,
   FaAlignLeft,
   FaRegCopy,
+  FaUserCheck,
 } from "react-icons/fa";
 import Loader from "../../../components/Loader";
 import Message from "../../../components/Message";
@@ -331,6 +332,27 @@ const StockIssueDetailScreen = () => {
                         label="Request No."
                         value={product.requestno}
                       />
+                    </Card.Body>
+                  </Card>
+                </Col>
+              </Row>
+
+              {/* People Involved Section */}
+              <Row className="g-4 mt-2">
+                <Col md={12}>
+                  <Card className="border bg-white shadow-none">
+                    <Card.Header className="bg-white border-bottom py-3 fw-bold text-info">
+                      <FaUserCheck className="me-2" /> People Involved
+                    </Card.Header>
+                    <Card.Body className="p-3">
+                      <Row>
+                        <Col md={6}>
+                          <DetailRow label="Requested By" value={product.reciever || product.username || '-'} />
+                        </Col>
+                        <Col md={6}>
+                          <DetailRow label="Issued By" value={product.issueBy || '-'} />
+                        </Col>
+                      </Row>
                     </Card.Body>
                   </Card>
                 </Col>

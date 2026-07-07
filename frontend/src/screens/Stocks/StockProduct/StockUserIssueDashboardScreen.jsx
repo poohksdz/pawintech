@@ -6,6 +6,8 @@ import {
   FaFilter,
   FaTimes,
   FaBoxOpen,
+  FaCalendarAlt,
+  FaUserCheck,
 } from "react-icons/fa";
 import { useGetStockIssueByUserQuery } from "../../../slices/stockIssueApiSlice";
 import { useGetStockCategoriesQuery } from "../../../slices/stockCategoryApiSlice";
@@ -160,7 +162,7 @@ const StockUserIssueDashboardScreen = () => {
                     Image
                   </th>
                   <th>Issue No</th>
-                  <th>Date</th>
+                  <th>Date & Approver</th>
                   <th>Part Number</th>
                   <th>Value</th>
                   <th>Category</th>
@@ -196,8 +198,21 @@ const StockUserIssueDashboardScreen = () => {
                         {p.issueno}
                       </span>
                     </td>
-                    <td className="text-muted small">
-                      {p.issuedate} <br /> {p.issuetime}
+                    <td className="text-start">
+                      <div className="d-flex flex-column gap-1">
+                        <div className="text-muted small d-flex align-items-center gap-1 text-nowrap">
+                          <FaCalendarAlt size={11} className="opacity-75 text-secondary" />
+                          <span>{p.issuedate} <span className="opacity-75">{p.issuetime}</span></span>
+                        </div>
+                        <div className="d-flex align-items-center gap-1 mt-1">
+                          <div className="bg-success bg-opacity-10 text-success rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style={{ width: '18px', height: '18px' }}>
+                             <FaUserCheck size={9} />
+                          </div>
+                          <div className="text-truncate" style={{ maxWidth: '100px' }}>
+                            <span className="fw-bold text-success" style={{ fontSize: "11px" }}>{p.issueBy || 'System'}</span>
+                          </div>
+                        </div>
+                      </div>
                     </td>
                     <td>
                       <span className="fw-bold text-dark">

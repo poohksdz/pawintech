@@ -1,4 +1,4 @@
-﻿import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { toast } from "react-toastify";
 import { useDispatch, useSelector } from "react-redux";
@@ -21,18 +21,18 @@ import { useUpdateAmountCustomcartMutation } from "../slices/custompcbCartApiSli
 import { generateOrderID } from "../utils/generateOrderID";
 import {
   FaUniversity,
-  FaMoneyBillWave,
+  
   FaFileUpload,
   FaReceipt,
   FaQrcode,
   FaCopy,
-  FaTimes,
+  
   FaShieldAlt,
   FaChevronRight,
   FaTags,
-  FaClock,
-  FaCalendarAlt,
-  FaBox,
+  
+  
+  
 } from "react-icons/fa";
 
 const SHOP_CONFIG = {

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Button, Modal, Form, Card, Container } from "react-bootstrap";
+import { Button, Modal, Form, Card, Container, Row, Col, Table } from "react-bootstrap";
 import { useGetDefaultQuotationUsedQuery } from "../../slices/quotationDefaultApiSlice";
+import { useGetDefaultInvoiceUsedQuery } from "../../slices/defaultInvoicesApiSlice";
 import {
   useGetQuotationByQuotationNoQuery,
   useUpdateQuotationByQuotationNoMutation,
@@ -11,18 +12,23 @@ import html2canvas from "html2canvas";
 import Loader from "../../components/Loader";
 import { toast } from "react-toastify";
 import { useNavigate, useParams } from "react-router-dom";
-import { FaSave, FaFilePdf, FaArrowLeft, FaEdit } from "react-icons/fa";
+import { FaSave, FaEye, FaArrowLeft, FaEdit, FaPlus, FaTrash } from "react-icons/fa";
+import FullTaxInvoiceA4 from "../../components/FullTaxInvoiceA4";
+import { useSelector } from "react-redux";
 
 const QuotationEditScreen = () => {
   const componentRef = useRef();
   const { id } = useParams();
   const navigate = useNavigate();
+  const { userInfo } = useSelector((state) => state.auth);
 
   // --- API Calls ---
   const { data: quotationData, isLoading: isLoadingData } =
     useGetQuotationByQuotationNoQuery(id);
   const { data: defaultData } = useGetDefaultQuotationUsedQuery();
   const defaultSelected = defaultData?.quotations?.[0] || null;
+
+  const { data: invoiceCompanyInfo } = useGetDefaultInvoiceUsedQuery();
 
   const [uploadQuotationPDF, { isLoading: isLoadingUpload }] =
     useUploadQuotationPDFMutation();
@@ -31,12 +37,13 @@ const QuotationEditScreen = () => {
 
   // --- State ---
   const [showConfirm, setShowConfirm] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
+
   const [quotationNumber, setQuotationNumber] = useState("");
   const [due_date, setdue_date] = useState("");
   const [create_date, setcreate_date] = useState("");
   const [submit_price_within, setsubmit_price_within] = useState("");
   const [number_of_credit_days, setnumber_of_credit_days] = useState("");
-  const [numRows, setNumRows] = useState(10);
 
   const [customerInfo, setCustomerInfo] = useState({
     customer_name: "",
@@ -45,6 +52,8 @@ const QuotationEditScreen = () => {
     customer_vat: "",
     buyer_approves_signature: null,
     buyer_approves_signature_date: null,
+    branch_type: "สำนักงานใหญ่",
+    branch_no: "",
   });
 
   const [rows, setRows] = useState([]);
@@ -56,11 +65,7 @@ const QuotationEditScreen = () => {
     if (!firstQuotation) return;
 
     if (firstQuotation.date) {
-      const dateObj = new Date(firstQuotation.date);
-      const day = String(dateObj.getDate()).padStart(2, "0");
-      const month = String(dateObj.getMonth() + 1).padStart(2, "0");
-      const year = dateObj.getFullYear();
-      setcreate_date(`${day} / ${month} / ${year}`);
+      setcreate_date(firstQuotation.date);
     }
 
     setCustomerInfo({
@@ -69,8 +74,9 @@ const QuotationEditScreen = () => {
       customer_address: firstQuotation.customer_address || "",
       customer_vat: firstQuotation.customer_vat || "",
       buyer_approves_signature: firstQuotation.buyer_approves_signature,
-      buyer_approves_signature_date:
-        firstQuotation.buyer_approves_signature_date,
+      buyer_approves_signature_date: firstQuotation.buyer_approves_signature_date,
+      branch_type: firstQuotation.branch_type || "สำนักงานใหญ่",
+      branch_no: firstQuotation.branch_no || "",
     });
 
     const summaryData = {
@@ -95,15 +101,20 @@ const QuotationEditScreen = () => {
     setQuotationNumber(firstQuotation.quotation_no || "");
 
     const initialRows = quotationData?.quotation?.[0] || [];
-    setRows(
-      initialRows.map((item) => ({
+    const mappedRows = initialRows.map((item) => ({
         product_id: item.product_id || "",
         description: item.product_detail || "",
         qty: parseFloat(item.quantity) || 0,
-        unit: item.unit || "",
+        unit: item.unit || "pcs",
         unit_price: parseFloat(item.unit_price) || 0,
-      })),
-    );
+    }));
+    
+    // Add empty row if list is empty
+    if(mappedRows.length === 0) {
+        mappedRows.push({ product_id: "", description: "", qty: 0, unit: "pcs", unit_price: 0 });
+    }
+    
+    setRows(mappedRows);
   }, [quotationData, defaultSelected]);
 
   // --- Handlers ---
@@ -119,62 +130,63 @@ const QuotationEditScreen = () => {
           : Number(value)
         : value;
     setRows(updatedRows);
-
-    const lastRow = updatedRows[updatedRows.length - 1];
-    if (Object.values(lastRow).some((v) => v !== "" && v !== 0)) {
-      setRows((prev) => [
-        ...prev,
-        { product_id: "", description: "", qty: 0, unit: "", unit_price: 0 },
-      ]);
-    }
   };
 
-  const autoGrow = (e) => {
-    e.target.style.height = "24px";
-    e.target.style.height = e.target.scrollHeight + "px";
+  const addRow = () => {
+    setRows((prev) => [
+      ...prev,
+      { product_id: "", description: "", qty: 0, unit: "pcs", unit_price: 0 },
+    ]);
   };
 
-  const subTotal = rows.reduce((acc, r) => acc + r.qty * r.unit_price, 0);
-  const totalDiscount =
-    subTotal * (parseFloat(defaultSummary.discount || 0) / 100);
+  const removeRow = (index) => {
+    setRows((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const subTotal = rows.reduce((acc, r) => acc + (r.qty * r.unit_price || 0), 0);
+  const totalDiscount = parseFloat(defaultSummary.discount || 0);
   const totalAfterDiscount = subTotal - totalDiscount;
-  const totalVat =
-    totalAfterDiscount * (parseFloat(defaultSummary.vat || 0) / 100);
+  const totalVat = totalAfterDiscount * (parseFloat(defaultSummary.vat || 0) / 100);
   const grandTotal = totalAfterDiscount + totalVat;
 
   const now = new Date();
-  const today = `${String(now.getDate()).padStart(2, "0")} / ${String(now.getMonth() + 1).padStart(2, "0")} / ${now.getFullYear() + 543}`;
-
-  const handlePreviewPDF = async () => {
-    const pdf = new jsPDF("p", "mm", "a4");
-    const canvas = await html2canvas(componentRef.current, {
-      scale: 2,
-      useCORS: true,
-    });
-    const imgData = canvas.toDataURL("image/png");
-    const pdfWidth = pdf.internal.pageSize.getWidth();
-    const pdfHeight = pdf.internal.pageSize.getHeight();
-    pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
-    window.open(URL.createObjectURL(pdf.output("blob")), "_blank");
+  const createDateObj = create_date ? new Date(create_date) : now;
+  
+  const mappedOrder = {
+    id: quotationNumber || "QT-XXXX",
+    quotation_no: quotationNumber || "QT-XXXX",
+    createdAt: createDateObj,
+    status: "Quoted",
+    billingAddress: {
+      billingName: customerInfo.customer_name || "",
+      billinggAddress: customerInfo.customer_present_name || "",
+      billingCity: customerInfo.customer_address || "",
+      tax: customerInfo.customer_vat || "",
+      branch: customerInfo.branch_type === "สาขา" ? customerInfo.branch_no : customerInfo.branch_type,
+    },
+    orderItems: rows.filter((r) => r.product_id || r.description).map((item) => ({
+      product_id: item.product_id,
+      name: item.description,
+      qty: item.qty,
+      unit: item.unit,
+      price: item.unit_price,
+    })),
+    itemsPrice: subTotal,
+    vatPrice: totalVat,
+    totalPrice: grandTotal,
+    discountPrice: totalDiscount,
+    signatures: {
+      buyer: customerInfo.buyer_approves_signature,
+      buyerDate: customerInfo.buyer_approves_signature_date,
+      sales: defaultSelected?.sales_person,
+      manager: defaultSelected?.sales_manager,
+    }
   };
 
-  const handleAutoDownloadPDF = async (quotation_no) => {
-    if (!componentRef.current) return;
-    const pdf = new jsPDF("p", "mm", "a4");
-    const canvas = await html2canvas(componentRef.current, {
-      scale: 2,
-      useCORS: true,
-    });
-    const imgData = canvas.toDataURL("image/png");
-    pdf.addImage(
-      imgData,
-      "PNG",
-      0,
-      0,
-      pdf.internal.pageSize.getWidth(),
-      pdf.internal.pageSize.getHeight(),
-    );
-    pdf.save(`Quotation_${quotation_no}.pdf`);
+
+  // --- PDF Functions ---
+  const handlePreviewPDF = () => {
+      setShowPreview(true);
   };
 
   const uploadPDF = async (quotation_no) => {
@@ -225,45 +237,37 @@ const QuotationEditScreen = () => {
         summary: {
           discount: defaultSummary.discount,
           total_after_discount: totalAfterDiscount,
-          vat: defaultSummary.vat,
-          deposit: defaultSummary.deposit,
           grand_total: grandTotal,
           total: grandTotal,
-          bank_account_name: defaultSummary.bank_account_name,
-          bank_account_number: defaultSummary.bank_account_number,
+          sub_total: subTotal,
+          vat: defaultSummary.vat,
         },
         customer: customerInfo,
-        signatures: {
-          buyer_approves_signature:
-            customerInfo.buyer_approves_signature || null,
-          buyer_approves_signature_date:
-            customerInfo.buyer_approves_signature_date || null,
-          sales_person_signature: defaultSelected?.sales_person || null,
-          sales_manager_signature: defaultSelected?.sales_manager || null,
-        },
       };
-      await updateQuotationByQuotationNo({ id, ...payload }).unwrap();
+
+      await updateQuotationByQuotationNo({ id: quotationNumber, ...payload }).unwrap();
+      toast.success("Quotation updated successfully!");
+      navigate("/admin/quotations");
     } catch (error) {
-      console.error(error);
-      toast.error("Failed to update quotation.");
-      throw error;
+      toast.error(error?.data?.message || "Failed to update quotation");
     }
   };
 
   const handleConfirmUpdate = async () => {
     setShowConfirm(false);
-    try {
-      const uploadedPDFUrl = await uploadPDF(quotationNumber);
-      await handleUpdateQuotation(uploadedPDFUrl);
-      await handleAutoDownloadPDF(quotationNumber);
-      toast.success("Quotation updated successfully!");
-      navigate("/admin/quotations");
-    } catch (error) {
-      console.error(error);
-    }
+    
+    // Force tiny wait so componentRef captures changes correctly
+    await new Promise(r => setTimeout(r, 100));
+    
+    const pdfUrl = await uploadPDF(quotationNumber);
+    await handleUpdateQuotation(pdfUrl);
   };
 
   const isLoadingAll = isLoadingData || isLoadingUpload || isLoadingUpdate;
+
+  if (isLoadingData) {
+    return <Loader />;
+  }
 
   return (
     <Container fluid className="py-4 font-prompt bg-light min-vh-100">
@@ -276,7 +280,7 @@ const QuotationEditScreen = () => {
         </div>
       )}
 
-      {/* 1. Top Action Bar */}
+      {/* Action Bar */}
       <Card
         className="shadow-sm border-0 mb-4 rounded-4 sticky-top"
         style={{ zIndex: 1020 }}
@@ -291,451 +295,320 @@ const QuotationEditScreen = () => {
               <FaArrowLeft />
             </Button>
             <h5 className="mb-0 fw-bold text-dark">
-              <FaEdit className="me-2 text-warning" /> Edit Quotation:{" "}
-              <span className="text-primary">{quotationNumber}</span>
+              <FaEdit className="me-2 text-primary" /> Edit Quotation: <span className="text-danger">{quotationNumber}</span>
             </h5>
           </div>
           <div className="d-flex gap-2 w-100 w-md-auto">
             <Button
               variant="outline-secondary"
-              className="flex-fill flex-md-grow-0"
+              className="flex-fill"
               onClick={handlePreviewPDF}
             >
-              <FaFilePdf className="me-2" />
+              <FaEye className="me-2" />
               Preview PDF
             </Button>
             <Button
               variant="primary"
-              className="flex-fill flex-md-grow-0 fw-bold shadow-sm"
+              className="flex-fill fw-bold shadow-sm"
               onClick={() => setShowConfirm(true)}
             >
               <FaSave className="me-2" />
-              Update & Save
+              Update Quotation
             </Button>
           </div>
         </Card.Body>
       </Card>
 
-      {/* 2. Paper View Container - Wrapper for Horizontal Scroll on Mobile */}
-      <div
-        className="d-flex justify-content-center w-100"
-        style={{ overflowX: "auto", paddingBottom: "50px" }}
-      >
-        {/* The A4 Paper */}
-        <div className="paper-container shadow-lg bg-white" ref={componentRef}>
-          {/* --- Header Section --- */}
-          <div className="d-flex justify-content-between align-items-start mb-2 position-relative">
-            <div className="position-absolute" style={{ top: 0, left: 0 }}>
-              {defaultSelected?.logo && (
-                <img
-                  src={defaultSelected.logo}
-                  alt="Logo"
-                  style={{ height: 50 }}
-                />
-              )}
-            </div>
-            <div className="w-100 text-center pt-2">
-              <h5 className="fw-bold mb-1">
-                {defaultSummary.company_name_thai}
-              </h5>
-              <h6 className="fw-bold text-uppercase mb-1">
-                {defaultSummary.company_name}
-              </h6>
-              <div
-                className="small text-muted mb-2"
-                style={{ fontSize: "0.7rem", lineHeight: "1.3" }}
-              >
-                {defaultSummary.head_office_thai}
-                <br />
-                {defaultSummary.head_office}
-                <br />
-                Tel: {defaultSummary.tel} | Email: {defaultSummary.email} | Tax
-                ID: {defaultSummary.tax_id}
-              </div>
-              <div className="d-inline-block border border-dark px-3 py-1 mt-1">
-                <div className="fw-bold small">ใบเสนอราคา / QUOTATION</div>
-              </div>
-            </div>
-            <div style={{ width: 50 }}></div> {/* Spacer to balance logo */}
-          </div>
+      <Row>
+        <Col lg={12}>
+          {/* Customer Details Form */}
+          <Card className="shadow-sm border-0 mb-4 rounded-4">
+            <Card.Header className="bg-white border-0 pt-4 pb-0">
+              <h6 className="fw-bold mb-0 text-primary">ข้อมูลลูกค้า (Customer Details)</h6>
+            </Card.Header>
+            <Card.Body>
+              <Row className="g-3">
+                <Col md={6}>
+                  <Form.Group>
+                    <Form.Label className="small fw-bold text-muted">ชื่อลูกค้า (ผู้ติดต่อ)</Form.Label>
+                    <Form.Control
+                      type="text"
+                      value={customerInfo.customer_name}
+                      onChange={(e) => handleCustomerChange("customer_name", e.target.value)}
+                    />
+                  </Form.Group>
+                </Col>
+                <Col md={6}>
+                  <Form.Group>
+                    <Form.Label className="small fw-bold text-muted">เลขประจำตัวผู้เสียภาษี</Form.Label>
+                    <Form.Control
+                      type="text"
+                      value={customerInfo.customer_vat}
+                      onChange={(e) => handleCustomerChange("customer_vat", e.target.value)}
+                    />
+                  </Form.Group>
+                </Col>
+                <Col md={12}>
+                  <Form.Group>
+                    <Form.Label className="small fw-bold text-muted">ที่อยู่บรรทัดที่ 1</Form.Label>
+                    <Form.Control
+                      type="text"
+                      value={customerInfo.customer_present_name}
+                      onChange={(e) => handleCustomerChange("customer_present_name", e.target.value)}
+                    />
+                  </Form.Group>
+                </Col>
+                <Col md={12}>
+                  <Form.Group>
+                    <Form.Label className="small fw-bold text-muted">ที่อยู่บรรทัดที่ 2</Form.Label>
+                    <Form.Control
+                      type="text"
+                      value={customerInfo.customer_address}
+                      onChange={(e) => handleCustomerChange("customer_address", e.target.value)}
+                    />
+                  </Form.Group>
+                </Col>
+                <Col md={6}>
+                    <Form.Group>
+                        <Form.Label className="small fw-bold text-muted">ประเภทสาขา</Form.Label>
+                        <Form.Select 
+                            value={customerInfo.branch_type} 
+                            onChange={(e) => handleCustomerChange("branch_type", e.target.value)}
+                        >
+                            <option value="สำนักงานใหญ่">สำนักงานใหญ่</option>
+                            <option value="สาขา">สาขา</option>
+                            <option value="ไม่ระบุ">ไม่ระบุ</option>
+                        </Form.Select>
+                    </Form.Group>
+                </Col>
+                {customerInfo.branch_type === "สาขา" && (
+                    <Col md={6}>
+                        <Form.Group>
+                            <Form.Label className="small fw-bold text-muted">รหัสสาขา</Form.Label>
+                            <Form.Control
+                            type="text"
+                            value={customerInfo.branch_no}
+                            onChange={(e) => handleCustomerChange("branch_no", e.target.value)}
+                            />
+                        </Form.Group>
+                    </Col>
+                )}
+              </Row>
+            </Card.Body>
+          </Card>
 
-          {/* --- Customer & Doc Info Grid --- */}
-          <div className="d-flex border border-dark mb-2">
-            {/* Left: Customer Info */}
-            <div
-              className="flex-grow-1 border-end border-dark p-2"
-              style={{ maxWidth: "65%" }}
-            >
-              <div className="d-flex align-items-center mb-1">
-                <span className="paper-label">Customer:</span>
-                <Form.Control
-                  type="text"
-                  className="paper-input flex-grow-1 fw-bold"
-                  value={customerInfo.customer_name}
-                  onChange={(e) =>
-                    handleCustomerChange("customer_name", e.target.value)
-                  }
-                />
-              </div>
-              <div className="d-flex align-items-center mb-1">
-                <span className="paper-label">Attention:</span>
-                <Form.Control
-                  type="text"
-                  className="paper-input flex-grow-1"
-                  value={customerInfo.customer_present_name}
-                  onChange={(e) =>
-                    handleCustomerChange(
-                      "customer_present_name",
-                      e.target.value,
-                    )
-                  }
-                />
-              </div>
-              <div className="d-flex align-items-center mb-1">
-                <span className="paper-label">Address:</span>
-                <Form.Control
-                  type="text"
-                  className="paper-input flex-grow-1"
-                  value={customerInfo.customer_address}
-                  onChange={(e) =>
-                    handleCustomerChange("customer_address", e.target.value)
-                  }
-                />
-              </div>
-              <div className="d-flex align-items-center">
-                <span className="paper-label">Tax ID:</span>
-                <Form.Control
-                  type="text"
-                  className="paper-input"
-                  style={{ width: 150 }}
-                  value={customerInfo.customer_vat}
-                  onChange={(e) =>
-                    handleCustomerChange("customer_vat", e.target.value)
-                  }
-                />
-                <div className="d-flex gap-3 small ms-3">
-                  <Form.Check type="checkbox" label="Head Office" id="head" />
-                  <Form.Check type="checkbox" label="Branch" id="branch" />
-                </div>
-              </div>
-            </div>
+          {/* Quotation Terms Form */}
+          <Card className="shadow-sm border-0 mb-4 rounded-4">
+            <Card.Header className="bg-white border-0 pt-4 pb-0">
+              <h6 className="fw-bold mb-0 text-primary">เงื่อนไขใบเสนอราคา (Quotation Terms)</h6>
+            </Card.Header>
+            <Card.Body>
+              <Row className="g-3">
+                <Col md={6}>
+                  <Form.Group>
+                    <Form.Label className="small fw-bold text-muted">เครดิต (วัน)</Form.Label>
+                    <Form.Control
+                      type="number"
+                      value={number_of_credit_days}
+                      onChange={(e) => setnumber_of_credit_days(e.target.value)}
+                    />
+                  </Form.Group>
+                </Col>
+                <Col md={6}>
+                  <Form.Group>
+                    <Form.Label className="small fw-bold text-muted">ยืนราคา (วัน)</Form.Label>
+                    <Form.Control
+                      type="number"
+                      value={submit_price_within}
+                      onChange={(e) => setsubmit_price_within(e.target.value)}
+                    />
+                  </Form.Group>
+                </Col>
+              </Row>
+            </Card.Body>
+          </Card>
 
-            {/* Right: Doc Info */}
-            <div className="p-2" style={{ minWidth: "35%" }}>
-              <div className="d-flex align-items-center mb-1">
-                <span className="paper-label-sm">No:</span>
-                <span className="paper-text fw-bold text-danger">
-                  {quotationNumber}
-                </span>
+          {/* Items Form */}
+          <Card className="shadow-sm border-0 mb-4 rounded-4">
+            <Card.Header className="bg-white border-0 pt-4 pb-0 d-flex justify-content-between align-items-center">
+              <h6 className="fw-bold mb-0 text-primary">รายการสินค้า (Items)</h6>
+              <Button variant="outline-primary" size="sm" onClick={addRow} className="rounded-pill px-3">
+                <FaPlus className="me-2" /> เพิ่มรายการ
+              </Button>
+            </Card.Header>
+            <Card.Body>
+              <div className="table-responsive">
+                <Table bordered hover size="sm" className="align-middle">
+                  <thead className="bg-light">
+                    <tr>
+                      <th className="text-center" style={{width: '5%'}}>#</th>
+                      <th style={{width: '15%'}}>รหัสสินค้า</th>
+                      <th style={{width: '35%'}}>รายละเอียด</th>
+                      <th className="text-center" style={{width: '10%'}}>จำนวน</th>
+                      <th className="text-center" style={{width: '10%'}}>หน่วย</th>
+                      <th className="text-end" style={{width: '15%'}}>ราคา/หน่วย</th>
+                      <th className="text-end" style={{width: '10%'}}>รวม</th>
+                      <th className="text-center" style={{width: '5%'}}></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {rows.map((row, idx) => (
+                      <tr key={idx}>
+                        <td className="text-center text-muted small">{idx + 1}</td>
+                        <td>
+                          <Form.Control
+                            size="sm"
+                            className="border-0 shadow-none bg-transparent"
+                            value={row.product_id}
+                            placeholder="รหัส"
+                            onChange={(e) => handleChange(idx, "product_id", e.target.value)}
+                          />
+                        </td>
+                        <td>
+                          <Form.Control
+                            as="textarea"
+                            rows={1}
+                            size="sm"
+                            className="border-0 shadow-none bg-transparent"
+                            style={{ resize: "none" }}
+                            placeholder="รายละเอียดสินค้า"
+                            value={row.description}
+                            onChange={(e) => handleChange(idx, "description", e.target.value)}
+                          />
+                        </td>
+                        <td>
+                          <Form.Control
+                            type="number"
+                            size="sm"
+                            className="border-0 shadow-none bg-transparent text-center"
+                            value={row.qty}
+                            onChange={(e) => handleChange(idx, "qty", e.target.value)}
+                          />
+                        </td>
+                        <td>
+                          <Form.Control
+                            size="sm"
+                            className="border-0 shadow-none bg-transparent text-center"
+                            value={row.unit}
+                            onChange={(e) => handleChange(idx, "unit", e.target.value)}
+                          />
+                        </td>
+                        <td>
+                          <Form.Control
+                            type="number"
+                            size="sm"
+                            className="border-0 shadow-none bg-transparent text-end"
+                            value={row.unit_price}
+                            onChange={(e) => handleChange(idx, "unit_price", e.target.value)}
+                          />
+                        </td>
+                        <td className="text-end fw-bold small text-primary">
+                          {row.qty && row.unit_price ? (row.qty * row.unit_price).toFixed(2) : "-"}
+                        </td>
+                        <td className="text-center">
+                          <Button variant="link" className="text-danger p-0" onClick={() => removeRow(idx)}>
+                            <FaTrash size={12} />
+                          </Button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </Table>
               </div>
-              <div className="d-flex align-items-center mb-1">
-                <span className="paper-label-sm">Date:</span>
-                <Form.Control
-                  type="text"
-                  className="paper-input"
-                  style={{ width: 100 }}
-                  value={create_date}
-                  onChange={(e) => setcreate_date(e.target.value)}
-                />
-              </div>
-              <div className="d-flex align-items-center mb-1">
-                <span className="paper-label-sm">Credit:</span>
-                <Form.Control
-                  type="number"
-                  className="paper-input text-center"
-                  style={{ width: 40 }}
-                  value={number_of_credit_days}
-                  onChange={(e) => setnumber_of_credit_days(e.target.value)}
-                />
-                <span className="small ms-1">Days</span>
-              </div>
-              <div className="d-flex align-items-center">
-                <span className="paper-label-sm">Valid:</span>
-                <Form.Control
-                  type="number"
-                  className="paper-input text-center"
-                  style={{ width: 40 }}
-                  value={submit_price_within}
-                  onChange={(e) => setsubmit_price_within(e.target.value)}
-                />
-                <span className="small ms-1">Days</span>
-              </div>
-            </div>
-          </div>
 
-          {/* --- Items Table --- */}
-          <div
-            className="flex-grow-1 border border-dark mb-2 d-flex flex-column"
-            style={{ minHeight: "400px" }}
-          >
-            {/* Header */}
-            <div
-              className="d-flex bg-light border-bottom border-dark fw-bold small text-center"
-              style={{ height: 30 }}
-            >
-              <div
-                style={{ width: "5%", borderRight: "1px solid #000" }}
-                className="d-flex align-items-center justify-content-center"
-              >
-                #
-              </div>
-              <div
-                style={{ width: "15%", borderRight: "1px solid #000" }}
-                className="d-flex align-items-center justify-content-center"
-              >
-                Code
-              </div>
-              <div
-                style={{ width: "40%", borderRight: "1px solid #000" }}
-                className="d-flex align-items-center justify-content-center"
-              >
-                Description
-              </div>
-              <div
-                style={{ width: "10%", borderRight: "1px solid #000" }}
-                className="d-flex align-items-center justify-content-center"
-              >
-                Qty
-              </div>
-              <div
-                style={{ width: "10%", borderRight: "1px solid #000" }}
-                className="d-flex align-items-center justify-content-center"
-              >
-                Unit
-              </div>
-              <div
-                style={{ width: "10%", borderRight: "1px solid #000" }}
-                className="d-flex align-items-center justify-content-center"
-              >
-                Price
-              </div>
-              <div
-                style={{ width: "10%" }}
-                className="d-flex align-items-center justify-content-center"
-              >
-                Amount
-              </div>
-            </div>
-
-            {/* Rows */}
-            {rows.map((row, idx) => (
-              <div
-                key={idx}
-                className="d-flex small text-center border-bottom border-light"
-                style={{ minHeight: 24 }}
-              >
-                <div
-                  style={{ width: "5%", borderRight: "1px solid #dee2e6" }}
-                  className="d-flex align-items-start pt-1 justify-content-center"
-                >
-                  {idx + 1}
-                </div>
-                <div
-                  style={{ width: "15%", borderRight: "1px solid #dee2e6" }}
-                  className="px-1"
-                >
-                  <Form.Control
-                    className="paper-input w-100 text-start"
-                    value={row.product_id}
-                    onChange={(e) =>
-                      handleChange(idx, "product_id", e.target.value)
-                    }
-                  />
-                </div>
-                <div
-                  style={{ width: "40%", borderRight: "1px solid #dee2e6" }}
-                  className="px-1"
-                >
-                  <Form.Control
-                    as="textarea"
-                    rows={1}
-                    className="paper-input w-100 text-start"
-                    style={{ resize: "none", overflow: "hidden" }}
-                    value={row.description}
-                    onChange={(e) =>
-                      handleChange(idx, "description", e.target.value)
-                    }
-                    onInput={autoGrow}
-                  />
-                </div>
-                <div
-                  style={{ width: "10%", borderRight: "1px solid #dee2e6" }}
-                  className="px-1"
-                >
-                  <Form.Control
-                    type="number"
-                    className="paper-input w-100 text-center"
-                    value={row.qty}
-                    onChange={(e) => handleChange(idx, "qty", e.target.value)}
-                  />
-                </div>
-                <div
-                  style={{ width: "10%", borderRight: "1px solid #dee2e6" }}
-                  className="px-1"
-                >
-                  <Form.Control
-                    className="paper-input w-100 text-center"
-                    value={row.unit}
-                    onChange={(e) => handleChange(idx, "unit", e.target.value)}
-                  />
-                </div>
-                <div
-                  style={{ width: "10%", borderRight: "1px solid #dee2e6" }}
-                  className="px-1"
-                >
-                  <Form.Control
-                    type="number"
-                    className="paper-input w-100 text-end"
-                    value={row.unit_price}
-                    onChange={(e) =>
-                      handleChange(idx, "unit_price", e.target.value)
-                    }
-                  />
-                </div>
-                <div
-                  style={{ width: "10%" }}
-                  className="d-flex align-items-start pt-1 justify-content-end pe-2 fw-bold"
-                >
-                  {row.qty && row.unit_price
-                    ? (row.qty * row.unit_price).toFixed(2)
-                    : ""}
-                </div>
-              </div>
-            ))}
-
-            {/* Spacer */}
-            <div className="flex-grow-1 border-top border-dark"></div>
-
-            {/* Footer Summary */}
-            <div
-              className="d-flex small border-top border-dark"
-              style={{ height: 100 }}
-            >
-              <div className="col-8 border-end border-dark p-2 d-flex flex-column justify-content-between">
-                <div>
-                  <strong>Note:</strong> <br />- Deposit{" "}
-                  {defaultSummary.deposit}% <br />- Bank:{" "}
-                  {defaultSummary.bank_account_name} (
-                  {defaultSummary.bank_account_number})
-                </div>
-                <div
-                  className="text-muted fst-italic"
-                  style={{ fontSize: "0.65rem" }}
-                >
-                  * This document is computer generated.
-                </div>
-              </div>
-              <div className="col-4">
-                {[
-                  { l: "Sub Total", v: subTotal },
-                  {
-                    l: `Discount (${defaultSummary.discount}%)`,
-                    v: totalDiscount,
-                  },
-                  { l: `VAT (${defaultSummary.vat}%)`, v: totalVat },
-                ].map((item, i) => (
-                  <div
-                    key={i}
-                    className="d-flex justify-content-between px-2 py-1 border-bottom border-secondary"
-                  >
-                    <span>{item.l}</span>
-                    <span className="fw-bold">{item.v.toFixed(2)}</span>
+              {/* Summary Bottom */}
+              <div className="d-flex justify-content-end mt-3">
+                <div style={{ width: "300px" }} className="bg-light p-3 rounded-4">
+                  <div className="d-flex justify-content-between mb-2 small">
+                    <span className="text-muted fw-bold">รวมเป็นเงิน</span>
+                    <span className="fw-bold">{subTotal.toFixed(2)}</span>
                   </div>
-                ))}
-                <div className="d-flex justify-content-between px-2 py-2 bg-secondary bg-opacity-10 fw-bold">
-                  <span>Grand Total</span>
-                  <span className="text-primary fs-6">
-                    {grandTotal.toFixed(2)}
-                  </span>
+                  <div className="d-flex justify-content-between mb-2 small align-items-center">
+                    <span className="text-muted fw-bold">ส่วนลด</span>
+                    <Form.Control
+                      type="number"
+                      size="sm"
+                      className="text-end"
+                      style={{ width: "100px" }}
+                      value={defaultSummary.discount}
+                      onChange={(e) =>
+                        setDefaultSummary({ ...defaultSummary, discount: e.target.value })
+                      }
+                    />
+                  </div>
+                  <div className="d-flex justify-content-between mb-2 small">
+                    <span className="text-muted fw-bold">ราคาหลังหักส่วนลด</span>
+                    <span className="fw-bold">{totalAfterDiscount.toFixed(2)}</span>
+                  </div>
+                  <div className="d-flex justify-content-between mb-2 small align-items-center">
+                    <span className="text-muted fw-bold">VAT %</span>
+                    <Form.Control
+                      type="number"
+                      size="sm"
+                      className="text-end"
+                      style={{ width: "60px" }}
+                      value={defaultSummary.vat}
+                      onChange={(e) =>
+                        setDefaultSummary({ ...defaultSummary, vat: e.target.value })
+                      }
+                    />
+                  </div>
+                  <hr className="my-2" />
+                  <div className="d-flex justify-content-between">
+                    <span className="fw-bold text-dark">จำนวนเงินรวมทั้งสิ้น</span>
+                    <span className="fw-bold text-success fs-5">{grandTotal.toFixed(2)}</span>
+                  </div>
                 </div>
               </div>
-            </div>
-          </div>
+            </Card.Body>
+          </Card>
+        </Col>
+      </Row>
 
-          {/* --- Signatures --- */}
-          <div className="d-flex justify-content-between small text-center mt-auto border border-dark">
-            {[
-              "Customer Acceptance",
-              "Sales Person",
-              "Authorized Signature",
-            ].map((role, idx) => (
-              <div
-                key={idx}
-                className="col-4 border-end border-dark p-2 d-flex flex-column justify-content-end"
-                style={{
-                  height: 100,
-                  borderRight: idx === 2 ? "none" : "1px solid #000",
-                }}
-              >
-                <div
-                  className="border-bottom border-dark mb-1 mx-3"
-                  style={{
-                    height: 40,
-                    display: "flex",
-                    alignItems: "flex-end",
-                    justifyContent: "center",
-                  }}
-                >
-                  {/* Placeholder logic for images */}
-                  {idx !== 0 &&
-                    defaultSelected?.[
-                      idx === 1 ? "sales_person" : "sales_manager"
-                    ] && (
-                      <img
-                        src={
-                          defaultSelected[
-                            idx === 1 ? "sales_person" : "sales_manager"
-                          ]
-                        }
-                        style={{ height: 35, objectFit: "contain" }}
-                        alt="sign"
-                      />
-                    )}
-                </div>
-                <div className="fw-bold">{role}</div>
-                <div className="small text-muted">Date: {today}</div>
-              </div>
-            ))}
+      {/* Hidden element for PDF rendering */}
+      <div style={{ position: 'absolute', left: '-9999px', top: '-9999px' }}>
+          <div ref={componentRef}>
+              <FullTaxInvoiceA4
+                  order={mappedOrder}
+                  companyInfo={invoiceCompanyInfo}
+                  isQuotation={true}
+                  isAdmin={userInfo?.isAdmin}
+                  docType="quotation"
+                  printMode="full"
+              />
           </div>
-        </div>
       </div>
 
-      {/* Row Config (Desktop Only) */}
-      <div className="fixed-bottom p-3 d-flex justify-content-end pe-5 pb-5 d-none d-md-flex pointer-events-none">
-        <Card className="shadow border-0" style={{ pointerEvents: "auto" }}>
-          <Card.Body className="py-2 px-3 d-flex align-items-center gap-2">
-            <small className="fw-bold">Rows:</small>
-            <Form.Select
-              size="sm"
-              value={numRows}
-              onChange={(e) => {
-                setNumRows(Number(e.target.value));
-                setRows((prev) =>
-                  Array.from(
-                    { length: Number(e.target.value) },
-                    (_, i) =>
-                      prev[i] || {
-                        product_id: "",
-                        description: "",
-                        qty: 0,
-                        unit: "",
-                        unit_price: 0,
-                      },
-                  ),
-                );
-              }}
-              style={{ width: 70 }}
-            >
-              {[10, 15, 20, 25].map((n) => (
-                <option key={n} value={n}>
-                  {n}
-                </option>
-              ))}
-            </Form.Select>
-          </Card.Body>
-        </Card>
-      </div>
+      {/* Preview Modal */}
+      <Modal show={showPreview} onHide={() => setShowPreview(false)} size="xl" centered>
+        <Modal.Header closeButton className="bg-light border-0">
+          <Modal.Title className="fw-bold text-primary">
+            <FaEye className="me-2" />
+            Live Preview
+          </Modal.Title>
+        </Modal.Header>
+        <Modal.Body className="p-0 bg-secondary overflow-auto d-flex justify-content-center" style={{ maxHeight: "80vh" }}>
+           <div className="my-4 shadow-lg">
+             <FullTaxInvoiceA4
+                order={mappedOrder}
+                companyInfo={invoiceCompanyInfo}
+                isQuotation={true}
+                isAdmin={userInfo?.isAdmin}
+                docType="quotation"
+             />
+           </div>
+        </Modal.Body>
+        <Modal.Footer className="bg-light border-0">
+          <Button variant="secondary" onClick={() => setShowPreview(false)}>
+            Close
+          </Button>
+          <Button variant="primary" onClick={() => { setShowPreview(false); setShowConfirm(true); }}>
+            Update Quotation
+          </Button>
+        </Modal.Footer>
+      </Modal>
 
+      {/* Confirm Modal */}
       <Modal show={showConfirm} onHide={() => setShowConfirm(false)} centered>
         <Modal.Header closeButton>
           <Modal.Title className="fw-bold text-primary">
@@ -744,8 +617,7 @@ const QuotationEditScreen = () => {
           </Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          Are you sure you want to update this quotation? This will regenerate
-          the PDF.
+          Are you sure you want to update this quotation? This will regenerate the PDF.
         </Modal.Body>
         <Modal.Footer>
           <Button variant="light" onClick={() => setShowConfirm(false)}>
@@ -756,46 +628,6 @@ const QuotationEditScreen = () => {
           </Button>
         </Modal.Footer>
       </Modal>
-
-      <style dangerouslySetInnerHTML={{ __html: `
-        .font-prompt { font-family: 'Prompt', sans-serif; }
-        .paper-container {
-            width: 210mm;
-            min-height: 297mm;
-            padding: 15mm;
-            box-sizing: border-box;
-            background: white;
-            display: flex;
-            flex-direction: column;
-            margin-bottom: 2rem;
-        }
-        .paper-label { font-weight: bold; font-size: 12px; width: 70px; white-space: nowrap; }
-        .paper-label-sm { font-weight: bold; font-size: 12px; width: 60px; white-space: nowrap; }
-
-        .paper-input {
-            border: none;
-            border-bottom: 1px dashed #ccc;
-            border-radius: 0;
-            padding: 0 2px;
-            font-size: 12px;
-            background: transparent;
-            box-shadow: none !important;
-            min-height: 20px;
-        }
-        .paper-input:focus {
-            background: #f8f9fa;
-            border-bottom: 1px solid #0d6efd;
-        }
-        .paper-text { font-size: 12px; }
-
-        @media (max-width: 768px) {
-            /* Mobile tweaks */
-            .paper-container {
-               /* Allow horizontal scroll on parent, keep size fixed here */
-               min-width: 210mm;
-            }
-        }
-      ` }} />
     </Container>
   );
 };

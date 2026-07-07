@@ -25,23 +25,30 @@ import {
   FaCheck,
   FaRegStickyNote,
   FaMicrochip,
+  FaUser,
+  FaUserCheck,
 } from "react-icons/fa";
 import { useGetStockIssueQuery } from "../../../slices/stockIssueApiSlice";
 import Loader from "../../../components/Loader";
 import Message from "../../../components/Message";
 import { useNavigate } from "react-router-dom";
 
-// Utility: Format Date
 const formatDate = (dateString) => {
   if (!dateString) return "-";
-  const options = {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  };
-  return new Date(dateString).toLocaleDateString("en-GB", options);
+  // The backend already returns DD-MM-YYYY, so we just return it
+  // Or we can parse it if we want custom formatting, but let's just remove the time part
+  const [day, month, year] = dateString.split("-");
+  if (day && month && year) {
+    const date = new Date(`${year}-${month}-${day}`);
+    if (!isNaN(date)) {
+      return date.toLocaleDateString("en-GB", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+      });
+    }
+  }
+  return dateString;
 };
 
 const StockIssueDashboardScreen = () => {
@@ -196,25 +203,31 @@ const StockIssueDashboardScreen = () => {
               >
                 <tr>
                   <th
-                    style={{ width: "35%" }}
+                    style={{ width: "23%" }}
                     className="px-4 py-3 border-bottom-2 text-start"
                   >
                     ข้อมูลพัสดุ
                   </th>
                   <th
-                    style={{ width: "25%" }}
+                    style={{ width: "22%" }}
                     className="py-3 border-bottom-2 text-start"
                   >
                     เลขที่เบิกและหมายเหตุ
                   </th>
                   <th
-                    style={{ width: "15%" }}
-                    className="text-center py-3 border-bottom-2"
+                    style={{ width: "20%" }}
+                    className="py-3 border-bottom-2 text-start"
                   >
-                    จำนวน (เบิก/ขอ)
+                    ผู้เกี่ยวข้อง
                   </th>
                   <th
-                    style={{ width: "15%" }}
+                    style={{ width: "13%" }}
+                    className="text-center py-3 border-bottom-2"
+                  >
+                    จำนวน
+                  </th>
+                  <th
+                    style={{ width: "12%" }}
                     className="text-center py-3 border-bottom-2"
                   >
                     สถานะ
@@ -223,7 +236,7 @@ const StockIssueDashboardScreen = () => {
                     style={{ width: "10%" }}
                     className="text-end px-4 py-3 border-bottom-2"
                   >
-                    เครื่องมือ
+                    จัดการ
                   </th>
                 </tr>
               </thead>
@@ -288,37 +301,51 @@ const StockIssueDashboardScreen = () => {
                         </div>
                       </td>
 
-                      <td className="py-3 text-start">
-                        <div className="d-flex flex-column text-truncate">
+                      <td className="py-3 text-start" style={{ minWidth: 0 }}>
+                        <div className="d-flex flex-column gap-1" style={{ minWidth: 0 }}>
                           <span
-                            className="fw-bold text-dark font-monospace text-truncate"
+                            className="fw-bold text-dark font-monospace bg-light border px-2 py-1 rounded-2 text-truncate d-inline-block"
                             title={p.issueno}
+                            style={{ maxWidth: "100%", fontSize: "0.8rem" }}
                           >
                             {p.issueno}
                           </span>
-                          <div className="d-flex align-items-center gap-2 mb-1">
-                            <small className="text-muted d-flex align-items-center gap-1 text-truncate">
-                              <FaCalendarAlt
-                                size={10}
-                                className="flex-shrink-0"
-                              />{" "}
-                              {formatDate(p.issuedate)}
-                            </small>
+                          <div className="text-muted small mt-1 d-flex align-items-center gap-1 text-truncate">
+                            <FaCalendarAlt size={11} className="text-secondary opacity-75 flex-shrink-0" />
+                            <span className="text-truncate">{formatDate(p.issuedate)} <span className="opacity-75">{p.issuetime}</span></span>
                           </div>
                           {p.note && (
                             <div
-                              className="text-muted text-truncate"
-                              style={{
-                                fontSize: "0.75rem",
-                                fontStyle: "normal",
-                              }}
+                              className="mt-2 text-muted px-2 py-1 bg-warning bg-opacity-10 border-start border-warning border-3 rounded-end text-truncate"
+                              style={{ fontSize: "0.75rem" }}
+                              title={p.note}
                             >
-                              <span className="fw-bold text-secondary">
-                                Note:
-                              </span>{" "}
                               {p.note}
                             </div>
                           )}
+                        </div>
+                      </td>
+
+                      <td className="py-3">
+                        <div className="d-flex flex-column gap-2">
+                          <div className="d-flex align-items-center gap-2">
+                            <div className="bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style={{ width: '26px', height: '26px' }}>
+                              <FaUser size={10} />
+                            </div>
+                            <div className="text-truncate">
+                              <div className="text-muted" style={{ fontSize: '9px', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '-2px' }}>Requested By</div>
+                              <div className="fw-bold text-dark" style={{ fontSize: '13px' }}>{p.reciever || p.username || 'Unknown'}</div>
+                            </div>
+                          </div>
+                          <div className="d-flex align-items-center gap-2">
+                            <div className="bg-success bg-opacity-10 text-success rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style={{ width: '26px', height: '26px' }}>
+                              <FaUserCheck size={11} />
+                            </div>
+                            <div className="text-truncate">
+                              <div className="text-muted" style={{ fontSize: '9px', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '-2px' }}>Approved By</div>
+                              <div className="fw-bold text-dark" style={{ fontSize: '13px' }}>{p.issueBy || 'System'}</div>
+                            </div>
+                          </div>
                         </div>
                       </td>
 
@@ -395,7 +422,7 @@ const StockIssueDashboardScreen = () => {
                           {p.issueno}
                         </Badge>
                         <div className="text-muted small d-flex align-items-center gap-1">
-                          <FaCalendarAlt size={10} /> {formatDate(p.issuedate)}
+                          <FaCalendarAlt size={10} /> {formatDate(p.issuedate)} {p.issuetime}
                         </div>
                       </div>
                       {isComplete ? (
@@ -449,6 +476,26 @@ const StockIssueDashboardScreen = () => {
                     </div>
 
                     <div className="d-flex justify-content-between align-items-center mb-3">
+                      <div className="d-flex flex-column gap-2">
+                        <div className="d-flex align-items-center gap-2">
+                          <div className="bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style={{ width: '24px', height: '24px' }}>
+                            <FaUser size={10} />
+                          </div>
+                          <div className="text-truncate">
+                            <div className="text-muted" style={{ fontSize: '9px', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '-2px' }}>Requested By</div>
+                            <div className="fw-bold text-dark" style={{ fontSize: '12px' }}>{p.reciever || p.username || 'Unknown'}</div>
+                          </div>
+                        </div>
+                        <div className="d-flex align-items-center gap-2">
+                          <div className="bg-success bg-opacity-10 text-success rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style={{ width: '24px', height: '24px' }}>
+                            <FaUserCheck size={11} />
+                          </div>
+                          <div className="text-truncate">
+                            <div className="text-muted" style={{ fontSize: '9px', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '-2px' }}>Approved By</div>
+                            <div className="fw-bold text-dark" style={{ fontSize: '12px' }}>{p.issueBy || 'System'}</div>
+                          </div>
+                        </div>
+                      </div>
                       <div className="d-flex align-items-center bg-white border px-3 py-1 rounded-pill">
                         <span className="text-muted small me-2">Qty:</span>
                         <strong

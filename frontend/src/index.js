@@ -126,7 +126,7 @@ import OrderassemblyPaymentScreen from './screens/OrderAssembly/OrderassemblyPay
 
 // --- Quotation & Stock Imports ---
 import QuotationSetScreen from './screens/Quotation/QuotationSetScreen'
-import StockProductDashboardScreen from './screens/Stocks/StockProduct/StockProductDashboardScreen'
+
 import StockProductEditListScreen from './screens/Stocks/StockProduct/StockProductEditListScreen'
 import StockProductSetScreen from './screens/Stocks/StockProduct/StockProductSetScreen'
 import StockProductDetailScreen from './screens/Stocks/StockProduct/StockProductDetailScreen'
@@ -148,9 +148,10 @@ import DefaultInvoiceListEditScreen from './screens/DefaultInvoices/DefaultInvoi
 import DefaultInvoiceEditScreen from './screens/DefaultInvoices/DefaultInvoiceEditScreen'
 import DefaultInvoiceSetScreen from './screens/DefaultInvoices/DefaultInvoiceSetScreen'
 import InvoiceSetScreen from './screens/Invoices/InvoiceSetScreen'
-import InvoiceListEditScreen from './screens/Invoices/InvoiceListEditScreen'
+
 import InvoiceEditScreen from './screens/Invoices/InvoiceEditScreen'
 import InvoiceDetailScreen from './screens/Invoices/InvoiceDetailScreen'
+import InvoiceSetSelectedCustomerScreen from './screens/Invoices/InvoiceSetSelectedCustomerScreen'
 import StockAddProductListScreen from './screens/Stocks/StockProduct/StockAddProductListScreen'
 import StockAdditionCartScreen from './screens/Stocks/StockProduct/StockAdditionCartScreen'
 import StockRequestImportanceScreen from './screens/Stocks/StockProduct/StockRequestImportanceScreen'
@@ -175,7 +176,7 @@ import QuotationDefaultEditScreen from './screens/Quotation/QuotationDefaultEdit
 import QuotationDefaultSetScreen from './screens/Quotation/QuotationDefaultSetScreen'
 import QuotationEditScreen from './screens/Quotation/QuotationEditScreen'
 import QuotationDetailScreen from './screens/Quotation/QuotationDetailScreen'
-import QuotationListScreen from './screens/Quotation/QuotationListScreen'
+
 import CustomerSetScreen from './screens/Customers/CustomerSetScreen'
 import CustomerEditScreen from './screens/Customers/CustomerEditScreen'
 import CustomerDetailScreen from './screens/Customers/CustomerDetailScreen'
@@ -197,12 +198,20 @@ import ReorderPCBAdminCreateCustomPCBScreen from './screens/PCBAdmin/ReorderPCBA
 import ReorderPCBAdminCreateAssemblyPCBScreen from './screens/PCBAdmin/ReorderPCBAdminCreateAssemblyPCBScreen'
 import ReorderPCBAdminCreateCopyPCBScreen from './screens/PCBAdmin/ReorderPCBAdminCreateCopyPCBScreen'
 import AdminPaymentListScreen from './screens/admin/AdminPaymentListScreen'
+import ErrorBoundary from './components/ErrorBoundary'
+
+const StockProductDashboardScreen = React.lazy(() => import('./screens/Stocks/StockProduct/StockProductDashboardScreen'));
+const InvoiceListEditScreen = React.lazy(() => import('./screens/Invoices/InvoiceListEditScreen'));
+const QuotationListScreen = React.lazy(() => import('./screens/Quotation/QuotationListScreen'));
 
 window.Buffer = window.Buffer || Buffer
-
 const router = createBrowserRouter(
   createRoutesFromElements(
-    <Route path='/' element={<App />}>
+    <Route path='/' element={
+      <ErrorBoundary>
+        <App />
+      </ErrorBoundary>
+    }>
       {/* Routes without Container */}
       <Route element={<NoContainerLayout />}>
         <Route index={true} path='/' element={<HomeScreen />} />
@@ -594,6 +603,10 @@ const router = createBrowserRouter(
           <Route
             path='/admin/customers/selectedcustomer/:id/set'
             element={<QuotationSetSelectedCustomerScreen />}
+          />
+          <Route
+            path='/admin/customers/selectedcustomer/:id/setinvoice'
+            element={<InvoiceSetSelectedCustomerScreen />}
           />
           <Route
             path='/admin/defaultquotations/set'

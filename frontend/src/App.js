@@ -1,8 +1,9 @@
-import { useEffect } from "react";
+import React, { Suspense, useEffect } from "react";
 import { useDispatch } from "react-redux";
 import { Outlet, useLocation } from "react-router-dom";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
+import Loader from "./components/Loader";
 import { logout } from "./slices/authSlice";
 
 import { ToastContainer } from "react-toastify";
@@ -44,7 +45,9 @@ const App = () => {
       {/* Main Layout */}
       <main className="min-h-screen bg-slate-50 dark:bg-black transition-colors duration-500">
         <div key={location.pathname} className="animate-pageFade w-full">
-          <Outlet />
+          <Suspense fallback={<div className="h-screen flex items-center justify-center"><Loader /></div>}>
+            <Outlet />
+          </Suspense>
         </div>
       </main>
 

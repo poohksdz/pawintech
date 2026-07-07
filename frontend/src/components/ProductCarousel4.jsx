@@ -9,7 +9,7 @@ const ProductCarousel4 = () => {
   const { pageNumber } = useParams();
   const navigate = useNavigate();
   const { userInfo } = useSelector((state) => state.auth);
-  const { data, isLoading, error } = useGetShowcasesQuery({ pageNumber }, { skip: !userInfo });
+  const { data, isLoading, error } = useGetShowcasesQuery({ pageNumber });
   const [activeIndex, setActiveIndex] = useState(0);
 
   const handleNavigateLinkChange = (navigateLink) => {

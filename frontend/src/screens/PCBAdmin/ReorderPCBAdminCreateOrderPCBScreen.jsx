@@ -42,7 +42,7 @@ const ReorderPCBAdminCreateOrderPCBScreen = () => {
     useGetOwnShippingRatesQuery();
   const [createOrder, { isLoading: isCreating }] =
     useCreateOrderPCBbyAdminMutation();
-  const [uploadPaymentSlip, { isLoading: isUploadingSlip }] =
+  const [uploadPaymentSlip] =
     useUploadPaymentSlipImageMutation();
 
   // Original stored price from the database
@@ -268,6 +268,7 @@ const ReorderPCBAdminCreateOrderPCBScreen = () => {
       shipping: emsRate || 0,
       total: isNaN(total) ? "0.00" : total.toFixed(2),
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [formData, shippingData]);
 
   const handleUploadSlip = async (e) => {

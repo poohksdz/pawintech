@@ -69,13 +69,38 @@ export const invoicesApiSlice = apiSlice.injectEndpoints({
       invalidatesTags: ["Invoices"], // Refresh invoice list after deletion
     }),
 
-    // Delete an invoice
+    // Delete an invoice by invoiceId
     deleteInvoiceByInvoiceId: builder.mutation({
       query: (invoiceId) => ({
         url: `${INVOICES_URL}/invoice_id/${invoiceId}`,
         method: "DELETE",
       }),
       invalidatesTags: ["Invoices"],
+    }),
+
+    // Get next invoice number
+    getNextInvoiceNumber: builder.query({
+      query: () => `${INVOICES_URL}/next-number`,
+      keepUnusedDataFor: 5,
+    }),
+
+    // Update invoice by invoice_no
+    updateInvoiceByInvoiceNo: builder.mutation({
+      query: ({ id, ...data }) => ({
+        url: `${INVOICES_URL}/invoice_no/${id}`,
+        method: "PUT",
+        body: data,
+      }),
+      invalidatesTags: ["Invoices"],
+    }),
+
+    // Upload Invoice PDF
+    uploadInvoicePDF: builder.mutation({
+      query: (formData) => ({
+        url: "/api/invoices/upload/upload-pdf",
+        method: "POST",
+        body: formData,
+      }),
     }),
   }),
 });
@@ -90,4 +115,7 @@ export const {
   useUpdateInvoiceMutation,
   useDeleteInvoiceMutation,
   useDeleteInvoiceByInvoiceIdMutation,
+  useGetNextInvoiceNumberQuery,
+  useUpdateInvoiceByInvoiceNoMutation,
+  useUploadInvoicePDFMutation,
 } = invoicesApiSlice;

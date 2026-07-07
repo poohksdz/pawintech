@@ -19,7 +19,7 @@ import {
   FaCopy,
   FaStore,
   FaMicrochip,
-  FaIdCard,
+  
   FaCog,
   FaReceipt,
   FaFileInvoice,
@@ -420,7 +420,7 @@ const ProfileScreen = () => {
                                       {order.quotation_no && (
                                         <a
                                           href={`/${order.quotation_no}`}
-                                          target="_blank"
+                                          target="_blank" rel="noreferrer"
                                           onClick={(e) => e.stopPropagation()}
                                           className="p-1 px-2 text-slate-500 hover:bg-slate-100 rounded-lg transition-all border border-slate-200 flex items-center gap-1.5"
                                           title="ดูใบเสนอราคา"

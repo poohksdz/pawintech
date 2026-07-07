@@ -102,6 +102,12 @@ export const quotationApiSlice = apiSlice.injectEndpoints({
       invalidatesTags: ["Quotations"],
     }),
 
+    // Fetch next quotation number
+    getNextQuotationNumber: builder.query({
+      query: () => `${QUOTATION_URL}/next-number`,
+      keepUnusedDataFor: 5,
+    }),
+
     uploadQuotationImage: builder.mutation({
       query: (formData) => ({
         url: "/api/quotations/upload/upload-image",
@@ -123,6 +129,7 @@ export const quotationApiSlice = apiSlice.injectEndpoints({
 export const {
   useGetQuotationsQuery,
   useGetQuotationDetailsQuery,
+  useGetNextQuotationNumberQuery,
   useGetQuotationByQuotationNoQuery,
   useGetQuotationUserIdQuery,
   useCreateQuotationMutation,

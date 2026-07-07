@@ -1,6 +1,9 @@
 import { format, isValid } from "date-fns";
 
+import React from 'react';
+
 const FullTaxInvoiceA4 = ({ order, companyInfo, printMode, isQuotation = false, isAdmin = false, docType, slotSignatures }) => {
+    const [showTerms, setShowTerms] = React.useState(true);
     const defaultOrder = {
         id: "",
         paymentComfirmID: "",
@@ -182,15 +185,15 @@ const FullTaxInvoiceA4 = ({ order, companyInfo, printMode, isQuotation = false, 
                     <div className="grid grid-cols-12 gap-4 mb-4 items-start">
                         <div className="col-span-8 space-y-4">
                             <div className="flex items-start">
-                                <span className="shrink-0 w-[80px] font-bold text-gray-500 uppercase tracking-tighter">นามลูกค้า</span>
+                                <span className="shrink-0 w-[80px] font-bold text-black uppercase tracking-tighter">นามลูกค้า</span>
                                 <div className="flex-1 border-b border-dotted border-gray-400 pb-1">
-                                    <span className="text-blue-600 font-black text-[13px]">{billing.billingName || "\u00A0"}</span>
+                                    <span className="text-black font-black text-[13px]">{billing.billingName || "\u00A0"}</span>
                                 </div>
                             </div>
                             <div className="flex items-start">
-                                <span className="shrink-0 w-[80px] font-bold text-gray-500 uppercase tracking-tighter">ที่อยู่</span>
+                                <span className="shrink-0 w-[80px] font-bold text-black uppercase tracking-tighter">ที่อยู่</span>
                                 <div className="flex-1 border-b border-dotted border-gray-400 pb-1">
-                                    <span className="text-blue-600 font-bold leading-relaxed">
+                                    <span className="text-black font-bold leading-relaxed">
                                         {billing.billinggAddress || "\u00A0"}{" "}
                                         {billing.billingCity || ""}{" "}
                                         {billing.billingPostalCode || ""}
@@ -199,24 +202,24 @@ const FullTaxInvoiceA4 = ({ order, companyInfo, printMode, isQuotation = false, 
                             </div>
                             <div className="flex items-center gap-6">
                                 <div className="flex items-center flex-1">
-                                    <span className="shrink-0 mr-3 font-bold text-gray-500 uppercase tracking-tighter">เลขประจำตัวผู้เสียภาษี</span>
+                                    <span className="shrink-0 mr-3 font-bold text-black uppercase tracking-tighter">เลขประจำตัวผู้เสียภาษี</span>
                                     <div className="flex-1 border-b border-dotted border-gray-400 pb-1 flex justify-center">
-                                        <span className="text-blue-600 font-black tracking-[0.2em]">{billing.tax || "\u00A0"}</span>
+                                        <span className="text-black font-black tracking-[0.2em]">{billing.tax || "\u00A0"}</span>
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-4">
                                     <div className="flex items-center gap-2">
                                         <div className="w-4 h-4 border-2 border-black flex items-center justify-center rounded-sm bg-transparent">
-                                            {(billing.branch === "สำนักงานใหญ่" || (!billing.branch && currentOrder.id)) && <span className="text-black text-[14px] font-black leading-none -mt-[2px] ml-[1px]">✓</span>}
+                                            {(billing.branch === "สำนักงานใหญ่" || (!billing.branch && currentOrder.id)) && billing.branch !== "ไม่ระบุ" && <span className="text-black text-[14px] font-black leading-none -mt-[2px] ml-[1px]">✓</span>}
                                         </div>
                                         <span className="font-bold text-[10px]">สำนักงานใหญ่</span>
                                     </div>
                                     <div className="flex items-center gap-2">
                                         <div className="w-4 h-4 border-2 border-black flex items-center justify-center rounded-sm bg-transparent">
-                                            {billing.branch && billing.branch !== "สำนักงานใหญ่" && <span className="text-black text-[14px] font-black leading-none -mt-[2px] ml-[1px]">✓</span>}
+                                            {billing.branch && billing.branch !== "สำนักงานใหญ่" && billing.branch !== "ไม่ระบุ" && <span className="text-black text-[14px] font-black leading-none -mt-[2px] ml-[1px]">✓</span>}
                                         </div>
                                         <span className="font-bold text-[10px]">สาขาที่</span>
-                                        <span className="min-w-[40px] border-b border-black text-center text-blue-600 font-black ml-1 leading-none">{billing.branch && billing.branch !== "สำนักงานใหญ่" ? billing.branch : "...."}</span>
+                                        <span className="min-w-[40px] border-b border-black text-center text-black font-black ml-1 leading-none">{billing.branch && billing.branch !== "สำนักงานใหญ่" && billing.branch !== "ไม่ระบุ" ? billing.branch : "...."}</span>
                                     </div>
                                 </div>
                             </div>
@@ -224,15 +227,15 @@ const FullTaxInvoiceA4 = ({ order, companyInfo, printMode, isQuotation = false, 
                         <div className="col-span-4 pl-6 border-l border-gray-100 space-y-4">
                             <div className="space-y-3">
                                 <div className="flex flex-col">
-                                    <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">เลขที่ / No.</span>
+                                    <span className="text-[9px] font-black text-black uppercase tracking-widest mb-1">เลขที่ / No.</span>
                                     <div className="border-b-2 border-black pb-1">
-                                        <span className="text-blue-600 font-black text-sm tracking-tight">{currentOrder.paymentComfirmID || currentOrder.id || "\u00A0"}</span>
+                                        <span className="text-black font-black text-sm tracking-tight">{currentOrder.paymentComfirmID || currentOrder.id || "\u00A0"}</span>
                                     </div>
                                 </div>
                                 <div className="flex flex-col">
-                                    <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">วันที่ / Date</span>
+                                    <span className="text-[9px] font-black text-black uppercase tracking-widest mb-1">วันที่ / Date</span>
                                     <div className="border-b-2 border-black pb-1">
-                                        <span className="text-blue-600 font-black text-sm tracking-tight">{currentOrder.id ? formatDateThai(currentOrder.createdAt) : "\u00A0"}</span>
+                                        <span className="text-black font-black text-sm tracking-tight">{currentOrder.id ? formatDateThai(currentOrder.createdAt) : "\u00A0"}</span>
                                     </div>
                                 </div>
                             </div>
@@ -282,78 +285,99 @@ const FullTaxInvoiceA4 = ({ order, companyInfo, printMode, isQuotation = false, 
                     <div className="grid grid-cols-12 border border-black border-t-0">
                         <div className="col-span-7 p-3 border-r border-black flex flex-col justify-between bg-white">
                             <div>
-                                <div className="flex gap-2 items-start mb-4">
-                                    <span className="font-bold shrink-0 mr-2">ตัวอักษร:</span>
-                                    <span className="text-blue-600 font-bold border-b border-dotted border-gray-400 flex-1 text-center">
-                                        {grandTotal > 0 ? `(${thaiBahtText(grandTotal)})` : ""}
-                                    </span>
-                                </div>
+                                {pageDef.type === "quotation" || pageDef.type === "proforma" ? (
+                                    <div className="space-y-2 mt-2 text-[12px] text-black">
+                                        <p className="font-bold underline mb-3 text-[14px]">Note / Remark:</p>
+                                        <p className="pl-2">- Deposit 50%</p>
+                                        <p className="pl-2">- Bank: <span className="font-bold">บริษัท ภาวินท์เทคโนโลยี จำกัด</span></p>
+                                        <p className="pl-6">No: <span className="font-bold">ธนาคารกสิกรไทย เลขที่บัญชี 096-1-10526-7</span></p>
+                                    </div>
+                                ) : (
+                                    <>
+                                        <div className="flex gap-2 items-start mb-4">
+                                            <span className="font-bold shrink-0 mr-2">ตัวอักษร:</span>
+                                            <span className="text-black font-bold border-b border-dotted border-gray-400 flex-1 text-center">
+                                                {grandTotal > 0 ? `(${thaiBahtText(grandTotal)})` : ""}
+                                            </span>
+                                        </div>
+                                        <div className="space-y-2 mt-4 text-[9px]">
+                                        <div className="flex items-center gap-6">
+                                            <div className="flex items-center gap-2">
+                                                <span className="w-3 h-3 border border-black flex items-center justify-center text-[8px]"></span>
+                                                <span>เงินสด</span>
+                                            </div>
+                                            <div className="flex items-center gap-2 flex-1">
+                                                <span className="w-3 h-3 border border-black flex items-center justify-center text-[8px]"></span>
+                                                <span>เช็คธนาคาร</span>
+                                                <span className="border-b border-dotted border-black flex-1"></span>
+                                            </div>
+                                        </div>
 
-                                <div className="space-y-2 mt-4 text-[9px]">
-                                    <div className="flex items-center gap-6">
+                                        <div className="flex items-center gap-4">
+                                            <div className="flex items-center gap-2 flex-1">
+                                                <span className="w-3 h-3 border border-black flex items-center justify-center text-[8px]"></span>
+                                                <span>เงินโอนวันที่</span>
+                                                <span className="border-b border-dotted border-black flex-1 text-center text-black"></span>
+                                            </div>
+                                            <div className="flex items-center gap-2 flex-1">
+                                                <span>เลขที่</span>
+                                                <span className="border-b border-dotted border-black flex-1"></span>
+                                            </div>
+                                        </div>
+
                                         <div className="flex items-center gap-2">
-                                            <span className="w-3 h-3 border border-black flex items-center justify-center text-[8px]"></span>
-                                            <span>เงินสด</span>
-                                        </div>
-                                        <div className="flex items-center gap-2 flex-1">
-                                            <span className="w-3 h-3 border border-black flex items-center justify-center text-[8px]"></span>
-                                            <span>เช็คธนาคาร</span>
-                                            <span className="border-b border-dotted border-black flex-1"></span>
-                                        </div>
-                                    </div>
-
-                                    <div className="flex items-center gap-4">
-                                        <div className="flex items-center gap-2 flex-1">
-                                            <span className="w-3 h-3 border border-black flex items-center justify-center text-[8px]"></span>
-                                            <span>เงินโอนวันที่</span>
-                                            <span className="border-b border-dotted border-black flex-1 text-center text-blue-600"></span>
-                                        </div>
-                                        <div className="flex items-center gap-2 flex-1">
-                                            <span>เลขที่</span>
-                                            <span className="border-b border-dotted border-black flex-1"></span>
+                                            <span>จำนวนเงิน</span>
+                                            <span className="border-b border-dotted border-black w-24 text-center text-black font-bold">
+                                                {grandTotal > 0 ? grandTotal.toLocaleString(undefined, { minimumFractionDigits: 2 }) : ""}
+                                            </span>
+                                            <span>บาท</span>
+                                            <span className="ml-4 italic opacity-70">(BAHT)</span>
                                         </div>
                                     </div>
-
-                                    <div className="flex items-center gap-2">
-                                        <span>จำนวนเงิน</span>
-                                        <span className="border-b border-dotted border-black w-24 text-center text-blue-600 font-bold">
-                                            {grandTotal > 0 ? grandTotal.toLocaleString(undefined, { minimumFractionDigits: 2 }) : ""}
-                                        </span>
-                                        <span>บาท</span>
-                                        <span className="ml-4 italic opacity-70">(BAHT)</span>
-                                    </div>
-                                </div>
+                                    </>
+                                )}
                             </div>
                         </div>
 
                         <div className="col-span-5 text-[10px]">
                             <div className="flex justify-between border-b border-black p-2 h-9 items-center">
                                 <span className="font-bold leading-tight">มูลค่าสินค้าก่อนหักมัดจำ<br /><span className="text-[8px] opacity-70">TOTAL AMOUNT BEFORE DEPOSIT</span></span>
-                                <span className="text-right font-bold text-blue-600">{totalBeforeVat > 0 ? totalBeforeVat.toLocaleString(undefined, { minimumFractionDigits: 2 }) : ""}</span>
+                                <span className="text-right font-bold text-black">{totalBeforeVat > 0 ? totalBeforeVat.toLocaleString(undefined, { minimumFractionDigits: 2 }) : ""}</span>
                             </div>
                             <div className="flex justify-between border-b border-black p-2 h-10 items-center leading-tight">
                                 <span className="font-bold">หัก มัดจำ / DEPOSIT</span>
-                                <span className="text-right font-bold text-blue-600">{totalBeforeVat > 0 ? "0.00" : ""}</span>
+                                <span className="text-right font-bold text-black">{totalBeforeVat > 0 ? "0.00" : ""}</span>
                             </div>
                             <div className="flex justify-between border-b border-black p-2 h-9 items-center bg-gray-50/50">
                                 <span className="font-bold leading-tight">รวมมูลค่าสินค้า<br /><span className="text-[8px] opacity-70">TOTAL</span></span>
-                                <span className="text-right font-bold text-blue-600">{totalBeforeVat > 0 ? totalBeforeVat.toLocaleString(undefined, { minimumFractionDigits: 2 }) : ""}</span>
+                                <span className="text-right font-bold text-black">{totalBeforeVat > 0 ? totalBeforeVat.toLocaleString(undefined, { minimumFractionDigits: 2 }) : ""}</span>
                             </div>
                             <div className="flex justify-between border-b border-black p-2 h-10 items-center leading-tight">
                                 <span className="font-bold">ภาษีมูลค่าเพิ่ม / VAT 7%</span>
-                                <span className="text-right font-bold text-blue-600">{vat > 0 ? vat.toLocaleString(undefined, { minimumFractionDigits: 2 }) : ""}</span>
+                                <span className="text-right font-bold text-black">{vat > 0 ? vat.toLocaleString(undefined, { minimumFractionDigits: 2 }) : ""}</span>
                             </div>
                             <div className="flex justify-between p-2 bg-[#00A651]/5 h-10 items-center">
                                 <span className="font-black text-[12px] leading-tight">ยอดรวมสุทธิ<br /><span className="text-[9px] opacity-70">GRAND TOTAL</span></span>
-                                <span className="text-right font-black text-[15px] text-emerald-700">{grandTotal > 0 ? grandTotal.toLocaleString(undefined, { minimumFractionDigits: 2 }) : ""}</span>
+                                <span className="text-right font-black text-[15px] text-black">{grandTotal > 0 ? grandTotal.toLocaleString(undefined, { minimumFractionDigits: 2 }) : ""}</span>
                             </div>
                         </div>
                     </div>
 
-                    <div className="flex justify-between text-[8px] mt-2 italic px-2 opacity-60">
-                        <span>กรณีชำระด้วยเช็ค ใบเสร็จรับเงินนี้จะสมบูรณ์ต่อเมื่อบริษัทฯ ได้รับเงินแล้วเท่านั้น</span>
-                        <span>ใบเสร็จรับเงินนี้จะสมบูรณ์ต่อเมื่อบริษัทฯ ได้รับเงินครบถ้วนแล้ว</span>
+                    <div className="print:hidden text-center my-2">
+                        <button 
+                            onClick={() => setShowTerms(!showTerms)} 
+                            className="text-xs bg-gray-200 hover:bg-gray-300 text-gray-700 px-3 py-1 rounded shadow-sm transition-colors"
+                        >
+                            {showTerms ? "ซ่อนข้อกำหนด/เงื่อนไข (เพื่อพิมพ์)" : "แสดงข้อกำหนด/เงื่อนไข"}
+                        </button>
                     </div>
+
+                    {showTerms && (
+                        <div className="flex justify-between text-[8px] mt-2 italic px-2 opacity-60">
+                            <span>กรณีชำระด้วยเช็ค ใบเสร็จรับเงินนี้จะสมบูรณ์ต่อเมื่อบริษัทฯ ได้รับเงินแล้วเท่านั้น</span>
+                            <span>ใบเสร็จรับเงินนี้จะสมบูรณ์ต่อเมื่อบริษัทฯ ได้รับเงินครบถ้วนแล้ว</span>
+                        </div>
+                    )}
 
                     {pageDef.type === "quotation" ? (
                         <div className="grid grid-cols-3 mt-4 h-32 text-[9px] gap-4">
@@ -407,13 +431,13 @@ const FullTaxInvoiceA4 = ({ order, companyInfo, printMode, isQuotation = false, 
                             </div>
                         </div>
                     ) : (
-                        <div className="grid grid-cols-4 mt-4 h-24 text-[9px] gap-0">
+                        <div className="grid grid-cols-4 mt-4 h-32 text-[9px] gap-0">
                             <div className="border border-black flex flex-col items-center p-2 text-center relative h-full">
                                 <div className="flex-1 flex items-center justify-center w-full">
                                     {slotSignatures?.buyer ? (
-                                        <img src={slotSignatures.buyer} alt="Buyer Signature" className="max-h-12 object-contain" />
+                                        <img src={slotSignatures.buyer} alt="Buyer Signature" className="max-h-16 object-contain" />
                                     ) : (
-                                        <div className="h-8"></div>
+                                        <div className="h-12"></div>
                                     )}
                                 </div>
                                 <div className="w-[85%] border-t border-dotted border-black pt-1">
@@ -424,9 +448,9 @@ const FullTaxInvoiceA4 = ({ order, companyInfo, printMode, isQuotation = false, 
                             <div className="border-y border-r border-black flex flex-col items-center p-2 text-center relative h-full">
                                 <div className="flex-1 flex items-center justify-center w-full">
                                     {slotSignatures?.cashier ? (
-                                        <img src={slotSignatures.cashier} alt="Cashier Signature" className="max-h-12 object-contain" />
+                                        <img src={slotSignatures.cashier} alt="Cashier Signature" className="max-h-16 object-contain" />
                                     ) : (
-                                        <div className="h-8"></div>
+                                        <div className="h-12"></div>
                                     )}
                                 </div>
                                 <div className="w-[85%] border-t border-dotted border-black pt-1">
@@ -438,9 +462,9 @@ const FullTaxInvoiceA4 = ({ order, companyInfo, printMode, isQuotation = false, 
                                 <p className="leading-tight m-0 font-black text-[10px] uppercase px-1">ในนาม {companyNameEN}</p>
                                 <div className="flex-1 flex items-center justify-center w-full">
                                     {slotSignatures?.manager ? (
-                                        <img src={slotSignatures.manager} alt="Manager Signature" className="max-h-12 object-contain" />
+                                        <img src={slotSignatures.manager} alt="Manager Signature" className="max-h-16 object-contain" />
                                     ) : (
-                                        <div className="h-6"></div>
+                                        <div className="h-10"></div>
                                     )}
                                 </div>
                                 <div className="w-[85%] border-t border-dotted border-black pt-1">
@@ -450,9 +474,9 @@ const FullTaxInvoiceA4 = ({ order, companyInfo, printMode, isQuotation = false, 
                             <div className="border-y border-r border-black flex flex-col items-center p-2 text-center relative h-full">
                                 <div className="flex-1 flex items-center justify-center w-full">
                                     {slotSignatures?.sender ? (
-                                        <img src={slotSignatures.sender} alt="Sender Signature" className="max-h-12 object-contain" />
+                                        <img src={slotSignatures.sender} alt="Sender Signature" className="max-h-16 object-contain" />
                                     ) : (
-                                        <div className="h-8"></div>
+                                        <div className="h-12"></div>
                                     )}
                                 </div>
                                 <div className="w-[85%] border-t border-dotted border-black pt-1">

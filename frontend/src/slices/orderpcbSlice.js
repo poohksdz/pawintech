@@ -54,13 +54,13 @@ export const orderpcbApiSlice = apiSlice.injectEndpoints({
     //   }),
     // }),
 
-    // With this corrected and clearly named one:
-    updateShippingRates: builder.mutation({
+    updateOrderPCBShippingRates: builder.mutation({
       query: (rateData) => ({
         url: `${ORDERPCBS_URL}/shippingrates`,
         method: "PUT",
         body: rateData,
       }),
+      invalidatesTags: ["PCBConfig"],
     }),
 
     updateDeliveryPCBOrder: builder.mutation({
@@ -83,6 +83,7 @@ export const orderpcbApiSlice = apiSlice.injectEndpoints({
       query: () => ({
         url: `${ORDERPCBS_URL}/getownshippingrates`,
       }),
+      providesTags: ["PCBConfig"],
       keepUnusedDataFor: 5,
     }),
 
@@ -111,7 +112,7 @@ export const {
   useGetOrderPCBByIdQuery,
   useUpdateOrderPCBMutation,
   useDeleteOrderPCBMutation,
-  useUpdateShippingRatesMutation,
+  useUpdateOrderPCBShippingRatesMutation,
   useGetOwnShippingRatesQuery,
   useUpdateDeliveryPCBOrderMutation,
   useUpdatePCBManufactureingMutation,

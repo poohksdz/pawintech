@@ -10,9 +10,10 @@ import {
   FaFileInvoiceDollar,
   FaFilter,
   FaSync,
+  FaEye,
 } from "react-icons/fa";
 import { toast } from "react-toastify";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import Loader from "../../components/Loader";
 import Message from "../../components/Message";
 import {
@@ -24,6 +25,7 @@ import Modal from "../../components/ui/Modal";
 import Button from "../../components/ui/Button";
 
 const QuotationListScreen = () => {
+  const navigate = useNavigate();
   // --- API Hooks ---
   const { data, isLoading, isError, error, refetch } = useGetQuotationsQuery();
   const [deleteQuotationByQuotationNo, { isLoading: isDeleting }] =
@@ -347,7 +349,16 @@ const QuotationListScreen = () => {
 
                       {/* Actions */}
                       <td className="px-4 md:px-6 py-4">
-                        <div className="flex justify-center items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <div className="flex justify-center items-center gap-2 transition-opacity">
+                          <Link
+                            to={`/admin/quotations/${q.quotation_no}`}
+                            title="View Quotation"
+                          >
+                            <button className="w-9 h-9 flex items-center justify-center bg-teal-100 text-teal-700 hover:bg-teal-600 hover:text-white rounded-full transition-colors shadow-sm">
+                              <FaEye size={14} />
+                            </button>
+                          </Link>
+
                           <Link
                             to={`/admin/customers/selectedcustomer/${q.id}/set`}
                             title="Duplicate / Create New"
@@ -356,6 +367,14 @@ const QuotationListScreen = () => {
                               <FaPlus size={14} />
                             </button>
                           </Link>
+                          
+                          <button
+                            className="w-9 h-9 flex items-center justify-center bg-indigo-100 text-indigo-700 hover:bg-indigo-600 hover:text-white rounded-full transition-colors shadow-sm focus:outline-none"
+                            onClick={() => navigate('/admin/invoiceset', { state: { convertFromQuotationNo: q.quotation_no } })}
+                            title="Convert to Invoice"
+                          >
+                            <FaFileInvoiceDollar size={14} />
+                          </button>
 
                           <Link
                             to={`/admin/quotations/${q.quotation_no}/edit`}
@@ -443,12 +462,23 @@ const QuotationListScreen = () => {
                   </div>
 
                   <div className="flex gap-2">
+                    <button
+                        onClick={() => navigate('/admin/invoiceset', { state: { convertFromQuotationNo: q.quotation_no } })}
+                        className="flex-1 flex justify-center items-center gap-1.5 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-xl text-xs font-bold transition-colors border border-indigo-200"
+                    >
+                        <FaFileInvoiceDollar /> Convert to Invoice
+                    </button>
                     <Link
                       to={`/admin/customers/selectedcustomer/${q.id}/set`}
                       className="flex-1"
                     >
                       <button className="w-full flex justify-center items-center gap-1.5 py-2 bg-slate-50 hover:bg-slate-100 text-slate-700 rounded-xl text-xs font-bold transition-colors border border-slate-200">
                         <FaPlus /> Duplicate
+                      </button>
+                    </Link>
+                    <Link to={`/admin/quotations/${q.quotation_no}`}>
+                      <button className="w-10 h-10 flex justify-center items-center bg-teal-50 hover:bg-teal-100 text-teal-600 rounded-xl transition-colors">
+                        <FaEye size={16} />
                       </button>
                     </Link>
                     <Link to={`/admin/quotations/${q.quotation_no}/edit`}>

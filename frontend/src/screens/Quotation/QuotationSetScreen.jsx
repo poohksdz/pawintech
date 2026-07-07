@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars, react-hooks/exhaustive-deps */
 import React, { useState, useEffect, useRef } from "react";
 import {
   Button,
@@ -7,38 +8,48 @@ import {
   Form,
   Card,
   Container,
+  Table
 } from "react-bootstrap";
 import { useGetDefaultQuotationUsedQuery } from "../../slices/quotationDefaultApiSlice";
+import { useGetDefaultInvoiceUsedQuery } from "../../slices/defaultInvoicesApiSlice";
 import {
   useCreateQuotationMutation,
   useUpdateQuotationByQuotationNoMutation,
   useUploadQuotationPDFMutation,
+  useGetNextQuotationNumberQuery,
 } from "../../slices/quotationApiSlice";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 import Loader from "../../components/Loader";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
-import { FaFilePdf, FaSave, FaEye, FaArrowLeft } from "react-icons/fa";
+import { FaFilePdf, FaSave, FaEye, FaArrowLeft, FaPlus, FaTrash } from "react-icons/fa";
+import FullTaxInvoiceA4 from "../../components/FullTaxInvoiceA4";
+import { useSelector } from "react-redux";
 
 const QuotationSetSelectedCustomerScreen = () => {
   const componentRef = useRef();
   const navigate = useNavigate();
+  const { userInfo } = useSelector((state) => state.auth);
 
   // --- State ---
   const [showConfirm, setShowConfirm] = useState(false);
   const handleOpenConfirm = () => setShowConfirm(true);
   const handleCloseConfirm = () => setShowConfirm(false);
 
+  const [showPreview, setShowPreview] = useState(false);
+
   const [quotationNumber, setQuotationNumber] = useState("");
-  const [due_date, setdue_date] = useState("");
+  const [due_date] = useState("");
   const [submit_price_within, setsubmit_price_within] = useState("");
   const [number_of_credit_days, setnumber_of_credit_days] = useState("");
-  const [numRows, setNumRows] = useState(10);
 
   // --- API Hooks ---
   const { data: defaultData, isLoading } = useGetDefaultQuotationUsedQuery();
   const defaultSelected = defaultData?.quotations?.[0] || null;
+
+  const { data: invoiceCompanyInfo } = useGetDefaultInvoiceUsedQuery();
+  const { data: nextNoData, isLoading: isLoadingNextNo } = useGetNextQuotationNumberQuery();
 
   const [createQuotation, { isLoading: isLoadingCreate }] =
     useCreateQuotationMutation();
@@ -53,37 +64,20 @@ const QuotationSetSelectedCustomerScreen = () => {
     customer_present_name: "",
     customer_address: "",
     customer_vat: "",
-    quotation_no: "",
-    date: "",
-    due_date: "",
-    submit_price_within: "",
-    number_of_credit_days: "",
-    product_id: "",
-    product_detail: "",
-    quantity: "",
-    unit: "",
-    unit_price: "",
-    amount_money: "",
-    discount: "",
-    total_amount_after_discount: "",
-    total: "",
-    vat: "",
-    grand_total: "",
-    transfer_bank_account_name: "",
-    transfer_bank_account_number: "",
+    branch_type: "สำนักงานใหญ่",
+    branch_no: "",
   });
 
   const [rows, setRows] = useState(
-    Array.from({ length: numRows }, () => ({
+    Array.from({ length: 5 }, () => ({
       product_id: "",
       description: "",
       qty: 0,
-      unit: "",
+      unit: "pcs",
       unit_price: 0,
     })),
   );
 
-  //  แก้ไข 1: กำหนดค่าเริ่มต้นให้ defaultSummary เพื่อไม่ให้เป็น undefined
   const [defaultSummary, setDefaultSummary] = useState({
     discount: 0,
     vat: 7,
@@ -120,6 +114,12 @@ const QuotationSetSelectedCustomerScreen = () => {
     }
   }, [defaultSelected]);
 
+  useEffect(() => {
+    if (nextNoData && nextNoData.nextQuotationNo && !quotationNumber) {
+      setQuotationNumber(nextNoData.nextQuotationNo);
+    }
+  }, [nextNoData, quotationNumber]);
+
   // --- Handlers ---
   const handleCustomerChange = (field, value) =>
     setCustomerInfo((prev) => ({ ...prev, [field]: value }));
@@ -133,57 +133,69 @@ const QuotationSetSelectedCustomerScreen = () => {
           : Number(value)
         : value;
     setRows(updatedRows);
-
-    // Auto add row
-    const lastRow = updatedRows[updatedRows.length - 1];
-    if (
-      lastRow &&
-      Object.values(lastRow).some((val) => val !== "" && val !== 0)
-    ) {
-      setRows((prev) => [
-        ...prev,
-        { product_id: "", description: "", qty: 0, unit: "", unit_price: 0 },
-      ]);
-    }
   };
 
-  const autoGrow = (e) => {
-    e.target.style.height = "24px";
-    e.target.style.height = e.target.scrollHeight + "px";
+  const addRow = () => {
+    setRows((prev) => [
+      ...prev,
+      { product_id: "", description: "", qty: 0, unit: "pcs", unit_price: 0 },
+    ]);
+  };
+
+  const removeRow = (index) => {
+    setRows((prev) => prev.filter((_, i) => i !== index));
   };
 
   // --- Calculation ---
-  const subTotal = rows.reduce((acc, r) => acc + r.qty * r.unit_price, 0);
-  const totalDiscount =
-    subTotal * (parseFloat(defaultSummary.discount || 0) / 100);
+  const subTotal = rows.reduce((acc, r) => acc + (r.qty * r.unit_price || 0), 0);
+  const totalDiscount = parseFloat(defaultSummary.discount || 0);
   const totalAfterDiscount = subTotal - totalDiscount;
-  const totalVat =
-    totalAfterDiscount * (parseFloat(defaultSummary.vat || 0) / 100);
+  const totalVat = totalAfterDiscount * (parseFloat(defaultSummary.vat || 0) / 100);
   const grandTotal = totalAfterDiscount + totalVat;
 
   const now = new Date();
+  const todayDate = new Date();
   const today = `${String(now.getDate()).padStart(2, "0")}/${String(now.getMonth() + 1).padStart(2, "0")}/${now.getFullYear() + 543}`;
 
+  const mappedOrder = {
+    id: quotationNumber || "QT-XXXX",
+    quotation_no: quotationNumber || "QT-XXXX",
+    createdAt: todayDate,
+    status: "Quoted",
+    billingAddress: {
+      billingName: customerInfo.customer_name || "",
+      billinggAddress: customerInfo.customer_present_name || "",
+      billingCity: customerInfo.customer_address || "",
+      tax: customerInfo.customer_vat || "",
+      branch: customerInfo.branch_type === "สาขา" ? customerInfo.branch_no : customerInfo.branch_type,
+    },
+    orderItems: rows.filter((r) => r.product_id || r.description).map((item) => ({
+      product_id: item.product_id,
+      name: item.description,
+      qty: item.qty,
+      unit: item.unit,
+      price: item.unit_price,
+    })),
+    itemsPrice: subTotal,
+    vatPrice: totalVat,
+    totalPrice: grandTotal,
+    discountPrice: totalDiscount,
+    signatures: {
+      sales: defaultSelected?.sales_person,
+      manager: defaultSelected?.sales_manager,
+    }
+  };
+
   // --- PDF Functions ---
-  const handlePreviewPDF = async () => {
-    if (!componentRef.current) return;
-    const pdf = new jsPDF("p", "mm", "a4");
-    const canvas = await html2canvas(componentRef.current, {
-      scale: 2,
-      useCORS: true,
-    });
-    const imgData = canvas.toDataURL("image/png");
-    const pdfWidth = pdf.internal.pageSize.getWidth();
-    const pdfHeight = pdf.internal.pageSize.getHeight();
-    pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
-    window.open(URL.createObjectURL(pdf.output("blob")), "_blank");
+  const handlePreviewPDF = () => {
+    setShowPreview(true);
   };
 
   const uploadPDF = async (quotation_no) => {
-    if (!componentRef.current) return;
-    const noSpan = document.getElementById("quotation_no_span");
-    if (noSpan) noSpan.textContent = quotation_no;
-
+    if (!componentRef.current) return null;
+    
+    // Temporarily hide the no-print class elements if any exist in the componentRef, 
+    // though FullTaxInvoiceA4 handles print styling itself.
     const pdf = new jsPDF("p", "mm", "a4");
     const canvas = await html2canvas(componentRef.current, {
       scale: 2,
@@ -243,6 +255,7 @@ const QuotationSetSelectedCustomerScreen = () => {
 
   const handleCreateQuotation = async () => {
     try {
+      // Create first to get the ID and Number
       const payload = {
         due_date,
         submit_price_within,
@@ -265,12 +278,22 @@ const QuotationSetSelectedCustomerScreen = () => {
       };
       const result = await createQuotation(payload).unwrap();
       setQuotationNumber(result.quotation_no);
+      
+      // Update the mapped order object with the new quotation number so it renders in the PDF correctly
+      mappedOrder.id = result.quotation_no;
+      mappedOrder.quotation_no = result.quotation_no;
+
+      // Force a tiny wait so React can render the preview with the new quotation_no if it was visible
+      await new Promise(r => setTimeout(r, 100));
+
       const pdfResponse = await uploadPDF(result.quotation_no);
-      await handleUpdateQuotation(result.id, result.quotation_no, pdfResponse);
+      if (pdfResponse) {
+          await handleUpdateQuotation(result.id, result.quotation_no, pdfResponse);
+      }
       toast.success("Quotation created successfully!");
       navigate("/admin/quotations");
     } catch (error) {
-      toast.error("Failed to create quotation.");
+      toast.error(error?.data?.message || "Failed to create quotation.");
     }
   };
 
@@ -279,7 +302,7 @@ const QuotationSetSelectedCustomerScreen = () => {
     handleCloseConfirm();
   };
   const isLoadingAll =
-    isLoading || isLoadingCreate || isLoadingUpload || isLoadingUpdate;
+    isLoading || isLoadingCreate || isLoadingUpload || isLoadingUpdate || isLoadingNextNo;
 
   return (
     <Container fluid className="py-4 font-prompt bg-light min-vh-100">
@@ -292,7 +315,7 @@ const QuotationSetSelectedCustomerScreen = () => {
         </div>
       )}
 
-      {/* 1. Action Bar */}
+      {/* Action Bar */}
       <Card
         className="shadow-sm border-0 mb-4 rounded-4 sticky-top"
         style={{ zIndex: 1020 }}
@@ -331,440 +354,296 @@ const QuotationSetSelectedCustomerScreen = () => {
         </Card.Body>
       </Card>
 
-      <Row className="justify-content-center">
-        <div
-          className="d-flex justify-content-center w-100"
-          style={{ overflowX: "auto", paddingBottom: "50px" }}
-        >
-          {/* --- PAPER START --- */}
-          <div
-            className="paper-container shadow-lg bg-white"
-            ref={componentRef}
-          >
-            {/* Header */}
-            <div className="d-flex justify-content-between align-items-start mb-4 position-relative">
-              <div style={{ width: "80px" }}>
-                {defaultSelected?.logo && (
-                  <img
-                    src={defaultSelected.logo}
-                    alt="Logo"
-                    style={{ width: "100%", objectFit: "contain" }}
-                  />
-                )}
-              </div>
-              <div className="flex-grow-1 text-center px-3">
-                <h5 className="fw-bold mb-0 text-primary">
-                  {defaultSummary.company_name_thai}
-                </h5>
-                <h6 className="fw-bold text-uppercase mb-2 text-secondary">
-                  {defaultSummary.company_name}
-                </h6>
-                <div
-                  className="small text-muted"
-                  style={{ fontSize: "0.75rem", lineHeight: "1.4" }}
-                >
-                  <div>{defaultSummary.head_office_thai}</div>
-                  <div>{defaultSummary.head_office}</div>
-                  <div className="mt-1">
-                    <span className="fw-bold">Tel:</span> {defaultSummary.tel} |{" "}
-                    <span className="fw-bold">Email:</span>{" "}
-                    {defaultSummary.email}
-                  </div>
-                  <div>
-                    <span className="fw-bold">Tax ID:</span>{" "}
-                    {defaultSummary.tax_id}
-                  </div>
-                </div>
-              </div>
-              <div className="text-end" style={{ width: "120px" }}>
-                <div
-                  className="d-inline-block border border-dark px-3 py-2 text-center"
-                  style={{ minWidth: "100%" }}
-                >
-                  <div className="fw-bold small">ใบเสนอราคา</div>
-                  <div className="fw-bold small">QUOTATION</div>
-                </div>
-              </div>
-            </div>
-
-            {/* Info Grid */}
-            <div className="d-flex border border-dark mb-3">
-              <div
-                className="flex-grow-1 border-end border-dark p-3"
-                style={{ width: "65%" }}
-              >
-                <div className="info-row">
-                  <span className="info-label">Customer:</span>
-                  <Form.Control
-                    type="text"
-                    className="paper-input fw-bold text-primary"
-                    value={customerInfo.customer_name}
-                    onChange={(e) =>
-                      handleCustomerChange("customer_name", e.target.value)
-                    }
-                  />
-                </div>
-                <div className="info-row">
-                  <span className="info-label">Attention:</span>
-                  <Form.Control
-                    type="text"
-                    className="paper-input"
-                    value={customerInfo.customer_present_name}
-                    onChange={(e) =>
-                      handleCustomerChange(
-                        "customer_present_name",
-                        e.target.value,
-                      )
-                    }
-                  />
-                </div>
-                <div className="info-row">
-                  <span className="info-label">Address:</span>
-                  <Form.Control
-                    type="text"
-                    className="paper-input"
-                    value={customerInfo.customer_address}
-                    onChange={(e) =>
-                      handleCustomerChange("customer_address", e.target.value)
-                    }
-                  />
-                </div>
-                <div className="info-row">
-                  <span className="info-label">Tax ID:</span>
-                  <div className="d-flex w-100 align-items-center">
+      <Row>
+        <Col lg={12}>
+          {/* Customer Details Form */}
+          <Card className="shadow-sm border-0 mb-4 rounded-4">
+            <Card.Header className="bg-white border-0 pt-4 pb-0">
+              <h6 className="fw-bold mb-0 text-primary">ข้อมูลลูกค้า (Customer Details)</h6>
+            </Card.Header>
+            <Card.Body>
+              <Row className="g-3">
+                <Col md={6}>
+                  <Form.Group>
+                    <Form.Label className="small fw-bold text-muted">ชื่อลูกค้า (ผู้ติดต่อ)</Form.Label>
                     <Form.Control
                       type="text"
-                      className="paper-input"
-                      style={{ maxWidth: "150px" }}
-                      value={customerInfo.customer_vat}
-                      onChange={(e) =>
-                        handleCustomerChange("customer_vat", e.target.value)
-                      }
+                      value={customerInfo.customer_name}
+                      onChange={(e) => handleCustomerChange("customer_name", e.target.value)}
                     />
-                    <div className="d-flex gap-3 small ms-3">
-                      <Form.Check
-                        type="checkbox"
-                        label="Head Office"
-                        id="head"
-                        className="paper-check"
-                      />
-                      <Form.Check
-                        type="checkbox"
-                        label="Branch"
-                        id="branch"
-                        className="paper-check"
-                      />
-                    </div>
-                  </div>
-                </div>
-              </div>
+                  </Form.Group>
+                </Col>
+                <Col md={6}>
+                  <Form.Group>
+                    <Form.Label className="small fw-bold text-muted">เลขประจำตัวผู้เสียภาษี</Form.Label>
+                    <Form.Control
+                      type="text"
+                      value={customerInfo.customer_vat}
+                      onChange={(e) => handleCustomerChange("customer_vat", e.target.value)}
+                    />
+                  </Form.Group>
+                </Col>
+                <Col md={12}>
+                  <Form.Group>
+                    <Form.Label className="small fw-bold text-muted">ที่อยู่บรรทัดที่ 1</Form.Label>
+                    <Form.Control
+                      type="text"
+                      value={customerInfo.customer_present_name}
+                      onChange={(e) => handleCustomerChange("customer_present_name", e.target.value)}
+                    />
+                  </Form.Group>
+                </Col>
+                <Col md={12}>
+                  <Form.Group>
+                    <Form.Label className="small fw-bold text-muted">ที่อยู่บรรทัดที่ 2</Form.Label>
+                    <Form.Control
+                      type="text"
+                      value={customerInfo.customer_address}
+                      onChange={(e) => handleCustomerChange("customer_address", e.target.value)}
+                    />
+                  </Form.Group>
+                </Col>
+                <Col md={6}>
+                    <Form.Group>
+                        <Form.Label className="small fw-bold text-muted">ประเภทสาขา</Form.Label>
+                        <Form.Select 
+                            value={customerInfo.branch_type} 
+                            onChange={(e) => handleCustomerChange("branch_type", e.target.value)}
+                        >
+                            <option value="สำนักงานใหญ่">สำนักงานใหญ่</option>
+                            <option value="สาขา">สาขา</option>
+                            <option value="ไม่ระบุ">ไม่ระบุ</option>
+                        </Form.Select>
+                    </Form.Group>
+                </Col>
+                {customerInfo.branch_type === "สาขา" && (
+                    <Col md={6}>
+                        <Form.Group>
+                            <Form.Label className="small fw-bold text-muted">รหัสสาขา</Form.Label>
+                            <Form.Control
+                            type="text"
+                            value={customerInfo.branch_no}
+                            onChange={(e) => handleCustomerChange("branch_no", e.target.value)}
+                            />
+                        </Form.Group>
+                    </Col>
+                )}
+              </Row>
+            </Card.Body>
+          </Card>
 
-              <div className="p-3" style={{ width: "35%" }}>
-                <div className="info-row">
-                  <span className="info-label-sm">No:</span>
-                  <span
-                    id="quotation_no_span"
-                    className="paper-text fw-bold text-danger fs-6"
-                  >
-                    {quotationNumber || "QT-XXXX"}
-                  </span>
-                </div>
-                <div className="info-row">
-                  <span className="info-label-sm">Date:</span>
-                  <span className="paper-text">{today}</span>
-                </div>
-                <div className="info-row">
-                  <span className="info-label-sm">Credit:</span>
-                  <div className="d-flex align-items-center">
+          {/* Quotation Terms Form */}
+          <Card className="shadow-sm border-0 mb-4 rounded-4">
+            <Card.Header className="bg-white border-0 pt-4 pb-0">
+              <h6 className="fw-bold mb-0 text-primary">เงื่อนไขใบเสนอราคา (Quotation Terms)</h6>
+            </Card.Header>
+            <Card.Body>
+              <Row className="g-3">
+                <Col md={6}>
+                  <Form.Group>
+                    <Form.Label className="small fw-bold text-muted">เครดิต (วัน)</Form.Label>
                     <Form.Control
                       type="number"
-                      className="paper-input text-center me-2"
-                      style={{ width: "50px" }}
                       value={number_of_credit_days}
                       onChange={(e) => setnumber_of_credit_days(e.target.value)}
                     />
-                    <span className="small">Days</span>
-                  </div>
-                </div>
-                <div className="info-row">
-                  <span className="info-label-sm">Valid:</span>
-                  <div className="d-flex align-items-center">
+                  </Form.Group>
+                </Col>
+                <Col md={6}>
+                  <Form.Group>
+                    <Form.Label className="small fw-bold text-muted">ยืนราคา (วัน)</Form.Label>
                     <Form.Control
                       type="number"
-                      className="paper-input text-center me-2"
-                      style={{ width: "50px" }}
                       value={submit_price_within}
                       onChange={(e) => setsubmit_price_within(e.target.value)}
                     />
-                    <span className="small">Days</span>
-                  </div>
-                </div>
-              </div>
-            </div>
+                  </Form.Group>
+                </Col>
+              </Row>
+            </Card.Body>
+          </Card>
 
-            {/* Items Table */}
-            <div
-              className="flex-grow-1 border border-dark mb-3 d-flex flex-column"
-              style={{ minHeight: "400px" }}
-            >
-              <div
-                className="d-flex bg-light border-bottom border-dark fw-bold small text-center"
-                style={{ height: "35px", lineHeight: "35px" }}
-              >
-                <div style={{ width: "5%", borderRight: "1px solid #000" }}>
-                  #
-                </div>
-                <div style={{ width: "15%", borderRight: "1px solid #000" }}>
-                  Code
-                </div>
-                <div style={{ width: "40%", borderRight: "1px solid #000" }}>
-                  Description
-                </div>
-                <div style={{ width: "10%", borderRight: "1px solid #000" }}>
-                  Qty
-                </div>
-                <div style={{ width: "10%", borderRight: "1px solid #000" }}>
-                  Unit
-                </div>
-                <div style={{ width: "10%", borderRight: "1px solid #000" }}>
-                  Price
-                </div>
-                <div style={{ width: "10%" }}>Amount</div>
+          {/* Items Form */}
+          <Card className="shadow-sm border-0 mb-4 rounded-4">
+            <Card.Header className="bg-white border-0 pt-4 pb-0 d-flex justify-content-between align-items-center">
+              <h6 className="fw-bold mb-0 text-primary">รายการสินค้า (Items)</h6>
+              <Button variant="outline-primary" size="sm" onClick={addRow} className="rounded-pill px-3">
+                <FaPlus className="me-2" /> เพิ่มรายการ
+              </Button>
+            </Card.Header>
+            <Card.Body>
+              <div className="table-responsive">
+                <Table bordered hover size="sm" className="align-middle">
+                  <thead className="bg-light">
+                    <tr>
+                      <th className="text-center" style={{width: '5%'}}>#</th>
+                      <th style={{width: '15%'}}>รหัสสินค้า</th>
+                      <th style={{width: '35%'}}>รายละเอียด</th>
+                      <th className="text-center" style={{width: '10%'}}>จำนวน</th>
+                      <th className="text-center" style={{width: '10%'}}>หน่วย</th>
+                      <th className="text-end" style={{width: '15%'}}>ราคา/หน่วย</th>
+                      <th className="text-end" style={{width: '10%'}}>รวม</th>
+                      <th className="text-center" style={{width: '5%'}}></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {rows.map((row, idx) => (
+                      <tr key={idx}>
+                        <td className="text-center text-muted small">{idx + 1}</td>
+                        <td>
+                          <Form.Control
+                            size="sm"
+                            className="border-0 shadow-none bg-transparent"
+                            value={row.product_id}
+                            placeholder="รหัส"
+                            onChange={(e) => handleChange(idx, "product_id", e.target.value)}
+                          />
+                        </td>
+                        <td>
+                          <Form.Control
+                            as="textarea"
+                            rows={1}
+                            size="sm"
+                            className="border-0 shadow-none bg-transparent"
+                            style={{ resize: "none" }}
+                            placeholder="รายละเอียดสินค้า"
+                            value={row.description}
+                            onChange={(e) => handleChange(idx, "description", e.target.value)}
+                          />
+                        </td>
+                        <td>
+                          <Form.Control
+                            type="number"
+                            size="sm"
+                            className="border-0 shadow-none bg-transparent text-center"
+                            value={row.qty}
+                            onChange={(e) => handleChange(idx, "qty", e.target.value)}
+                          />
+                        </td>
+                        <td>
+                          <Form.Control
+                            size="sm"
+                            className="border-0 shadow-none bg-transparent text-center"
+                            value={row.unit}
+                            onChange={(e) => handleChange(idx, "unit", e.target.value)}
+                          />
+                        </td>
+                        <td>
+                          <Form.Control
+                            type="number"
+                            size="sm"
+                            className="border-0 shadow-none bg-transparent text-end"
+                            value={row.unit_price}
+                            onChange={(e) => handleChange(idx, "unit_price", e.target.value)}
+                          />
+                        </td>
+                        <td className="text-end fw-bold small text-primary">
+                          {row.qty && row.unit_price ? (row.qty * row.unit_price).toFixed(2) : "-"}
+                        </td>
+                        <td className="text-center">
+                          <Button variant="link" className="text-danger p-0" onClick={() => removeRow(idx)}>
+                            <FaTrash size={12} />
+                          </Button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </Table>
               </div>
 
-              {rows.map((row, idx) => (
-                <div
-                  key={idx}
-                  className="d-flex small border-bottom border-light"
-                  style={{ minHeight: "28px" }}
-                >
-                  <div
-                    className="text-center pt-1"
-                    style={{ width: "5%", borderRight: "1px solid #dee2e6" }}
-                  >
-                    {idx + 1}
+              {/* Summary Bottom */}
+              <div className="d-flex justify-content-end mt-3">
+                <div style={{ width: "300px" }} className="bg-light p-3 rounded-4">
+                  <div className="d-flex justify-content-between mb-2 small">
+                    <span className="text-muted fw-bold">รวมเป็นเงิน</span>
+                    <span className="fw-bold">{subTotal.toFixed(2)}</span>
                   </div>
-                  <div
-                    style={{ width: "15%", borderRight: "1px solid #dee2e6" }}
-                  >
-                    <Form.Control
-                      className="paper-input-table text-start"
-                      value={row.product_id}
-                      onChange={(e) =>
-                        handleChange(idx, "product_id", e.target.value)
-                      }
-                    />
-                  </div>
-                  <div
-                    style={{ width: "40%", borderRight: "1px solid #dee2e6" }}
-                  >
-                    <Form.Control
-                      as="textarea"
-                      rows={1}
-                      className="paper-input-table text-start"
-                      style={{ resize: "none", overflow: "hidden" }}
-                      value={row.description}
-                      onChange={(e) =>
-                        handleChange(idx, "description", e.target.value)
-                      }
-                      onInput={autoGrow}
-                    />
-                  </div>
-                  <div
-                    style={{ width: "10%", borderRight: "1px solid #dee2e6" }}
-                  >
+                  <div className="d-flex justify-content-between mb-2 small align-items-center">
+                    <span className="text-muted fw-bold">ส่วนลด</span>
                     <Form.Control
                       type="number"
-                      className="paper-input-table text-center"
-                      value={row.qty}
-                      onChange={(e) => handleChange(idx, "qty", e.target.value)}
-                    />
-                  </div>
-                  <div
-                    style={{ width: "10%", borderRight: "1px solid #dee2e6" }}
-                  >
-                    <Form.Control
-                      className="paper-input-table text-center"
-                      value={row.unit}
+                      size="sm"
+                      className="text-end"
+                      style={{ width: "100px" }}
+                      value={defaultSummary.discount}
                       onChange={(e) =>
-                        handleChange(idx, "unit", e.target.value)
+                        setDefaultSummary({ ...defaultSummary, discount: e.target.value })
                       }
                     />
                   </div>
-                  <div
-                    style={{ width: "10%", borderRight: "1px solid #dee2e6" }}
-                  >
+                  <div className="d-flex justify-content-between mb-2 small">
+                    <span className="text-muted fw-bold">ราคาหลังหักส่วนลด</span>
+                    <span className="fw-bold">{totalAfterDiscount.toFixed(2)}</span>
+                  </div>
+                  <div className="d-flex justify-content-between mb-2 small align-items-center">
+                    <span className="text-muted fw-bold">VAT %</span>
                     <Form.Control
                       type="number"
-                      className="paper-input-table text-end"
-                      value={row.unit_price}
+                      size="sm"
+                      className="text-end"
+                      style={{ width: "60px" }}
+                      value={defaultSummary.vat}
                       onChange={(e) =>
-                        handleChange(idx, "unit_price", e.target.value)
+                        setDefaultSummary({ ...defaultSummary, vat: e.target.value })
                       }
                     />
                   </div>
-                  <div
-                    className="text-end pt-1 pe-2 fw-bold"
-                    style={{ width: "10%" }}
-                  >
-                    {row.qty && row.unit_price
-                      ? (row.qty * row.unit_price).toFixed(2)
-                      : ""}
-                  </div>
-                </div>
-              ))}
-
-              <div className="flex-grow-1 border-top border-dark"></div>
-
-              {/*  แก้ไข 2: Summary Section - ใช้ text-nowrap ป้องกันข้อความตกหล่น */}
-              <div
-                className="d-flex small border-top border-dark"
-                style={{ height: "110px" }}
-              >
-                <div
-                  className="border-end border-dark p-3 d-flex flex-column justify-content-between"
-                  style={{ width: "65%" }}
-                >
-                  <div>
-                    <strong className="text-decoration-underline mb-1 d-block">
-                      Note / Remark:
-                    </strong>
-                    <div className="ps-2">
-                      - Deposit {defaultSummary.deposit || 0}% <br />- Bank:{" "}
-                      <span className="fw-bold">
-                        {defaultSummary.bank_account_name}
-                      </span>{" "}
-                      No:{" "}
-                      <span className="fw-bold">
-                        {defaultSummary.bank_account_number}
-                      </span>
-                    </div>
-                  </div>
-                  <div
-                    className="text-muted fst-italic"
-                    style={{ fontSize: "0.65rem" }}
-                  >
-                    * This document is computer generated and valid without
-                    signature.
-                  </div>
-                </div>
-                <div style={{ width: "35%" }}>
-                  {[
-                    { l: "Sub Total", v: subTotal },
-                    {
-                      l: `Discount (${defaultSummary.discount || 0}%)`,
-                      v: totalDiscount,
-                    },
-                    { l: `VAT (${defaultSummary.vat || 7}%)`, v: totalVat },
-                  ].map((item, i) => (
-                    <div
-                      key={i}
-                      className="d-flex justify-content-between px-3 py-1 border-bottom border-secondary align-items-center"
-                      style={{ height: "28px" }}
-                    >
-                      <span className="text-nowrap">{item.l}</span>{" "}
-                      {/*  เพิ่ม text-nowrap */}
-                      <span className="fw-bold">{item.v.toFixed(2)}</span>
-                    </div>
-                  ))}
-                  <div className="d-flex justify-content-between px-3 py-2 bg-light align-items-center h-100">
-                    <span className="fw-bold">Grand Total</span>
-                    <span className="text-primary fw-bold fs-6">
-                      {grandTotal.toFixed(2)}
-                    </span>
+                  <hr className="my-2" />
+                  <div className="d-flex justify-content-between">
+                    <span className="fw-bold text-dark">จำนวนเงินรวมทั้งสิ้น</span>
+                    <span className="fw-bold text-success fs-5">{grandTotal.toFixed(2)}</span>
                   </div>
                 </div>
               </div>
-            </div>
-
-            {/* Signatures */}
-            <div className="d-flex justify-content-between small text-center mt-auto border border-dark">
-              {[
-                "Customer Acceptance",
-                "Sales Person",
-                "Authorized Signature",
-              ].map((role, idx) => (
-                <div
-                  key={idx}
-                  className="border-end border-dark p-2 d-flex flex-column justify-content-end"
-                  style={{
-                    width: "33.33%",
-                    height: "100px",
-                    borderRight: idx === 2 ? "none" : "1px solid #000",
-                  }}
-                >
-                  <div
-                    className="border-bottom border-dark mb-1 mx-3 position-relative"
-                    style={{ height: "50px" }}
-                  >
-                    {idx !== 0 &&
-                      defaultSelected?.[
-                        idx === 1 ? "sales_person" : "sales_manager"
-                      ] && (
-                        <img
-                          src={
-                            defaultSelected[
-                              idx === 1 ? "sales_person" : "sales_manager"
-                            ]
-                          }
-                          style={{
-                            height: "45px",
-                            objectFit: "contain",
-                            position: "absolute",
-                            bottom: 0,
-                            left: "50%",
-                            transform: "translateX(-50%)",
-                          }}
-                          alt="sign"
-                        />
-                      )}
-                  </div>
-                  <div className="fw-bold text-uppercase">{role}</div>
-                  <div className="small text-muted">Date: {today}</div>
-                </div>
-              ))}
-            </div>
-          </div>
-          {/* --- PAPER END --- */}
-        </div>
+            </Card.Body>
+          </Card>
+        </Col>
       </Row>
 
-      {/* Rows Config */}
-      <div className="fixed-bottom p-3 d-flex justify-content-end pe-5 pb-5 d-none d-md-flex pointer-events-none">
-        <Card className="shadow border-0" style={{ pointerEvents: "auto" }}>
-          <Card.Body className="py-2 px-3 d-flex align-items-center gap-2">
-            <small className="fw-bold">Rows:</small>
-            <Form.Select
-              size="sm"
-              value={numRows}
-              onChange={(e) => {
-                setNumRows(Number(e.target.value));
-                setRows((prev) =>
-                  Array.from(
-                    { length: Number(e.target.value) },
-                    (_, i) =>
-                      prev[i] || {
-                        product_id: "",
-                        description: "",
-                        qty: 0,
-                        unit: "",
-                        unit_price: 0,
-                      },
-                  ),
-                );
-              }}
-              style={{ width: 70 }}
-            >
-              {[10, 15, 20, 25].map((n) => (
-                <option key={n} value={n}>
-                  {n}
-                </option>
-              ))}
-            </Form.Select>
-          </Card.Body>
-        </Card>
+      {/* Hidden element for PDF rendering */}
+      <div style={{ position: 'absolute', left: '-9999px', top: '-9999px' }}>
+          <div ref={componentRef}>
+              <FullTaxInvoiceA4
+                  order={mappedOrder}
+                  companyInfo={invoiceCompanyInfo}
+                  isQuotation={true}
+                  isAdmin={userInfo?.isAdmin}
+                  docType="quotation"
+                  printMode="full"
+              />
+          </div>
       </div>
 
+      {/* Preview Modal */}
+      <Modal show={showPreview} onHide={() => setShowPreview(false)} size="xl" centered>
+        <Modal.Header closeButton className="bg-light border-0">
+          <Modal.Title className="fw-bold text-primary">
+            <FaEye className="me-2" />
+            Live Preview
+          </Modal.Title>
+        </Modal.Header>
+        <Modal.Body className="p-0 bg-secondary overflow-auto d-flex justify-content-center" style={{ maxHeight: "80vh" }}>
+           <div className="my-4 shadow-lg">
+             <FullTaxInvoiceA4
+                order={mappedOrder}
+                companyInfo={invoiceCompanyInfo}
+                isQuotation={true}
+                isAdmin={userInfo?.isAdmin}
+                docType="quotation"
+             />
+           </div>
+        </Modal.Body>
+        <Modal.Footer className="bg-light border-0">
+          <Button variant="secondary" onClick={() => setShowPreview(false)}>
+            Close
+          </Button>
+          <Button variant="primary" onClick={() => { setShowPreview(false); handleOpenConfirm(); }}>
+            Save & Create
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
+      {/* Confirm Modal */}
       <Modal show={showConfirm} onHide={handleCloseConfirm} centered>
         <Modal.Header closeButton>
           <Modal.Title className="fw-bold text-primary">
@@ -785,43 +664,6 @@ const QuotationSetSelectedCustomerScreen = () => {
         </Modal.Footer>
       </Modal>
 
-      <style dangerouslySetInnerHTML={{ __html: `
-        .font-prompt { font-family: 'Prompt', sans-serif; }
-        .paper-container {
-            width: 210mm;
-            min-height: 297mm;
-            padding: 15mm;
-            box-sizing: border-box;
-            background: white;
-            display: flex;
-            flex-direction: column;
-            margin-bottom: 2rem;
-        }
-        .info-row { display: flex; align-items: center; margin-bottom: 6px; }
-        .info-label { font-weight: bold; font-size: 12px; width: 80px; flex-shrink: 0; }
-        .info-label-sm { font-weight: bold; font-size: 12px; width: 60px; flex-shrink: 0; }
-        .paper-input {
-            border: none; border-bottom: 1px dotted #ccc; border-radius: 0;
-            padding: 0 4px; font-size: 12px; background: transparent;
-            width: 100%; height: 22px; box-shadow: none !important;
-        }
-        .paper-input:focus { background: #f0f8ff; border-bottom: 1px solid #0d6efd; }
-        .paper-input-table {
-            border: none; border-radius: 0; padding: 0 4px; font-size: 12px;
-            background: transparent; width: 100%; height: 100%; min-height: 24px;
-            box-shadow: none !important;
-        }
-        .paper-input-table:focus { background: #f0f8ff; }
-        .paper-text { font-size: 12px; }
-        .text-nowrap { white-space: nowrap; }
-
-        @media (max-width: 768px) { .paper-container { min-width: 210mm; } }
-        @media print {
-            body * { visibility: hidden; }
-            .paper-container, .paper-container * { visibility: visible; }
-            .paper-container { position: absolute; left: 0; top: 0; width: 100%; margin: 0; padding: 0; box-shadow: none; }
-        }
-      ` }} />
     </Container>
   );
 };

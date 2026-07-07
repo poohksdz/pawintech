@@ -1,4 +1,4 @@
-﻿const path = require("path");
+const path = require("path");
 const express = require("express");
 const dotenv = require("dotenv");
 const cookieParser = require("cookie-parser");
@@ -252,6 +252,11 @@ app.get("/health", (req, res) => {
   });
 });
 
+app.use((req, res, next) => {
+  console.log(`🌍 GLOBAL LOG: ${req.method} ${req.originalUrl}`);
+  next();
+});
+
 app.use("/api/gerber", gerberRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/services", serviceRoutes);
@@ -272,10 +277,10 @@ app.use(
   require("./routes/uploadQuotationDefaultRoutes"),
 );
 app.use("/api/invoices", invoiceRoutes);
+app.use("/api/invoices/upload", require("./routes/uploadInvoiceRoutes"));
 app.use("/api/defaultinvoices", vatDefaultRouters);
 app.use("/api/defaultInvoiceImages", uploadDefaultInvoiceLogoRoutes);
 app.use("/api/orders", orderRoutes);
-app.use("/api", uploadRoutes);
 app.use("/api/showcases", showcaseRoutes);
 app.use("/api/blogs", blogRoutes);
 app.use("/api/abouts", aboutRoutes);
@@ -330,6 +335,8 @@ app.use(
   "/api/assemblycartpcbs/upload",
   require("./routes/uploadAssemblyPCBRoutes.js"),
 );
+
+app.use("/api", uploadRoutes);
 
 // Production / Frontend Build
 if (process.env.NODE_ENV === "production") {

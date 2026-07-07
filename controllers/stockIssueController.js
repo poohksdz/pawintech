@@ -8,7 +8,7 @@ const getStockIssuegoods = asyncHandler(async (req, res) => {
   try {
     //  ใช้ db.query ได้เลย
     const [rows] = await db.pool.query(
-      'SELECT `ID`, `issueno`,  DATE_FORMAT(`issuedate`, "%d-%m-%Y") AS `issuedate`, `issuetime`, `issueqty`, `requestno`,  DATE_FORMAT(`requestdate`, "%d-%m-%Y") AS `requestdate`, `requesttime`, `requestqty`, `img`, `electotronixPN`, `value`, `category`, `subcategory`, `footprint`, `weight`, `position`, `unitprice`, `manufacture`, `manufacturePN`, `supplier`, `supplierPN`, `moq`, `spq`, `link`, `process`, `description`, `alternative`, `note`, `username`, `reciever`, `product_id` FROM `tbl_issue`  ORDER BY ID DESC',
+      'SELECT `ID`, `issueno`,  DATE_FORMAT(`issuedate`, "%d-%m-%Y") AS `issuedate`, `issuetime`, `issueqty`, `requestno`,  DATE_FORMAT(`requestdate`, "%d-%m-%Y") AS `requestdate`, `requesttime`, `requestqty`, `img`, `electotronixPN`, `value`, `category`, `subcategory`, `footprint`, `weight`, `position`, `unitprice`, `manufacture`, `manufacturePN`, `supplier`, `supplierPN`, `moq`, `spq`, `link`, `process`, `description`, `alternative`, `note`, `username`, `reciever`, `product_id`, `issueBy`, `requestedUserId` FROM `tbl_issue`  ORDER BY ID DESC',
     );
     res.status(200).json({ issuegoods: rows });
   } catch (error) {
@@ -25,7 +25,7 @@ const getStockIssuegoodsDetails = asyncHandler(async (req, res) => {
   const { id } = req.params;
   try {
     const [rows] = await db.pool.query(
-      'SELECT `ID`, `issueno`,  DATE_FORMAT(`issuedate`, "%d-%m-%Y") AS `issuedate`, `issuetime`, `issueqty`, `requestno`,  DATE_FORMAT(`requestdate`, "%d-%m-%Y") AS `requestdate`, `requesttime`, `requestqty`, `img`, `electotronixPN`, `value`, `category`, `subcategory`, `footprint`, `weight`, `position`, `unitprice`, `manufacture`, `manufacturePN`, `supplier`, `supplierPN`, `moq`, `spq`, `link`, `process`, `description`, `alternative`, `note`, `username`, `reciever`, `product_id` FROM `tbl_issue` WHERE ID = ?  ORDER BY ID DESC',
+      'SELECT `ID`, `issueno`,  DATE_FORMAT(`issuedate`, "%d-%m-%Y") AS `issuedate`, `issuetime`, `issueqty`, `requestno`,  DATE_FORMAT(`requestdate`, "%d-%m-%Y") AS `requestdate`, `requesttime`, `requestqty`, `img`, `electotronixPN`, `value`, `category`, `subcategory`, `footprint`, `weight`, `position`, `unitprice`, `manufacture`, `manufacturePN`, `supplier`, `supplierPN`, `moq`, `spq`, `link`, `process`, `description`, `alternative`, `note`, `username`, `reciever`, `product_id`, `issueBy`, `requestedUserId` FROM `tbl_issue` WHERE ID = ?  ORDER BY ID DESC',
       [id],
     );
 
@@ -147,8 +147,8 @@ const createStockIssuegoods = asyncHandler(async (req, res) => {
 
       // Update requestqty in tbl_jit
       await connection.query(
-        "UPDATE tbl_jit SET requestqty = GREATEST(requestqty - ?, 0) WHERE product_id = ?",
-        [issueQtyNum, product_id],
+        "UPDATE tbl_jit SET requestqty = GREATEST(requestqty - ?, 0) WHERE ID = ?",
+        [issueQtyNum, ID],
       );
 
       // Insert into tbl_issue

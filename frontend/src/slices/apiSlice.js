@@ -55,6 +55,7 @@ export const apiSlice = createApi({
     "Aboutimages",
     "Notification",
     "Signature",
+    "PCBConfig",
   ],
   endpoints: (builder) => ({}),
 
