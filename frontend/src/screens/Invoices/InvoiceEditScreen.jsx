@@ -218,11 +218,11 @@ const InvoiceEditScreen = () => {
 
     const payload = {
       pdfBase64: base64Part,
-      filename: `Invoice_${invoice_no}.pdf`
+      filename: `${invoice_no}.pdf`
     };
 
     // Prompt user to download
-    pdf.save(`Invoice_${invoice_no}.pdf`);
+    pdf.save(`${invoice_no}.pdf`);
 
     // Use native fetch with credentials for file uploads
     const res = await fetch("/api/invoices/upload/upload-pdf", {

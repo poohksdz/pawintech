@@ -261,7 +261,7 @@ const InvoiceSetScreen = () => {
 
     const payload = {
       pdfBase64: base64Part,
-      filename: `Invoice_${invoice_no}.pdf`
+      filename: `${invoice_no}.pdf`
     };
 
     // Use native fetch with credentials for file uploads

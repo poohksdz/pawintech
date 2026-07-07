@@ -213,9 +213,9 @@ const InvoiceSetSelectedCustomerScreen = () => {
 
     const formData = new FormData();
     formData.append(
-      "invoicePDF",
+      "invoice_pdf",
       pdf.output("blob"),
-      `Invoice_${invoice_no}.pdf`,
+      `${invoice_no}.pdf`
     );
 
     const response = await uploadInvoicePDF(formData).unwrap();

@@ -244,7 +244,7 @@ const QuotationSetSelectedCustomerScreen = () => {
 
     const payload = {
       pdfBase64: base64Part,
-      filename: `Quotation_${quotation_no}.pdf`
+      filename: `${quotation_no}.pdf`
     };
 
     // Use native fetch with credentials for file uploads

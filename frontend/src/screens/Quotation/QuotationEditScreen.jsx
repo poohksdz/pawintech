@@ -219,11 +219,11 @@ const QuotationEditScreen = () => {
 
     const payload = {
       pdfBase64: base64Part,
-      filename: `Quotation_${quotation_no}.pdf`
+      filename: `${quotation_no}.pdf`
     };
 
     // Prompt user to download
-    pdf.save(`Quotation_${quotation_no}.pdf`);
+    pdf.save(`${quotation_no}.pdf`);
 
     // Use native fetch with credentials for file uploads
     const res = await fetch("/api/quotations/upload/upload-pdf", {
