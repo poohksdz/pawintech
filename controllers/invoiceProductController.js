@@ -108,7 +108,12 @@ const createInvoice = asyncHandler(async (req, res) => {
 
     // Convert Thai date string "DD / MM / YYYY" to MySQL date "YYYY-MM-DD"
     function thaiDateToMySQL(thaiDateStr) {
-      const [day, month, year] = thaiDateStr.split("/").map((s) => s.trim());
+      if (!thaiDateStr) return new Date().toISOString().slice(0, 10);
+      const parts = thaiDateStr.split("/").map((s) => s.trim());
+      if (parts.length !== 3) {
+        return new Date(thaiDateStr).toISOString().slice(0, 10);
+      }
+      const [day, month, year] = parts;
       const gregorianYear = parseInt(year, 10); 
       return `${gregorianYear}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
     }
@@ -226,7 +231,12 @@ const updateInvoiceByInvoiceNo = asyncHandler(async (req, res) => {
 
     function thaiDateToMySQL(thaiDateStr) {
       if (!thaiDateStr) return new Date().toISOString().slice(0, 10);
-      const [day, month, year] = thaiDateStr.split("/").map((s) => s.trim());
+      const parts = thaiDateStr.split("/").map((s) => s.trim());
+      if (parts.length !== 3) {
+        // Already a valid date or ISO string
+        return new Date(thaiDateStr).toISOString().slice(0, 10);
+      }
+      const [day, month, year] = parts;
       const gregorianYear = parseInt(year, 10); 
       return `${gregorianYear}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
     }
@@ -237,36 +247,10 @@ const updateInvoiceByInvoiceNo = asyncHandler(async (req, res) => {
       invoice_no,
     ]);
 
-    const insertPromises = items.map((item) =>
-      db.pool.query(
-        `INSERT INTO tbl_invoices (
-          invoice_no,
-          customer_name,
-          customer_present_name,
-          customer_address,
-          customer_vat,
-          date,
-          due_date,
-          submit_price_within,
-          number_of_credit_days,
-          product_id,
-          product_detail,
-          quantity,
-          unit,
-          unit_price,
-          amount_money,
-          discount,
-          total_amount_after_discount,
-          total,
-          vat,
-          grand_total,
-          transfer_bank_account_name,
-          transfer_bank_account_number,
-          sales_person_signature,
-          sales_manager_signature,
-          invoice_pdf
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        [
+    const insertPromises = items.map((item) => {
+        const createdAt = new Date();
+        const updatedAt = new Date();
+        const queryParams = [
           invoice_no,
           customer.customer_name || null,
           customer.customer_present_name || null,
@@ -292,9 +276,46 @@ const updateInvoiceByInvoiceNo = asyncHandler(async (req, res) => {
           signatures?.sales_person_signature || null,
           signatures?.sales_manager_signature || null,
           invoice_pdf || null,
-        ],
-      ),
-    );
+          customer.branch_name || "Head Office",
+          createdAt,
+          updatedAt,
+        ].map(p => typeof p === 'undefined' ? null : p);
+
+        console.log("MySQL Bind Params for item:", queryParams);
+        return db.pool.query(
+          `INSERT INTO tbl_invoices (
+            invoice_no,
+            customer_name,
+            customer_present_name,
+            customer_address,
+            customer_vat,
+            date,
+            due_date,
+            submit_price_within,
+            number_of_credit_days,
+            product_id,
+            product_detail,
+            quantity,
+            unit,
+            unit_price,
+            amount_money,
+            discount,
+            total_amount_after_discount,
+            total,
+            vat,
+            grand_total,
+            transfer_bank_account_name,
+            transfer_bank_account_number,
+            sales_person_signature,
+            sales_manager_signature,
+            invoice_pdf,
+            branch_name,
+            created_at,
+            updated_at
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          queryParams
+        );
+      });
 
     await Promise.all(insertPromises);
 

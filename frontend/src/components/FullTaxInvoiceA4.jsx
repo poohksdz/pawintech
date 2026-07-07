@@ -3,7 +3,7 @@ import { format, isValid } from "date-fns";
 import React from 'react';
 
 const FullTaxInvoiceA4 = ({ order, companyInfo, printMode, isQuotation = false, isAdmin = false, docType, slotSignatures }) => {
-    const [showTerms, setShowTerms] = React.useState(true);
+
     const defaultOrder = {
         id: "",
         paymentComfirmID: "",
@@ -363,21 +363,6 @@ const FullTaxInvoiceA4 = ({ order, companyInfo, printMode, isQuotation = false, 
                         </div>
                     </div>
 
-                    <div className="print:hidden text-center my-2">
-                        <button 
-                            onClick={() => setShowTerms(!showTerms)} 
-                            className="text-xs bg-gray-200 hover:bg-gray-300 text-gray-700 px-3 py-1 rounded shadow-sm transition-colors"
-                        >
-                            {showTerms ? "ซ่อนข้อกำหนด/เงื่อนไข (เพื่อพิมพ์)" : "แสดงข้อกำหนด/เงื่อนไข"}
-                        </button>
-                    </div>
-
-                    {showTerms && (
-                        <div className="flex justify-between text-[8px] mt-2 italic px-2 opacity-60">
-                            <span>กรณีชำระด้วยเช็ค ใบเสร็จรับเงินนี้จะสมบูรณ์ต่อเมื่อบริษัทฯ ได้รับเงินแล้วเท่านั้น</span>
-                            <span>ใบเสร็จรับเงินนี้จะสมบูรณ์ต่อเมื่อบริษัทฯ ได้รับเงินครบถ้วนแล้ว</span>
-                        </div>
-                    )}
 
                     {pageDef.type === "quotation" ? (
                         <div className="grid grid-cols-3 mt-4 h-32 text-[9px] gap-4">
