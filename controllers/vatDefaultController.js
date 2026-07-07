@@ -53,7 +53,8 @@ const getDefaultInvoiceUsed = asyncHandler(async (req, res) => {
     );
 
     if (rows.length === 0) {
-      return res.status(404).json({ message: "Default invoice not found" });
+      // Return 200 with null to prevent noisy 404 errors in browser console
+      return res.status(200).json(null);
     }
 
     res.status(200).json(rows[0]);

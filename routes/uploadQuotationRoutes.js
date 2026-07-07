@@ -78,13 +78,8 @@ router.post("/upload-image", uploadImage.single("file"), (req, res) => {
 });
 
 // ============================================================================
-// PDF UPLOAD
+// PDF UPLOAD via Base64 JSON (no multer needed)
 // ============================================================================
-const uploadPDF = multer({
-  limits: { fileSize: 20 * 1024 * 1024 },
-  /* 20MB Security Limit */ dest: "tempPDF/",
-}).single("quotationPDF");
-
 const generateUniquePDFFilename = () => {
   const now = new Date();
   const pad = (n) => n.toString().padStart(2, "0");
@@ -95,35 +90,34 @@ const generateUniquePDFFilename = () => {
 };
 
 router.post("/upload-pdf", (req, res) => {
-  uploadPDF(req, res, function (err) {
-    if (err) return res.status(400).json({ error: err.message });
-    if (!req.file) return res.status(400).json({ error: "No file uploaded" });
+  try {
+    const { pdfBase64, filename } = req.body;
 
-    try {
-      const pdfBuffer = fs.readFileSync(req.file.path);
-      const uniqueName = generateUniquePDFFilename();
-
-      const pdfFolder = path.join(
-        __dirname,
-        "..",
-        "quotationimages",
-        "quotationpdfs",
-      );
-      ensureFolder(pdfFolder);
-
-      const targetPath = path.join(pdfFolder, uniqueName);
-      fs.writeFileSync(targetPath, pdfBuffer);
-      fs.unlinkSync(req.file.path); // cleanup temp file
-
-      return res.status(200).json({
-        message: "Quotation PDF uploaded successfully",
-        savedAs: uniqueName,
-        url: normalizePath(`/quotationimages/quotationpdfs/${uniqueName}`),
-      });
-    } catch (error) {
-      return res.status(500).json({ error: "Failed to save PDF" });
+    if (!pdfBase64) {
+      return res.status(400).json({ error: "No PDF data provided (pdfBase64 is missing)" });
     }
-  });
+
+    // Decode base64 to buffer
+    const pdfBuffer = Buffer.from(pdfBase64, "base64");
+    const uniqueName = generateUniquePDFFilename();
+
+    const pdfFolder = path.join(__dirname, "..", "quotationimages", "quotationpdfs");
+    ensureFolder(pdfFolder);
+
+    const targetPath = path.join(pdfFolder, uniqueName);
+    fs.writeFileSync(targetPath, pdfBuffer);
+
+    console.log(`✅ Quotation PDF saved: ${uniqueName} (${pdfBuffer.length} bytes)`);
+
+    return res.status(200).json({
+      message: "Quotation PDF uploaded successfully",
+      savedAs: uniqueName,
+      url: normalizePath(`/quotationimages/quotationpdfs/${uniqueName}`),
+    });
+  } catch (error) {
+    console.error("❌ PDF save error:", error);
+    return res.status(500).json({ error: "Failed to save PDF: " + error.message });
+  }
 });
 
 module.exports = router;

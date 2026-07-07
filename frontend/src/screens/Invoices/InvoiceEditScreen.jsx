@@ -204,14 +204,34 @@ const InvoiceEditScreen = () => {
       pdf.internal.pageSize.getWidth(),
       pdf.internal.pageSize.getHeight(),
     );
-    const formData = new FormData();
-    formData.append(
-      "invoicePDF",
-      pdf.output("blob"),
-      `Invoice_${invoice_no}.pdf`,
-    );
-    const response = await uploadInvoicePDF(formData).unwrap();
-    return response.url;
+    const dataUri = pdf.output("datauristring");
+    const base64Part = dataUri.split(",")[1];
+
+    const payload = {
+      pdfBase64: base64Part,
+      filename: `Invoice_${invoice_no}.pdf`
+    };
+
+    // Prompt user to download
+    pdf.save(`Invoice_${invoice_no}.pdf`);
+
+    // Use native fetch with credentials for file uploads
+    const res = await fetch("/api/invoices/upload/upload-pdf", {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (!res.ok) {
+      const errData = await res.json().catch(() => ({}));
+      throw new Error(errData.error || errData.message || "PDF upload failed");
+    }
+
+    const data = await res.json();
+    return data.url;
   };
 
   const handleUpdateInvoice = async (uploadedPDFUrl = null) => {
@@ -252,13 +272,19 @@ const InvoiceEditScreen = () => {
   };
 
   const handleConfirmUpdate = async () => {
-    setShowConfirm(false);
-    
-    // Force tiny wait so componentRef captures changes correctly
-    await new Promise(r => setTimeout(r, 100));
-    
-    const pdfUrl = await uploadPDF(invoiceNumber);
-    await handleUpdateInvoice(pdfUrl);
+    try {
+      setShowConfirm(false);
+      
+      // Force tiny wait so componentRef captures changes correctly
+      await new Promise(r => setTimeout(r, 100));
+      
+      const pdfUrl = await uploadPDF(invoiceNumber);
+      await handleUpdateInvoice(pdfUrl);
+    } catch (error) {
+      console.error("Save error:", error);
+      const errorMsg = error?.data?.message || error?.data?.error || error?.message || "Failed to save invoice";
+      toast.error(typeof errorMsg === 'string' ? errorMsg : "Failed to save invoice");
+    }
   };
 
   const isLoadingAll = isLoadingData || isLoadingUpload || isLoadingUpdate;

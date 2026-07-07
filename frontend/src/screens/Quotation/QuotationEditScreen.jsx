@@ -205,14 +205,34 @@ const QuotationEditScreen = () => {
       pdf.internal.pageSize.getWidth(),
       pdf.internal.pageSize.getHeight(),
     );
-    const formData = new FormData();
-    formData.append(
-      "quotationPDF",
-      pdf.output("blob"),
-      `Quotation_${quotation_no}.pdf`,
-    );
-    const response = await uploadQuotationPDF(formData).unwrap();
-    return response.url;
+    const dataUri = pdf.output("datauristring");
+    const base64Part = dataUri.split(",")[1];
+
+    const payload = {
+      pdfBase64: base64Part,
+      filename: `Quotation_${quotation_no}.pdf`
+    };
+
+    // Prompt user to download
+    pdf.save(`Quotation_${quotation_no}.pdf`);
+
+    // Use native fetch with credentials for file uploads
+    const res = await fetch("/api/quotations/upload/upload-pdf", {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (!res.ok) {
+      const errData = await res.json().catch(() => ({}));
+      throw new Error(errData.error || errData.message || "PDF upload failed");
+    }
+
+    const data = await res.json();
+    return data.url;
   };
 
   const handleUpdateQuotation = async (uploadedPDFUrl = null) => {
@@ -254,13 +274,19 @@ const QuotationEditScreen = () => {
   };
 
   const handleConfirmUpdate = async () => {
-    setShowConfirm(false);
-    
-    // Force tiny wait so componentRef captures changes correctly
-    await new Promise(r => setTimeout(r, 100));
-    
-    const pdfUrl = await uploadPDF(quotationNumber);
-    await handleUpdateQuotation(pdfUrl);
+    try {
+      setShowConfirm(false);
+      
+      // Force tiny wait so componentRef captures changes correctly
+      await new Promise(r => setTimeout(r, 100));
+      
+      const pdfUrl = await uploadPDF(quotationNumber);
+      await handleUpdateQuotation(pdfUrl);
+    } catch (error) {
+      console.error("Save error:", error);
+      const errorMsg = error?.data?.message || error?.data?.error || error?.message || "Failed to save quotation";
+      toast.error(typeof errorMsg === 'string' ? errorMsg : "Failed to save quotation");
+    }
   };
 
   const isLoadingAll = isLoadingData || isLoadingUpload || isLoadingUpdate;

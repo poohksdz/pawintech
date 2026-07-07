@@ -113,8 +113,8 @@ app.use(
 // =========================================================
 
 // Body Parser (เธขเนเธฒเธขเธกเธฒเนเธงเนเธ•เธฃเธเธเธตเนเน€เธเธทเนเธญเนเธซเนเธฃเธฑเธ JSON เนเธ”เนเธเนเธญเธเธเธฐเนเธ”เธ Security เธญเธทเนเธเน เธเธงเธ)
-app.use(express.json({ limit: "50mb" }));
-app.use(express.urlencoded({ extended: true, limit: "50mb" }));
+app.use(express.json({ limit: "200mb" }));
+app.use(express.urlencoded({ extended: true, limit: "200mb" }));
 app.use(cookieParser());
 
 // Helmet (Security Headers)
@@ -269,15 +269,15 @@ app.use("/api/customers", customerRoutes);
 // Cart Routes
 app.use("/api/cart", cartRoutes);
 
-app.use("/api/quotations", quotationRoutes);
 app.use("/api/quotations/upload", require("./routes/uploadQuotationRoutes"));
-app.use("/api/defaultquotations", quotationDefaultRoutes);
+app.use("/api/quotations", quotationRoutes);
 app.use(
   "/api/defaultquotations/upload",
   require("./routes/uploadQuotationDefaultRoutes"),
 );
-app.use("/api/invoices", invoiceRoutes);
+app.use("/api/defaultquotations", quotationDefaultRoutes);
 app.use("/api/invoices/upload", require("./routes/uploadInvoiceRoutes"));
+app.use("/api/invoices", invoiceRoutes);
 app.use("/api/defaultinvoices", vatDefaultRouters);
 app.use("/api/defaultInvoiceImages", uploadDefaultInvoiceLogoRoutes);
 app.use("/api/orders", orderRoutes);
