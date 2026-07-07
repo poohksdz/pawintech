@@ -57,7 +57,7 @@ const QuotationEditScreen = () => {
   });
 
   const [rows, setRows] = useState([]);
-  const [defaultSummary, setDefaultSummary] = useState({});
+  const [defaultSummary, setDefaultSummary] = useState({ discount: 0, vat: 0 });
 
   // --- Effects ---
   useEffect(() => {
