@@ -225,6 +225,9 @@ const staticFolders = [
 ];
 
 // Serve static folders with specific prefixes (Recommended)
+if (process.env.NAS_SIGNATURE_DIR) {
+  app.use("/uploads/signatures", express.static(process.env.NAS_SIGNATURE_DIR));
+}
 staticFolders.forEach((folder) => {
   app.use(`/${folder}`, express.static(path.join(rootPath, folder)));
 });
