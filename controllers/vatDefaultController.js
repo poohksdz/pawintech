@@ -81,6 +81,7 @@ const createDefaultInvoice = asyncHandler(async (req, res) => {
     is_head_office,
     is_branch,
     branch_name,
+    note,
   } = req.body;
 
   const logo = `/images${req.body.logo}`;
@@ -88,8 +89,8 @@ const createDefaultInvoice = asyncHandler(async (req, res) => {
   try {
     const [result] = await pool.query(
       `INSERT INTO tbl_default_invoice
-      (logo, company_name, company_name_thai, head_office, head_office_thai, tel, email, tax_id, discount, vat, is_head_office, is_branch, branch_name)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      (logo, company_name, company_name_thai, head_office, head_office_thai, tel, email, tax_id, discount, vat, is_head_office, is_branch, branch_name, note)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         logo,
         company_name,
@@ -104,6 +105,7 @@ const createDefaultInvoice = asyncHandler(async (req, res) => {
         is_head_office,
         is_branch,
         branch_name,
+        note,
       ],
     );
 
@@ -137,6 +139,7 @@ const updateDefaultInvoice = asyncHandler(async (req, res) => {
     is_head_office,
     is_branch,
     branch_name,
+    note,
   } = req.body;
 
   const logo = `/images${req.body.logo}`;
@@ -154,7 +157,7 @@ const updateDefaultInvoice = asyncHandler(async (req, res) => {
       `UPDATE tbl_default_invoice SET logo = ?, 
       company_name = ?, company_name_thai = ?, head_office = ?, head_office_thai = ?,
       tel = ?, email = ?, tax_id = ?, discount = ?, vat = ?,
-      is_head_office = ?, is_branch = ?, branch_name = ?
+      is_head_office = ?, is_branch = ?, branch_name = ?, note = ?
       WHERE id = ?`,
       [
         logo,
@@ -170,6 +173,7 @@ const updateDefaultInvoice = asyncHandler(async (req, res) => {
         is_head_office,
         is_branch,
         branch_name,
+        note,
         id,
       ],
     );

@@ -8,14 +8,14 @@ export const showcasesApiSlice = apiSlice.injectEndpoints({
         url: SHOWCASE_URL,
         params: { keyword, pageNumber },
       }),
-      keepUnusedDataFor: 5,
+      keepUnusedDataFor: 300,
       providesTags: ["Showcases"],
     }),
     getShowcaseDetails: builder.query({
       query: (showcaseId) => ({
         url: `${SHOWCASE_URL}/${showcaseId}`,
       }),
-      keepUnusedDataFor: 5,
+      keepUnusedDataFor: 300,
     }),
     createShowcase: builder.mutation({
       query: (data) => ({

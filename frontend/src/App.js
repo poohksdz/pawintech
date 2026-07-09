@@ -1,6 +1,6 @@
 import React, { Suspense, useEffect } from "react";
 import { useDispatch } from "react-redux";
-import { Outlet, useLocation } from "react-router-dom";
+import { Outlet } from "react-router-dom";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
 import Loader from "./components/Loader";
@@ -11,7 +11,7 @@ import "react-toastify/dist/ReactToastify.css";
 
 const App = () => {
   const dispatch = useDispatch();
-  const location = useLocation();
+
 
   useEffect(() => {
     const expirationTime = localStorage.getItem("expirationTime");
@@ -44,7 +44,7 @@ const App = () => {
 
       {/* Main Layout */}
       <main className="min-h-screen bg-slate-50 dark:bg-black transition-colors duration-500">
-        <div key={location.pathname} className="animate-pageFade w-full">
+        <div className="animate-pageFade w-full">
           <Suspense fallback={<div className="h-screen flex items-center justify-center"><Loader /></div>}>
             <Outlet />
           </Suspense>

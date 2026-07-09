@@ -25,6 +25,7 @@ import {
   FaCalculator,
 } from "react-icons/fa";
 import Loader from "../../components/Loader";
+  // eslint-disable-next-line no-unused-vars
 import Message from "../../components/Message";
 import {
   useUploadGerberAssemblyZipMutation,
@@ -40,6 +41,7 @@ import { BASE_URL as APP_BASE_URL } from "../../constants";
 const OrderassemblyOrderEditScreen = () => {
   const navigate = useNavigate();
   const { id } = useParams();
+  // eslint-disable-next-line no-unused-vars
   const { userInfo } = useSelector((state) => state.auth);
   const { language } = useSelector((state) => state.language);
 

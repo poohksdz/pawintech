@@ -1,3 +1,5 @@
+  // eslint-disable-next-line no-unused-vars
+  // eslint-disable-next-line no-unused-vars
 import React, { useState, useEffect, useRef } from "react";
 import Button from "../../components/ui/Button";
 import { useGetDefaultQuotationUsedQuery } from "../../slices/quotationDefaultApiSlice";
@@ -126,9 +128,9 @@ const QuotationDetailScreen = () => {
       buyer: firstQuotation.buyer_approves_signature,
       buyerDate: firstQuotation.buyer_approves_signature_date,
       sales: firstQuotation.sales_person_signature,
-      salesDate: firstQuotation.sales_person_signature_date,
+      salesDate: firstQuotation.sales_person_signature_date || firstQuotation.createdAt || new Date(),
       manager: firstQuotation.sales_manager_signature,
-      managerDate: firstQuotation.sales_manager_signature_date,
+      managerDate: firstQuotation.sales_manager_signature_date || firstQuotation.createdAt || new Date(),
     }
   } : null;
 
@@ -164,6 +166,15 @@ const QuotationDetailScreen = () => {
           Print / Save PDF
         </Button>
       </div>
+
+      {firstQuotation?.internal_note && (
+        <div className="flex justify-center w-full bg-yellow-100 py-3 print:hidden border-b border-yellow-300">
+          <div className="w-[210mm] px-4">
+            <span className="font-bold text-yellow-800 mr-2">หมายเหตุภายใน (Internal Note):</span>
+            <span className="text-yellow-900 whitespace-pre-wrap">{firstQuotation.internal_note}</span>
+          </div>
+        </div>
+      )}
 
       {/* A4 Paper Canvas */}
       <div className="flex justify-center w-full bg-slate-200 py-4 print:py-0 print:bg-white overflow-visible">

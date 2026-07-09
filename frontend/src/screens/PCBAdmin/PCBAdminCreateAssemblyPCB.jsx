@@ -29,8 +29,10 @@ const PCBAdminCreateAssemblyPCB = () => {
   const { userInfo } = useSelector((state) => state.auth);
   const [createAssemblyPCBbyAdmin, { isLoading: isCreating }] =
     useCreateAssemblyPCBbyAdminMutation();
+  // eslint-disable-next-line no-unused-vars
   const [uploadGerberZip, { isLoading: isUploadingGerber }] =
     useUploadGerberAssemblyZipMutation();
+  // eslint-disable-next-line no-unused-vars
   const [uploadAssemblyMultipleImages, { isLoading: isUploadingImages }] =
     useUploadAssemblyMultipleImagesMutation();
   const { data, isLoading: isFetchingDefault } =
@@ -54,7 +56,10 @@ const PCBAdminCreateAssemblyPCB = () => {
   const [confirmedReason, setConfirmedReason] = useState("");
 
   // transfer / payer info
+  // eslint-disable-next-line no-unused-vars
+  // eslint-disable-next-line no-unused-vars
   const [copyerName, setCopyerName] = useState("");
+  // eslint-disable-next-line no-unused-vars
   const [transferedAmount, setTransferedAmount] = useState("");
   const [transferedDate, setTransferedDate] = useState("");
   const [transferedName, setTransferedName] = useState("");

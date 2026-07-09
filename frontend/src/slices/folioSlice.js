@@ -8,14 +8,14 @@ export const foliosApiSlice = apiSlice.injectEndpoints({
         url: FOLIOS_URL,
         params: { keyword, pageNumber },
       }),
-      keepUnusedDataFor: 5,
+      keepUnusedDataFor: 300,
       providesTags: ["FOlios"],
     }),
     getFolioDetails: builder.query({
       query: (folioId) => ({
         url: `${FOLIOS_URL}/${folioId}`,
       }),
-      keepUnusedDataFor: 5,
+      keepUnusedDataFor: 300,
     }),
     createFolio: builder.mutation({
       query: (data) => ({

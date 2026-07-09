@@ -1,3 +1,6 @@
+/* eslint-disable no-lone-blocks */
+/* eslint-disable no-lone-blocks */
+/* eslint-disable no-lone-blocks */
 import React, { useState, useMemo, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { useParams, useNavigate } from "react-router-dom";

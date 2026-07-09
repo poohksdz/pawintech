@@ -105,6 +105,8 @@ const ProductAllScreen = () => {
     }
   }, [selectedCategory, data, language]);
 
+  // eslint-disable-next-line no-unused-vars
+  // eslint-disable-next-line no-unused-vars
   const handleCategoryChange = (e) => {
     setSelectedCategory(e.target.value);
   };

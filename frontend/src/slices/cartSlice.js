@@ -44,14 +44,12 @@ export const syncCartDB = createAsyncThunk(
 
     try {
       // FIX BUG: ใช้ PUT แทน POST เพื่อ replace cart ไม่ใช่ accumulate
-      console.log("[Cart] Syncing cart to DB, items:", state.cart.cartItems.length);
       const response = await axios.put(
         CART_URL,
         { cartItems: state.cart.cartItems },
         getConfig(state),
       );
       if (response.data && response.data.cartItems) {
-        console.log("[Cart] Sync completed, received:", response.data.cartItems.length, "items");
         return response.data.cartItems;
       }
     } catch (err) {
@@ -227,7 +225,7 @@ const cartSlice = createSlice({
 
         // FIX BUG: Merge duplicate items from DB (same product_id multiple rows)
         // FIX: Preserve local isSelected state (DB doesn't store isSelected)
-        state.cartItems = mergeCartItems(action.payload.cartItems).map((item) => {
+        const newItems = mergeCartItems(action.payload.cartItems).map((item) => {
           const key = item._id || item.product_id;
           const localSelected = key ? localSelectionMap[key] : undefined;
           return {
@@ -236,8 +234,16 @@ const cartSlice = createSlice({
             isSelected: localSelected !== undefined ? localSelected : true,
           };
         });
-        updateCart(state);
-        localStorage.setItem("cart", JSON.stringify(state)); // Sync กลับ LocalStorage กันเหนียว
+
+        // FIX INFINITE LOOP: Only update state if cart items actually changed
+        // Compare by stringifying to avoid unnecessary re-renders
+        const oldJSON = JSON.stringify(state.cartItems);
+        const newJSON = JSON.stringify(newItems);
+        if (oldJSON !== newJSON) {
+          state.cartItems = newItems;
+          updateCart(state);
+          localStorage.setItem("cart", JSON.stringify(state)); // Sync กลับ LocalStorage กันเหนียว
+        }
       }
     });
   },

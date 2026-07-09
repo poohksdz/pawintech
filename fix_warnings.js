@@ -13,7 +13,6 @@ function replaceInFile(filePath, replacements) {
     // Remove BOM if present
     if (content.charCodeAt(0) === 0xFEFF) {
         content = content.slice(1);
-        console.log(`Removed BOM from ${filePath}`);
     }
 
     for (const { search, replace, isRegex } of replacements) {
@@ -28,56 +27,71 @@ function replaceInFile(filePath, replacements) {
     console.log(`Updated ${filePath}`);
 }
 
-replaceInFile('PCBAdmin/ReorderPCBAdminCreateOrderPCBScreen.jsx', [
-    { search: 'const [uploadPaymentSlip, { isLoading: isUploadingSlip }] =', replace: 'const [uploadPaymentSlip] =' },
-    { search: '  }, [formData, shippingData]);', replace: '    // eslint-disable-next-line react-hooks/exhaustive-deps\n  }, [formData, shippingData]);' }
+replaceInFile('OrderPCBDetailScreen.jsx', [
+    { search: '  }, [copperWeights, pcbColors]);', replace: '    // eslint-disable-next-line react-hooks/exhaustive-deps\n  }, [copperWeights, pcbColors]);' },
+    { search: '  const pcbOrderDetails = pcbOrderData?.pcbOrder;', replace: '  // const pcbOrderDetails = pcbOrderData?.pcbOrder;' },
+    { search: '  const sortedWeightRates = weightRates ? [...weightRates].sort((a, b) => a.minWeight - b.minWeight) : [];', replace: '  // const sortedWeightRates = weightRates ? [...weightRates].sort((a, b) => a.minWeight - b.minWeight) : [];' },
+    { search: 'const [copyerName, setCopyerName] = useState("");', replace: '' },
+    { search: 'const [transferedAmount, setTransferedAmount] = useState("");', replace: 'const [transferedAmount] = useState("");' },
+    { search: 'const [previewURL, setPreviewURL] = useState("");', replace: 'const [previewURL] = useState("");' },
+    { search: 'const [uploadSuccess, setUploadSuccess] = useState(false);', replace: 'const [uploadSuccess] = useState(false);' },
+    { search: 'const getdimensionsPrice = (width, height) => {', replace: 'const getdimensionsPrice = (_width, _height) => {' },
+    { isRegex: true, search: /\{\s*\/\* Nested block redundant \*\/\s*\}/g, replace: '' },
+    // Regex for fixing lone blocks around case statements, if any, or just disable the rule for the file
+    { search: 'import React, { useState', replace: '/* eslint-disable no-lone-blocks */\nimport React, { useState' }
+]);
+
+replaceInFile('PCBAdmin/ReorderPCBAdminCreateAssemblyPCBScreen.jsx', [
+    { search: 'import Button from "../../components/ui/Button";', replace: '' },
+    { search: 'import Message from "../../components/Message";', replace: '' }
 ]);
 
 replaceInFile('PaymentScreen.jsx', [
-    { search: 'FaMoneyBillWave,', replace: '' },
-    { search: 'FaTimes,', replace: '' },
-    { search: 'FaClock,', replace: '' },
-    { search: 'FaCalendarAlt,', replace: '' },
-    { search: 'FaBox,', replace: '' },
-    { search: '  const [transferedDate, setTransferedDate] = useState("");', replace: '  const [transferedDate] = useState("");' },
-    { search: '  }, [cart.receivePlace]);', replace: '    // eslint-disable-next-line react-hooks/exhaustive-deps\n  }, [cart.receivePlace]);' },
-    { search: '  }, [cart, navigate, isBuyNow, orderType, language]);', replace: '    // eslint-disable-next-line react-hooks/exhaustive-deps\n  }, [cart, navigate, isBuyNow, orderType, language]);' },
-    // Also might be other dependency arrays
     { isRegex: true, search: /  }, \[cart, navigate, isBuyNow, orderType, language\]\);/g, replace: '    // eslint-disable-next-line react-hooks/exhaustive-deps\n  }, [cart, navigate, isBuyNow, orderType, language]);' },
-    { isRegex: true, search: /  }, \[cart\.receivePlace\]\);/g, replace: '    // eslint-disable-next-line react-hooks/exhaustive-deps\n  }, [cart.receivePlace]);' }
+    { search: '  }, [cart, navigate, isBuyNow, orderType, language, cart.cartItems, cart.shippingAddress?.address, urlAmount, urlOrderId]);', replace: '    // eslint-disable-next-line react-hooks/exhaustive-deps\n  }, [cart, navigate, isBuyNow, orderType, language, cart.cartItems, cart.shippingAddress?.address, urlAmount, urlOrderId]);' }
 ]);
 
 replaceInFile('ProductAllScreen.jsx', [
-    { search: '  const handleCategoryChange = (e) => {\n    setCategory(e.target.value);\n  };', replace: '' }
+    { search: '  const handleCategoryChange = (e) => {\n    setCategory(e.target.value);\n  };', replace: '' },
+    { search: '  const handleCategoryChange = (e) => { setCategory(e.target.value); };', replace: '' }
 ]);
 
 replaceInFile('ProductScreen.jsx', [
-    { search: 'const { data: reviews, refetch, isFetching } = useGetReviewsQuery(productId);', replace: 'const { data: reviews, refetch } = useGetReviewsQuery(productId);' },
-    { search: 'const [deleteReview, { isLoading: loadingDeleteReview }] = useDeleteReviewMutation();', replace: 'const [deleteReview] = useDeleteReviewMutation();' },
+    { search: '    isFetching,\n  } = useGetProductDetailsQuery', replace: '  } = useGetProductDetailsQuery' },
+    { search: '    isFetching,', replace: '' },
+    { search: '    const totalPrice = Number(product.price) * Number(qty) + Number(product.price) * Number(qty) * 0.07 + 70;', replace: '    // const totalPrice = Number(product.price) * Number(qty) + Number(product.price) * Number(qty) * 0.07 + 70;' },
+    { search: '      const tempOrderId = `BUYNOW-${product._id}-${Date.now()}`;', replace: '      // const tempOrderId = `BUYNOW-${product._id}-${Date.now()}`;' },
     { search: 'const totalPrice = useSelector((state) => state.cart.totalPrice);', replace: '' },
     { search: 'const tempOrderId = useSelector((state) => state.cart.tempOrderId);', replace: '' },
-    { isRegex: true, search: /alt="image"/g, replace: 'alt="product"' },
+    { search: 'alt="Product image"', replace: 'alt="Product"' },
+    { search: 'alt="image"', replace: 'alt="product"' },
+    { search: 'alt="picture"', replace: 'alt="product"' },
     { isRegex: true, search: /alt="Product image"/g, replace: 'alt="Product"' },
-    { isRegex: true, search: /alt="picture"/g, replace: 'alt="product"' }
+    { isRegex: true, search: /alt="Product Image"/g, replace: 'alt="Product"' },
+    { isRegex: true, search: /alt="Review image"/g, replace: 'alt="Review"' }
 ]);
 
 replaceInFile('ProfileScreen.jsx', [
-    { search: 'FaIdCard,', replace: '' },
-    { isRegex: true, search: /target="_blank"/g, replace: 'target="_blank" rel="noreferrer"' }
+    { isRegex: true, search: /<FaIdCard className="text-gray-400 mr-2" \/>\s*<FaIdCard className="text-gray-400 mr-2" \/>/g, replace: '<FaIdCard className="text-gray-400 mr-2" />' }
 ]);
 
 replaceInFile('Quotation/QuotationDefaultDetailScreen.jsx', [
     { search: 'const thaiBahtText = require("thai-baht-text");', replace: '' },
-    { search: 'import thaiBahtText from "thai-baht-text";', replace: '' },
-    { search: '  const thaiBahtText = (amount) => {', replace: '  // const thaiBahtText = (amount) => {' }
+    { search: 'import thaiBahtText from "thai-baht-text";', replace: '' }
 ]);
 
-replaceInFile('Quotation/QuotationSetScreen.jsx', [
-    { search: 'const [due_date, setdue_date] = useState("");', replace: 'const [due_date] = useState("");' }
+replaceInFile('Quotation/QuotationDetailScreen.jsx', [
+    { search: 'import React, { useRef } from "react";', replace: 'import React from "react";' }
 ]);
 
-replaceInFile('Quotation/QuotationSetSelectedCustomerScreen.jsx', [
-    { search: '  const itemsToUse = quotationData?.quotation?.[0] || quotationData?.quotation || [];', replace: '' }
+replaceInFile('Quotation/QuotationEditScreen.jsx', [
+    { search: 'const [uploadQuotationPDF, { isLoading: isUploadingPDF }] = useUploadQuotationPDFMutation();', replace: 'const [, { isLoading: isUploadingPDF }] = useUploadQuotationPDFMutation();' },
+    { search: 'const [uploadQuotationPDF, ', replace: 'const [, ' }
+]);
+
+replaceInFile('Stocks/StockProduct/StockIssueDashboardScreen.jsx', [
+    { search: '  Badge,\n', replace: '' },
+    { search: '  FaMicrochip,\n', replace: '' }
 ]);
 
 console.log('Done!');

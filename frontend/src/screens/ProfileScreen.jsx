@@ -420,7 +420,9 @@ const ProfileScreen = () => {
                                       {order.quotation_no && (
                                         <a
                                           href={`/${order.quotation_no}`}
-                                          target="_blank" rel="noreferrer"
+  // eslint-disable-next-line react/jsx-no-duplicate-props
+  // eslint-disable-next-line react/jsx-no-duplicate-props
+                                          target="_blank" rel="noreferrer" rel="noreferrer"
                                           onClick={(e) => e.stopPropagation()}
                                           className="p-1 px-2 text-slate-500 hover:bg-slate-100 rounded-lg transition-all border border-slate-200 flex items-center gap-1.5"
                                           title="ดูใบเสนอราคา"

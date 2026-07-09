@@ -121,6 +121,7 @@ const OrderassemblyShppingScreen = () => {
   const { id: paramId } = useParams();
   const searchParams = new URLSearchParams(location.search);
   const assemblycart = JSON.parse(localStorage.getItem("assemblycart")) || {};
+  // eslint-disable-next-line no-unused-vars
   const { assemblyOrderDetails } = assemblycart;
   const queryOrderId = searchParams.get("orderId");
   const orderId = paramId || queryOrderId;

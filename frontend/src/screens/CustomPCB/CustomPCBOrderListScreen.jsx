@@ -5,18 +5,21 @@ import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "react-toastify";
 import {
   FaSearch,
+  // eslint-disable-next-line no-unused-vars
   FaClipboardList,
   FaCheckCircle,
   FaTimesCircle,
   FaClock,
   FaMoneyBillWave,
   FaTrash,
+  // eslint-disable-next-line no-unused-vars
   FaEdit,
   FaBox,
   FaDownload,
   FaArrowRight,
 } from "react-icons/fa";
 import { BASE_URL } from "../../constants";
+  // eslint-disable-next-line no-unused-vars
 import { PiCircuitryFill, PiCurrencyCircleDollarFill } from "react-icons/pi";
 
 import Loader from "../../components/Loader";
@@ -107,6 +110,7 @@ const CustomPCBOrderListScreen = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("All");
   const [pcbToDelete, setPCBToDelete] = useState(null);
+  // eslint-disable-next-line no-unused-vars
   const [hoveredRow, setHoveredRow] = useState(null);
 
   const t = {

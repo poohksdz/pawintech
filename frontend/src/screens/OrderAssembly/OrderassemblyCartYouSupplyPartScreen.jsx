@@ -28,8 +28,10 @@ const OrderassemblyCartYouSupplyPartScreen = () => {
   const { userInfo } = useSelector((state) => state.auth);
   const [createAssemblycart, { isLoading: isCreating }] =
     useCreateAssemblycartMutation();
+  // eslint-disable-next-line no-unused-vars
   const [uploadGerberZip, { isLoading: isUploadingGerber }] =
     useUploadGerberAssemblyZipMutation();
+  // eslint-disable-next-line no-unused-vars
   const [uploadAssemblyMultipleImages, { isLoading: isUploadingImages }] =
     useUploadAssemblyMultipleImagesMutation();
   const { data, isLoading: isFetchingDefault } =

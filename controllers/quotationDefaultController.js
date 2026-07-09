@@ -71,9 +71,9 @@ const createDefaultQuotation = asyncHandler(async (req, res) => {
     bank_account_name,
     bank_account_number,
     deposit,
-    buyer_approves,
     sales_person,
     sales_manager,
+    note,
   } = req.body;
 
   try {
@@ -82,8 +82,8 @@ const createDefaultQuotation = asyncHandler(async (req, res) => {
 
     const [result] = await db.pool.query(
       `INSERT INTO tbl_default_quotation 
-      (logo, company_name, company_name_thai, head_office, head_office_thai, tel, email, tax_id, discount, vat, is_head_office, is_branch, branch_name, bank_account_name, bank_account_number, deposit, buyer_approves, sales_person, sales_manager, created_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())`,
+      (logo, company_name, company_name_thai, head_office, head_office_thai, tel, email, tax_id, discount, vat, is_head_office, is_branch, branch_name, bank_account_name, bank_account_number, deposit, buyer_approves, sales_person, sales_manager, note, created_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())`,
       [
         logo,
         company_name,
@@ -104,6 +104,7 @@ const createDefaultQuotation = asyncHandler(async (req, res) => {
         buyer_approves,
         sales_person,
         sales_manager,
+        note,
       ],
     );
 
@@ -139,9 +140,9 @@ const updateDefaultQuotation = asyncHandler(async (req, res) => {
     bank_account_name,
     bank_account_number,
     deposit,
-    buyer_approves,
     sales_person,
     sales_manager,
+    note,
   } = req.body;
 
   try {
@@ -152,7 +153,7 @@ const updateDefaultQuotation = asyncHandler(async (req, res) => {
 
     await db.pool.query(
       `UPDATE tbl_default_quotation
-       SET logo = ?, company_name = ?, company_name_thai = ?, head_office = ?, head_office_thai = ?, tel = ?, email = ?, tax_id = ?, discount = ?, vat = ?, is_head_office = ?, is_branch = ?, branch_name = ?, bank_account_name = ?, bank_account_number = ?, deposit = ?, buyer_approves = ?, sales_person = ?, sales_manager = ?
+       SET logo = ?, company_name = ?, company_name_thai = ?, head_office = ?, head_office_thai = ?, tel = ?, email = ?, tax_id = ?, discount = ?, vat = ?, is_head_office = ?, is_branch = ?, branch_name = ?, bank_account_name = ?, bank_account_number = ?, deposit = ?, buyer_approves = ?, sales_person = ?, sales_manager = ?, note = ?
        WHERE id = ?`,
       [
         logo,
@@ -174,6 +175,7 @@ const updateDefaultQuotation = asyncHandler(async (req, res) => {
         buyer_approves,
         sales_person,
         sales_manager,
+        note,
         id,
       ],
     );

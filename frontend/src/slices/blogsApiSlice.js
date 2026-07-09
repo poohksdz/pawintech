@@ -8,14 +8,14 @@ export const blogsApiSlice = apiSlice.injectEndpoints({
         url: BLOGS_URL,
         params: { keyword, pageNumber },
       }),
-      keepUnusedDataFor: 5,
+      keepUnusedDataFor: 300,
       providesTags: ["Blogs"],
     }),
     getBlogDetails: builder.query({
       query: (blogId) => ({
         url: `${BLOGS_URL}/${blogId}`,
       }),
-      keepUnusedDataFor: 5,
+      keepUnusedDataFor: 300,
     }),
     createBlog: builder.mutation({
       query: (data) => ({

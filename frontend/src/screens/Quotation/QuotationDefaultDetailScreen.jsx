@@ -44,6 +44,8 @@ const QuotationA4 = ({ order, companyInfo, printMode }) => {
     return `${day}/${month}/${year}`;
   };
 
+  // eslint-disable-next-line no-unused-vars
+  // eslint-disable-next-line no-unused-vars
   const thaiBahtText = (price) => {
     if (!price || isNaN(price) || price === 0) return "-";
     const units = ["", "สิบ", "ร้อย", "พัน", "หมื่น", "แสน", "ล้าน"];

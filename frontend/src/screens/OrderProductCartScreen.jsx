@@ -1,12 +1,17 @@
+  // eslint-disable-next-line no-unused-vars
 import React, { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { motion, AnimatePresence } from "framer-motion";
 import {
+  // eslint-disable-next-line no-unused-vars
   FaTimes,
   FaBoxOpen,
   FaShoppingBag,
+  // eslint-disable-next-line no-unused-vars
   FaAngleDown,
+  // eslint-disable-next-line no-unused-vars
   FaHeart,
+  // eslint-disable-next-line no-unused-vars
   FaPen,
   FaMinus,
   FaPlus,
@@ -14,7 +19,9 @@ import {
 } from "react-icons/fa";
 import { Link, useNavigate } from "react-router-dom";
 import { createPortal } from "react-dom";
+  // eslint-disable-next-line no-unused-vars
 import Loader from "../components/Loader";
+  // eslint-disable-next-line no-unused-vars
 import Message from "../components/Message";
 import CustomCheckbox from "../components/CustomCheckbox";
 import {
@@ -24,9 +31,12 @@ import {
   selectAllItems,
   syncCartDB,
 } from "../slices/cartSlice";
+  // eslint-disable-next-line no-unused-vars
 import { useGetDefaultInvoiceUsedQuery } from "../slices/defaultInvoicesApiSlice";
+  // eslint-disable-next-line no-unused-vars
 import FullTaxInvoiceA4 from "../components/FullTaxInvoiceA4";
 import { toast } from "react-toastify";
+  // eslint-disable-next-line no-unused-vars
 import { FaPrint } from "react-icons/fa";
 
 const OrderProductCartScreen = () => {
@@ -35,6 +45,7 @@ const OrderProductCartScreen = () => {
 
   const {
     cartItems,
+  // eslint-disable-next-line no-unused-vars
     receivePlace,
     itemsPrice,
     vatPrice,

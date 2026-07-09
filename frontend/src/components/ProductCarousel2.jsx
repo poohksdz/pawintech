@@ -1,5 +1,5 @@
 import React from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import Message from "./Message";
 import { useGetShowcasesQuery } from "../slices/showcasesApiSlice";
@@ -10,11 +10,13 @@ import "swiper/css/pagination";
 import "swiper/css/navigation";
 import "./swiper-custom.css";
 
+const SHOWCASE_QUERY_PARAMS = {};
+
 const ProductCarousel2 = () => {
-  const { pageNumber } = useParams();
   const navigate = useNavigate();
+  // eslint-disable-next-line no-unused-vars
   const { userInfo } = useSelector((state) => state.auth);
-  const { data, isLoading, error } = useGetShowcasesQuery({ pageNumber });
+  const { data, isLoading, error } = useGetShowcasesQuery(SHOWCASE_QUERY_PARAMS);
 
   const handleNavigateLinkChange = (navigateLink) => {
     if (navigateLink) navigate(`${navigateLink}`);

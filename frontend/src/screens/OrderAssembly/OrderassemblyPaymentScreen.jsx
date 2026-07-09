@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
+  // eslint-disable-next-line no-unused-vars
 import { useDispatch, useSelector } from "react-redux";
 import { motion, AnimatePresence } from "framer-motion";
 import { QRCodeCanvas } from "qrcode.react";
@@ -61,6 +62,7 @@ const OrderassemblyPaymentScreen = () => {
       skip: !orderId,
     });
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const fetchedData = cartData?.data || cartData || {};
 
   // คำนวณยอดเงินรวม
@@ -79,6 +81,7 @@ const OrderassemblyPaymentScreen = () => {
 
   const [createAssemblyPCB, { isLoading: isCreatingAssembly }] =
     useCreateAssemblyPCBMutation();
+  // eslint-disable-next-line no-unused-vars
   const [updateAmountAssemblycart] = useUpdateAmountAssemblycartMutation();
   const [uploadPaymentSlipImage, { isLoading: isImageUploading }] =
     useUploadPaymentSlipImageMutation();
@@ -96,6 +99,7 @@ const OrderassemblyPaymentScreen = () => {
   const [qrCodePayload, setQrCodePayload] = useState("");
   const [previewUrl, setPreviewUrl] = useState(null);
   const [paymentMethod, setPaymentMethod] = useState("promptpay");
+  // eslint-disable-next-line no-unused-vars
   const [transferedDate, setTransferedDate] = useState(getCurrentDateTime());
 
   useEffect(() => {

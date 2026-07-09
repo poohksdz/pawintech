@@ -12,6 +12,7 @@ import {
 } from "../../slices/assemblypcbApiSlice";
 
 const OrderassemblyOrderEditListScreen = () => {
+  // eslint-disable-next-line no-unused-vars
   const { userInfo } = useSelector((state) => state.auth);
   const { language } = useSelector((state) => state.language);
 

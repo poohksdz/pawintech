@@ -38,6 +38,7 @@ const QuotationDefaultEditScreen = () => {
   const [bankAccountName, setBankAccountName] = useState("");
   const [bankAccountNumber, setBankAccountNumber] = useState("");
   const [deposit, setDeposit] = useState("");
+  const [note, setNote] = useState("");
 
   // File + preview states
   const [logo, setLogo] = useState(null);
@@ -79,6 +80,7 @@ const QuotationDefaultEditScreen = () => {
       setBankAccountName(q.bank_account_name || "");
       setBankAccountNumber(q.bank_account_number || "");
       setDeposit(q.deposit || "");
+      setNote(q.note || "");
     }
   }, [data]);
 
@@ -147,6 +149,7 @@ const QuotationDefaultEditScreen = () => {
         bank_account_name: bankAccountName,
         bank_account_number: bankAccountNumber,
         deposit: deposit,
+        note: note,
       }).unwrap();
 
       toast.success("Default Quotation updated successfully");
@@ -367,6 +370,17 @@ const QuotationDefaultEditScreen = () => {
                 value={deposit}
                 onChange={(e) => setDeposit(e.target.value)}
               />
+            </div>
+
+            <div className="mt-6">
+              <label className="block text-sm font-bold text-slate-700 mb-2">Note / Remark</label>
+              <textarea
+                className="w-full px-4 py-3 rounded-xl border border-slate-300 bg-slate-50 text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-colors"
+                rows="4"
+                value={note}
+                onChange={(e) => setNote(e.target.value)}
+                placeholder="Ex. - Deposit 50%\n- Bank: บริษัท ภาวินท์เทคโนโลยี จำกัด"
+              ></textarea>
             </div>
           </div>
 

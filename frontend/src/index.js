@@ -74,6 +74,7 @@ import FolioEditScreen from './screens/admin/FolioEditScreen'
 import AssemblyBoardEditScreen from './screens/admin/AssemblyBoardEditScreen'
 import OrderPCBEditScreen from './screens/admin/OrderPCBEditScreen'
 import OrderPCBListScreen from './screens/admin/OrderPCBListScreen'
+  // eslint-disable-next-line no-unused-vars
 import OrderPCBCartListScreen from './screens/admin/OrderPCBCartListScreen'
 import OrderPCBEditsScreen from './screens/admin/OrderPCBEditsScreen'
 import OrderPCBEditListsScreen from './screens/admin/OrderPCBEditListsScreen'
@@ -565,6 +566,10 @@ const router = createBrowserRouter(
           <Route
             path='/admin/defaultinvoiceset'
             element={<DefaultInvoiceSetScreen />}
+          />
+          <Route
+            path='/admin/invoicelist/:id'
+            element={<InvoiceDetailScreen />}
           />
           <Route
             path='/admin/invoicelist/:id/edit'

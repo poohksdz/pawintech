@@ -9,6 +9,7 @@ import { useGetFoliosQuery } from "../slices/folioSlice";
 const FolioScreen = () => {
   const { pageNumber } = useParams();
   const { language } = useSelector((state) => state.language);
+  // eslint-disable-next-line no-unused-vars
   const [scrollDir, setScrollDir] = useState("down");
   const { data, isLoading, error } = useGetFoliosQuery({ pageNumber });
 

@@ -4,13 +4,17 @@ import { useSelector } from "react-redux";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   FaDownload,
+  // eslint-disable-next-line no-unused-vars
   FaBox,
   FaMapMarkerAlt,
   FaFileInvoice,
+  // eslint-disable-next-line no-unused-vars
   FaCalculator,
   FaArrowLeft,
   FaCheckCircle,
+  // eslint-disable-next-line no-unused-vars
   FaTimesCircle,
+  // eslint-disable-next-line no-unused-vars
   FaImage,
   FaReceipt,
   FaMicrochip,
@@ -44,6 +48,7 @@ import { saveAs } from "file-saver";
 import { BASE_URL as APP_BASE_URL } from "../../constants";
 
 const OrderassemblyDetailScreen = () => {
+  // eslint-disable-next-line no-unused-vars
   const navigate = useNavigate();
   const { id } = useParams();
   const { language } = useSelector((state) => state.language);

@@ -190,8 +190,16 @@ const Header = () => {
     QUERY_OPTIONS,
   );
 
+  const cartFetchedRef = useRef(false);
+
   useEffect(() => {
-    if (userInfo) dispatch(fetchCartDB());
+    if (userInfo && !cartFetchedRef.current) {
+      cartFetchedRef.current = true;
+      dispatch(fetchCartDB());
+    }
+    if (!userInfo) {
+      cartFetchedRef.current = false;
+    }
   }, [userInfo, dispatch]);
 
   const { data: notifications } = useGetNotificationsQuery(undefined, {

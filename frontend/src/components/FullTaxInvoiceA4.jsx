@@ -288,9 +288,9 @@ const FullTaxInvoiceA4 = ({ order, companyInfo, printMode, isQuotation = false, 
                                 {pageDef.type === "quotation" || pageDef.type === "proforma" ? (
                                     <div className="space-y-2 mt-2 text-[12px] text-black">
                                         <p className="font-bold underline mb-3 text-[14px]">Note / Remark:</p>
-                                        <p className="pl-2">- Deposit 50%</p>
-                                        <p className="pl-2">- Bank: <span className="font-bold">บริษัท ภาวินท์เทคโนโลยี จำกัด</span></p>
-                                        <p className="pl-6">No: <span className="font-bold">ธนาคารกสิกรไทย เลขที่บัญชี 096-1-10526-7</span></p>
+                                        <div className="whitespace-pre-wrap leading-tight text-[11px] pl-2">
+                                            {(currentOrder.note || currentOrder.summary?.note) ? (currentOrder.note || currentOrder.summary?.note) : "- Deposit 50%\n- Bank: บริษัท ภาวินท์เทคโนโลยี จำกัด\nNo: ธนาคารกสิกรไทย เลขที่บัญชี 096-1-10526-7"}
+                                        </div>
                                     </div>
                                 ) : (
                                     <>
@@ -303,36 +303,57 @@ const FullTaxInvoiceA4 = ({ order, companyInfo, printMode, isQuotation = false, 
                                         <div className="space-y-2 mt-4 text-[9px]">
                                         <div className="flex items-center gap-6">
                                             <div className="flex items-center gap-2">
-                                                <span className="w-3 h-3 border border-black flex items-center justify-center text-[8px]"></span>
+                                                <span className="w-3 h-3 border border-black flex items-center justify-center text-[8px]">
+                                                    {currentOrder?.paymentDetails?.paymentMethod === 'cash' ? '✓' : ''}
+                                                </span>
                                                 <span>เงินสด</span>
                                             </div>
                                             <div className="flex items-center gap-2 flex-1">
-                                                <span className="w-3 h-3 border border-black flex items-center justify-center text-[8px]"></span>
+                                                <span className="w-3 h-3 border border-black flex items-center justify-center text-[8px]">
+                                                    {currentOrder?.paymentDetails?.paymentMethod === 'check' ? '✓' : ''}
+                                                </span>
                                                 <span>เช็คธนาคาร</span>
-                                                <span className="border-b border-dotted border-black flex-1"></span>
+                                                <span className="border-b border-dotted border-black flex-1 text-center font-bold text-black">
+                                                    {currentOrder?.paymentDetails?.paymentMethod === 'check' ? currentOrder.paymentDetails.paymentCheckBank : ''}
+                                                </span>
                                             </div>
                                         </div>
 
                                         <div className="flex items-center gap-4">
                                             <div className="flex items-center gap-2 flex-1">
-                                                <span className="w-3 h-3 border border-black flex items-center justify-center text-[8px]"></span>
+                                                <span className="w-3 h-3 border border-black flex items-center justify-center text-[8px]">
+                                                    {currentOrder?.paymentDetails?.paymentMethod === 'transfer' ? '✓' : ''}
+                                                </span>
                                                 <span>เงินโอนวันที่</span>
-                                                <span className="border-b border-dotted border-black flex-1 text-center text-black"></span>
+                                                <span className="border-b border-dotted border-black flex-1 text-center font-bold text-black">
+                                                    {currentOrder?.paymentDetails?.paymentMethod === 'transfer' ? currentOrder.paymentDetails.paymentTransferDate : ''}
+                                                </span>
                                             </div>
                                             <div className="flex items-center gap-2 flex-1">
                                                 <span>เลขที่</span>
-                                                <span className="border-b border-dotted border-black flex-1"></span>
+                                                <span className="border-b border-dotted border-black flex-1 text-center font-bold text-black">
+                                                    {currentOrder?.paymentDetails?.paymentMethod === 'transfer' ? currentOrder.paymentDetails.paymentTransferRef : ''}
+                                                </span>
                                             </div>
                                         </div>
 
                                         <div className="flex items-center gap-2">
                                             <span>จำนวนเงิน</span>
                                             <span className="border-b border-dotted border-black w-24 text-center text-black font-bold">
-                                                {grandTotal > 0 ? grandTotal.toLocaleString(undefined, { minimumFractionDigits: 2 }) : ""}
+                                                {(currentOrder?.paymentDetails?.paymentAmount || grandTotal) > 0 ? (currentOrder?.paymentDetails?.paymentAmount || grandTotal).toLocaleString(undefined, { minimumFractionDigits: 2 }) : ""}
                                             </span>
                                             <span>บาท</span>
                                             <span className="ml-4 italic opacity-70">(BAHT)</span>
                                         </div>
+                                        
+                                        {(currentOrder.note || currentOrder.summary?.note) && (
+                                            <div className="mt-2 text-[9px] text-black pt-1 border-t border-dotted border-gray-300">
+                                                <span className="font-bold underline mr-2">หมายเหตุ:</span>
+                                                <span className="whitespace-pre-wrap leading-tight">
+                                                    {currentOrder.note || currentOrder.summary?.note}
+                                                </span>
+                                            </div>
+                                        )}
                                     </div>
                                     </>
                                 )}
@@ -379,7 +400,7 @@ const FullTaxInvoiceA4 = ({ order, companyInfo, printMode, isQuotation = false, 
                                 </div>
                                 <div className="w-[90%] border-t border-dotted border-black pt-1 text-center mt-2">
                                     <p>(...........................................................)</p>
-                                    <p>วันที่ / Date {currentOrder.signatures?.buyerDate || "......../......../........"}</p>
+                                    <p>วันที่ {currentOrder.signatures?.buyerDate || "......../......../........"}</p>
                                 </div>
                             </div>
                             <div className="border border-black flex flex-col items-center p-2 relative h-full">
@@ -395,7 +416,7 @@ const FullTaxInvoiceA4 = ({ order, companyInfo, printMode, isQuotation = false, 
                                 </div>
                                 <div className="w-[90%] border-t border-dotted border-black pt-1 text-center mt-2">
                                     <p>(...........................................................)</p>
-                                    <p>วันที่ / Date {currentOrder.signatures?.salesDate ? formatDateThai(currentOrder.signatures.salesDate) : "......../......../........"}</p>
+                                    <p>วันที่ {currentOrder.signatures?.salesDate ? formatDateThai(currentOrder.signatures.salesDate) : "......../......../........"}</p>
                                 </div>
                             </div>
                             <div className="border border-black flex flex-col items-center p-2 relative h-full">
@@ -411,7 +432,7 @@ const FullTaxInvoiceA4 = ({ order, companyInfo, printMode, isQuotation = false, 
                                 </div>
                                 <div className="w-[90%] border-t border-dotted border-black pt-1 text-center mt-2">
                                     <p>(...........................................................)</p>
-                                    <p>วันที่ / Date {currentOrder.signatures?.managerDate ? formatDateThai(currentOrder.signatures.managerDate) : "......../......../........"}</p>
+                                    <p>วันที่ {currentOrder.signatures?.managerDate ? formatDateThai(currentOrder.signatures.managerDate) : "......../......../........"}</p>
                                 </div>
                             </div>
                         </div>
@@ -421,6 +442,8 @@ const FullTaxInvoiceA4 = ({ order, companyInfo, printMode, isQuotation = false, 
                                 <div className="flex-1 flex items-center justify-center w-full">
                                     {slotSignatures?.buyer ? (
                                         <img src={slotSignatures.buyer} alt="Buyer Signature" className="max-h-16 object-contain" />
+                                    ) : currentOrder.signatures?.buyer ? (
+                                        <img src={currentOrder.signatures.buyer} alt="Buyer Signature" className="max-h-16 object-contain" />
                                     ) : (
                                         <div className="h-12"></div>
                                     )}
@@ -428,12 +451,14 @@ const FullTaxInvoiceA4 = ({ order, companyInfo, printMode, isQuotation = false, 
                                 <div className="w-[85%] border-t border-dotted border-black pt-1">
                                     <p className="font-bold leading-tight m-0 text-[10px]">ผู้รับสินค้า<br />Received by</p>
                                 </div>
-                                <p className="text-[8px] mt-2 m-0">ลงวันที่ <span className="border-b border-dotted border-black w-16 inline-block"></span></p>
+                                <p className="text-[8px] mt-2 m-0">ลงวันที่ {currentOrder.signatures?.buyerDate ? formatDateThai(currentOrder.signatures.buyerDate) : <span className="border-b border-dotted border-black w-16 inline-block"></span>}</p>
                             </div>
                             <div className="border-y border-r border-black flex flex-col items-center p-2 text-center relative h-full">
                                 <div className="flex-1 flex items-center justify-center w-full">
                                     {slotSignatures?.cashier ? (
                                         <img src={slotSignatures.cashier} alt="Cashier Signature" className="max-h-16 object-contain" />
+                                    ) : currentOrder.signatures?.sales ? (
+                                        <img src={currentOrder.signatures.sales} alt="Sales Signature" className="max-h-16 object-contain" />
                                     ) : (
                                         <div className="h-12"></div>
                                     )}
@@ -441,13 +466,15 @@ const FullTaxInvoiceA4 = ({ order, companyInfo, printMode, isQuotation = false, 
                                 <div className="w-[85%] border-t border-dotted border-black pt-1">
                                     <p className="font-bold leading-tight m-0 text-[10px]">ผู้รับเงิน<br />Collector</p>
                                 </div>
-                                <p className="text-[8px] mt-2 m-0">ลงวันที่ <span className="border-b border-dotted border-black w-16 inline-block"></span></p>
+                                <p className="text-[8px] mt-2 m-0">ลงวันที่ {currentOrder.signatures?.salesDate ? formatDateThai(currentOrder.signatures.salesDate) : <span className="border-b border-dotted border-black w-16 inline-block"></span>}</p>
                             </div>
                             <div className="border-y border-r border-black flex flex-col items-center p-2 text-center relative h-full pt-2">
                                 <p className="leading-tight m-0 font-black text-[10px] uppercase px-1">ในนาม {companyNameEN}</p>
                                 <div className="flex-1 flex items-center justify-center w-full">
                                     {slotSignatures?.manager ? (
                                         <img src={slotSignatures.manager} alt="Manager Signature" className="max-h-16 object-contain" />
+                                    ) : currentOrder.signatures?.manager ? (
+                                        <img src={currentOrder.signatures.manager} alt="Manager Signature" className="max-h-16 object-contain" />
                                     ) : (
                                         <div className="h-10"></div>
                                     )}
@@ -455,11 +482,14 @@ const FullTaxInvoiceA4 = ({ order, companyInfo, printMode, isQuotation = false, 
                                 <div className="w-[85%] border-t border-dotted border-black pt-1">
                                     <p className="font-bold m-0 text-[10px]">ผู้มีอำนาจลงนาม</p>
                                 </div>
+                                <p className="text-[8px] mt-2 m-0">ลงวันที่ {currentOrder.signatures?.managerDate ? formatDateThai(currentOrder.signatures.managerDate) : <span className="border-b border-dotted border-black w-16 inline-block"></span>}</p>
                             </div>
                             <div className="border-y border-r border-black flex flex-col items-center p-2 text-center relative h-full">
                                 <div className="flex-1 flex items-center justify-center w-full">
                                     {slotSignatures?.sender ? (
                                         <img src={slotSignatures.sender} alt="Sender Signature" className="max-h-16 object-contain" />
+                                    ) : currentOrder.signatures?.sender ? (
+                                        <img src={currentOrder.signatures.sender} alt="Sender Signature" className="max-h-16 object-contain" />
                                     ) : (
                                         <div className="h-12"></div>
                                     )}
@@ -467,7 +497,7 @@ const FullTaxInvoiceA4 = ({ order, companyInfo, printMode, isQuotation = false, 
                                 <div className="w-[85%] border-t border-dotted border-black pt-1">
                                     <p className="font-bold leading-tight m-0 text-[10px]">ผู้ส่งสินค้า<br />Delivered by</p>
                                 </div>
-                                <p className="text-[8px] mt-2 m-0">ลงวันที่ <span className="border-b border-dotted border-black w-16 inline-block"></span></p>
+                                <p className="text-[8px] mt-2 m-0">ลงวันที่ {currentOrder.signatures?.senderDate ? formatDateThai(currentOrder.signatures.senderDate) : <span className="border-b border-dotted border-black w-16 inline-block"></span>}</p>
                             </div>
                         </div>
                     )}

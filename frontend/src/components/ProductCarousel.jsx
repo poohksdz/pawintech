@@ -1,15 +1,17 @@
 import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
 import Message from "./Message";
 import { useGetShowcasesQuery } from "../slices/showcasesApiSlice";
 
+const SHOWCASE_QUERY_PARAMS = {};
+
 const ProductCarousel = () => {
-  const { pageNumber } = useParams();
   const navigate = useNavigate();
+  // eslint-disable-next-line no-unused-vars
   const { userInfo } = useSelector((state) => state.auth);
-  const { data, isLoading, error } = useGetShowcasesQuery({ pageNumber });
+  const { data, isLoading, error } = useGetShowcasesQuery(SHOWCASE_QUERY_PARAMS);
 
   const [activeIndex, setActiveIndex] = useState(0);
 

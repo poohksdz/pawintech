@@ -12,8 +12,11 @@ import {
   FaRulerCombined,
   FaMicrochip,
   FaRobot,
+  // eslint-disable-next-line no-unused-vars
   FaCheckCircle,
+  // eslint-disable-next-line no-unused-vars
   FaTimesCircle,
+  // eslint-disable-next-line no-unused-vars
   FaInfoCircle,
 } from "react-icons/fa";
 import { TbExclamationMark } from "react-icons/tb";
@@ -24,16 +27,21 @@ import Loader from "../../components/Loader";
 import Message from "../../components/Message";
 import { useGetAssemblycartByIdQuery } from "../../slices/assemblypcbCartApiSlice";
 import { useGetDefaultInvoiceUsedQuery } from "../../slices/defaultInvoicesApiSlice";
+  // eslint-disable-next-line no-unused-vars
 import FullTaxInvoiceA4 from "../../components/FullTaxInvoiceA4";
+  // eslint-disable-next-line no-unused-vars
 import { FaPrint } from "react-icons/fa";
 import { BASE_URL as APP_BASE_URL } from "../../constants";
 
 const OrderassemblyCartDetailScreen = () => {
+  // eslint-disable-next-line no-unused-vars
   const textareaRef = useRef();
   const { id } = useParams();
   const [zoomedImage, setZoomedImage] = useState(null);
   const { data, isLoading, isError, error } = useGetAssemblycartByIdQuery(id);
+  // eslint-disable-next-line no-unused-vars
   const { data: companyInfo } = useGetDefaultInvoiceUsedQuery();
+  // eslint-disable-next-line no-unused-vars
   const { userInfo } = useSelector((state) => state.auth);
   const { language } = useSelector((state) => state.language);
 

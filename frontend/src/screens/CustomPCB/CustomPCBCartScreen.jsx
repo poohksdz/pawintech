@@ -20,10 +20,13 @@ import {
   useGetAllCustomcartsQuery,
   useDeleteCustomcartMutation,
 } from "../../slices/custompcbCartApiSlice";
+  // eslint-disable-next-line no-unused-vars
 import { useGetDefaultInvoiceUsedQuery } from "../../slices/defaultInvoicesApiSlice";
+  // eslint-disable-next-line no-unused-vars
 import FullTaxInvoiceA4 from "../../components/FullTaxInvoiceA4";
 import { toast } from "react-toastify";
 import { BASE_URL as APP_BASE_URL } from "../../constants";
+  // eslint-disable-next-line no-unused-vars
 import { FaPrint } from "react-icons/fa";
 
 const CustomPCBCartScreen = () => {

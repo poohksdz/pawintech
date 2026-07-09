@@ -18,6 +18,12 @@ import {
   useUploadInvoicePDFMutation,
   useGetNextInvoiceNumberQuery,
 } from "../../slices/invoicesApiSlice";
+import { 
+  useGetSignaturesQuery, 
+  useCreateSignatureMutation,
+  useDeleteSignatureMutation,
+  uploadSignatureImage 
+} from "../../slices/signatureApiSlice";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 import Loader from "../../components/Loader";
@@ -44,11 +50,31 @@ const InvoiceSetScreen = () => {
   const handleCloseConfirm = () => setShowConfirm(false);
 
   const [showPreview, setShowPreview] = useState(false);
+  const [isProcessingPDF, setIsProcessingPDF] = useState(false);
 
   const [invoiceNumber, setInvoiceNumber] = useState("");
   const [due_date, setdue_date] = useState("");
   const [submit_price_within, setsubmit_price_within] = useState("");
   const [number_of_credit_days, setnumber_of_credit_days] = useState("");
+
+  const [note, setNote] = useState("");
+  const [internalNote, setInternalNote] = useState("");
+
+  const [paymentMethod, setPaymentMethod] = useState(""); // "", "cash", "check", "transfer"
+  const [paymentCheckBank, setPaymentCheckBank] = useState("");
+  const [paymentTransferDate, setPaymentTransferDate] = useState("");
+  const [paymentTransferRef, setPaymentTransferRef] = useState("");
+  const [paymentAmount, setPaymentAmount] = useState("");
+
+  const [selectedSalesSignature, setSelectedSalesSignature] = useState("");
+  const [selectedManagerSignature, setSelectedManagerSignature] = useState("");
+
+  const [showManageSignatureModal, setShowManageSignatureModal] = useState(false);
+  const [showAddSignatureModal, setShowAddSignatureModal] = useState(false);
+  const [newSigName, setNewSigName] = useState("");
+  const [newSigPosition, setNewSigPosition] = useState("");
+  const [newSigImage, setNewSigImage] = useState(null);
+  const [isUploadingSig, setIsUploadingSig] = useState(false);
 
   // --- API Hooks ---
   const { data: defaultData, isLoading } = useGetDefaultQuotationUsedQuery();
@@ -63,6 +89,11 @@ const InvoiceSetScreen = () => {
     useUploadInvoicePDFMutation();
   const [updateInvoiceByInvoiceNo, { isLoading: isLoadingUpdate }] =
     useUpdateInvoiceByInvoiceNoMutation();
+
+  const { data: signaturesData, refetch: refetchSignatures } = useGetSignaturesQuery();
+  const signaturesList = Array.isArray(signaturesData) ? signaturesData : (signaturesData?.signatures || []);
+  const [createSignature] = useCreateSignatureMutation();
+  const [deleteSignature] = useDeleteSignatureMutation();
 
   const [customerInfo, setCustomerInfo] = useState({
     id: "",
@@ -99,6 +130,53 @@ const InvoiceSetScreen = () => {
     bank_account_number: "",
   });
 
+  const handleUploadSignature = async () => {
+    if (!newSigName || !newSigImage) {
+      toast.warning("กรุณากรอกชื่อและเลือกไฟล์รูปภาพ");
+      return;
+    }
+    try {
+      setIsUploadingSig(true);
+      const uploadRes = await uploadSignatureImage(newSigImage);
+      
+      await createSignature({
+        name: newSigName,
+        image_path: uploadRes.image_path || uploadRes.image,
+      }).unwrap();
+      
+      toast.success("เพิ่มลายเซ็นใหม่เรียบร้อยแล้ว");
+      setShowAddSignatureModal(false);
+      setNewSigName("");
+      setNewSigPosition("");
+      setNewSigImage(null);
+      refetchSignatures();
+    } catch (error) {
+      console.error(error);
+      toast.error("เกิดข้อผิดพลาดในการอัปโหลดลายเซ็น");
+    } finally {
+      setIsUploadingSig(false);
+    }
+  };
+
+  const handleDeleteSignature = async (id) => {
+    if (window.confirm("คุณต้องการลบลายเซ็นนี้ใช่หรือไม่?")) {
+      try {
+        await deleteSignature(id).unwrap();
+        toast.success("ลบลายเซ็นเรียบร้อยแล้ว");
+        if (selectedSalesSignature && signaturesList.find(s => s._id === id)?.image_path === selectedSalesSignature) {
+          setSelectedSalesSignature("");
+        }
+        if (selectedManagerSignature && signaturesList.find(s => s._id === id)?.image_path === selectedManagerSignature) {
+          setSelectedManagerSignature("");
+        }
+        refetchSignatures();
+      } catch (error) {
+        console.error(error);
+        toast.error("เกิดข้อผิดพลาดในการลบลายเซ็น");
+      }
+    }
+  };
+
   // --- Effects ---
   useEffect(() => {
     if (defaultSelected && !quotationDataToConvert) {
@@ -108,8 +186,11 @@ const InvoiceSetScreen = () => {
         vat: parseFloat(defaultSelected.vat) || 7, // Default VAT 7%
         deposit: parseFloat(defaultSelected.deposit) || 0,
       });
+      if (!convertFromQuotationNo) {
+        setNote(defaultSelected.note || "");
+      }
     }
-  }, [defaultSelected, quotationDataToConvert]);
+  }, [defaultSelected, quotationDataToConvert, convertFromQuotationNo]);
 
   useEffect(() => {
     if (quotationDataToConvert?.quotation?.length > 0) {
@@ -132,6 +213,8 @@ const InvoiceSetScreen = () => {
 
         setdue_date(firstItem.due_date || "");
         setnumber_of_credit_days(firstItem.number_of_credit_days || "");
+        setNote(firstItem.note || "");
+        setInternalNote(firstItem.internal_note || "");
         
         setDefaultSummary((prev) => ({
           ...prev,
@@ -218,9 +301,22 @@ const InvoiceSetScreen = () => {
     vatPrice: totalVat,
     totalPrice: grandTotal,
     discountPrice: totalDiscount,
+    note: note,
+    internal_note: internalNote,
     signatures: {
-      sales: defaultSelected?.sales_person,
-      manager: defaultSelected?.sales_manager,
+      buyer: customerInfo.buyer_approves_signature,
+      buyerDate: customerInfo.buyer_approves_signature_date,
+      sales: selectedSalesSignature,
+      salesDate: todayDate,
+      manager: selectedManagerSignature,
+      managerDate: todayDate,
+    },
+    paymentDetails: {
+      paymentMethod,
+      paymentCheckBank,
+      paymentTransferDate,
+      paymentTransferRef,
+      paymentAmount: paymentAmount !== "" ? Number(paymentAmount) : grandTotal,
     }
   };
 
@@ -256,31 +352,16 @@ const InvoiceSetScreen = () => {
       heightLeft -= pdfHeight;
     }
 
-    const dataUri = pdf.output("datauristring");
-    const base64Part = dataUri.split(",")[1];
+    const formData = new FormData();
+    formData.append(
+      "invoice_pdf",
+      pdf.output("blob"),
+      `${invoice_no}.pdf`
+    );
 
-    const payload = {
-      pdfBase64: base64Part,
-      filename: `${invoice_no}.pdf`
-    };
-
-    // Use native fetch with credentials for file uploads
-    const res = await fetch("/api/invoices/upload/upload-pdf", {
-      method: "POST",
-      credentials: "include",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify(payload),
-    });
-
-    if (!res.ok) {
-      const errData = await res.json().catch(() => ({}));
-      throw new Error(errData.error || errData.message || "PDF upload failed");
-    }
-
-    const data = await res.json();
-    return data.url;
+    const response = await uploadInvoicePDF(formData).unwrap();
+    pdf.save(`${invoice_no}.pdf`);
+    return response.url;
   };
 
   const handleUpdateInvoice = async (id, invoice_no, pdfResponse) => {
@@ -304,8 +385,8 @@ const InvoiceSetScreen = () => {
         },
         customer: customerInfo,
         signatures: {
-          sales_person_signature: defaultSelected?.sales_person,
-          sales_manager_signature: defaultSelected?.sales_manager,
+          sales_person_signature: selectedSalesSignature,
+          sales_manager_signature: selectedManagerSignature,
         },
       };
       await updateInvoiceByInvoiceNo({ id, ...payload }).unwrap();
@@ -316,6 +397,7 @@ const InvoiceSetScreen = () => {
 
   const handleCreateInvoice = async () => {
     try {
+      setIsProcessingPDF(true);
       const payload = {
         due_date,
         submit_price_within,
@@ -332,9 +414,18 @@ const InvoiceSetScreen = () => {
         customer: { ...customerInfo },
         summary: { ...defaultSummary, total: grandTotal },
         signatures: {
-          sales_person_signature: defaultSelected?.sales_person,
-          sales_manager_signature: defaultSelected?.sales_manager,
+          sales_person_signature: selectedSalesSignature,
+          sales_manager_signature: selectedManagerSignature,
         },
+        payment_details: {
+          paymentMethod,
+          paymentCheckBank,
+          paymentTransferDate,
+          paymentTransferRef,
+          paymentAmount: paymentAmount !== "" ? Number(paymentAmount) : grandTotal,
+        },
+        note,
+        internal_note: internalNote,
       };
       const result = await createInvoice(payload).unwrap();
       setInvoiceNumber(result.invoice_no);
@@ -346,12 +437,14 @@ const InvoiceSetScreen = () => {
 
       const pdfResponse = await uploadPDF(result.invoice_no);
       if (pdfResponse) {
-          await handleUpdateInvoice(result.id, result.invoice_no, pdfResponse);
+          await handleUpdateInvoice(result.invoice_no, result.invoice_no, pdfResponse);
       }
       toast.success("Invoice created successfully!");
       navigate("/admin/invoicelist");
     } catch (error) {
       toast.error(error?.data?.message || "Failed to create invoice.");
+    } finally {
+      setIsProcessingPDF(false);
     }
   };
 
@@ -361,7 +454,7 @@ const InvoiceSetScreen = () => {
   };
   
   const isLoadingAll =
-    isLoading || isLoadingCreate || isLoadingUpload || isLoadingUpdate || isLoadingNextNo || isLoadingQuotation;
+    isLoading || isLoadingCreate || isLoadingUpload || isLoadingUpdate || isLoadingNextNo || isLoadingQuotation || isProcessingPDF;
 
   return (
     <Container fluid className="py-4 font-prompt bg-light min-vh-100">
@@ -508,6 +601,175 @@ const InvoiceSetScreen = () => {
                     />
                   </Form.Group>
                 </Col>
+                <Col md={12}>
+                  <Form.Group>
+                    <Form.Label className="small fw-bold text-muted">หมายเหตุ (Note/Remark)</Form.Label>
+                    <Form.Control
+                      as="textarea"
+                      rows={3}
+                      value={note}
+                      onChange={(e) => setNote(e.target.value)}
+                      placeholder="ใส่หมายเหตุ หรือ เงื่อนไขการชำระเงิน"
+                    />
+                  </Form.Group>
+                </Col>
+                <Col md={12} className="mt-3">
+                  <Form.Group>
+                    <Form.Label className="small fw-bold text-muted">หมายเหตุภายใน (Internal Note - ไม่แสดงในใบแจ้งหนี้)</Form.Label>
+                    <Form.Control
+                      as="textarea"
+                      rows={3}
+                      value={internalNote}
+                      onChange={(e) => setInternalNote(e.target.value)}
+                      placeholder="กรอกหมายเหตุภายในสำหรับการตรวจสอบ..."
+                    />
+                  </Form.Group>
+                </Col>
+                <Col md={6}>
+                  <Form.Group>
+                    <div className="d-flex justify-content-between align-items-center mb-1">
+                      <Form.Label className="small fw-bold text-muted mb-0">ลายเซ็นผู้ขาย (Sales Person)</Form.Label>
+                      <div>
+                        <Button variant="link" size="sm" className="p-0 text-decoration-none text-danger me-3" onClick={() => setShowManageSignatureModal(true)}>จัดการลายเซ็น</Button>
+                        <Button variant="link" size="sm" className="p-0 text-decoration-none" onClick={() => setShowAddSignatureModal(true)}>+ เพิ่มลายเซ็นใหม่</Button>
+                      </div>
+                    </div>
+                    <Form.Select
+                      value={selectedSalesSignature}
+                      onChange={(e) => setSelectedSalesSignature(e.target.value)}
+                    >
+                      <option value="">-- ไม่ระบุ (No Signature) --</option>
+                      {signaturesList.map((sig, index) => (
+                        <option key={sig._id || index} value={sig.image_path}>
+                          {sig.name}
+                        </option>
+                      ))}
+                    </Form.Select>
+                  </Form.Group>
+                </Col>
+                <Col md={6}>
+                  <Form.Group>
+                    <div className="d-flex justify-content-between align-items-center mb-1">
+                      <Form.Label className="small fw-bold text-muted mb-0">ลายเซ็นผู้อนุมัติ (Manager)</Form.Label>
+                      <div>
+                        <Button variant="link" size="sm" className="p-0 text-decoration-none text-danger me-3" onClick={() => setShowManageSignatureModal(true)}>จัดการลายเซ็น</Button>
+                        <Button variant="link" size="sm" className="p-0 text-decoration-none" onClick={() => setShowAddSignatureModal(true)}>+ เพิ่มลายเซ็นใหม่</Button>
+                      </div>
+                    </div>
+                    <Form.Select
+                      value={selectedManagerSignature}
+                      onChange={(e) => setSelectedManagerSignature(e.target.value)}
+                    >
+                      <option value="">-- ไม่ระบุ (No Signature) --</option>
+                      {signaturesList.map((sig, index) => (
+                        <option key={sig._id || index} value={sig.image_path}>
+                          {sig.name}
+                        </option>
+                      ))}
+                    </Form.Select>
+                  </Form.Group>
+                </Col>
+              </Row>
+            </Card.Body>
+          </Card>
+
+          {/* Payment Configuration Form */}
+          <Card className="shadow-sm border-0 mb-4 rounded-4">
+            <Card.Header className="bg-white border-0 pt-4 pb-0">
+              <h6 className="fw-bold mb-0 text-primary">ข้อมูลการชำระเงิน (Payment Details)</h6>
+            </Card.Header>
+            <Card.Body>
+              <Row className="g-3">
+                <Col md={12}>
+                  <Form.Group>
+                    <Form.Label className="small fw-bold text-muted">วิธีชำระเงิน (Payment Method)</Form.Label>
+                    <div className="d-flex gap-4">
+                      <Form.Check
+                        type="radio"
+                        label="ยังไม่ระบุ (None)"
+                        name="paymentMethod"
+                        checked={paymentMethod === ""}
+                        onChange={() => setPaymentMethod("")}
+                      />
+                      <Form.Check
+                        type="radio"
+                        label="เงินสด (Cash)"
+                        name="paymentMethod"
+                        checked={paymentMethod === "cash"}
+                        onChange={() => setPaymentMethod("cash")}
+                      />
+                      <Form.Check
+                        type="radio"
+                        label="เช็คธนาคาร (Check)"
+                        name="paymentMethod"
+                        checked={paymentMethod === "check"}
+                        onChange={() => setPaymentMethod("check")}
+                      />
+                      <Form.Check
+                        type="radio"
+                        label="เงินโอน (Transfer)"
+                        name="paymentMethod"
+                        checked={paymentMethod === "transfer"}
+                        onChange={() => setPaymentMethod("transfer")}
+                      />
+                    </div>
+                  </Form.Group>
+                </Col>
+
+                {paymentMethod === "check" && (
+                  <Col md={12}>
+                    <Form.Group>
+                      <Form.Label className="small fw-bold text-muted">เช็คธนาคาร (Bank / Check Info)</Form.Label>
+                      <Form.Control
+                        type="text"
+                        placeholder="ระบุชื่อธนาคาร / สาขา / อื่นๆ"
+                        value={paymentCheckBank}
+                        onChange={(e) => setPaymentCheckBank(e.target.value)}
+                      />
+                    </Form.Group>
+                  </Col>
+                )}
+
+                {paymentMethod === "transfer" && (
+                  <>
+                    <Col md={6}>
+                      <Form.Group>
+                        <Form.Label className="small fw-bold text-muted">เงินโอนวันที่ (Transfer Date)</Form.Label>
+                        <Form.Control
+                          type="text"
+                          placeholder="เช่น 12/10/2566 หรือ 12 ต.ค. 66"
+                          value={paymentTransferDate}
+                          onChange={(e) => setPaymentTransferDate(e.target.value)}
+                        />
+                      </Form.Group>
+                    </Col>
+                    <Col md={6}>
+                      <Form.Group>
+                        <Form.Label className="small fw-bold text-muted">เลขที่ (Ref / Account No.)</Form.Label>
+                        <Form.Control
+                          type="text"
+                          placeholder="ระบุเลขที่อ้างอิง"
+                          value={paymentTransferRef}
+                          onChange={(e) => setPaymentTransferRef(e.target.value)}
+                        />
+                      </Form.Group>
+                    </Col>
+                  </>
+                )}
+
+                {(paymentMethod !== "") && (
+                  <Col md={12}>
+                    <Form.Group>
+                      <Form.Label className="small fw-bold text-muted">จำนวนเงิน (Amount - ว่างไว้เพื่อใช้ยอดสุทธิ)</Form.Label>
+                      <Form.Control
+                        type="number"
+                        placeholder="ระบุจำนวนเงินที่ชำระ (หรือปล่อยว่างเพื่อใช้ยอด Grand Total)"
+                        value={paymentAmount}
+                        onChange={(e) => setPaymentAmount(e.target.value)}
+                      />
+                    </Form.Group>
+                  </Col>
+                )}
               </Row>
             </Card.Body>
           </Card>
@@ -709,6 +971,99 @@ const InvoiceSetScreen = () => {
           </Button>
           <Button variant="primary" onClick={handleConfirmCreate}>
             Yes, Create
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
+      {/* Add Signature Modal */}
+      <Modal show={showAddSignatureModal} onHide={() => setShowAddSignatureModal(false)} centered>
+        <Modal.Header closeButton>
+          <Modal.Title className="fw-bold text-primary">
+            <FaPlus className="me-2" />
+            เพิ่มลายเซ็นใหม่ (Add New Signature)
+          </Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <Form.Group className="mb-3">
+            <Form.Label className="fw-bold small">ชื่อ-นามสกุล (Name) <span className="text-danger">*</span></Form.Label>
+            <Form.Control 
+              type="text" 
+              placeholder="เช่น นาย ภาวินท์ เทคโนโลยี" 
+              value={newSigName}
+              onChange={(e) => setNewSigName(e.target.value)}
+            />
+          </Form.Group>
+          <Form.Group className="mb-3">
+            <Form.Label className="fw-bold small">ตำแหน่ง (Position)</Form.Label>
+            <Form.Control 
+              type="text" 
+              placeholder="เช่น ผู้จัดการ (Manager)" 
+              value={newSigPosition}
+              onChange={(e) => setNewSigPosition(e.target.value)}
+            />
+          </Form.Group>
+          <Form.Group className="mb-3">
+            <Form.Label className="fw-bold small">ไฟล์รูปภาพลายเซ็น <span className="text-danger">*</span></Form.Label>
+            <Form.Control 
+              type="file" 
+              accept="image/png, image/jpeg, image/webp"
+              onChange={(e) => setNewSigImage(e.target.files[0])}
+            />
+            <Form.Text className="text-muted">แนะนำให้ใช้ไฟล์ภาพ PNG พื้นหลังโปร่งใส</Form.Text>
+          </Form.Group>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="light" onClick={() => setShowAddSignatureModal(false)} disabled={isUploadingSig}>
+            ยกเลิก (Cancel)
+          </Button>
+          <Button variant="primary" onClick={handleUploadSignature} disabled={isUploadingSig}>
+            {isUploadingSig ? <Loader /> : "บันทึก (Save Signature)"}
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
+      {/* Manage Signature Modal */}
+      <Modal show={showManageSignatureModal} onHide={() => setShowManageSignatureModal(false)} centered size="lg">
+        <Modal.Header closeButton>
+          <Modal.Title className="fw-bold text-primary">จัดการลายเซ็น (Manage Signatures)</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          {signaturesList.length === 0 ? (
+            <p className="text-center text-muted my-4">ไม่มีลายเซ็นในระบบ</p>
+          ) : (
+            <Table hover responsive className="align-middle">
+              <thead>
+                <tr>
+                  <th>ลายเซ็น</th>
+                  <th>ชื่อ</th>
+                  <th className="text-center">จัดการ</th>
+                </tr>
+              </thead>
+              <tbody>
+                {signaturesList.map((sig) => (
+                  <tr key={sig._id}>
+                    <td>
+                      <img 
+                        src={sig.image_path} 
+                        alt={sig.name} 
+                        style={{ height: "40px", objectFit: "contain" }} 
+                      />
+                    </td>
+                    <td>{sig.name}</td>
+                    <td className="text-center">
+                      <Button variant="outline-danger" size="sm" onClick={() => handleDeleteSignature(sig._id)}>
+                        <FaTrash /> ลบ
+                      </Button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </Table>
+          )}
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowManageSignatureModal(false)}>
+            ปิด (Close)
           </Button>
         </Modal.Footer>
       </Modal>

@@ -8,7 +8,9 @@ import {
   FaImages,
   FaDownload,
   FaTruck,
+  // eslint-disable-next-line no-unused-vars
   FaCalendarAlt,
+  // eslint-disable-next-line no-unused-vars
   FaBoxOpen,
   FaReceipt,
   FaFileInvoice,

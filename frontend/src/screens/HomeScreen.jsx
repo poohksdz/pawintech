@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { useSelector } from "react-redux";
 import { useParams, Link } from "react-router-dom";
 import "animate.css";
@@ -25,33 +25,38 @@ const HomeScreen = () => {
   const { pageNumber, keyword } = useParams();
   const { language } = useSelector((state) => state.language);
 
+  // Memoize query args to prevent unstable object references causing refetches
+  const productQueryArgs = useMemo(() => ({ keyword, pageNumber }), [keyword, pageNumber]);
+  const pageQueryArgs = useMemo(() => ({ pageNumber }), [pageNumber]);
+
   // --- API Fetching ---
   const {
     data: productData,
     isLoading: productLoading,
     error: productError,
-  } = useGetProductsQuery({ keyword, pageNumber });
+  } = useGetProductsQuery(productQueryArgs);
+  // eslint-disable-next-line no-unused-vars
   const { userInfo } = useSelector((state) => state.auth);
   const {
     data: blogData,
     isLoading: blogLoading,
     error: blogError,
-  } = useGetBlogsQuery({ pageNumber });
+  } = useGetBlogsQuery(pageQueryArgs);
   const {
     data: serviceData,
     isLoading: serviceLoading,
     error: serviceError,
-  } = useGetServicesQuery({ pageNumber });
+  } = useGetServicesQuery(pageQueryArgs);
   const {
     data: folioData,
     isLoading: folioLoading,
     error: folioError,
-  } = useGetFoliosQuery({ pageNumber });
+  } = useGetFoliosQuery(pageQueryArgs);
   const {
     data: showcaseData,
     isLoading: showcaseLoading,
     error: showcaseError,
-  } = useGetShowcasesQuery({ pageNumber });
+  } = useGetShowcasesQuery(pageQueryArgs);
 
   const shouldShowCarousel = (presentType) => {
     if (showcaseLoading || showcaseError || !showcaseData) return false;

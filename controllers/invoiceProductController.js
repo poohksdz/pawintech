@@ -104,6 +104,9 @@ const createInvoice = asyncHandler(async (req, res) => {
       number_of_credit_days,
       date,
       invoice_pdf,
+      note,
+      internal_note,
+      payment_details,
     } = req.body;
 
     // Convert Thai date string "DD / MM / YYYY" to MySQL date "YYYY-MM-DD"
@@ -157,8 +160,9 @@ const createInvoice = asyncHandler(async (req, res) => {
           buyer_approves_signature, buyer_approves_signature_date,
           sales_person_signature, sales_person_signature_date,
           sales_manager_signature, sales_manager_signature_date,
-          branch_name, invoice_pdf, created_at, updated_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          branch_name, invoice_pdf, note, internal_note, created_at, updated_at,
+          payment_method, payment_check_bank, payment_transfer_date, payment_transfer_ref, payment_amount
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
           customer.customer_name || null,
           customer.customer_present_name || null,
@@ -190,10 +194,21 @@ const createInvoice = asyncHandler(async (req, res) => {
           createdAt,
           "Head Office",
           invoice_pdf || null,
+          note || null,
+          internal_note || null,
           createdAt,
           updatedAt,
+          payment_details?.paymentMethod || null,
+          payment_details?.paymentCheckBank || null,
+          payment_details?.paymentTransferDate || null,
+          payment_details?.paymentTransferRef || null,
+          payment_details?.paymentAmount !== undefined ? payment_details.paymentAmount : null,
         ],
       );
+    }
+
+    if (note !== undefined) {
+      await db.pool.query("UPDATE tbl_default_invoice SET note = ?", [note || ""]);
     }
 
     res.status(201).json({ message: "Invoice created", invoice_no });
@@ -218,6 +233,9 @@ const updateInvoiceByInvoiceNo = asyncHandler(async (req, res) => {
     customer,
     signatures,
     invoice_pdf,
+    note,
+    internal_note,
+    payment_details,
   } = req.body;
 
   try {
@@ -273,12 +291,23 @@ const updateInvoiceByInvoiceNo = asyncHandler(async (req, res) => {
           summary.grand_total || 0,
           summary.bank_account_name || null,
           summary.bank_account_number || null,
-          signatures?.sales_person_signature || null,
-          signatures?.sales_manager_signature || null,
+          signatures?.buyer || signatures?.buyer_approves_signature || null,
+          signatures?.buyerDate || signatures?.buyer_approves_signature_date || null,
+          signatures?.sales || signatures?.sales_person_signature || null,
+          signatures?.salesDate || signatures?.sales_person_signature_date || createdAt,
+          signatures?.manager || signatures?.sales_manager_signature || null,
+          signatures?.managerDate || signatures?.sales_manager_signature_date || createdAt,
           invoice_pdf || null,
           customer.branch_name || "Head Office",
+          note || null,
+          internal_note || null,
           createdAt,
           updatedAt,
+          payment_details?.paymentMethod || null,
+          payment_details?.paymentCheckBank || null,
+          payment_details?.paymentTransferDate || null,
+          payment_details?.paymentTransferRef || null,
+          payment_details?.paymentAmount !== undefined ? payment_details.paymentAmount : null,
         ].map(p => typeof p === 'undefined' ? null : p);
 
         console.log("MySQL Bind Params for item:", queryParams);
@@ -306,18 +335,33 @@ const updateInvoiceByInvoiceNo = asyncHandler(async (req, res) => {
             grand_total,
             transfer_bank_account_name,
             transfer_bank_account_number,
+            buyer_approves_signature,
+            buyer_approves_signature_date,
             sales_person_signature,
+            sales_person_signature_date,
             sales_manager_signature,
+            sales_manager_signature_date,
             invoice_pdf,
             branch_name,
+            note,
+            internal_note,
             created_at,
-            updated_at
-          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            updated_at,
+            payment_method,
+            payment_check_bank,
+            payment_transfer_date,
+            payment_transfer_ref,
+            payment_amount
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
           queryParams
         );
       });
 
     await Promise.all(insertPromises);
+
+    if (note !== undefined) {
+      await db.pool.query("UPDATE tbl_default_invoice SET note = ?", [note || ""]);
+    }
 
     res.json({ message: "Invoice updated successfully" });
   } catch (error) {

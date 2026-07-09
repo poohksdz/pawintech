@@ -146,6 +146,8 @@ const PaymentScreen = () => {
       shippingPrice: Math.round(shippingPrice * 100) / 100,
       totalPrice: Math.round(totalPrice * 100) / 100,
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cart?.cartItems, cart?.shippingPrice, cart?.receivePlace, orderType, isBuyNow, urlPrice, urlQty]);
 
   // Always use calculated prices for display (more reliable)
@@ -169,8 +171,8 @@ const PaymentScreen = () => {
   const [qrCodePayload, setQrCodePayload] = useState("");
   const [previewUrl, setPreviewUrl] = useState(null);
   const [paymentMethod, setPaymentMethod] = useState("promptpay");
-  const [transferedDate, setTransferedDate] = useState(getCurrentDateTime());
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const transferedDate = getCurrentDateTime();
 
   //  คำนวณราคารวมทั้งหมด (ใช้ calculated price หรือ fallback)
   // CRITICAL FIX: ใช้ calculatedPrices ที่คำนวณจาก selectedItems จริงๆ ทุกครั้ง
@@ -216,7 +218,9 @@ const PaymentScreen = () => {
       }
       setOrderID(`REQ-${urlOrderId.padStart(5, "0")}`);
       setPaymentComfirmID(urlOrderId);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Run once on mount only
 
   // useEffect 2: QR Code generation (reacts to price changes)

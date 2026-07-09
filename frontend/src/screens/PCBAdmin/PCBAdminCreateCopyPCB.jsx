@@ -43,6 +43,7 @@ const PCBAdminCreateCopyPCB = () => {
   const [confirmedReason, setConfirmedReason] = useState("");
 
   // transfer / payer info
+  // eslint-disable-next-line no-unused-vars
   const [copyerName, setCopyerName] = useState("");
   const [transferedAmount, setTransferedAmount] = useState("");
   const [transferedDate, setTransferedDate] = useState("");

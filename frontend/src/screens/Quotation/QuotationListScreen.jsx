@@ -328,6 +328,11 @@ const QuotationListScreen = () => {
                           <FaUser className="text-slate-400" />{" "}
                           {q.customer_present_name}
                         </div>
+                        {q.internal_note && (
+                          <div className="text-xs text-amber-600 mt-2 font-medium italic line-clamp-2 bg-amber-50 p-1 rounded border border-amber-100">
+                            <span className="font-bold">Internal Note:</span> {q.internal_note}
+                          </div>
+                        )}
                       </td>
 
                       {/* Date */}
@@ -446,6 +451,11 @@ const QuotationListScreen = () => {
                     <FaUser className="text-slate-400" />
                     {q.customer_present_name}
                   </div>
+                  {q.internal_note && (
+                    <div className="text-xs text-amber-600 mt-2 font-medium italic line-clamp-2 bg-amber-50 p-1.5 rounded border border-amber-100">
+                      <span className="font-bold">Internal Note:</span> {q.internal_note}
+                    </div>
+                  )}
                 </div>
 
                 <div className="mt-auto border-t border-slate-100 pt-4 flex flex-col gap-4">

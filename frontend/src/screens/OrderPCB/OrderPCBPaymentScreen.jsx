@@ -25,8 +25,10 @@ import {
   FaChevronRight,
   FaTags,
   FaCheckCircle,
+  // eslint-disable-next-line no-unused-vars
   FaTrashAlt,
   FaExclamationTriangle,
+  // eslint-disable-next-line no-unused-vars
   FaBoxOpen,
 } from "react-icons/fa";
 

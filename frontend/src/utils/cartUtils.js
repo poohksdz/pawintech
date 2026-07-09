@@ -52,8 +52,6 @@ export const updateCart = (state) => {
     0,
   );
 
-  console.log("[updateCart] Selected items for price calc:", selectedForCalc.length, "of", state.cartItems.length, "items");
-  console.log("[updateCart] itemsPrice:", itemsPrice);
 
   state.itemsPrice = addDecimals(itemsPrice);
 

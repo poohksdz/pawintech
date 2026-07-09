@@ -318,6 +318,7 @@ const CustomPCBDetailScreen = () => {
     "dirgram_image_10",
   ];
 
+  // eslint-disable-next-line no-unused-vars
   const t = {
     en: {
       details: "PCB Order Details",

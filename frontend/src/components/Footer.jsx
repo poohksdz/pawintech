@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useSelector } from "react-redux";
-import { useParams, Link, useLocation } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import {
   FaPhoneAlt,
   FaFacebook,
@@ -16,15 +16,16 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useGetServicesQuery } from "../slices/servicesApiSlice";
 import { useGetProductsQuery } from "../slices/productsApiSlice";
 
+const FOOTER_QUERY_PARAMS = {};
+
 const Footer = () => {
-  const { pageNumber } = useParams();
   const { language } = useSelector((state) => state.language);
   const location = useLocation();
   const currentYear = new Date().getFullYear();
 
-  // Fetching data
-  useGetServicesQuery({ pageNumber });
-  useGetProductsQuery({ pageNumber });
+  // Fetching data - use stable reference to prevent refetch loops
+  useGetServicesQuery(FOOTER_QUERY_PARAMS);
+  useGetProductsQuery(FOOTER_QUERY_PARAMS);
 
   // Translations
   const t = {

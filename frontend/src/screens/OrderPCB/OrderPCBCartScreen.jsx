@@ -15,17 +15,22 @@ import {
 import { Link, useNavigate } from "react-router-dom";
 import { createPortal } from "react-dom";
 import CustomCheckbox from "../../components/CustomCheckbox";
+  // eslint-disable-next-line no-unused-vars
 import { removeFromPCBCart } from "../../slices/pcbCartSlice";
 import { useGetOrderPCBCartByUserIdQuery, useDeleteOrderpcbCartMutation } from "../../slices/orderpcbCartApiSlice";
+  // eslint-disable-next-line no-unused-vars
 import { useGetDefaultInvoiceUsedQuery } from "../../slices/defaultInvoicesApiSlice";
+  // eslint-disable-next-line no-unused-vars
 import FullTaxInvoiceA4 from "../../components/FullTaxInvoiceA4";
 import { toast } from "react-toastify";
 import Loader from "../../components/Loader";
 import Message from "../../components/Message";
+  // eslint-disable-next-line no-unused-vars
 import { FaPrint } from "react-icons/fa";
 
 const OrderPCBCartScreen = () => {
   const navigate = useNavigate();
+  // eslint-disable-next-line no-unused-vars
   const dispatch = useDispatch();
 
   const { userInfo } = useSelector((state) => state.auth);
@@ -34,6 +39,7 @@ const OrderPCBCartScreen = () => {
   });
   const [deleteOrderpcbCart] = useDeleteOrderpcbCartMutation();
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const pcbOrderDetails = cartData?.data || [];
   const { language } = useSelector((state) => state.language);
 

@@ -45,6 +45,7 @@ const InvoiceSetSelectedCustomerScreen = () => {
   const handleCloseConfirm = () => setShowConfirm(false);
 
   const [showPreview, setShowPreview] = useState(false);
+  const [isProcessingPDF, setIsProcessingPDF] = useState(false);
 
   const [invoiceNumber, setInvoiceNumber] = useState("");
   const [due_date, setdue_date] = useState("");
@@ -175,7 +176,9 @@ const InvoiceSetSelectedCustomerScreen = () => {
     discountPrice: totalDiscount,
     signatures: {
       sales: defaultSelected?.sales_person,
+      salesDate: todayDate,
       manager: defaultSelected?.sales_manager,
+      managerDate: todayDate,
     }
   };
 
@@ -219,6 +222,7 @@ const InvoiceSetSelectedCustomerScreen = () => {
     );
 
     const response = await uploadInvoicePDF(formData).unwrap();
+    pdf.save(`${invoice_no}.pdf`);
     return response.url;
   };
 
@@ -254,6 +258,7 @@ const InvoiceSetSelectedCustomerScreen = () => {
 
   const handleCreateInvoice = async () => {
     try {
+      setIsProcessingPDF(true);
       const payload = {
         due_date,
         number_of_credit_days,
@@ -283,12 +288,14 @@ const InvoiceSetSelectedCustomerScreen = () => {
 
       const pdfResponse = await uploadPDF(result.invoice_no);
       if (pdfResponse) {
-          await handleUpdateInvoice(result.id, result.invoice_no, pdfResponse);
+          await handleUpdateInvoice(result.invoice_no, result.invoice_no, pdfResponse);
       }
       toast.success("Invoice created successfully!");
       navigate("/admin/invoicelist");
     } catch (error) {
       toast.error(error?.data?.message || "Failed to create invoice.");
+    } finally {
+      setIsProcessingPDF(false);
     }
   };
 
@@ -298,7 +305,7 @@ const InvoiceSetSelectedCustomerScreen = () => {
   };
   
   const isLoadingAll =
-    isLoading || isLoadingCreate || isLoadingUpload || isLoadingUpdate || isLoadingNextNo || isLoadingData;
+    isLoading || isLoadingCreate || isLoadingUpload || isLoadingUpdate || isLoadingNextNo || isLoadingData || isProcessingPDF;
 
   return (
     <Container fluid className="py-4 font-prompt bg-light min-vh-100">

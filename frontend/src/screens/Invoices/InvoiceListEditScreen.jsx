@@ -338,6 +338,11 @@ const InvoiceListEditScreen = () => {
                           <FaUser className="text-slate-400" />{" "}
                           {inv.customer_present_name}
                         </div>
+                        {inv.internal_note && (
+                          <div className="text-xs text-amber-600 mt-2 font-medium italic line-clamp-2 bg-amber-50 p-1 rounded border border-amber-100">
+                            <span className="font-bold">Internal Note:</span> {inv.internal_note}
+                          </div>
+                        )}
                       </td>
 
                       {/* Date */}
@@ -360,6 +365,15 @@ const InvoiceListEditScreen = () => {
                       {/* Actions */}
                       <td className="px-4 md:px-6 py-4">
                         <div className="flex justify-center items-center gap-2 transition-opacity">
+                          <Link
+                            to={`/admin/invoicelist/${inv.invoice_no}`}
+                            title="View Invoice"
+                          >
+                            <button className="w-9 h-9 flex items-center justify-center bg-teal-100 text-teal-700 hover:bg-teal-600 hover:text-white rounded-full transition-colors shadow-sm">
+                              <FaEye size={14} />
+                            </button>
+                          </Link>
+
                           <Link
                             to={`/admin/customers/selectedcustomer/${inv.id}/setinvoice`}
                             title="Duplicate / Create New Invoice"
@@ -439,6 +453,11 @@ const InvoiceListEditScreen = () => {
                     <FaUser className="text-slate-400" />
                     {inv.customer_present_name}
                   </div>
+                  {inv.internal_note && (
+                    <div className="text-xs text-amber-600 mt-2 font-medium italic line-clamp-2 bg-amber-50 p-1.5 rounded border border-amber-100">
+                      <span className="font-bold">Internal Note:</span> {inv.internal_note}
+                    </div>
+                  )}
                 </div>
 
                 <div className="mt-auto border-t border-slate-100 pt-4 flex flex-col gap-4">
@@ -461,6 +480,11 @@ const InvoiceListEditScreen = () => {
                     >
                       <button className="w-full flex justify-center items-center gap-1.5 py-2 bg-slate-50 hover:bg-slate-100 text-slate-700 rounded-xl text-xs font-bold transition-colors border border-slate-200">
                         <FaPlus /> Duplicate
+                      </button>
+                    </Link>
+                    <Link to={`/admin/invoicelist/${inv.invoice_no}`}>
+                      <button className="w-10 h-10 flex justify-center items-center bg-teal-50 hover:bg-teal-100 text-teal-600 rounded-xl transition-colors">
+                        <FaEye size={16} />
                       </button>
                     </Link>
                     <Link to={`/admin/invoicelist/${inv.invoice_no}/edit`}>

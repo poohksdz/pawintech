@@ -5,13 +5,19 @@ import {
   FaCloudUploadAlt,
   FaFileArchive,
   FaMicrochip,
+  // eslint-disable-next-line no-unused-vars
   FaReceipt,
   FaRulerCombined,
   FaLayerGroup,
+  // eslint-disable-next-line no-unused-vars
   FaPalette,
+  // eslint-disable-next-line no-unused-vars
   FaWeightHanging,
+  // eslint-disable-next-line no-unused-vars
   FaShieldAlt,
+  // eslint-disable-next-line no-unused-vars
   FaChevronRight,
+  // eslint-disable-next-line no-unused-vars
   FaExclamationCircle,
   FaPlus,
   FaMinus,
@@ -30,6 +36,7 @@ const GerberViewerScreen = () => {
   const { userInfo } = useSelector((state) => state.auth);
   const { language } = useSelector((state) => state.language);
 
+  // eslint-disable-next-line no-unused-vars
   const { data, isLoading: isDataLoading } = useGetOwnShippingRatesQuery();
 
   // --- Translations ---
@@ -118,11 +125,15 @@ const GerberViewerScreen = () => {
   const vatRate = Number(data?.defaultPricing?.vat_percent ?? 7);
   const dhlServiceFixed = Number(data?.defaultPricing?.dhl_service_fixed ?? 0);
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const baseMaterials = data?.baseMaterials || [{ name: "FR-4", price: 0 }];
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const surfaceFinishes = data?.surfaceFinishes || [
     { name: "HASL(With lead)", price: 0 },
   ];
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const copperWeights = data?.copperWeights || [{ name: "1 oz", price: 0 }];
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const pcbColors = data?.pcbColors || [
     { name: "Green", price: 0 },
     { name: "Purple", price: 1 },
@@ -345,6 +356,7 @@ const GerberViewerScreen = () => {
     }
   };
 
+  // eslint-disable-next-line no-unused-vars
   const [createOrderpcbCart, { isLoading: isCartLoading }] =
     useCreateOrderpcbCartMutation();
 

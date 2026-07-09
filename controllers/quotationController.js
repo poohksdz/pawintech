@@ -125,6 +125,8 @@ const createQuotation = asyncHandler(async (req, res) => {
       number_of_credit_days,
       date,
       quotation_pdf,
+      note,
+      internal_note,
     } = req.body;
 
     // Convert Thai date string "DD / MM / YYYY" to MySQL date "YYYY-MM-DD"
@@ -183,8 +185,8 @@ const createQuotation = asyncHandler(async (req, res) => {
           buyer_approves_signature, buyer_approves_signature_date,
           sales_person_signature, sales_person_signature_date,
           sales_manager_signature, sales_manager_signature_date,
-          branch_name, quotation_pdf, created_at, updated_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          branch_name, quotation_pdf, note, internal_note, created_at, updated_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
           customer.customer_name || null,
           customer.customer_present_name || null,
@@ -216,10 +218,17 @@ const createQuotation = asyncHandler(async (req, res) => {
           createdAt,
           "Head Office",
           quotation_pdf || null,
+          note || null,
+          internal_note || null,
           createdAt,
           updatedAt,
         ],
       );
+    }
+
+    // Update the default quotation's note to be the latest used note
+    if (note !== undefined) {
+      await db.pool.query("UPDATE tbl_default_quotation SET note = ?", [note || ""]);
     }
 
     res.status(201).json({ message: "Quotation created", quotation_no });
@@ -244,6 +253,8 @@ const updateQuotationByQuotationNo = asyncHandler(async (req, res) => {
     customer,
     signatures,
     quotation_pdf,
+    note,
+    internal_note,
   } = req.body;
 
   console.log(req.body);
@@ -308,10 +319,16 @@ const updateQuotationByQuotationNo = asyncHandler(async (req, res) => {
           summary.grand_total || 0,
           summary.bank_account_name || null,
           summary.bank_account_number || null,
-          signatures?.sales_person_signature || null,
-          signatures?.sales_manager_signature || null,
+          signatures?.buyer || signatures?.buyer_approves_signature || null,
+          signatures?.buyerDate || signatures?.buyer_approves_signature_date || null,
+          signatures?.sales || signatures?.sales_person_signature || null,
+          signatures?.salesDate || signatures?.sales_person_signature_date || createdAt,
+          signatures?.manager || signatures?.sales_manager_signature || null,
+          signatures?.managerDate || signatures?.sales_manager_signature_date || createdAt,
           quotation_pdf || null,
           customer.branch_name || "Head Office",
+          note || null,
+          internal_note || null,
           createdAt,
           updatedAt,
         ].map(p => typeof p === 'undefined' ? null : p);
@@ -340,18 +357,29 @@ const updateQuotationByQuotationNo = asyncHandler(async (req, res) => {
             grand_total,
             transfer_bank_account_name,
             transfer_bank_account_number,
+            buyer_approves_signature,
+            buyer_approves_signature_date,
             sales_person_signature,
+            sales_person_signature_date,
             sales_manager_signature,
+            sales_manager_signature_date,
             quotation_pdf,
             branch_name,
+            note,
+            internal_note,
             created_at,
             updated_at
-          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
           queryParams
         );
       });
 
     await Promise.all(insertPromises);
+
+    // Update the default quotation's note to be the latest used note
+    if (note !== undefined) {
+      await db.pool.query("UPDATE tbl_default_quotation SET note = ?", [note || ""]);
+    }
 
     res.json({ message: "Quotation updated successfully" });
   } catch (error) {

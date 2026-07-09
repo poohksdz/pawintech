@@ -7,6 +7,12 @@ import {
   useUpdateQuotationByQuotationNoMutation,
   useUploadQuotationPDFMutation,
 } from "../../slices/quotationApiSlice";
+import { 
+  useGetSignaturesQuery, 
+  useCreateSignatureMutation,
+  useDeleteSignatureMutation,
+  uploadSignatureImage 
+} from "../../slices/signatureApiSlice";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 import Loader from "../../components/Loader";
@@ -30,14 +36,33 @@ const QuotationEditScreen = () => {
 
   const { data: invoiceCompanyInfo } = useGetDefaultInvoiceUsedQuery();
 
-  const [uploadQuotationPDF, { isLoading: isLoadingUpload }] =
+  const [, { isLoading: isLoadingUpload }] =
     useUploadQuotationPDFMutation();
   const [updateQuotationByQuotationNo, { isLoading: isLoadingUpdate }] =
     useUpdateQuotationByQuotationNoMutation();
 
+  // eslint-disable-next-line no-unused-vars
+  // eslint-disable-next-line no-unused-vars
+  const { data: signaturesData, refetch: refetchSignatures } = useGetSignaturesQuery();
+  const signaturesList = Array.isArray(signaturesData) ? signaturesData : (signaturesData?.signatures || []);
+  const [createSignature] = useCreateSignatureMutation();
+  const [deleteSignature] = useDeleteSignatureMutation();
+
   // --- State ---
   const [showConfirm, setShowConfirm] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
+  const [showAddSignatureModal, setShowAddSignatureModal] = useState(false);
+  const [showManageSignatureModal, setShowManageSignatureModal] = useState(false);
+  
+  const [newSigName, setNewSigName] = useState("");
+  const [newSigPosition, setNewSigPosition] = useState("");
+  const [newSigImage, setNewSigImage] = useState(null);
+  const [isUploadingSig, setIsUploadingSig] = useState(false);
+
+  const [note, setNote] = useState("");
+  const [internalNote, setInternalNote] = useState("");
+  const [selectedSalesSignature, setSelectedSalesSignature] = useState("");
+  const [selectedManagerSignature, setSelectedManagerSignature] = useState("");
 
   const [quotationNumber, setQuotationNumber] = useState("");
   const [due_date, setdue_date] = useState("");
@@ -99,6 +124,18 @@ const QuotationEditScreen = () => {
     setsubmit_price_within(firstQuotation.submit_price_within || "");
     setnumber_of_credit_days(firstQuotation.number_of_credit_days || "");
     setQuotationNumber(firstQuotation.quotation_no || "");
+    
+    if (firstQuotation.note) {
+      setNote(firstQuotation.note);
+    } else if (defaultSelected?.note && !note) {
+      setNote(defaultSelected.note);
+    }
+    if (firstQuotation.internal_note) {
+      setInternalNote(firstQuotation.internal_note);
+    }
+    
+    setSelectedSalesSignature(firstQuotation.sales_person_signature || defaultSelected?.sales_person || "");
+    setSelectedManagerSignature(firstQuotation.sales_manager_signature || defaultSelected?.sales_manager || "");
 
     const initialRows = quotationData?.quotation?.[0] || [];
     const mappedRows = initialRows.map((item) => ({
@@ -114,6 +151,8 @@ const QuotationEditScreen = () => {
         mappedRows.push({ product_id: "", description: "", qty: 0, unit: "pcs", unit_price: 0 });
     }
     
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  // eslint-disable-next-line react-hooks/exhaustive-deps
     setRows(mappedRows);
   }, [quotationData, defaultSelected]);
 
@@ -141,6 +180,43 @@ const QuotationEditScreen = () => {
 
   const removeRow = (index) => {
     setRows((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const handleUploadSignature = async () => {
+    if (!newSigName || !newSigImage) {
+      toast.error("กรุณาระบุชื่อและเลือกไฟล์ลายเซ็น");
+      return;
+    }
+    try {
+      setIsUploadingSig(true);
+      const uploadRes = await uploadSignatureImage(newSigImage);
+      
+      await createSignature({
+        name: newSigName,
+        image_path: uploadRes.image_path || uploadRes.image,
+      }).unwrap();
+      
+      toast.success("เพิ่มลายเซ็นใหม่เรียบร้อยแล้ว");
+      setShowAddSignatureModal(false);
+      setNewSigName("");
+      setNewSigPosition("");
+      setNewSigImage(null);
+    } catch (err) {
+      toast.error(err?.data?.message || err.message || "Failed to add signature");
+    } finally {
+      setIsUploadingSig(false);
+    }
+  };
+
+  const handleDeleteSignature = async (id) => {
+    if (window.confirm("คุณต้องการลบลายเซ็นนี้ใช่หรือไม่?")) {
+      try {
+        await deleteSignature(id).unwrap();
+        toast.success("ลบลายเซ็นเรียบร้อยแล้ว");
+      } catch (err) {
+        toast.error(err?.data?.message || err.message || "Failed to delete signature");
+      }
+    }
   };
 
   const subTotal = rows.reduce((acc, r) => acc + (r.qty * r.unit_price || 0), 0);
@@ -175,11 +251,15 @@ const QuotationEditScreen = () => {
     vatPrice: totalVat,
     totalPrice: grandTotal,
     discountPrice: totalDiscount,
+    note: note,
+    internal_note: internalNote,
     signatures: {
       buyer: customerInfo.buyer_approves_signature,
       buyerDate: customerInfo.buyer_approves_signature_date,
-      sales: defaultSelected?.sales_person,
-      manager: defaultSelected?.sales_manager,
+      sales: selectedSalesSignature,
+      salesDate: createDateObj, // Default to creation date for existing quotes
+      manager: selectedManagerSignature,
+      managerDate: createDateObj,
     }
   };
 
@@ -252,7 +332,10 @@ const QuotationEditScreen = () => {
         due_date,
         submit_price_within,
         number_of_credit_days,
+        signatures: mappedOrder.signatures,
         quotation_pdf: uploadedPDFUrl || null,
+        note: mappedOrder.note,
+        internal_note: mappedOrder.internal_note,
         items: rows
           .filter((r) => r.product_id || r.description)
           .map((r) => ({
@@ -270,8 +353,15 @@ const QuotationEditScreen = () => {
           total: grandTotal,
           sub_total: subTotal,
           vat: defaultSummary.vat,
+          note: note,
+  // eslint-disable-next-line no-dupe-keys
+  // eslint-disable-next-line no-dupe-keys
         },
         customer: customerInfo,
+        signatures: {
+          sales_person_signature: selectedSalesSignature,
+          sales_manager_signature: selectedManagerSignature,
+        },
       };
 
       await updateQuotationByQuotationNo({ id: quotationNumber, ...payload }).unwrap();
@@ -457,6 +547,74 @@ const QuotationEditScreen = () => {
                       value={submit_price_within}
                       onChange={(e) => setsubmit_price_within(e.target.value)}
                     />
+                  </Form.Group>
+                </Col>
+                <Col md={12}>
+                  <Form.Group>
+                    <Form.Label className="small fw-bold text-muted">หมายเหตุ (Note/Remark)</Form.Label>
+                    <Form.Control
+                      as="textarea"
+                      rows={3}
+                      value={note}
+                      onChange={(e) => setNote(e.target.value)}
+                      placeholder="ใส่หมายเหตุ หรือ เงื่อนไขการชำระเงิน"
+                    />
+                  </Form.Group>
+                </Col>
+                <Col md={12} className="mt-3">
+                  <Form.Group>
+                    <Form.Label className="small fw-bold text-muted">หมายเหตุภายใน (Internal Note - ไม่แสดงในใบเสนอราคา)</Form.Label>
+                    <Form.Control
+                      as="textarea"
+                      rows={3}
+                      value={internalNote}
+                      onChange={(e) => setInternalNote(e.target.value)}
+                      placeholder="กรอกหมายเหตุภายในสำหรับการตรวจสอบ..."
+                    />
+                  </Form.Group>
+                </Col>
+                <Col md={6}>
+                  <Form.Group>
+                    <div className="d-flex justify-content-between align-items-center mb-1">
+                      <Form.Label className="small fw-bold text-muted mb-0">ลายเซ็นผู้เสนอราคา (Sales Person)</Form.Label>
+                      <div>
+                        <Button variant="link" size="sm" className="p-0 text-decoration-none text-danger me-3" onClick={() => setShowManageSignatureModal(true)}>จัดการลายเซ็น</Button>
+                        <Button variant="link" size="sm" className="p-0 text-decoration-none" onClick={() => setShowAddSignatureModal(true)}>+ เพิ่มลายเซ็นใหม่</Button>
+                      </div>
+                    </div>
+                    <Form.Select
+                      value={selectedSalesSignature}
+                      onChange={(e) => setSelectedSalesSignature(e.target.value)}
+                    >
+                      <option value="">-- ไม่ระบุ (No Signature) --</option>
+                      {signaturesList.map((sig, index) => (
+                        <option key={sig._id || index} value={sig.image_path}>
+                          {sig.name}
+                        </option>
+                      ))}
+                    </Form.Select>
+                  </Form.Group>
+                </Col>
+                <Col md={6}>
+                  <Form.Group>
+                    <div className="d-flex justify-content-between align-items-center mb-1">
+                      <Form.Label className="small fw-bold text-muted mb-0">ลายเซ็นผู้อนุมัติ (Manager)</Form.Label>
+                      <div>
+                        <Button variant="link" size="sm" className="p-0 text-decoration-none text-danger me-3" onClick={() => setShowManageSignatureModal(true)}>จัดการลายเซ็น</Button>
+                        <Button variant="link" size="sm" className="p-0 text-decoration-none" onClick={() => setShowAddSignatureModal(true)}>+ เพิ่มลายเซ็นใหม่</Button>
+                      </div>
+                    </div>
+                    <Form.Select
+                      value={selectedManagerSignature}
+                      onChange={(e) => setSelectedManagerSignature(e.target.value)}
+                    >
+                      <option value="">-- ไม่ระบุ (No Signature) --</option>
+                      {signaturesList.map((sig, index) => (
+                        <option key={sig._id || index} value={sig.image_path}>
+                          {sig.name}
+                        </option>
+                      ))}
+                    </Form.Select>
                   </Form.Group>
                 </Col>
               </Row>
@@ -660,6 +818,99 @@ const QuotationEditScreen = () => {
           </Button>
           <Button variant="primary" onClick={handleConfirmUpdate}>
             Yes, Update
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
+      {/* Add Signature Modal */}
+      <Modal show={showAddSignatureModal} onHide={() => setShowAddSignatureModal(false)} centered>
+        <Modal.Header closeButton>
+          <Modal.Title className="fw-bold text-primary">
+            <FaPlus className="me-2" />
+            เพิ่มลายเซ็นใหม่ (Add New Signature)
+          </Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <Form.Group className="mb-3">
+            <Form.Label className="fw-bold small">ชื่อ-นามสกุล (Name) <span className="text-danger">*</span></Form.Label>
+            <Form.Control 
+              type="text" 
+              placeholder="เช่น นาย ภาวินท์ เทคโนโลยี" 
+              value={newSigName}
+              onChange={(e) => setNewSigName(e.target.value)}
+            />
+          </Form.Group>
+          <Form.Group className="mb-3">
+            <Form.Label className="fw-bold small">ตำแหน่ง (Position)</Form.Label>
+            <Form.Control 
+              type="text" 
+              placeholder="เช่น ผู้จัดการ (Manager)" 
+              value={newSigPosition}
+              onChange={(e) => setNewSigPosition(e.target.value)}
+            />
+          </Form.Group>
+          <Form.Group className="mb-3">
+            <Form.Label className="fw-bold small">ไฟล์รูปภาพลายเซ็น <span className="text-danger">*</span></Form.Label>
+            <Form.Control 
+              type="file" 
+              accept="image/png, image/jpeg, image/webp"
+              onChange={(e) => setNewSigImage(e.target.files[0])}
+            />
+            <Form.Text className="text-muted">แนะนำให้ใช้ไฟล์ภาพ PNG พื้นหลังโปร่งใส</Form.Text>
+          </Form.Group>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="light" onClick={() => setShowAddSignatureModal(false)} disabled={isUploadingSig}>
+            ยกเลิก (Cancel)
+          </Button>
+          <Button variant="primary" onClick={handleUploadSignature} disabled={isUploadingSig}>
+            {isUploadingSig ? <Loader /> : "บันทึก (Save Signature)"}
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
+      {/* Manage Signature Modal */}
+      <Modal show={showManageSignatureModal} onHide={() => setShowManageSignatureModal(false)} centered size="lg">
+        <Modal.Header closeButton>
+          <Modal.Title className="fw-bold text-primary">จัดการลายเซ็น (Manage Signatures)</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          {signaturesList.length === 0 ? (
+            <p className="text-center text-muted my-4">ไม่มีลายเซ็นในระบบ</p>
+          ) : (
+            <Table hover responsive className="align-middle">
+              <thead>
+                <tr>
+                  <th>ลายเซ็น</th>
+                  <th>ชื่อ</th>
+                  <th className="text-center">จัดการ</th>
+                </tr>
+              </thead>
+              <tbody>
+                {signaturesList.map((sig) => (
+                  <tr key={sig._id}>
+                    <td>
+                      <img 
+                        src={sig.image_path} 
+                        alt={sig.name} 
+                        style={{ height: "40px", objectFit: "contain" }} 
+                      />
+                    </td>
+                    <td>{sig.name}</td>
+                    <td className="text-center">
+                      <Button variant="outline-danger" size="sm" onClick={() => handleDeleteSignature(sig._id)}>
+                        <FaTrash /> ลบ
+                      </Button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </Table>
+          )}
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowManageSignatureModal(false)}>
+            ปิด (Close)
           </Button>
         </Modal.Footer>
       </Modal>

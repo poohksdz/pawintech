@@ -83,7 +83,7 @@ const ProductScreen = () => {
     isLoading,
     error,
     refetch,
-    isFetching,
+
   } = useGetProductDetailsQuery(productId, { refetchOnMountOrArgChange: true });
 
   const [createReview, { isLoading: loadingReview }] = useCreateReviewMutation();
@@ -109,6 +109,21 @@ const ProductScreen = () => {
       setActiveImage(product.image);
     }
   }, [product, activeImage, allImages]);
+
+  // Auto-slide images every 3 seconds
+  React.useEffect(() => {
+    if (allImages.length <= 1) return;
+
+    const intervalId = setInterval(() => {
+      setActiveImage((prev) => {
+        const currentIndex = allImages.indexOf(prev);
+        const nextIndex = currentIndex === -1 ? 0 : (currentIndex + 1) % allImages.length;
+        return allImages[nextIndex];
+      });
+    }, 3000);
+
+    return () => clearInterval(intervalId);
+  }, [allImages]);
 
   // Video handling
   const productVideos = {
@@ -215,10 +230,12 @@ const ProductScreen = () => {
       const itemPrice = Number(product.price) * Number(qty);
       const vatPrice = itemPrice * 0.07;
       const shippingPrice = 70; // ค่าจัดส่งเริ่มต้น
+  // eslint-disable-next-line no-unused-vars
+  // eslint-disable-next-line no-unused-vars
       const totalPrice = itemPrice + vatPrice + shippingPrice;
 
       // สร้าง orderId ชั่วคราวสำหรับสินค้านี้
-      const tempOrderId = `BUYNOW-${product._id}-${Date.now()}`;
+      // const tempOrderId = `BUYNOW-${product._id}-${Date.now()}`;
 
       // ไปหน้า Shipping พร้อมส่งข้อมูลสินค้าชิ้นเดียวผ่าน URL
       const productName = encodeURIComponent(product.name || "");
@@ -449,12 +466,30 @@ const ProductScreen = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 mb-12">
           {/* Image Gallery */}
           <div className="space-y-4">
-            <div className="aspect-square rounded-3xl overflow-hidden bg-white dark:bg-zinc-900 shadow-sm border border-slate-100 dark:border-zinc-800 transition-colors duration-500">
+            <div className="relative aspect-square rounded-3xl overflow-hidden bg-white dark:bg-zinc-900 shadow-sm border border-slate-100 dark:border-zinc-800 transition-colors duration-500">
               <img
                 src={activeImage || product.image}
                 alt={getText(product.name, product.nameThai)}
-                className="w-full h-full object-cover"
+                className="w-full h-full object-cover transition-opacity duration-500"
               />
+              
+              {/* Dots Indicator */}
+              {allImages.length > 1 && (
+                <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-2 z-10">
+                  {allImages.map((img, index) => (
+                    <button
+                      key={index}
+                      onClick={() => setActiveImage(img)}
+                      className={`h-2.5 rounded-full transition-all duration-300 shadow-sm ${
+                        activeImage === img
+                          ? "bg-indigo-600 w-8"
+                          : "bg-white hover:bg-slate-100 w-2.5 border border-slate-200"
+                      }`}
+                      aria-label={`Go to slide ${index + 1}`}
+                    />
+                  ))}
+                </div>
+              )}
             </div>
             {allImages.length > 1 && (
               <div className="flex gap-2 overflow-x-auto pb-2">
@@ -767,6 +802,8 @@ const ProductScreen = () => {
                           {/* Review Images - รูปอยู่ด้านล่าง */}
                           {review.images && review.images.length > 0 && (
                             <div className="flex gap-3 overflow-x-auto pb-2">
+  // eslint-disable-next-line jsx-a11y/img-redundant-alt
+  // eslint-disable-next-line jsx-a11y/img-redundant-alt
                               {review.images.map((img, imgIndex) => (
                                 <img
                                   key={imgIndex}

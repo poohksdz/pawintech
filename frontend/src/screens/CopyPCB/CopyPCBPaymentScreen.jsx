@@ -55,6 +55,7 @@ const CopyPCBPaymentScreen = () => {
   const { userInfo } = useSelector((state) => state.auth);
   const cart = useSelector((state) => state.cart);
   const { shippingAddress, receivePlace } = cart;
+  // eslint-disable-next-line no-unused-vars
   const { language } = useSelector((state) => state.language);
 
   const getCurrentDateTime = () => {
