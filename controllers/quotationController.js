@@ -127,6 +127,8 @@ const createQuotation = asyncHandler(async (req, res) => {
       quotation_pdf,
       note,
       internal_note,
+      internal_contact_name,
+      internal_contact_phone,
     } = req.body;
 
     // Convert Thai date string "DD / MM / YYYY" to MySQL date "YYYY-MM-DD"
@@ -185,8 +187,8 @@ const createQuotation = asyncHandler(async (req, res) => {
           buyer_approves_signature, buyer_approves_signature_date,
           sales_person_signature, sales_person_signature_date,
           sales_manager_signature, sales_manager_signature_date,
-          branch_name, quotation_pdf, note, internal_note, created_at, updated_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          branch_name, quotation_pdf, note, internal_note, internal_contact_name, internal_contact_phone, created_at, updated_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
           customer.customer_name || null,
           customer.customer_present_name || null,
@@ -220,6 +222,8 @@ const createQuotation = asyncHandler(async (req, res) => {
           quotation_pdf || null,
           note || null,
           internal_note || null,
+          internal_contact_name || null,
+          internal_contact_phone || null,
           createdAt,
           updatedAt,
         ],
@@ -255,6 +259,8 @@ const updateQuotationByQuotationNo = asyncHandler(async (req, res) => {
     quotation_pdf,
     note,
     internal_note,
+    internal_contact_name,
+    internal_contact_phone,
   } = req.body;
 
   console.log(req.body);
@@ -329,6 +335,8 @@ const updateQuotationByQuotationNo = asyncHandler(async (req, res) => {
           customer.branch_name || "Head Office",
           note || null,
           internal_note || null,
+          internal_contact_name || null,
+          internal_contact_phone || null,
           createdAt,
           updatedAt,
         ].map(p => typeof p === 'undefined' ? null : p);
@@ -367,9 +375,11 @@ const updateQuotationByQuotationNo = asyncHandler(async (req, res) => {
             branch_name,
             note,
             internal_note,
+            internal_contact_name,
+            internal_contact_phone,
             created_at,
             updated_at
-          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
           queryParams
         );
       });

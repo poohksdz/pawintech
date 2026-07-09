@@ -134,9 +134,12 @@ const FullTaxInvoiceA4 = ({ order, companyInfo, printMode, isQuotation = false, 
         return result;
     };
 
-    const totalBeforeVat = currentOrder.itemsPrice || 0;
-    const vat = currentOrder.vatPrice || 0;
-    const grandTotal = currentOrder.totalPrice || 0;
+    const grandTotal = currentOrder.totalPrice || currentOrder.summary?.grand_total || 0;
+    const _grossTotal = grandTotal > 0 ? items.reduce((acc, item) => acc + (item.qty * item.price), 0) : 0;
+    const totalBeforeVat = grandTotal > 0 ? _grossTotal - (currentOrder.summary?.discount || 0) : 0;
+    const depositAmt = Number(currentOrder.summary?.deposit) || 0;
+    const totalAfterDeposit = totalBeforeVat - depositAmt;
+    const vat = currentOrder.vatPrice || currentOrder.summary?.vat || 0;
 
     const companyNameTH = companyInfo?.company_name_thai || companyInfo?.nameTH || "บริษัท ภาวินท์เทคโนโลยี จำกัด";
     const companyNameEN = companyInfo?.company_name || companyInfo?.nameEN || "PAWINTECHNOLOGY CO., LTD.";
@@ -160,21 +163,26 @@ const FullTaxInvoiceA4 = ({ order, companyInfo, printMode, isQuotation = false, 
                     )}
 
                     <div className="flex justify-center mb-4">
-                        <div className="w-[200px]">
-                            <img src={companyLogo} alt="Logo" className="w-full object-contain" />
+                        <div className="text-left">
+                            <div className="flex flex-row items-center justify-center gap-3 mb-1">
+                                <div className="w-[50px] shrink-0">
+                                    <img src="/image/favicon.ico" alt="Logo" className="w-full object-contain" />
+                                </div>
+                                <div className="text-left">
+                                    <h1 className="text-[16px] font-bold m-0 leading-tight">{companyNameTH}</h1>
+                                    <h1 className="text-[16px] font-bold m-0 leading-tight">{companyNameEN}</h1>
+                                </div>
+                            </div>
+                            <div className="text-center">
+                                <p className="text-[10px] m-0">{companyAddressTH}</p>
+                                <p className="text-[10px] m-0">{companyAddressEN}</p>
+                                <p className="text-[10px] mt-1 flex justify-center gap-2 font-bold">
+                                    <span>โทร. {companyPhone}</span>
+                                    <span>Email: {companyEmail}</span>
+                                    <span>เลขประจำตัวผู้เสียภาษี {companyTaxId}</span>
+                                </p>
+                            </div>
                         </div>
-                    </div>
-
-                    <div className="text-center mb-2">
-                        <h1 className="text-[16px] font-bold">{companyNameTH}</h1>
-                        <h1 className="text-[16px] font-bold mb-1">{companyNameEN}</h1>
-                        <p className="text-[10px] m-0">{companyAddressTH}</p>
-                        <p className="text-[10px] m-0">{companyAddressEN}</p>
-                        <p className="text-[10px] mt-1 flex justify-center gap-4 font-bold">
-                            <span>โทร. {companyPhone}</span>
-                            <span>Email: {companyEmail}</span>
-                            <span>เลขประจำตัวผู้เสียภาษี {companyTaxId}</span>
-                        </p>
                     </div>
 
                     <div className="text-center mb-2 mt-1">
@@ -340,7 +348,7 @@ const FullTaxInvoiceA4 = ({ order, companyInfo, printMode, isQuotation = false, 
                                         <div className="flex items-center gap-2">
                                             <span>จำนวนเงิน</span>
                                             <span className="border-b border-dotted border-black w-24 text-center text-black font-bold">
-                                                {(currentOrder?.paymentDetails?.paymentAmount || grandTotal) > 0 ? (currentOrder?.paymentDetails?.paymentAmount || grandTotal).toLocaleString(undefined, { minimumFractionDigits: 2 }) : ""}
+                                                {Number((currentOrder?.paymentDetails?.paymentAmount || grandTotal) || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                                             </span>
                                             <span>บาท</span>
                                             <span className="ml-4 italic opacity-70">(BAHT)</span>
@@ -363,23 +371,23 @@ const FullTaxInvoiceA4 = ({ order, companyInfo, printMode, isQuotation = false, 
                         <div className="col-span-5 text-[10px]">
                             <div className="flex justify-between border-b border-black p-2 h-9 items-center">
                                 <span className="font-bold leading-tight">มูลค่าสินค้าก่อนหักมัดจำ<br /><span className="text-[8px] opacity-70">TOTAL AMOUNT BEFORE DEPOSIT</span></span>
-                                <span className="text-right font-bold text-black">{totalBeforeVat > 0 ? totalBeforeVat.toLocaleString(undefined, { minimumFractionDigits: 2 }) : ""}</span>
+                                <span className="text-right font-bold text-black">{Number(totalBeforeVat || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
                             </div>
                             <div className="flex justify-between border-b border-black p-2 h-10 items-center leading-tight">
                                 <span className="font-bold">หัก มัดจำ / DEPOSIT</span>
-                                <span className="text-right font-bold text-black">{totalBeforeVat > 0 ? "0.00" : ""}</span>
+                                <span className="text-right font-bold text-black">{Number(depositAmt || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
                             </div>
                             <div className="flex justify-between border-b border-black p-2 h-9 items-center bg-gray-50/50">
                                 <span className="font-bold leading-tight">รวมมูลค่าสินค้า<br /><span className="text-[8px] opacity-70">TOTAL</span></span>
-                                <span className="text-right font-bold text-black">{totalBeforeVat > 0 ? totalBeforeVat.toLocaleString(undefined, { minimumFractionDigits: 2 }) : ""}</span>
+                                <span className="text-right font-bold text-black">{Number(totalAfterDeposit || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
                             </div>
                             <div className="flex justify-between border-b border-black p-2 h-10 items-center leading-tight">
                                 <span className="font-bold">ภาษีมูลค่าเพิ่ม / VAT 7%</span>
-                                <span className="text-right font-bold text-black">{vat > 0 ? vat.toLocaleString(undefined, { minimumFractionDigits: 2 }) : ""}</span>
+                                <span className="text-right font-bold text-black">{Number(vat || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
                             </div>
                             <div className="flex justify-between p-2 bg-[#00A651]/5 h-10 items-center">
                                 <span className="font-black text-[12px] leading-tight">ยอดรวมสุทธิ<br /><span className="text-[9px] opacity-70">GRAND TOTAL</span></span>
-                                <span className="text-right font-black text-[15px] text-black">{grandTotal > 0 ? grandTotal.toLocaleString(undefined, { minimumFractionDigits: 2 }) : ""}</span>
+                                <span className="text-right font-black text-[15px] text-black">{Number(grandTotal || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
                             </div>
                         </div>
                     </div>

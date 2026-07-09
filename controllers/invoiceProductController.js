@@ -106,6 +106,8 @@ const createInvoice = asyncHandler(async (req, res) => {
       invoice_pdf,
       note,
       internal_note,
+      internal_contact_name,
+      internal_contact_phone,
       payment_details,
     } = req.body;
 
@@ -160,9 +162,9 @@ const createInvoice = asyncHandler(async (req, res) => {
           buyer_approves_signature, buyer_approves_signature_date,
           sales_person_signature, sales_person_signature_date,
           sales_manager_signature, sales_manager_signature_date,
-          branch_name, invoice_pdf, note, internal_note, created_at, updated_at,
+          branch_name, invoice_pdf, note, internal_note, internal_contact_name, internal_contact_phone, created_at, updated_at,
           payment_method, payment_check_bank, payment_transfer_date, payment_transfer_ref, payment_amount
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
           customer.customer_name || null,
           customer.customer_present_name || null,
@@ -196,6 +198,8 @@ const createInvoice = asyncHandler(async (req, res) => {
           invoice_pdf || null,
           note || null,
           internal_note || null,
+          internal_contact_name || null,
+          internal_contact_phone || null,
           createdAt,
           updatedAt,
           payment_details?.paymentMethod || null,
@@ -235,6 +239,8 @@ const updateInvoiceByInvoiceNo = asyncHandler(async (req, res) => {
     invoice_pdf,
     note,
     internal_note,
+    internal_contact_name,
+    internal_contact_phone,
     payment_details,
   } = req.body;
 
@@ -301,6 +307,8 @@ const updateInvoiceByInvoiceNo = asyncHandler(async (req, res) => {
           customer.branch_name || "Head Office",
           note || null,
           internal_note || null,
+          internal_contact_name || null,
+          internal_contact_phone || null,
           createdAt,
           updatedAt,
           payment_details?.paymentMethod || null,
@@ -345,6 +353,8 @@ const updateInvoiceByInvoiceNo = asyncHandler(async (req, res) => {
             branch_name,
             note,
             internal_note,
+            internal_contact_name,
+            internal_contact_phone,
             created_at,
             updated_at,
             payment_method,
@@ -352,7 +362,7 @@ const updateInvoiceByInvoiceNo = asyncHandler(async (req, res) => {
             payment_transfer_date,
             payment_transfer_ref,
             payment_amount
-          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
           queryParams
         );
       });

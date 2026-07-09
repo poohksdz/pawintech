@@ -82,15 +82,21 @@ const createDefaultInvoice = asyncHandler(async (req, res) => {
     is_branch,
     branch_name,
     note,
+    bank_account_name,
+    bank_account_number,
+    deposit,
+    buyer_approves,
+    sales_person,
+    sales_manager,
   } = req.body;
 
-  const logo = `/images${req.body.logo}`;
+  const logo = req.body.logo;
 
   try {
     const [result] = await pool.query(
       `INSERT INTO tbl_default_invoice
-      (logo, company_name, company_name_thai, head_office, head_office_thai, tel, email, tax_id, discount, vat, is_head_office, is_branch, branch_name, note)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      (logo, company_name, company_name_thai, head_office, head_office_thai, tel, email, tax_id, discount, vat, is_head_office, is_branch, branch_name, note, bank_account_name, bank_account_number, deposit, buyer_approves, sales_person, sales_manager)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         logo,
         company_name,
@@ -106,6 +112,12 @@ const createDefaultInvoice = asyncHandler(async (req, res) => {
         is_branch,
         branch_name,
         note,
+        bank_account_name,
+        bank_account_number,
+        deposit,
+        buyer_approves,
+        sales_person,
+        sales_manager,
       ],
     );
 
@@ -140,9 +152,15 @@ const updateDefaultInvoice = asyncHandler(async (req, res) => {
     is_branch,
     branch_name,
     note,
+    bank_account_name,
+    bank_account_number,
+    deposit,
+    buyer_approves,
+    sales_person,
+    sales_manager,
   } = req.body;
 
-  const logo = `/images${req.body.logo}`;
+  const logo = req.body.logo;
 
   try {
     const [existing] = await pool.query(
@@ -157,7 +175,8 @@ const updateDefaultInvoice = asyncHandler(async (req, res) => {
       `UPDATE tbl_default_invoice SET logo = ?, 
       company_name = ?, company_name_thai = ?, head_office = ?, head_office_thai = ?,
       tel = ?, email = ?, tax_id = ?, discount = ?, vat = ?,
-      is_head_office = ?, is_branch = ?, branch_name = ?, note = ?
+      is_head_office = ?, is_branch = ?, branch_name = ?, note = ?,
+      bank_account_name = ?, bank_account_number = ?, deposit = ?, buyer_approves = ?, sales_person = ?, sales_manager = ?
       WHERE id = ?`,
       [
         logo,
@@ -174,6 +193,12 @@ const updateDefaultInvoice = asyncHandler(async (req, res) => {
         is_branch,
         branch_name,
         note,
+        bank_account_name,
+        bank_account_number,
+        deposit,
+        buyer_approves,
+        sales_person,
+        sales_manager,
         id,
       ],
     );

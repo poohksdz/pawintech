@@ -142,10 +142,12 @@ const InvoiceSetSelectedCustomerScreen = () => {
 
   // --- Calculation ---
   const subTotal = rows.reduce((acc, r) => acc + (r.qty * r.unit_price || 0), 0);
-  const totalDiscount = parseFloat(defaultSummary.discount || 0);
+  const totalDiscount = 0;
   const totalAfterDiscount = subTotal - totalDiscount;
-  const totalVat = totalAfterDiscount * (parseFloat(defaultSummary.vat || 0) / 100);
-  const grandTotal = totalAfterDiscount + totalVat;
+  const depositAmount = parseFloat(defaultSummary.deposit || 0);
+  const totalAfterDeposit = totalAfterDiscount - depositAmount;
+  const totalVat = totalAfterDeposit * (parseFloat(defaultSummary.vat || 0) / 100);
+  const grandTotal = totalAfterDeposit + totalVat;
 
   const now = new Date();
   const todayDate = new Date();
@@ -174,6 +176,7 @@ const InvoiceSetSelectedCustomerScreen = () => {
     vatPrice: totalVat,
     totalPrice: grandTotal,
     discountPrice: totalDiscount,
+    summary: { deposit: depositAmount, discount: totalDiscount, vat: defaultSummary.vat },
     signatures: {
       sales: defaultSelected?.sales_person,
       salesDate: todayDate,
@@ -551,22 +554,19 @@ const InvoiceSetSelectedCustomerScreen = () => {
                     <span className="text-muted fw-bold">รวมเป็นเงิน</span>
                     <span className="fw-bold">{subTotal.toFixed(2)}</span>
                   </div>
+                  
                   <div className="d-flex justify-content-between mb-2 small align-items-center">
-                    <span className="text-muted fw-bold">ส่วนลด</span>
+                    <span className="text-muted fw-bold">มัดจำ / Deposit</span>
                     <Form.Control
                       type="number"
                       size="sm"
                       className="text-end"
                       style={{ width: "100px" }}
-                      value={defaultSummary.discount}
+                      value={defaultSummary.deposit || ""}
                       onChange={(e) =>
-                        setDefaultSummary({ ...defaultSummary, discount: e.target.value })
+                        setDefaultSummary({ ...defaultSummary, deposit: e.target.value })
                       }
                     />
-                  </div>
-                  <div className="d-flex justify-content-between mb-2 small">
-                    <span className="text-muted fw-bold">ราคาหลังหักส่วนลด</span>
-                    <span className="fw-bold">{totalAfterDiscount.toFixed(2)}</span>
                   </div>
                   <div className="d-flex justify-content-between mb-2 small align-items-center">
                     <span className="text-muted fw-bold">VAT %</span>

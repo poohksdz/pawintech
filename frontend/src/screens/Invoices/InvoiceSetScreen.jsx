@@ -59,6 +59,8 @@ const InvoiceSetScreen = () => {
 
   const [note, setNote] = useState("");
   const [internalNote, setInternalNote] = useState("");
+  const [internalContactName, setInternalContactName] = useState("");
+  const [internalContactPhone, setInternalContactPhone] = useState("");
 
   const [paymentMethod, setPaymentMethod] = useState(""); // "", "cash", "check", "transfer"
   const [paymentCheckBank, setPaymentCheckBank] = useState("");
@@ -193,6 +195,13 @@ const InvoiceSetScreen = () => {
   }, [defaultSelected, quotationDataToConvert, convertFromQuotationNo]);
 
   useEffect(() => {
+    if (convertFromQuotationNo && quotationDataToConvert?.quotation?.[0]?.[0]) {
+      const q = quotationDataToConvert.quotation[0][0];
+      if (q.note && !note) setNote(q.note);
+      if (q.internal_note && !internalNote) setInternalNote(q.internal_note);
+      if (q.internal_contact_name && !internalContactName) setInternalContactName(q.internal_contact_name);
+      if (q.internal_contact_phone && !internalContactPhone) setInternalContactPhone(q.internal_contact_phone);
+    }
     if (quotationDataToConvert?.quotation?.length > 0) {
       const itemsArray = Array.isArray(quotationDataToConvert.quotation[0])
         ? quotationDataToConvert.quotation[0]
@@ -213,8 +222,6 @@ const InvoiceSetScreen = () => {
 
         setdue_date(firstItem.due_date || "");
         setnumber_of_credit_days(firstItem.number_of_credit_days || "");
-        setNote(firstItem.note || "");
-        setInternalNote(firstItem.internal_note || "");
         
         setDefaultSummary((prev) => ({
           ...prev,
@@ -269,10 +276,12 @@ const InvoiceSetScreen = () => {
 
   // --- Calculation ---
   const subTotal = rows.reduce((acc, r) => acc + (r.qty * r.unit_price || 0), 0);
-  const totalDiscount = parseFloat(defaultSummary.discount || 0);
+  const totalDiscount = 0;
   const totalAfterDiscount = subTotal - totalDiscount;
-  const totalVat = totalAfterDiscount * (parseFloat(defaultSummary.vat || 0) / 100);
-  const grandTotal = totalAfterDiscount + totalVat;
+  const depositAmount = parseFloat(defaultSummary.deposit || 0);
+  const totalAfterDeposit = totalAfterDiscount - depositAmount;
+  const totalVat = totalAfterDeposit * (parseFloat(defaultSummary.vat || 0) / 100);
+  const grandTotal = totalAfterDeposit + totalVat;
 
   const now = new Date();
   const todayDate = new Date();
@@ -301,8 +310,11 @@ const InvoiceSetScreen = () => {
     vatPrice: totalVat,
     totalPrice: grandTotal,
     discountPrice: totalDiscount,
+    summary: { deposit: depositAmount, discount: totalDiscount, vat: defaultSummary.vat },
     note: note,
     internal_note: internalNote,
+    internal_contact_name: internalContactName,
+    internal_contact_phone: internalContactPhone,
     signatures: {
       buyer: customerInfo.buyer_approves_signature,
       buyerDate: customerInfo.buyer_approves_signature_date,
@@ -424,8 +436,10 @@ const InvoiceSetScreen = () => {
           paymentTransferRef,
           paymentAmount: paymentAmount !== "" ? Number(paymentAmount) : grandTotal,
         },
-        note,
+        note: note,
         internal_note: internalNote,
+        internal_contact_name: internalContactName,
+        internal_contact_phone: internalContactPhone,
       };
       const result = await createInvoice(payload).unwrap();
       setInvoiceNumber(result.invoice_no);
@@ -622,6 +636,28 @@ const InvoiceSetScreen = () => {
                       value={internalNote}
                       onChange={(e) => setInternalNote(e.target.value)}
                       placeholder="กรอกหมายเหตุภายในสำหรับการตรวจสอบ..."
+                    />
+                  </Form.Group>
+                </Col>
+                <Col md={6} className="mt-3">
+                  <Form.Group>
+                    <Form.Label className="small fw-bold text-muted">ชื่อที่ติดต่อ (Contact Name - Internal)</Form.Label>
+                    <Form.Control
+                      type="text"
+                      value={internalContactName}
+                      onChange={(e) => setInternalContactName(e.target.value)}
+                      placeholder="ชื่อผู้ติดต่อ (สำหรับภายใน)"
+                    />
+                  </Form.Group>
+                </Col>
+                <Col md={6} className="mt-3">
+                  <Form.Group>
+                    <Form.Label className="small fw-bold text-muted">เบอร์ที่ใช้ติดต่อ (Contact Phone - Internal)</Form.Label>
+                    <Form.Control
+                      type="text"
+                      value={internalContactPhone}
+                      onChange={(e) => setInternalContactPhone(e.target.value)}
+                      placeholder="เบอร์โทรศัพท์ (สำหรับภายใน)"
                     />
                   </Form.Group>
                 </Col>
@@ -869,22 +905,19 @@ const InvoiceSetScreen = () => {
                     <span className="text-muted fw-bold">รวมเป็นเงิน</span>
                     <span className="fw-bold">{subTotal.toFixed(2)}</span>
                   </div>
+                  
                   <div className="d-flex justify-content-between mb-2 small align-items-center">
-                    <span className="text-muted fw-bold">ส่วนลด</span>
+                    <span className="text-muted fw-bold">มัดจำ / Deposit</span>
                     <Form.Control
                       type="number"
                       size="sm"
                       className="text-end"
                       style={{ width: "100px" }}
-                      value={defaultSummary.discount}
+                      value={defaultSummary.deposit}
                       onChange={(e) =>
-                        setDefaultSummary({ ...defaultSummary, discount: e.target.value })
+                        setDefaultSummary({ ...defaultSummary, deposit: e.target.value })
                       }
                     />
-                  </div>
-                  <div className="d-flex justify-content-between mb-2 small">
-                    <span className="text-muted fw-bold">ราคาหลังหักส่วนลด</span>
-                    <span className="fw-bold">{totalAfterDiscount.toFixed(2)}</span>
                   </div>
                   <div className="d-flex justify-content-between mb-2 small align-items-center">
                     <span className="text-muted fw-bold">VAT %</span>

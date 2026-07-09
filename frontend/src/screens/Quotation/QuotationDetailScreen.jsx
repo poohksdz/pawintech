@@ -91,10 +91,12 @@ const QuotationDetailScreen = () => {
 
   // Calculations
   const subTotal = rows.reduce((acc, r) => acc + (r.qty * r.unit_price || 0), 0);
-  const totalDiscount = subTotal * (parseFloat(defaultSummary.discount || 0) / 100);
+  const totalDiscount = 0;
   const totalAfterDiscount = subTotal - totalDiscount;
-  const totalVat = totalAfterDiscount * (parseFloat(defaultSummary.vat || 0) / 100);
-  const grandTotal = totalAfterDiscount + totalVat;
+  const depositAmount = parseFloat(defaultSummary.deposit || 0);
+  const totalAfterDeposit = totalAfterDiscount - depositAmount;
+  const totalVat = totalAfterDeposit * (parseFloat(defaultSummary.vat || 0) / 100);
+  const grandTotal = totalAfterDeposit + totalVat;
 
   const handlePrint = () => {
     window.print();
@@ -124,6 +126,7 @@ const QuotationDetailScreen = () => {
     vatPrice: totalVat,
     totalPrice: grandTotal,
     discountPrice: totalDiscount,
+    summary: { deposit: depositAmount, discount: totalDiscount, vat: defaultSummary.vat },
     signatures: {
       buyer: firstQuotation.buyer_approves_signature,
       buyerDate: firstQuotation.buyer_approves_signature_date,
@@ -167,11 +170,31 @@ const QuotationDetailScreen = () => {
         </Button>
       </div>
 
-      {firstQuotation?.internal_note && (
+      {userInfo?.isAdmin && (firstQuotation?.internal_note || firstQuotation?.internal_contact_name || firstQuotation?.internal_contact_phone) && (
         <div className="flex justify-center w-full bg-yellow-100 py-3 print:hidden border-b border-yellow-300">
-          <div className="w-[210mm] px-4">
-            <span className="font-bold text-yellow-800 mr-2">หมายเหตุภายใน (Internal Note):</span>
-            <span className="text-yellow-900 whitespace-pre-wrap">{firstQuotation.internal_note}</span>
+          <div className="w-[210mm] px-4 flex flex-col gap-1">
+            {firstQuotation?.internal_note && (
+              <div>
+                <span className="font-bold text-yellow-800 mr-2">หมายเหตุภายใน (Internal Note):</span>
+                <span className="text-yellow-900 whitespace-pre-wrap">{firstQuotation.internal_note}</span>
+              </div>
+            )}
+            {(firstQuotation?.internal_contact_name || firstQuotation?.internal_contact_phone) && (
+              <div className="flex gap-4">
+                {firstQuotation?.internal_contact_name && (
+                  <div>
+                    <span className="font-bold text-yellow-800 mr-2">ชื่อที่ติดต่อ (Internal Contact):</span>
+                    <span className="text-yellow-900">{firstQuotation.internal_contact_name}</span>
+                  </div>
+                )}
+                {firstQuotation?.internal_contact_phone && (
+                  <div>
+                    <span className="font-bold text-yellow-800 mr-2">เบอร์ที่ติดต่อ (Internal Phone):</span>
+                    <span className="text-yellow-900">{firstQuotation.internal_contact_phone}</span>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
       )}
