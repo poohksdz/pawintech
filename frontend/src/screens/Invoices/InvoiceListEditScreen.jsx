@@ -33,6 +33,7 @@ const InvoiceListEditScreen = () => {
   // --- State ---
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [selectedInvoice, setSelectedInvoice] = useState(null);
+  const [downloadingId, setDownloadingId] = useState(null);
 
   // Filters
   const [searchQuery, setSearchQuery] = useState("");
@@ -48,6 +49,39 @@ const InvoiceListEditScreen = () => {
       `${window.location.protocol}//${window.location.host}`;
     const url = pdfPath.startsWith("http") ? pdfPath : `${baseUrl}${pdfPath}`;
     window.open(url, "_blank");
+  };
+
+  const handleDownloadPdf = async (pdfPath, invoiceNo) => {
+    if (!pdfPath) {
+      toast.error("ไม่พบไฟล์ PDF สำหรับใบแจ้งหนี้นี้");
+      return;
+    }
+    const baseUrl =
+      process.env.REACT_APP_BASE_URL ||
+      `${window.location.protocol}//${window.location.host}`;
+    const url = pdfPath.startsWith("http") ? pdfPath : `${baseUrl}${pdfPath}`;
+
+    try {
+      setDownloadingId(invoiceNo);
+      const response = await fetch(url);
+      if (!response.ok) throw new Error("Network response was not ok");
+      const blob = await response.blob();
+      const downloadUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = downloadUrl;
+      link.setAttribute("download", `${invoiceNo || "Invoice"}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.parentNode.removeChild(link);
+      window.URL.revokeObjectURL(downloadUrl);
+      toast.success("ดาวน์โหลด PDF สำเร็จ");
+    } catch (error) {
+      console.error("Download error:", error);
+      toast.error("ไม่สามารถดาวน์โหลด PDF ได้");
+      window.open(url, "_blank");
+    } finally {
+      setDownloadingId(null);
+    }
   };
 
   const confirmDelete = (invoice) => {
@@ -147,7 +181,15 @@ const InvoiceListEditScreen = () => {
     );
 
   return (
-    <div className="py-4 md:py-8 px-4 sm:px-6 lg:px-8 bg-slate-50 min-h-screen font-sans">
+    <div className="py-4 md:py-8 px-4 sm:px-6 lg:px-8 bg-slate-50 min-h-screen font-sans relative">
+      {downloadingId && (
+        <div
+          className="fixed inset-0 bg-white bg-opacity-75 flex justify-center items-center"
+          style={{ zIndex: 9999 }}
+        >
+          <Loader />
+        </div>
+      )}
       <div className="max-w-7xl mx-auto space-y-6">
         {/* 1. Header Section */}
         <div className="bg-white shadow-sm border border-slate-200 rounded-3xl p-4 md:p-6 sm:p-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 md:gap-6">
@@ -374,14 +416,14 @@ const InvoiceListEditScreen = () => {
                             </button>
                           </Link>
 
-                          <Link
-                            to={`/admin/customers/selectedcustomer/${inv.id}/setinvoice`}
-                            title="Duplicate / Create New Invoice"
+                          <button
+                            type="button"
+                            onClick={() => handleDownloadPdf(inv.invoice_pdf, inv.invoice_no)}
+                            title="Download PDF"
+                            className="w-9 h-9 flex items-center justify-center bg-rose-100 text-rose-700 hover:bg-rose-600 hover:text-white rounded-full transition-colors shadow-sm"
                           >
-                            <button className="w-9 h-9 flex items-center justify-center bg-amber-100 text-amber-700 hover:bg-amber-500 hover:text-white rounded-full transition-colors shadow-sm">
-                              <FaPlus size={14} />
-                            </button>
-                          </Link>
+                            <FaFilePdf size={14} />
+                          </button>
 
                           <Link
                             to={`/admin/invoicelist/${inv.invoice_no}/edit`}
@@ -474,14 +516,13 @@ const InvoiceListEditScreen = () => {
                   </div>
 
                   <div className="flex gap-2">
-                    <Link
-                      to={`/admin/customers/selectedcustomer/${inv.id}/setinvoice`}
-                      className="flex-1"
+                    <button
+                      type="button"
+                      onClick={() => handleDownloadPdf(inv.invoice_pdf, inv.invoice_no)}
+                      className="flex-1 flex justify-center items-center gap-1.5 py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 rounded-xl text-xs font-bold transition-colors border border-rose-200"
                     >
-                      <button className="w-full flex justify-center items-center gap-1.5 py-2 bg-slate-50 hover:bg-slate-100 text-slate-700 rounded-xl text-xs font-bold transition-colors border border-slate-200">
-                        <FaPlus /> Duplicate
-                      </button>
-                    </Link>
+                      <FaFilePdf /> Download PDF
+                    </button>
                     <Link to={`/admin/invoicelist/${inv.invoice_no}`}>
                       <button className="w-10 h-10 flex justify-center items-center bg-teal-50 hover:bg-teal-100 text-teal-600 rounded-xl transition-colors">
                         <FaEye size={16} />

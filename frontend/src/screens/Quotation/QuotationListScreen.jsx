@@ -35,6 +35,7 @@ const QuotationListScreen = () => {
   // --- State ---
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [selectedQuotation, setSelectedQuotation] = useState(null);
+  const [downloadingId, setDownloadingId] = useState(null);
 
   // Filters
   const [searchQuery, setSearchQuery] = useState("");
@@ -58,6 +59,7 @@ const QuotationListScreen = () => {
       return;
     }
     try {
+      setDownloadingId(filename || "pdf");
       const baseUrl =
         process.env.REACT_APP_BASE_URL ||
         `${window.location.protocol}//${window.location.host}`;
@@ -81,6 +83,8 @@ const QuotationListScreen = () => {
         `${window.location.protocol}//${window.location.host}`;
       const url = pdfPath.startsWith("http") ? pdfPath : `${baseUrl}${pdfPath}`;
       window.open(url, "_blank");
+    } finally {
+      setDownloadingId(null);
     }
   };
 
@@ -180,7 +184,15 @@ const QuotationListScreen = () => {
     );
 
   return (
-    <div className="py-4 md:py-8 px-4 sm:px-6 lg:px-8 bg-slate-50 min-h-screen font-sans">
+    <div className="py-4 md:py-8 px-4 sm:px-6 lg:px-8 bg-slate-50 min-h-screen font-sans relative">
+      {downloadingId && (
+        <div
+          className="fixed inset-0 bg-white bg-opacity-75 flex justify-center items-center"
+          style={{ zIndex: 9999 }}
+        >
+          <Loader />
+        </div>
+      )}
       <div className="max-w-7xl mx-auto space-y-6">
         {/* 1. Header Section */}
         <div className="bg-white shadow-sm border border-slate-200 rounded-3xl p-4 md:p-6 sm:p-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 md:gap-6">

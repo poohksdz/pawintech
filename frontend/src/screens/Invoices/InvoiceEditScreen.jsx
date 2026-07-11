@@ -118,7 +118,7 @@ const InvoiceEditScreen = () => {
     const summaryData = {
       discount: parseFloat(firstInvoice.discount) || 0,
       vat: parseFloat(firstInvoice.vat) || 0,
-      deposit: firstInvoice.deposit || 50,
+      deposit: firstInvoice.deposit !== undefined && firstInvoice.deposit !== null ? parseFloat(firstInvoice.deposit) : 0,
       bank_account_name: firstInvoice.transfer_bank_account_name || "",
       bank_account_number: firstInvoice.transfer_bank_account_number || "",
       company_name: defaultSelected?.company_name || "",
@@ -330,9 +330,6 @@ const InvoiceEditScreen = () => {
       `${invoice_no}.pdf`
     );
 
-    // Prompt user to download
-    pdf.save(`${invoice_no}.pdf`);
-
     const response = await uploadInvoicePDF(formData).unwrap();
     return response.url;
   };
@@ -362,6 +359,8 @@ const InvoiceEditScreen = () => {
           total: grandTotal,
           sub_total: subTotal,
           vat: defaultSummary.vat,
+          deposit: parseFloat(defaultSummary.deposit) || 0,
+          note: note,
         },
         customer: customerInfo,
         signatures: {
