@@ -92,7 +92,7 @@ const InvoiceEditScreen = () => {
   });
 
   const [rows, setRows] = useState([]);
-  const [defaultSummary, setDefaultSummary] = useState({ discount: 0, vat: 0 });
+  const [defaultSummary, setDefaultSummary] = useState({ discount: 0, vat: 0, deposit: 0 });
 
   // --- Effects ---
   useEffect(() => {
@@ -299,39 +299,52 @@ const InvoiceEditScreen = () => {
   };
 
   const uploadPDF = async (invoice_no) => {
-    if (!componentRef.current) return;
-    const pdf = new jsPDF("p", "mm", "a4");
-    const canvas = await html2canvas(componentRef.current, {
-      scale: 2,
-      useCORS: true,
-    });
-    const imgData = canvas.toDataURL("image/png");
-    const pdfWidth = pdf.internal.pageSize.getWidth();
-    const pdfHeight = pdf.internal.pageSize.getHeight();
-    const imgProps = pdf.getImageProperties(imgData);
-    const totalPdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+    if (!componentRef.current) return null;
+    try {
+      const pdf = new jsPDF("p", "mm", "a4");
+      const canvas = await html2canvas(componentRef.current, {
+        scale: 2,
+        useCORS: true,
+        allowTaint: true,
+        logging: false,
+        // Skip broken images (e.g. missing signature files)
+        onclone: (clonedDoc) => {
+          const imgs = clonedDoc.querySelectorAll("img");
+          imgs.forEach((img) => {
+            img.onerror = () => {
+              img.style.display = "none";
+            };
+          });
+        },
+      });
+      const imgData = canvas.toDataURL("image/png");
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = pdf.internal.pageSize.getHeight();
+      const imgProps = pdf.getImageProperties(imgData);
+      const totalPdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
 
-    let heightLeft = totalPdfHeight;
-    let position = 0;
+      let heightLeft = totalPdfHeight;
+      let position = 0;
 
-    pdf.addImage(imgData, "PNG", 0, position, pdfWidth, totalPdfHeight);
-    heightLeft -= pdfHeight;
-
-    while (heightLeft >= 5) {
-      position -= pdfHeight;
-      pdf.addPage();
       pdf.addImage(imgData, "PNG", 0, position, pdfWidth, totalPdfHeight);
       heightLeft -= pdfHeight;
-    }
-    const formData = new FormData();
-    formData.append(
-      "invoice_pdf",
-      pdf.output("blob"),
-      `${invoice_no}.pdf`
-    );
 
-    const response = await uploadInvoicePDF(formData).unwrap();
-    return response.url;
+      while (heightLeft >= 5) {
+        position -= pdfHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, "PNG", 0, position, pdfWidth, totalPdfHeight);
+        heightLeft -= pdfHeight;
+      }
+
+      const formData = new FormData();
+      formData.append("invoice_pdf", pdf.output("blob"), `${invoice_no}.pdf`);
+
+      const response = await uploadInvoicePDF(formData).unwrap();
+      return response.url;
+    } catch (err) {
+      console.warn("PDF generation failed, saving data without PDF:", err);
+      return null;
+    }
   };
 
   const handleUpdateInvoice = async (uploadedPDFUrl = null) => {
@@ -392,16 +405,17 @@ const InvoiceEditScreen = () => {
     try {
       setIsProcessingPDF(true);
       setShowConfirm(false);
-      
+
       // Force tiny wait so componentRef captures changes correctly
-      await new Promise(r => setTimeout(r, 100));
-      
+      await new Promise(r => setTimeout(r, 200));
+
+      // Try PDF generation but don't block the save if it fails
       const pdfUrl = await uploadPDF(invoiceNumber);
       await handleUpdateInvoice(pdfUrl);
     } catch (error) {
       console.error("Save error:", error);
       const errorMsg = error?.data?.message || error?.data?.error || error?.message || "Failed to save invoice";
-      toast.error(typeof errorMsg === 'string' ? errorMsg : "Failed to save invoice");
+      toast.error(typeof errorMsg === "string" ? errorMsg : "Failed to save invoice");
     } finally {
       setIsProcessingPDF(false);
     }
@@ -856,7 +870,7 @@ const InvoiceEditScreen = () => {
                       size="sm"
                       className="text-end"
                       style={{ width: "100px" }}
-                      value={defaultSummary.deposit}
+                      value={defaultSummary.deposit ?? 0}
                       onChange={(e) =>
                         setDefaultSummary({ ...defaultSummary, deposit: e.target.value })
                       }
