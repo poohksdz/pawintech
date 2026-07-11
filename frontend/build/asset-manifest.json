@@ -1,0 +1,17 @@
+{
+  "files": {
+    "main.css": "/static/css/main.9d7be95a.css",
+    "main.js": "/static/js/main.6da33fdc.js",
+    "static/js/626.d0ba0299.chunk.js": "/static/js/626.d0ba0299.chunk.js",
+    "static/js/637.c5f062ea.chunk.js": "/static/js/637.c5f062ea.chunk.js",
+    "static/js/944.6f3603a9.chunk.js": "/static/js/944.6f3603a9.chunk.js",
+    "static/js/206.a80894a5.chunk.js": "/static/js/206.a80894a5.chunk.js",
+    "static/js/239.f7edf2df.chunk.js": "/static/js/239.f7edf2df.chunk.js",
+    "static/media/pawintech_location.png": "/static/media/pawintech_location.c1b4e90f40b601834b56.png",
+    "index.html": "/index.html"
+  },
+  "entrypoints": [
+    "static/css/main.9d7be95a.css",
+    "static/js/main.6da33fdc.js"
+  ]
+}
