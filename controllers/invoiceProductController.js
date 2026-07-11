@@ -41,10 +41,16 @@ const getInvoiceDetails = asyncHandler(async (req, res) => {
 // @route   GET /api/invoices/invoice_no/:id
 // @access  Public
 const getInvoicesByInvoiceId = asyncHandler(async (req, res) => {
-  const invoice_no = req.params.invoiceId || req.params.id; // handle both param names if needed
+  const invoice_no = req.params.invoiceId || req.params.id;
   try {
     const [rows] = await db.pool.query(
-      "SELECT * FROM tbl_invoices WHERE invoice_no = ?",
+      `SELECT i.*,
+        s1.name AS sales_person_name,
+        s2.name AS sales_manager_name
+       FROM tbl_invoices i
+       LEFT JOIN user_signatures s1 ON s1.image_path = i.sales_person_signature
+       LEFT JOIN user_signatures s2 ON s2.image_path = i.sales_manager_signature
+       WHERE i.invoice_no = ?`,
       [invoice_no],
     );
     if (rows.length === 0) {
@@ -56,6 +62,7 @@ const getInvoicesByInvoiceId = asyncHandler(async (req, res) => {
     res.status(500).json({ message: "Error fetching invoice" });
   }
 });
+
 
 // @desc    Get next invoice no
 // @route   GET /api/invoices/next-number

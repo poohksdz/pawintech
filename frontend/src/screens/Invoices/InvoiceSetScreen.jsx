@@ -287,6 +287,12 @@ const InvoiceSetScreen = () => {
   const todayDate = new Date();
   const today = `${String(now.getDate()).padStart(2, "0")}/${String(now.getMonth() + 1).padStart(2, "0")}/${now.getFullYear() + 543}`;
 
+  const salesSignatureObj = signaturesList.find(s => s.image_path === selectedSalesSignature);
+  const salesName = salesSignatureObj ? salesSignatureObj.name : "";
+
+  const managerSignatureObj = signaturesList.find(s => s.image_path === selectedManagerSignature);
+  const managerName = managerSignatureObj ? managerSignatureObj.name : "";
+
   const mappedOrder = {
     id: invoiceNumber || "INV-XXXX",
     quotation_no: invoiceNumber || "INV-XXXX", // Re-using quotation_no field for FullTaxInvoiceA4 compatibility
@@ -319,8 +325,10 @@ const InvoiceSetScreen = () => {
       buyer: customerInfo.buyer_approves_signature,
       buyerDate: customerInfo.buyer_approves_signature_date,
       sales: selectedSalesSignature,
+      salesName: salesName,
       salesDate: todayDate,
       manager: selectedManagerSignature,
+      managerName: managerName,
       managerDate: todayDate,
     },
     paymentDetails: {

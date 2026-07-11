@@ -143,10 +143,10 @@ app.use(helmet(helmetConfig));
 app.use(xss());
 app.use(hpp());
 
-// Rate Limiting (เธเธณเธเธฑเธ”เธเธฒเธฃเธขเธดเธ Request เธ–เธตเนเน)
+// Rate Limiting (เธˆเธณเธ เธฑเธ”เธ เธฒเธฃเธขเธดเธ‡ Request เธ–เธตเนˆเน†)
 const limiter = rateLimit({
   windowMs: 10 * 60 * 1000,
-  max: process.env.NODE_ENV === "development" ? 500 : 500, //  เน€เธเธดเนเธก Limit เนเธเนเธซเธกเธ” Dev
+  max: process.env.NODE_ENV === "development" ? 5000 : 500, //  เพิ่ม Limit ในโหมด Dev
   message: "Too many requests from this IP, please try again later.",
 });
 // Apply rate limiter to /api EXCEPT for stock product routes (component check boom - needs unlimited access)

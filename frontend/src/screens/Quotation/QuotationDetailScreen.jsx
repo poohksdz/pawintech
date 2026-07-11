@@ -131,8 +131,10 @@ const QuotationDetailScreen = () => {
       buyer: firstQuotation.buyer_approves_signature,
       buyerDate: firstQuotation.buyer_approves_signature_date,
       sales: firstQuotation.sales_person_signature,
+      salesName: firstQuotation.sales_person_name || "",
       salesDate: firstQuotation.sales_person_signature_date || firstQuotation.createdAt || new Date(),
       manager: firstQuotation.sales_manager_signature,
+      managerName: firstQuotation.sales_manager_name || "",
       managerDate: firstQuotation.sales_manager_signature_date || firstQuotation.createdAt || new Date(),
     }
   } : null;

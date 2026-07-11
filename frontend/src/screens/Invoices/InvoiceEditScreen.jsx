@@ -239,6 +239,12 @@ const InvoiceEditScreen = () => {
   const now = new Date();
   const createDateObj = create_date ? new Date(create_date) : now;
   
+  const salesSignatureObj = signaturesList.find(s => s.image_path === selectedSalesSignature);
+  const salesName = salesSignatureObj ? salesSignatureObj.name : "";
+
+  const managerSignatureObj = signaturesList.find(s => s.image_path === selectedManagerSignature);
+  const managerName = managerSignatureObj ? managerSignatureObj.name : "";
+
   const mappedOrder = {
     id: invoiceNumber || "INV-XXXX",
     quotation_no: invoiceNumber || "INV-XXXX", // Needed for FullTaxInvoiceA4
@@ -271,8 +277,10 @@ const InvoiceEditScreen = () => {
       buyer: customerInfo.buyer_approves_signature,
       buyerDate: customerInfo.buyer_approves_signature_date,
       sales: selectedSalesSignature,
+      salesName: salesName,
       salesDate: createDateObj,
       manager: selectedManagerSignature,
+      managerName: managerName,
       managerDate: createDateObj,
     },
     paymentDetails: {

@@ -212,22 +212,22 @@ const FullTaxInvoiceA4 = ({ order, companyInfo, printMode, isQuotation = false, 
                                 <div className="flex items-center flex-1">
                                     <span className="shrink-0 mr-3 font-bold text-black uppercase tracking-tighter">เลขประจำตัวผู้เสียภาษี</span>
                                     <div className="flex-1 border-b border-dotted border-gray-400 pb-1 flex justify-center">
-                                        <span className="text-black font-black tracking-[0.2em]">{billing.tax || "\u00A0"}</span>
+                                        <span className="text-black font-black tracking-wider">{billing.tax || "\u00A0"}</span>
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-4">
                                     <div className="flex items-center gap-2">
                                         <div className="w-4 h-4 border-2 border-black flex items-center justify-center rounded-sm bg-transparent">
-                                            {(billing.branch === "สำนักงานใหญ่" || (!billing.branch && currentOrder.id)) && billing.branch !== "ไม่ระบุ" && <span className="text-black text-[14px] font-black leading-none -mt-[2px] ml-[1px]">✓</span>}
+                                            {(billing.branch === "สำนักงานใหญ่" || (!billing.branch && currentOrder.id)) && billing.branch !== "ไม่ระบุ" && <span className="text-black text-[14px] font-black leading-none -mt-[6px] ml-[1px]">✓</span>}
                                         </div>
                                         <span className="font-bold text-[10px]">สำนักงานใหญ่</span>
                                     </div>
                                     <div className="flex items-center gap-2">
                                         <div className="w-4 h-4 border-2 border-black flex items-center justify-center rounded-sm bg-transparent">
-                                            {billing.branch && billing.branch !== "สำนักงานใหญ่" && billing.branch !== "ไม่ระบุ" && <span className="text-black text-[14px] font-black leading-none -mt-[2px] ml-[1px]">✓</span>}
+                                            {billing.branch && billing.branch !== "สำนักงานใหญ่" && billing.branch !== "ไม่ระบุ" && <span className="text-black text-[14px] font-black leading-none -mt-[6px] ml-[1px]">✓</span>}
                                         </div>
                                         <span className="font-bold text-[10px]">สาขาที่</span>
-                                        <span className="min-w-[40px] border-b border-black text-center text-black font-black ml-1 leading-none">{billing.branch && billing.branch !== "สำนักงานใหญ่" && billing.branch !== "ไม่ระบุ" ? billing.branch : "...."}</span>
+                                        <span className="min-w-[40px] inline-block h-[14px] border-b border-black text-center text-black font-black ml-1 leading-none">{billing.branch && billing.branch !== "สำนักงานใหญ่" && billing.branch !== "ไม่ระบุ" ? billing.branch : ""}</span>
                                     </div>
                                 </div>
                             </div>
@@ -407,7 +407,7 @@ const FullTaxInvoiceA4 = ({ order, companyInfo, printMode, isQuotation = false, 
                                     )}
                                 </div>
                                 <div className="w-[90%] border-t border-dotted border-black pt-1 text-center mt-2">
-                                    <p>(...........................................................)</p>
+                                    <p>{currentOrder.signatures?.buyerName ? `( ${currentOrder.signatures.buyerName} )` : "(...........................................................)"}</p>
                                     <p>วันที่ {currentOrder.signatures?.buyerDate || "......../......../........"}</p>
                                 </div>
                             </div>
@@ -423,7 +423,7 @@ const FullTaxInvoiceA4 = ({ order, companyInfo, printMode, isQuotation = false, 
                                     )}
                                 </div>
                                 <div className="w-[90%] border-t border-dotted border-black pt-1 text-center mt-2">
-                                    <p>(...........................................................)</p>
+                                    <p>{currentOrder.signatures?.salesName ? `( ${currentOrder.signatures.salesName} )` : "(...........................................................)"}</p>
                                     <p>วันที่ {currentOrder.signatures?.salesDate ? formatDateThai(currentOrder.signatures.salesDate) : "......../......../........"}</p>
                                 </div>
                             </div>
@@ -439,7 +439,7 @@ const FullTaxInvoiceA4 = ({ order, companyInfo, printMode, isQuotation = false, 
                                     )}
                                 </div>
                                 <div className="w-[90%] border-t border-dotted border-black pt-1 text-center mt-2">
-                                    <p>(...........................................................)</p>
+                                    <p>{currentOrder.signatures?.managerName ? `( ${currentOrder.signatures.managerName} )` : "(...........................................................)"}</p>
                                     <p>วันที่ {currentOrder.signatures?.managerDate ? formatDateThai(currentOrder.signatures.managerDate) : "......../......../........"}</p>
                                 </div>
                             </div>

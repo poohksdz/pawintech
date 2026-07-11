@@ -238,6 +238,12 @@ const QuotationEditScreen = () => {
   const now = new Date();
   const createDateObj = create_date ? new Date(create_date) : now;
   
+  const salesSignatureObj = signaturesList.find(s => s.image_path === selectedSalesSignature);
+  const salesName = salesSignatureObj ? salesSignatureObj.name : "";
+
+  const managerSignatureObj = signaturesList.find(s => s.image_path === selectedManagerSignature);
+  const managerName = managerSignatureObj ? managerSignatureObj.name : "";
+
   const mappedOrder = {
     id: quotationNumber || "QT-XXXX",
     quotation_no: quotationNumber || "QT-XXXX",
@@ -270,8 +276,10 @@ const QuotationEditScreen = () => {
       buyer: customerInfo.buyer_approves_signature,
       buyerDate: customerInfo.buyer_approves_signature_date,
       sales: selectedSalesSignature,
+      salesName: salesName,
       salesDate: createDateObj, // Default to creation date for existing quotes
       manager: selectedManagerSignature,
+      managerName: managerName,
       managerDate: createDateObj,
     }
   };

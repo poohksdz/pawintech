@@ -45,9 +45,14 @@ const getQuotationById = asyncHandler(async (req, res) => {
 const getQuotationByQuotationNo = asyncHandler(async (req, res) => {
   const quotation_no = req.params.id;
   try {
-    //  Fixed: changed connection -> db
     const [rows] = await db.pool.query(
-      "SELECT * FROM tbl_quotations WHERE quotation_no = ?",
+      `SELECT q.*,
+        s1.name AS sales_person_name,
+        s2.name AS sales_manager_name
+       FROM tbl_quotations q
+       LEFT JOIN user_signatures s1 ON s1.image_path = q.sales_person_signature
+       LEFT JOIN user_signatures s2 ON s2.image_path = q.sales_manager_signature
+       WHERE q.quotation_no = ?`,
       [quotation_no],
     );
     if (rows.length === 0) {
@@ -61,6 +66,7 @@ const getQuotationByQuotationNo = asyncHandler(async (req, res) => {
     res.status(500).json({ message: "Error fetching quotation" });
   }
 });
+
 
 // @desc    Fetch quotations that are marked as "used"
 // @route   GET /api/quotations/used
@@ -232,7 +238,7 @@ const createQuotation = asyncHandler(async (req, res) => {
 
     // Update the default quotation's note to be the latest used note
     if (note !== undefined) {
-      await db.pool.query("UPDATE tbl_default_quotation SET note = ?", [note || ""]);
+      await db.pool.query("UPDATE tbl_default_quotation SET note = ? WHERE is_used = 1", [note || ""]);
     }
 
     res.status(201).json({ message: "Quotation created", quotation_no });
@@ -388,7 +394,7 @@ const updateQuotationByQuotationNo = asyncHandler(async (req, res) => {
 
     // Update the default quotation's note to be the latest used note
     if (note !== undefined) {
-      await db.pool.query("UPDATE tbl_default_quotation SET note = ?", [note || ""]);
+      await db.pool.query("UPDATE tbl_default_quotation SET note = ? WHERE is_used = 1", [note || ""]);
     }
 
     res.json({ message: "Quotation updated successfully" });

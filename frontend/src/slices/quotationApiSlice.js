@@ -41,7 +41,7 @@ export const quotationApiSlice = apiSlice.injectEndpoints({
         method: "POST",
         body: data,
       }),
-      invalidatesTags: ["Quotations"],
+      invalidatesTags: ["Quotations", "DefaultQuotations"],
     }),
 
     // Update existing  quotation
@@ -71,7 +71,7 @@ export const quotationApiSlice = apiSlice.injectEndpoints({
         method: "PUT",
         body: data,
       }),
-      invalidatesTags: ["Quotations"],
+      invalidatesTags: ["Quotations", "DefaultQuotations"],
     }),
 
     // Update "use" status of  quotation
