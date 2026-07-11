@@ -184,10 +184,39 @@ const InvoiceListEditScreen = () => {
     <div className="py-4 md:py-8 px-4 sm:px-6 lg:px-8 bg-slate-50 min-h-screen font-sans relative">
       {downloadingId && (
         <div
-          className="fixed inset-0 bg-white bg-opacity-75 flex justify-center items-center"
-          style={{ zIndex: 9999 }}
+          style={{
+            position: 'fixed', top: 0, left: 0,
+            width: '100vw', height: '100vh',
+            background: 'rgba(15, 23, 42, 0.65)',
+            backdropFilter: 'blur(4px)',
+            zIndex: 99999,
+            display: 'flex', flexDirection: 'column',
+            alignItems: 'center', justifyContent: 'center', gap: '20px'
+          }}
         >
-          <Loader />
+          <div style={{
+            background: 'white', borderRadius: '20px',
+            padding: '40px 56px',
+            display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '20px',
+            boxShadow: '0 25px 60px rgba(0,0,0,0.3)'
+          }}>
+            <div style={{
+              width: '56px', height: '56px',
+              border: '5px solid #e2e8f0',
+              borderTop: '5px solid #e11d48',
+              borderRadius: '50%',
+              animation: 'spin 0.8s linear infinite'
+            }} />
+            <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+            <div style={{ textAlign: 'center' }}>
+              <div style={{ fontWeight: 800, fontSize: '18px', color: '#1e293b', marginBottom: '6px' }}>
+                กำลังดาวน์โหลด PDF...
+              </div>
+              <div style={{ fontSize: '13px', color: '#64748b', fontWeight: 500 }}>
+                กรุณารอสักครู่
+              </div>
+            </div>
+          </div>
         </div>
       )}
       <div className="max-w-7xl mx-auto space-y-6">
