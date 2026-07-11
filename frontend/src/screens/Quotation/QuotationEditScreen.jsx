@@ -405,7 +405,7 @@ const QuotationEditScreen = () => {
     }
   };
 
-  const isLoadingAll = isLoadingData || isLoadingUpload || isLoadingUpdate;
+  const isLoadingAll = isLoadingData || isLoadingUpload || isLoadingUpdate || isSaving;
 
   if (isLoadingData) {
     return <Loader />;
@@ -414,10 +414,10 @@ const QuotationEditScreen = () => {
   return (
     <Container fluid className="py-4 font-prompt bg-light min-vh-100">
       {/* Full-screen saving overlay */}
-      {isSaving && (
+      {isLoadingAll && (
         <div
           style={{
-            position: 'fixed', top: 0, left: 0, width: '100%', height: '100%',
+            position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh',
             background: 'rgba(15, 23, 42, 0.65)',
             backdropFilter: 'blur(4px)',
             zIndex: 99999,
