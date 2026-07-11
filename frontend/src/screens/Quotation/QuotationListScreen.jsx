@@ -11,6 +11,7 @@ import {
   FaFilter,
   FaSync,
   FaEye,
+  FaDownload,
 } from "react-icons/fa";
 import { toast } from "react-toastify";
 import { Link, useNavigate } from "react-router-dom";
@@ -49,6 +50,38 @@ const QuotationListScreen = () => {
       `${window.location.protocol}//${window.location.host}`;
     const url = pdfPath.startsWith("http") ? pdfPath : `${baseUrl}${pdfPath}`;
     window.open(url, "_blank");
+  };
+
+  const handleDownloadPdf = async (pdfPath, filename) => {
+    if (!pdfPath) {
+      toast.info("ยังไม่มีไฟล์ PDF สำหรับใบเสนอราคานี้ กรุณากดเข้าไปแก้ไข (Edit) แล้วกด Update เพื่อสร้าง PDF");
+      return;
+    }
+    try {
+      const baseUrl =
+        process.env.REACT_APP_BASE_URL ||
+        `${window.location.protocol}//${window.location.host}`;
+      const url = pdfPath.startsWith("http") ? pdfPath : `${baseUrl}${pdfPath}`;
+      
+      const response = await fetch(url);
+      if (!response.ok) throw new Error("Network response was not ok");
+      const blob = await response.blob();
+      const blobUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = blobUrl;
+      link.download = filename || "quotation.pdf";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(blobUrl);
+    } catch (err) {
+      console.error("Download failed:", err);
+      const baseUrl =
+        process.env.REACT_APP_BASE_URL ||
+        `${window.location.protocol}//${window.location.host}`;
+      const url = pdfPath.startsWith("http") ? pdfPath : `${baseUrl}${pdfPath}`;
+      window.open(url, "_blank");
+    }
   };
 
   const confirmDelete = (quotation) => {
@@ -364,14 +397,13 @@ const QuotationListScreen = () => {
                             </button>
                           </Link>
 
-                          <Link
-                            to={`/admin/customers/selectedcustomer/${q.id}/set`}
-                            title="Duplicate / Create New"
+                          <button
+                            className="w-9 h-9 flex items-center justify-center rounded-full transition-colors shadow-sm focus:outline-none bg-amber-100 text-amber-700 hover:bg-amber-500 hover:text-white"
+                            onClick={() => handleDownloadPdf(q.quotation_pdf, `${q.quotation_no}.pdf`)}
+                            title="Download PDF"
                           >
-                            <button className="w-9 h-9 flex items-center justify-center bg-amber-100 text-amber-700 hover:bg-amber-500 hover:text-white rounded-full transition-colors shadow-sm">
-                              <FaPlus size={14} />
-                            </button>
-                          </Link>
+                            <FaDownload size={14} />
+                          </button>
                           
                           <button
                             className="w-9 h-9 flex items-center justify-center bg-indigo-100 text-indigo-700 hover:bg-indigo-600 hover:text-white rounded-full transition-colors shadow-sm focus:outline-none"
@@ -478,14 +510,12 @@ const QuotationListScreen = () => {
                     >
                         <FaFileInvoiceDollar /> Convert to Invoice
                     </button>
-                    <Link
-                      to={`/admin/customers/selectedcustomer/${q.id}/set`}
-                      className="flex-1"
+                    <button 
+                      onClick={() => handleDownloadPdf(q.quotation_pdf, `${q.quotation_no}.pdf`)}
+                      className="flex-1 flex justify-center items-center gap-1.5 py-2 rounded-xl text-xs font-bold transition-colors border bg-amber-50 hover:bg-amber-100 text-amber-700 border-amber-200"
                     >
-                      <button className="w-full flex justify-center items-center gap-1.5 py-2 bg-slate-50 hover:bg-slate-100 text-slate-700 rounded-xl text-xs font-bold transition-colors border border-slate-200">
-                        <FaPlus /> Duplicate
-                      </button>
-                    </Link>
+                      <FaDownload /> Download PDF
+                    </button>
                     <Link to={`/admin/quotations/${q.quotation_no}`}>
                       <button className="w-10 h-10 flex justify-center items-center bg-teal-50 hover:bg-teal-100 text-teal-600 rounded-xl transition-colors">
                         <FaEye size={16} />

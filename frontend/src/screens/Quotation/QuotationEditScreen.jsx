@@ -49,7 +49,6 @@ const QuotationEditScreen = () => {
   const [deleteSignature] = useDeleteSignatureMutation();
 
   // --- State ---
-  const [showConfirm, setShowConfirm] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
   const [showAddSignatureModal, setShowAddSignatureModal] = useState(false);
   const [showManageSignatureModal, setShowManageSignatureModal] = useState(false);
@@ -58,6 +57,7 @@ const QuotationEditScreen = () => {
   const [newSigPosition, setNewSigPosition] = useState("");
   const [newSigImage, setNewSigImage] = useState(null);
   const [isUploadingSig, setIsUploadingSig] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   const [note, setNote] = useState("");
   const [internalNote, setInternalNote] = useState("");
@@ -109,7 +109,7 @@ const QuotationEditScreen = () => {
     const summaryData = {
       discount: parseFloat(firstQuotation.discount) || 0,
       vat: parseFloat(firstQuotation.vat) || 0,
-      deposit: firstQuotation.deposit || 50,
+      deposit: firstQuotation.deposit !== undefined && firstQuotation.deposit !== null ? firstQuotation.deposit : 0,
       bank_account_name: firstQuotation.transfer_bank_account_name || "",
       bank_account_number: firstQuotation.transfer_bank_account_number || "",
       company_name: defaultSelected?.company_name || "",
@@ -317,14 +317,10 @@ const QuotationEditScreen = () => {
     }
     const dataUri = pdf.output("datauristring");
     const base64Part = dataUri.split(",")[1];
-
     const payload = {
       pdfBase64: base64Part,
       filename: `${quotation_no}.pdf`
     };
-
-    // Prompt user to download
-    pdf.save(`${quotation_no}.pdf`);
 
     // Use native fetch with credentials for file uploads
     const res = await fetch("/api/quotations/upload/upload-pdf", {
@@ -353,7 +349,6 @@ const QuotationEditScreen = () => {
         due_date,
         submit_price_within,
         number_of_credit_days,
-        signatures: mappedOrder.signatures,
         quotation_pdf: uploadedPDFUrl || null,
         note: mappedOrder.note,
         internal_note: mappedOrder.internal_note,
@@ -374,12 +369,12 @@ const QuotationEditScreen = () => {
           total: grandTotal,
           sub_total: subTotal,
           vat: defaultSummary.vat,
+          deposit: parseFloat(defaultSummary.deposit) || 0,
           note: note,
-  // eslint-disable-next-line no-dupe-keys
-  // eslint-disable-next-line no-dupe-keys
         },
         customer: customerInfo,
         signatures: {
+          ...mappedOrder.signatures,
           sales_person_signature: selectedSalesSignature,
           sales_manager_signature: selectedManagerSignature,
         },
@@ -394,9 +389,8 @@ const QuotationEditScreen = () => {
   };
 
   const handleConfirmUpdate = async () => {
+    setIsSaving(true);
     try {
-      setShowConfirm(false);
-      
       // Force tiny wait so componentRef captures changes correctly
       await new Promise(r => setTimeout(r, 100));
       
@@ -406,6 +400,8 @@ const QuotationEditScreen = () => {
       console.error("Save error:", error);
       const errorMsg = error?.data?.message || error?.data?.error || error?.message || "Failed to save quotation";
       toast.error(typeof errorMsg === 'string' ? errorMsg : "Failed to save quotation");
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -417,12 +413,41 @@ const QuotationEditScreen = () => {
 
   return (
     <Container fluid className="py-4 font-prompt bg-light min-vh-100">
-      {isLoadingAll && (
+      {/* Full-screen saving overlay */}
+      {isSaving && (
         <div
-          className="fixed-top w-100 h-100 bg-white bg-opacity-75 d-flex justify-content-center align-items-center"
-          style={{ zIndex: 9999 }}
+          style={{
+            position: 'fixed', top: 0, left: 0, width: '100%', height: '100%',
+            background: 'rgba(15, 23, 42, 0.65)',
+            backdropFilter: 'blur(4px)',
+            zIndex: 99999,
+            display: 'flex', flexDirection: 'column',
+            alignItems: 'center', justifyContent: 'center', gap: '20px'
+          }}
         >
-          <Loader />
+          <div style={{
+            background: 'white', borderRadius: '20px',
+            padding: '40px 56px',
+            display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '20px',
+            boxShadow: '0 25px 60px rgba(0,0,0,0.3)'
+          }}>
+            <div style={{
+              width: '56px', height: '56px',
+              border: '5px solid #e2e8f0',
+              borderTop: '5px solid #3b82f6',
+              borderRadius: '50%',
+              animation: 'spin 0.8s linear infinite'
+            }} />
+            <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+            <div style={{ textAlign: 'center' }}>
+              <div style={{ fontWeight: 800, fontSize: '18px', color: '#1e293b', marginBottom: '6px' }}>
+                กำลังบันทึก...
+              </div>
+              <div style={{ fontSize: '13px', color: '#64748b', fontWeight: 500 }}>
+                กรุณารอสักครู่ ระบบกำลัง generate PDF และบันทึกข้อมูล
+              </div>
+            </div>
+          </div>
         </div>
       )}
 
@@ -456,7 +481,7 @@ const QuotationEditScreen = () => {
             <Button
               variant="primary"
               className="flex-fill fw-bold shadow-sm"
-              onClick={() => setShowConfirm(true)}
+              onClick={handleConfirmUpdate}
             >
               <FaSave className="me-2" />
               Update Quotation
@@ -835,32 +860,12 @@ const QuotationEditScreen = () => {
           <Button variant="secondary" onClick={() => setShowPreview(false)}>
             Close
           </Button>
-          <Button variant="primary" onClick={() => { setShowPreview(false); setShowConfirm(true); }}>
+          <Button variant="primary" onClick={() => { setShowPreview(false); handleConfirmUpdate(); }}>
             Update Quotation
           </Button>
         </Modal.Footer>
       </Modal>
 
-      {/* Confirm Modal */}
-      <Modal show={showConfirm} onHide={() => setShowConfirm(false)} centered>
-        <Modal.Header closeButton>
-          <Modal.Title className="fw-bold text-primary">
-            <FaEdit className="me-2" />
-            Confirm Update
-          </Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          Are you sure you want to update this quotation? This will regenerate the PDF.
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="light" onClick={() => setShowConfirm(false)}>
-            Cancel
-          </Button>
-          <Button variant="primary" onClick={handleConfirmUpdate}>
-            Yes, Update
-          </Button>
-        </Modal.Footer>
-      </Modal>
 
       {/* Add Signature Modal */}
       <Modal show={showAddSignatureModal} onHide={() => setShowAddSignatureModal(false)} centered>

@@ -188,13 +188,13 @@ const createQuotation = asyncHandler(async (req, res) => {
           customer_name, customer_present_name, customer_address, customer_vat,
           quotation_no, date, due_date, submit_price_within, number_of_credit_days,
           product_id, product_detail, quantity, unit, unit_price, amount_money,
-          discount, total_amount_after_discount, total, vat, grand_total,
+          discount, total_amount_after_discount, total, vat, grand_total, deposit,
           transfer_bank_account_name, transfer_bank_account_number,
           buyer_approves_signature, buyer_approves_signature_date,
           sales_person_signature, sales_person_signature_date,
           sales_manager_signature, sales_manager_signature_date,
           branch_name, quotation_pdf, note, internal_note, internal_contact_name, internal_contact_phone, created_at, updated_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
           customer.customer_name || null,
           customer.customer_present_name || null,
@@ -216,6 +216,7 @@ const createQuotation = asyncHandler(async (req, res) => {
           summary.total || 0,
           summary.vat || 0,
           summary.total || 0, // grand_total
+          summary.deposit || 0,
           summary.bank_account_name || null,
           summary.bank_account_number || null,
           signatures.buyer || "",
@@ -329,6 +330,7 @@ const updateQuotationByQuotationNo = asyncHandler(async (req, res) => {
           summary.total || 0,
           summary.vat || 0,
           summary.grand_total || 0,
+          summary.deposit || 0,
           summary.bank_account_name || null,
           summary.bank_account_number || null,
           signatures?.buyer || signatures?.buyer_approves_signature || null,
@@ -369,6 +371,7 @@ const updateQuotationByQuotationNo = asyncHandler(async (req, res) => {
             total,
             vat,
             grand_total,
+            deposit,
             transfer_bank_account_name,
             transfer_bank_account_number,
             buyer_approves_signature,
@@ -385,7 +388,7 @@ const updateQuotationByQuotationNo = asyncHandler(async (req, res) => {
             internal_contact_phone,
             created_at,
             updated_at
-          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
           queryParams
         );
       });

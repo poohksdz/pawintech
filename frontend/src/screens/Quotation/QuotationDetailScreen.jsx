@@ -52,7 +52,7 @@ const QuotationDetailScreen = () => {
     setDefaultSummary({
       discount: parseFloat(firstQuotation.discount) || 0,
       vat: parseFloat(firstQuotation.vat) || 0,
-      deposit: firstQuotation.deposit || 50,
+      deposit: firstQuotation.deposit !== undefined && firstQuotation.deposit !== null ? firstQuotation.deposit : 0,
       bank_account_name: firstQuotation.transfer_bank_account_name || "",
       bank_account_number: firstQuotation.transfer_bank_account_number || "",
     });
@@ -84,7 +84,7 @@ const QuotationDetailScreen = () => {
         tax_id: defaultSelected.tax_id || "",
         bank_account_number: defaultSelected.bank_account_number || prev.bank_account_number,
         bank_account_name: defaultSelected.bank_account_name || prev.bank_account_name,
-        deposit: defaultSelected.deposit || prev.deposit || 50,
+        deposit: prev.deposit !== undefined && prev.deposit !== null ? prev.deposit : (defaultSelected.deposit !== undefined && defaultSelected.deposit !== null ? defaultSelected.deposit : 0),
       }));
     }
   }, [defaultData, defaultSelected]);
