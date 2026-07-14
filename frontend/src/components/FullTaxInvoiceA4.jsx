@@ -23,6 +23,12 @@ const FullTaxInvoiceA4 = ({ order, companyInfo, printMode, isQuotation = false, 
         status: ""
     };
 
+    // Hide signature images whose files no longer exist on the server so the
+    // printed/PDF document shows an empty signature line instead of a broken icon.
+    const hideBrokenImage = (e) => {
+        e.target.style.display = "none";
+    };
+
     const currentOrder = order || defaultOrder;
     const items = currentOrder.orderItems || currentOrder.items || [];
     const status = currentOrder.status || "";
@@ -148,6 +154,7 @@ const FullTaxInvoiceA4 = ({ order, companyInfo, printMode, isQuotation = false, 
     const companyPhone = companyInfo?.tel || companyInfo?.phone || "099-226-3277";
     const companyEmail = companyInfo?.email || "contact@pawin-tech.com";
     const companyTaxId = companyInfo?.tax_id || companyInfo?.taxId || "0105562141221";
+    // eslint-disable-next-line no-unused-vars
     const companyLogo = companyInfo?.logo || "/image/Pawin_Logo_long.png";
 
     return (
@@ -399,9 +406,9 @@ const FullTaxInvoiceA4 = ({ order, companyInfo, printMode, isQuotation = false, 
                                 <p className="font-bold mb-1">ผู้สั่งซื้อ / Buyer Approves</p>
                                 <div className="flex-1 flex items-center justify-center w-full">
                                     {slotSignatures?.quoBuyer ? (
-                                        <img src={slotSignatures.quoBuyer} alt="Buyer Signature" className="max-h-16 object-contain" />
+                                        <img src={slotSignatures.quoBuyer} alt="Buyer Signature" className="max-h-16 object-contain" onError={hideBrokenImage} />
                                     ) : currentOrder.signatures?.buyer ? (
-                                        <img src={currentOrder.signatures.buyer} alt="Buyer Signature" className="max-h-16 object-contain" />
+                                        <img src={currentOrder.signatures.buyer} alt="Buyer Signature" className="max-h-16 object-contain" onError={hideBrokenImage} />
                                     ) : (
                                         <div className="h-10"></div>
                                     )}
@@ -415,9 +422,9 @@ const FullTaxInvoiceA4 = ({ order, companyInfo, printMode, isQuotation = false, 
                                 <p className="font-bold mb-1">ผู้เสนอราคา / Sales Person</p>
                                 <div className="flex-1 flex items-center justify-center w-full">
                                     {slotSignatures?.quoSales ? (
-                                        <img src={slotSignatures.quoSales} alt="Sales Signature" className="max-h-16 object-contain" />
+                                        <img src={slotSignatures.quoSales} alt="Sales Signature" className="max-h-16 object-contain" onError={hideBrokenImage} />
                                     ) : currentOrder.signatures?.sales ? (
-                                        <img src={currentOrder.signatures.sales} alt="Sales Signature" className="max-h-16 object-contain" />
+                                        <img src={currentOrder.signatures.sales} alt="Sales Signature" className="max-h-16 object-contain" onError={hideBrokenImage} />
                                     ) : (
                                         <div className="h-10"></div>
                                     )}
@@ -431,9 +438,9 @@ const FullTaxInvoiceA4 = ({ order, companyInfo, printMode, isQuotation = false, 
                                 <p className="font-bold mb-1">ผู้อนุมัติ / Sales Manager</p>
                                 <div className="flex-1 flex items-center justify-center w-full">
                                     {slotSignatures?.quoManager ? (
-                                        <img src={slotSignatures.quoManager} alt="Manager Signature" className="max-h-16 object-contain" />
+                                        <img src={slotSignatures.quoManager} alt="Manager Signature" className="max-h-16 object-contain" onError={hideBrokenImage} />
                                     ) : currentOrder.signatures?.manager ? (
-                                        <img src={currentOrder.signatures.manager} alt="Manager Signature" className="max-h-16 object-contain" />
+                                        <img src={currentOrder.signatures.manager} alt="Manager Signature" className="max-h-16 object-contain" onError={hideBrokenImage} />
                                     ) : (
                                         <div className="h-10"></div>
                                     )}
@@ -449,9 +456,9 @@ const FullTaxInvoiceA4 = ({ order, companyInfo, printMode, isQuotation = false, 
                             <div className="border border-black flex flex-col items-center p-2 text-center relative h-full">
                                 <div className="flex-1 flex items-center justify-center w-full">
                                     {slotSignatures?.buyer ? (
-                                        <img src={slotSignatures.buyer} alt="Buyer Signature" className="max-h-16 object-contain" />
+                                        <img src={slotSignatures.buyer} alt="Buyer Signature" className="max-h-16 object-contain" onError={hideBrokenImage} />
                                     ) : currentOrder.signatures?.buyer ? (
-                                        <img src={currentOrder.signatures.buyer} alt="Buyer Signature" className="max-h-16 object-contain" />
+                                        <img src={currentOrder.signatures.buyer} alt="Buyer Signature" className="max-h-16 object-contain" onError={hideBrokenImage} />
                                     ) : (
                                         <div className="h-12"></div>
                                     )}
@@ -464,9 +471,9 @@ const FullTaxInvoiceA4 = ({ order, companyInfo, printMode, isQuotation = false, 
                             <div className="border-y border-r border-black flex flex-col items-center p-2 text-center relative h-full">
                                 <div className="flex-1 flex items-center justify-center w-full">
                                     {slotSignatures?.cashier ? (
-                                        <img src={slotSignatures.cashier} alt="Cashier Signature" className="max-h-16 object-contain" />
+                                        <img src={slotSignatures.cashier} alt="Cashier Signature" className="max-h-16 object-contain" onError={hideBrokenImage} />
                                     ) : currentOrder.signatures?.sales ? (
-                                        <img src={currentOrder.signatures.sales} alt="Sales Signature" className="max-h-16 object-contain" />
+                                        <img src={currentOrder.signatures.sales} alt="Sales Signature" className="max-h-16 object-contain" onError={hideBrokenImage} />
                                     ) : (
                                         <div className="h-12"></div>
                                     )}
@@ -480,9 +487,9 @@ const FullTaxInvoiceA4 = ({ order, companyInfo, printMode, isQuotation = false, 
                                 <p className="leading-tight m-0 font-black text-[10px] uppercase px-1">ในนาม {companyNameEN}</p>
                                 <div className="flex-1 flex items-center justify-center w-full">
                                     {slotSignatures?.manager ? (
-                                        <img src={slotSignatures.manager} alt="Manager Signature" className="max-h-16 object-contain" />
+                                        <img src={slotSignatures.manager} alt="Manager Signature" className="max-h-16 object-contain" onError={hideBrokenImage} />
                                     ) : currentOrder.signatures?.manager ? (
-                                        <img src={currentOrder.signatures.manager} alt="Manager Signature" className="max-h-16 object-contain" />
+                                        <img src={currentOrder.signatures.manager} alt="Manager Signature" className="max-h-16 object-contain" onError={hideBrokenImage} />
                                     ) : (
                                         <div className="h-10"></div>
                                     )}
@@ -495,9 +502,9 @@ const FullTaxInvoiceA4 = ({ order, companyInfo, printMode, isQuotation = false, 
                             <div className="border-y border-r border-black flex flex-col items-center p-2 text-center relative h-full">
                                 <div className="flex-1 flex items-center justify-center w-full">
                                     {slotSignatures?.sender ? (
-                                        <img src={slotSignatures.sender} alt="Sender Signature" className="max-h-16 object-contain" />
+                                        <img src={slotSignatures.sender} alt="Sender Signature" className="max-h-16 object-contain" onError={hideBrokenImage} />
                                     ) : currentOrder.signatures?.sender ? (
-                                        <img src={currentOrder.signatures.sender} alt="Sender Signature" className="max-h-16 object-contain" />
+                                        <img src={currentOrder.signatures.sender} alt="Sender Signature" className="max-h-16 object-contain" onError={hideBrokenImage} />
                                     ) : (
                                         <div className="h-12"></div>
                                     )}

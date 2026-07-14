@@ -137,6 +137,14 @@ const createQuotation = asyncHandler(async (req, res) => {
       internal_contact_phone,
     } = req.body;
 
+    // Guard: without this, an empty items array used to return 201 with a
+    // quotation_no that was never inserted, so the follow-up PUT got 404.
+    if (!Array.isArray(items) || items.length === 0) {
+      return res
+        .status(400)
+        .json({ message: "At least one item is required" });
+    }
+
     // Convert Thai date string "DD / MM / YYYY" to MySQL date "YYYY-MM-DD"
     function thaiDateToMySQL(thaiDateStr) {
       if (!thaiDateStr) return new Date().toISOString().slice(0, 10);
@@ -145,7 +153,10 @@ const createQuotation = asyncHandler(async (req, res) => {
         return new Date(thaiDateStr).toISOString().slice(0, 10);
       }
       const [day, month, year] = parts;
-      const gregorianYear = parseInt(year, 10); 
+      let gregorianYear = parseInt(year, 10);
+      // Frontend sends Buddhist Era years (e.g. 2569). Store Gregorian in
+      // MySQL, otherwise th-TH display adds 543 again and shows 3112.
+      if (gregorianYear > 2200) gregorianYear -= 543;
       return `${gregorianYear}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
     }
 
@@ -272,6 +283,13 @@ const updateQuotationByQuotationNo = asyncHandler(async (req, res) => {
 
   console.log(req.body);
 
+  // Guard: this handler replaces rows via delete-then-insert, so an empty
+  // items array would silently wipe the whole quotation.
+  if (!Array.isArray(items) || items.length === 0) {
+    return res.status(400).json({ message: "At least one item is required" });
+  }
+
+  let conn;
   try {
     // 1. Check if quotation exists
     //  Fixed: changed connection -> db
@@ -291,16 +309,23 @@ const updateQuotationByQuotationNo = asyncHandler(async (req, res) => {
         return new Date(thaiDateStr).toISOString().slice(0, 10);
       }
       const [day, month, year] = parts;
-      const gregorianYear = parseInt(year, 10); 
+      let gregorianYear = parseInt(year, 10); 
+      // Frontend sends Buddhist Era years (e.g. 2569). Store Gregorian in
+      // MySQL, otherwise th-TH display adds 543 again and shows 3112.
+      if (gregorianYear > 2200) gregorianYear -= 543;
       return `${gregorianYear}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
     }
 
     // Inside your try block, before inserting:
     const mysqlDate = thaiDateToMySQL(date);
 
+    // 2+3 run inside a transaction: delete-then-insert must be atomic or a
+    // failed insert leaves the quotation deleted (later requests then 404).
+    conn = await db.pool.getConnection();
+    await conn.beginTransaction();
+
     // 2. Delete old quotation rows
-    //  Fixed: changed connection -> db
-    await db.pool.query("DELETE FROM tbl_quotations WHERE quotation_no = ?", [
+    await conn.query("DELETE FROM tbl_quotations WHERE quotation_no = ?", [
       quotation_no,
     ]);
 
@@ -349,7 +374,7 @@ const updateQuotationByQuotationNo = asyncHandler(async (req, res) => {
           updatedAt,
         ].map(p => typeof p === 'undefined' ? null : p);
 
-        return db.pool.query(
+        return conn.query(
           `INSERT INTO tbl_quotations (
             quotation_no,
             customer_name,
@@ -394,6 +419,7 @@ const updateQuotationByQuotationNo = asyncHandler(async (req, res) => {
       });
 
     await Promise.all(insertPromises);
+    await conn.commit();
 
     // Update the default quotation's note to be the latest used note
     if (note !== undefined) {
@@ -402,8 +428,13 @@ const updateQuotationByQuotationNo = asyncHandler(async (req, res) => {
 
     res.json({ message: "Quotation updated successfully" });
   } catch (error) {
+    if (conn) {
+      try { await conn.rollback(); } catch (_) {}
+    }
     console.error(`Error updating quotation: ${error.message}`);
     res.status(500).json({ message: "Error updating quotation" });
+  } finally {
+    if (conn) conn.release();
   }
 });
 

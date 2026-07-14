@@ -802,13 +802,11 @@ const ProductScreen = () => {
                           {/* Review Images - รูปอยู่ด้านล่าง */}
                           {review.images && review.images.length > 0 && (
                             <div className="flex gap-3 overflow-x-auto pb-2">
-  // eslint-disable-next-line jsx-a11y/img-redundant-alt
-  // eslint-disable-next-line jsx-a11y/img-redundant-alt
                               {review.images.map((img, imgIndex) => (
                                 <img
                                   key={imgIndex}
                                   src={img}
-                                  alt={`Review image ${imgIndex + 1}`}
+                                  alt={`Review ${imgIndex + 1}`}
                                   className="w-24 h-24 object-cover rounded-xl shadow-sm flex-shrink-0 hover:shadow-md transition-shadow cursor-pointer"
                                 />
                               ))}

@@ -45,6 +45,7 @@ const QuotationSetSelectedCustomerScreen = () => {
   const handleCloseConfirm = () => setShowConfirm(false);
 
   const [showPreview, setShowPreview] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   const [quotationNumber, setQuotationNumber] = useState("");
   const [due_date, setdue_date] = useState("");
@@ -88,7 +89,7 @@ const QuotationSetSelectedCustomerScreen = () => {
       const summaryData = {
         discount: parseFloat(defaultSelected.discount) || 0,
         vat: parseFloat(defaultSelected.vat) || 7,
-        deposit: parseFloat(defaultSelected.deposit) || 0,
+        deposit: 0, // เงินมัดจำเริ่มต้นที่ 0 เสมอ ไม่ดึงจาก template
         company_name: defaultSelected.company_name || "",
         company_name_thai: defaultSelected.company_name_thai || "",
         head_office: defaultSelected.head_office || "",
@@ -301,6 +302,7 @@ const QuotationSetSelectedCustomerScreen = () => {
   };
 
   const handleCreateQuotation = async () => {
+    setIsSaving(true);
     try {
       // Create first to get the ID and Number
       const payload = {
@@ -339,6 +341,8 @@ const QuotationSetSelectedCustomerScreen = () => {
       navigate("/admin/quotations");
     } catch (error) {
       toast.error(error?.data?.message || "Failed to create quotation.");
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -347,17 +351,57 @@ const QuotationSetSelectedCustomerScreen = () => {
     handleCloseConfirm();
   };
   
+  const isPageLoading = isLoading || isLoadingData || isLoadingNextNo;
   const isLoadingAll =
-    isLoading || isLoadingCreate || isLoadingUpload || isLoadingUpdate || isLoadingData || isLoadingNextNo;
+    isLoadingCreate || isLoadingUpload || isLoadingUpdate || isSaving;
 
   return (
     <Container fluid className="py-4 font-prompt bg-light min-vh-100">
-      {isLoadingAll && (
+      {/* Initial data loading */}
+      {isPageLoading && !isLoadingAll && (
         <div
           className="fixed-top w-100 h-100 bg-white bg-opacity-75 d-flex justify-content-center align-items-center"
           style={{ zIndex: 9999 }}
         >
           <Loader />
+        </div>
+      )}
+
+      {/* Full-screen saving overlay (covers create + PDF generation + upload) */}
+      {isLoadingAll && (
+        <div
+          style={{
+            position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh',
+            background: 'rgba(15, 23, 42, 0.65)',
+            backdropFilter: 'blur(4px)',
+            zIndex: 99999,
+            display: 'flex', flexDirection: 'column',
+            alignItems: 'center', justifyContent: 'center', gap: '20px'
+          }}
+        >
+          <div style={{
+            background: 'white', borderRadius: '20px',
+            padding: '40px 56px',
+            display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '20px',
+            boxShadow: '0 25px 60px rgba(0,0,0,0.3)'
+          }}>
+            <div style={{
+              width: '56px', height: '56px',
+              border: '5px solid #e2e8f0',
+              borderTop: '5px solid #3b82f6',
+              borderRadius: '50%',
+              animation: 'spin 0.8s linear infinite'
+            }} />
+            <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+            <div style={{ textAlign: 'center' }}>
+              <div style={{ fontWeight: 800, fontSize: '18px', color: '#1e293b', marginBottom: '6px' }}>
+                กำลังบันทึก...
+              </div>
+              <div style={{ fontSize: '13px', color: '#64748b', fontWeight: 500 }}>
+                กรุณารอสักครู่ ระบบกำลัง generate PDF และบันทึกข้อมูล
+              </div>
+            </div>
+          </div>
         </div>
       )}
 

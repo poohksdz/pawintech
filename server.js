@@ -232,6 +232,37 @@ staticFolders.forEach((folder) => {
   app.use(`/${folder}`, express.static(path.join(rootPath, folder)));
 });
 
+// Dev-only fallback: files referenced by the shared remote DB (signatures,
+// uploaded images) live on the production server, not on this machine.
+// When a static file is missing locally, stream it from production instead
+// of returning 404. Never enabled in production (would proxy to itself).
+if (process.env.NODE_ENV !== "production") {
+  const https = require("https");
+  const REMOTE_ASSET_BASE =
+    process.env.REMOTE_ASSET_BASE || "https://pawintech.com";
+  const remoteAssetFallback = (prefix) => (req, res, next) => {
+    if (req.method !== "GET" && req.method !== "HEAD") return next();
+    const remoteUrl = `${REMOTE_ASSET_BASE}${prefix}${req.path}`;
+    https
+      .get(remoteUrl, (proxied) => {
+        const contentType = proxied.headers["content-type"] || "";
+        // Production is an SPA that answers 200 text/html for missing files —
+        // never relay that as if it were the asset.
+        if (proxied.statusCode !== 200 || contentType.includes("text/html")) {
+          proxied.resume();
+          return next();
+        }
+        res.setHeader("Content-Type", contentType || "application/octet-stream");
+        proxied.pipe(res);
+      })
+      .on("error", () => next());
+  };
+  app.use("/uploads/signatures", remoteAssetFallback("/uploads/signatures"));
+  staticFolders.forEach((folder) => {
+    app.use(`/${folder}`, remoteAssetFallback(`/${folder}`));
+  });
+}
+
 // All static folders are served with their respective prefixes above.
 // But for legacy compatibility (where DB paths might lack prefixes), 
 // we also serve them at the root level.

@@ -126,7 +126,10 @@ const createInvoice = asyncHandler(async (req, res) => {
         return new Date(thaiDateStr).toISOString().slice(0, 10);
       }
       const [day, month, year] = parts;
-      const gregorianYear = parseInt(year, 10); 
+      let gregorianYear = parseInt(year, 10); 
+      // Frontend sends Buddhist Era years (e.g. 2569). Store Gregorian in
+      // MySQL, otherwise th-TH display adds 543 again and shows 3112.
+      if (gregorianYear > 2200) gregorianYear -= 543;
       return `${gregorianYear}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
     }
 
@@ -268,7 +271,10 @@ const updateInvoiceByInvoiceNo = asyncHandler(async (req, res) => {
         return new Date(thaiDateStr).toISOString().slice(0, 10);
       }
       const [day, month, year] = parts;
-      const gregorianYear = parseInt(year, 10); 
+      let gregorianYear = parseInt(year, 10); 
+      // Frontend sends Buddhist Era years (e.g. 2569). Store Gregorian in
+      // MySQL, otherwise th-TH display adds 543 again and shows 3112.
+      if (gregorianYear > 2200) gregorianYear -= 543;
       return `${gregorianYear}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
     }
 

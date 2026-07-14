@@ -160,9 +160,8 @@ const QuotationEditScreen = () => {
     }
     
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  // eslint-disable-next-line react-hooks/exhaustive-deps
     setRows(mappedRows);
-  }, [quotationData, defaultSelected]);
+  }, [quotationData, defaultSelected, note]);
 
   // --- Handlers ---
   const handleCustomerChange = (field, value) =>
