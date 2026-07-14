@@ -1,17 +1,24 @@
 {
   "files": {
-    "main.css": "/static/css/main.9d7be95a.css",
-    "main.js": "/static/js/main.075230a1.js",
-    "static/js/626.d0ba0299.chunk.js": "/static/js/626.d0ba0299.chunk.js",
-    "static/js/637.51231a57.chunk.js": "/static/js/637.51231a57.chunk.js",
-    "static/js/944.53ef1447.chunk.js": "/static/js/944.53ef1447.chunk.js",
-    "static/js/206.a80894a5.chunk.js": "/static/js/206.a80894a5.chunk.js",
-    "static/js/239.f7edf2df.chunk.js": "/static/js/239.f7edf2df.chunk.js",
+    "main.css": "/static/css/main.ba1677af.css",
+    "main.js": "/static/js/main.d0b5f4f1.js",
+    "static/js/805.7c83e3e7.chunk.js": "/static/js/805.7c83e3e7.chunk.js",
+    "static/js/600.3faf0d92.chunk.js": "/static/js/600.3faf0d92.chunk.js",
+    "static/js/519.3a397366.chunk.js": "/static/js/519.3a397366.chunk.js",
+    "static/js/453.03346f77.chunk.js": "/static/js/453.03346f77.chunk.js",
+    "static/js/455.d1fdfc4d.chunk.js": "/static/js/455.d1fdfc4d.chunk.js",
     "static/media/pawintech_location.png": "/static/media/pawintech_location.c1b4e90f40b601834b56.png",
-    "index.html": "/index.html"
+    "index.html": "/index.html",
+    "main.ba1677af.css.map": "/static/css/main.ba1677af.css.map",
+    "main.d0b5f4f1.js.map": "/static/js/main.d0b5f4f1.js.map",
+    "805.7c83e3e7.chunk.js.map": "/static/js/805.7c83e3e7.chunk.js.map",
+    "600.3faf0d92.chunk.js.map": "/static/js/600.3faf0d92.chunk.js.map",
+    "519.3a397366.chunk.js.map": "/static/js/519.3a397366.chunk.js.map",
+    "453.03346f77.chunk.js.map": "/static/js/453.03346f77.chunk.js.map",
+    "455.d1fdfc4d.chunk.js.map": "/static/js/455.d1fdfc4d.chunk.js.map"
   },
   "entrypoints": [
-    "static/css/main.9d7be95a.css",
-    "static/js/main.075230a1.js"
+    "static/css/main.ba1677af.css",
+    "static/js/main.d0b5f4f1.js"
   ]
 }
