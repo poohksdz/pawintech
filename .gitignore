@@ -40,6 +40,9 @@ folios/
 gerbers/
 image/
 images/
+# ...but keep small static assets referenced by the frontend in the repo
+!frontend/public/image/
+!frontend/public/images/
 manuals/
 paymentSlipImages/
 quotationimages/
